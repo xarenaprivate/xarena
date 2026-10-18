@@ -44,14 +44,51 @@ object Api {
             .putString("uid", uid).apply()
     }
 
+    /** Same rule as the website's normPhone(): 10 digits -> "91"+digits, or already 91XXXXXXXXXX. */
+    private fun normPhone(v: String): String? {
+        val d = v.filter { it.isDigit() }
+        if (Regex("^[0-9]{10}$").matches(d)) return "91" + d
+        if (Regex("^91[0-9]{10}$").matches(d)) return d
+        return null
+    }
+
     suspend fun login(identifier: String, password: String) = withContext(Dispatchers.IO) {
         val id = identifier.trim()
-        val digits = id.filter { it.isDigit() }
-        val email = if (id.contains("@")) id else if (digits.length >= 10) "p" + digits.takeLast(10) + "@phone.xarena" else throw ApiError("Enter your 10-digit phone number or email.")
+        val email = if (id.contains("@")) id else {
+            val ph = normPhone(id) ?: throw ApiError("Enter your 10-digit phone number or email.")
+            "p$ph@phone.xarena"
+        }
         val (code, text) = call("POST", "/auth/v1/token?grant_type=password",
             JSONObject().put("email", email).put("password", password), null)
         if (code !in 200..299) throw ApiError(if (code == 400) "Wrong phone/email or password." else "Login failed ($code).")
         saveSession(JSONObject(text))
+    }
+
+    /** Phone signup identical to the site: phone_available check, then Supabase signup with phone metadata. */
+    suspend fun signup(phone: String, password: String) = withContext(Dispatchers.IO) {
+        val ph = normPhone(phone) ?: throw ApiError("Phone number must be 10 digits.")
+        val (c1, t1) = call("POST", "/rest/v1/rpc/phone_available", JSONObject().put("p_phone", ph), null)
+        if (c1 !in 200..299) throw ApiError("Could not check right now. Try again.")
+        val chk = JSONObject(t1)
+        if (!chk.optBoolean("ok")) throw ApiError(chk.optString("error").ifBlank { "Could not check right now. Try again." })
+        if (!chk.optBoolean("available")) throw ApiError("An account already exists with this number. Please log in.")
+        val (c2, t2) = call("POST", "/auth/v1/signup",
+            JSONObject().put("email", "p$ph@phone.xarena").put("password", password)
+                .put("data", JSONObject().put("phone", ph)), null)
+        if (c2 !in 200..299) {
+            val msg = try { JSONObject(t2).optString("msg").ifBlank { JSONObject(t2).optString("message") } } catch (e: Exception) { "" }
+            throw ApiError(if (msg.isNotBlank()) msg else "Signup failed ($c2).")
+        }
+        val j = JSONObject(t2)
+        if (j.has("access_token")) saveSession(j)
+        else throw ApiError("Account created. Please log in.")
+    }
+
+    /** One-time profile setup (same RPC the site's account page uses). */
+    suspend fun completeProfile(username: String, ign: String, ffUid: String) = withContext(Dispatchers.IO) {
+        val r = JSONObject(authed("POST", "/rest/v1/rpc/complete_profile",
+            JSONObject().put("p_username", username.trim()).put("p_ign", ign.trim()).put("p_ff_uid", ffUid.trim())))
+        if (!r.optBoolean("ok")) throw ApiError(r.optString("error").ifBlank { "Could not save. Try again." })
     }
 
     private fun refresh(): Boolean {
@@ -83,9 +120,17 @@ object Api {
         JSONObject(text)
     }
 
+    /** True when the account has no real profile yet (site shows the complete-profile form in that case). */
+    suspend fun needsProfileSetup(): Boolean = withContext(Dispatchers.IO) {
+        val u = uid ?: return@withContext false
+        val arr = JSONArray(authed("GET", "/rest/v1/profiles?id=eq.$u&select=username", null))
+        if (arr.length() == 0) return@withContext true
+        Regex("^user[0-9a-f]{8}$").matches(arr.getJSONObject(0).optString("username"))
+    }
+
     suspend fun myProfile(): JSONObject? = withContext(Dispatchers.IO) {
         val u = uid ?: return@withContext null
-        val arr = JSONArray(authed("GET", "/rest/v1/profiles?id=eq.$u&select=username,ign,ff_uid,verified,role,ff_rank,matches,wins", null))
+        val arr = JSONArray(authed("GET", "/rest/v1/profiles?id=eq.$u&select=username,ign,ff_uid,verified,role,ff_rank,matches,wins,phone,phone_verified,phone_code", null))
         if (arr.length() > 0) arr.getJSONObject(0) else null
     }
 
