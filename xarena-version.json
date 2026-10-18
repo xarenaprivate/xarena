@@ -1,17 +1,17 @@
 {
-  "version": "7.12.0",
-  "versionName": "7.12.0",
-  "versionCode": 75,
-  "code": 75,
-  "size": 2231268,
-  "sha256": "77d865c3b4c8529d762f4caa45f57a9ebbbd5d78b415ada51cf8e272cdf4692e",
+  "version": "7.13.0",
+  "versionName": "7.13.0",
+  "versionCode": 76,
+  "code": 76,
+  "size": 2243781,
+  "sha256": "c1eec252e8db23c65caaecefc7c3dc149b73401af8625e69a99298da0443e4c3",
   "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
-  "updated": "2026-10-18T09:55:45.554506+00:00",
+  "updated": "2026-10-18T10:00:14.925324+00:00",
   "released": "October 18, 2026",
-  "notes": "Live page for real streams + downloadable certificates for verified players.",
+  "notes": "Training Academy + Luna Cast AI commentary on the Live page.",
   "changes": [
-    "Live page - real streams and the match schedule in one place",
-    "Certificates - download yours after a verified tournament",
-    "Settings & Fan Voting (from v7.11)"
+    "Training Academy - real drills for aim, movement, rotation and squad play",
+    "Luna Cast - Luna commentates the real match schedule on the Live page",
+    "Live page + Certificates (from v7.12)"
   ]
 }
