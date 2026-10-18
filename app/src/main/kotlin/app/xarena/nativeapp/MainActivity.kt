@@ -246,6 +246,13 @@ fun HomeShell(onLogout: () -> Unit) {
         "match" -> { MatchCenterScreen(onBack = { feature = null }); return }
         "settings" -> { SettingsScreen(onBack = { feature = null }, onLogout = onLogout); return }
         "playercard" -> { PlayerCardScreen(onBack = { feature = null }, onOpenConv = { t, p, n -> if (t != null) conv = DmConv(t, p, n, "open", false) else feature = "messages" }); return }
+        "vote" -> { FanVoteScreen(onBack = { feature = null }); return }
+        "streak" -> { StreakScreen(onBack = { feature = null }); return }
+        "certs" -> { CertsScreen(onBack = { feature = null }); return }
+        "academy" -> { AcademyScreen(onBack = { feature = null }); return }
+        "news" -> { NewsScreen(onBack = { feature = null }); return }
+        "rules" -> { RulesScreen(onBack = { feature = null }); return }
+        "notifications" -> { NotificationsScreen(onBack = { feature = null }); return }
     }
     var msgBadge by remember { mutableIntStateOf(0) }
     LaunchedEffect(feature, conv) {
@@ -284,6 +291,13 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         Triple("messages", "Messages", "Private end-to-end encrypted chats"),
         Triple("match", "Match Center", "Rooms, check-in, result proofs, reports"),
         Triple("playercard", "Player Card", "Your card, followers, following"),
+        Triple("vote", "Fan Vote", "Vote in the open poll"),
+        Triple("streak", "Daily Streak", "Check in daily, earn badges"),
+        Triple("certs", "Certificates", "Your real tournament certificates"),
+        Triple("academy", "Academy", "Free Fire training drills"),
+        Triple("news", "News", "Updates and announcements"),
+        Triple("rules", "Rules", "Tournament and squad rules"),
+        Triple("notifications", "Notifications", "Your alerts"),
         Triple("settings", "Settings", "App version, activity status, logout"),
     )
     Column(Modifier.fillMaxSize()) {
