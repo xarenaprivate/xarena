@@ -97,7 +97,7 @@
 .anv-acts{display:flex;flex-direction:column;gap:6px;justify-content:center;padding:8px;min-width:88px}
 .anv-fab{display:block;width:100%;margin-top:6px;background:#2563eb;color:#fff;border:0;border-radius:12px;padding:13px;font-family:var(--font-d);font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer}
 .anv-modal{position:fixed;inset:0;background:rgba(2,4,12,.7);display:flex;align-items:center;justify-content:center;z-index:200;padding:18px}
-.anv-mbox{background:#121a30;border:1px solid rgba(240,180,41,.3);border-radius:16px;padding:18px;width:100%;max-width:420px;max-height:86vh;overflow:auto}
+.anv-mbox{background:linear-gradient(165deg,#241440,#150a2a);border:1px solid rgba(240,180,41,.3);border-radius:16px;padding:18px;width:100%;max-width:420px;max-height:86vh;overflow:auto}
 .anv-mbox h4{margin:0 0 12px;font-family:var(--font-d);font-size:15px;color:#ffd977}
 .anv-f{margin-bottom:10px}
 .anv-f label{display:block;font-size:11px;color:#9aa6d6;letter-spacing:1px;margin-bottom:4px;text-transform:uppercase}
@@ -331,34 +331,63 @@
   function openTournamentModal(t) {
     var isNew = !t;
     t = t || {};
-    modal(isNew ? "Create Tournament" : "Edit Tournament",
-      (isNew ? field("tm-id", "ID (short, e.g. xr-s2)", "text", t.id) : "") +
-      field("tm-name", "Name", "text", t.name) +
-      field("tm-mode", "Mode", "text", t.mode || "Squad BR") +
-      field("tm-status", "Status", "select", t.status || "upcoming", ["upcoming", "live", "done"]) +
-      field("tm-date", "Date text (shown publicly)", "text", t.date_text) +
-      field("tm-prize", "Prize pool text", "text", t.prize) +
-      field("tm-slots", "Squad slots", "number", t.slots || 48) +
-      field("tm-reg", "Registration open", "checkbox", t.reg_open !== false) +
-      field("tm-desc", "Description", "textarea", t.description),
-      function (ok, fail) {
-        var row = {
-          name: val("tm-name").trim(), mode: val("tm-mode").trim(), status: val("tm-status"),
-          date_text: val("tm-date").trim(), prize: val("tm-prize").trim(),
-          slots: parseInt(val("tm-slots"), 10) || 0, reg_open: checked("tm-reg"), description: val("tm-desc").trim()
-        };
-        if (!row.name) return fail("Name is required.");
-        var p;
-        if (isNew) {
-          row.id = val("tm-id").trim();
-          if (!row.id) return fail("ID is required.");
-          p = api().aPost("tournaments", row);
-        } else {
-          p = api().aPatch("tournaments", "id=eq." + encodeURIComponent(t.id), row);
-        }
-        p.then(function () { ok(); refreshTours(); }).catch(function () { fail("Save failed - check the values and try again."); });
-      }, isNew ? "Create" : "Save changes");
+    var fm = (t.format || "").split(" · ");
+    var MODES = ["Classic", "Clash Squad", "Ranked"], SIZES = ["Solo", "Duo", "Squad"];
+    var MAPS = ["Bermuda", "Purgatory", "Kalahari", "Alpine", "NeXTerra"];
+    var curMode = MODES.indexOf(t.mode) >= 0 ? t.mode : "Classic";
+    var curMap = MAPS.indexOf(fm[0]) >= 0 ? fm[0] : "Bermuda";
+    var curSize = SIZES.indexOf(fm[1]) >= 0 ? fm[1] : "Squad";
+    function chips(id, list, cur) {
+      return '<input type="hidden" id="' + id + '" value="' + esc(cur) + '"><div class="tc-chips" data-for="' + id + '">' + list.map(function (o) {
+        return '<button type="button" class="tc-chip' + (o === cur ? " on" : "") + '" data-v="' + esc(o) + '">' + esc(o) + "</button>";
+      }).join("") + "</div>";
+    }
+    var startVal = t.start_at ? new Date(new Date(t.start_at).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "";
+    var html =
+      '<style>.tc-sec{border:1px solid rgba(245,196,81,.35);border-radius:14px;padding:12px;margin-bottom:12px;background:rgba(40,24,70,.55)}.tc-sec h5{margin:-20px 0 10px;text-align:center;font:800 12px Orbitron,sans-serif;color:#f5c451;letter-spacing:2px}.tc-sec h5 span{background:#1b1030;padding:0 8px}.tc-l{font:700 13px Rajdhani,sans-serif;color:#f5c451;margin:8px 0 5px}.tc-chips{display:flex;gap:8px;flex-wrap:wrap}.tc-chip{flex:1;min-width:76px;padding:10px 8px;border-radius:999px;border:1px solid rgba(245,196,81,.5);background:rgba(20,10,40,.8);color:#fff;font:700 13px Rajdhani,sans-serif;cursor:pointer}.tc-chip.on{background:#f5c451;color:#2a1400}.tc-sec input,.tc-sec select,#anv-modal-root textarea{background:rgba(24,12,48,.95)!important;color:#fff!important;border:1px solid rgba(245,196,81,.35)!important;border-radius:10px!important;padding:11px 12px!important;font:600 14px Rajdhani,sans-serif!important}.tc-sec input[type=checkbox]{padding:0!important}body:has(.anv-modal) footer,body:has(.anv-modal) header.nav{visibility:hidden}.anv-mbox>div:last-child{position:sticky;bottom:-18px;background:#150a2a;padding:10px 0 4px;z-index:2}.anv-modal{z-index:2147483000!important}#anv-modal-root{position:relative;z-index:2147483000}.tc-note{font-size:11.5px;color:#b79ce0;margin-top:6px}</style>' +
+      '<div class="tc-sec"><h5><span>TOURNAMENT DETAILS</span></h5>' +
+      '<div class="tc-l">Tournament Name</div><input id="tm-name" type="text" placeholder="e.g. XARENA Weekly Clash #12" value="' + esc(t.name || "") + '" style="width:100%;box-sizing:border-box">' +
+      '<div class="tc-l">Game Mode</div>' + chips("tm-mode", MODES, curMode) +
+      '<div class="tc-l">Map</div><select id="tm-map" style="width:100%">' + MAPS.map(function (m) { return '<option' + (m === curMap ? " selected" : "") + ">" + m + "</option>"; }).join("") + "</select>" +
+      '<div class="tc-l">Team Size</div>' + chips("tm-size", SIZES, curSize) + "</div>" +
+      '<div class="tc-sec"><h5><span>TOURNAMENT SETTINGS</span></h5>' +
+      '<div class="tc-l">Entry Fee</div><div class="tc-chips"><button type="button" class="tc-chip on" disabled>Free</button></div><div class="tc-note">XARENA tournaments are free to enter - no paid entry.</div>' +
+      '<div class="tc-l">Prize (text shown publicly)</div><input id="tm-prize" type="text" placeholder="e.g. XP rewards + badge" value="' + esc(t.prize || "") + '" style="width:100%;box-sizing:border-box">' +
+      '<div class="tc-l">Max Teams</div><input id="tm-slots" type="number" value="' + (t.slots || 48) + '" style="width:100%;box-sizing:border-box">' +
+      '<div class="tc-l">Start Date &amp; Time</div><input id="tm-start" type="datetime-local" value="' + startVal + '" style="width:100%;box-sizing:border-box">' +
+      '<div class="tc-l">Status</div><select id="tm-status" style="width:100%">' + ["upcoming", "live", "done"].map(function (o) { return '<option' + (o === (t.status || "upcoming") ? " selected" : "") + ">" + o + "</option>"; }).join("") + "</select>" +
+      '<div class="tc-l" style="display:flex;align-items:center;gap:10px"><input type="checkbox" id="tm-reg" style="width:auto"' + (t.reg_open !== false ? " checked" : "") + '><label for="tm-reg" style="margin:0">Registration Open</label></div></div>' +
+      '<div class="tc-l">Description</div><textarea id="tm-desc" rows="3" style="width:100%;box-sizing:border-box">' + esc(t.description || "") + "</textarea>";
+    modal(isNew ? "CREATE TOURNAMENT" : "EDIT TOURNAMENT", html, function (ok, fail) {
+      var st = val("tm-start");
+      var row = {
+        name: val("tm-name").trim(), mode: val("tm-mode"), format: val("tm-map") + " · " + val("tm-size"), status: val("tm-status"),
+        prize: val("tm-prize").trim(), slots: parseInt(val("tm-slots"), 10) || 0, reg_open: checked("tm-reg"), description: val("tm-desc").trim()
+      };
+      if (st) {
+        var d = new Date(st);
+        row.start_at = d.toISOString();
+        row.date_text = d.toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
+      }
+      if (!row.name) return fail("Name is required.");
+      var p;
+      if (isNew) {
+        row.id = row.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) + "-" + Date.now().toString(36).slice(-4);
+        p = api().aPost("tournaments", row);
+      } else {
+        p = api().aPatch("tournaments", "id=eq." + encodeURIComponent(t.id), row);
+      }
+      p.then(function () { ok(); refreshTours(); }).catch(function () { fail("Save failed - check the values and try again."); });
+    }, isNew ? "CREATE TOURNAMENT" : "SAVE CHANGES");
   }
+  document.addEventListener("click", function (e) {
+    var c = e.target.closest && e.target.closest(".tc-chip");
+    if (!c || c.disabled) return;
+    var g = c.parentNode, inp = document.getElementById(g.getAttribute("data-for"));
+    if (!inp) return;
+    inp.value = c.getAttribute("data-v");
+    Array.prototype.forEach.call(g.children, function (x) { x.classList.toggle("on", x === c); });
+  });
   function refreshTours() {
     state.dash = null;
     rpc("admin_dashboard_nova").then(function (d) { if (d && d.ok) state.dash = d; });
@@ -444,14 +473,51 @@
     var ms = state.matches;
     if (!ms) return '<p style="color:#9aa6d6;text-align:center;padding:30px 0">Loading matches…</p>';
     var rows = ms.map(function (m) {
-      return '<div class="anv-tcard">' + statusChip(m.status === "done" ? "done" : (m.status === "live" ? "live" : "upcoming")) +
-        '<h5 style="display:inline">' + esc(m.title) + "</h5>" +
-        '<div class="meta">' + esc((m.tournaments && m.tournaments.name) || "No tournament") + " · " + esc(m.stage || "") + (m.starts_at ? " · " + new Date(m.starts_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</div></div>";
+      var live = m.status === "live";
+      return '<div class="anv-room" data-mid="' + m.id + '">' +
+        '<div class="rc-top"><span class="rc-h">ROOM CONTROLS</span>' + statusChip(m.status === "done" ? "done" : (live ? "live" : "upcoming")) + "</div>" +
+        '<h5 class="rc-t">' + esc(m.title) + "</h5>" +
+        '<div class="meta">' + esc((m.tournaments && m.tournaments.name) || "No tournament") + (m.stage ? " · " + esc(m.stage) : "") + (m.starts_at ? " · " + new Date(m.starts_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</div>" +
+        '<div class="rc-grid"><label>Room ID<input data-rc="room" value="' + esc(m.room_id || "") + '" placeholder="not set"></label>' +
+        '<label>Password<input data-rc="pass" value="' + esc(m.room_pass || "") + '" placeholder="not set"></label></div>' +
+        '<div class="rc-ci" data-rc="ci">Check-in status: tap Refresh to load real check-ins.</div>' +
+        '<div class="rc-btns"><button class="anv-btn start" data-rc="save">Save Room</button><button class="anv-btn warn" data-rc="refresh">Refresh Check-ins</button></div>' +
+        '<div class="rc-btns">' + (live
+          ? '<button class="anv-btn start" data-rc="done" style="flex:1">Mark Completed</button>'
+          : '<button class="anv-btn start rc-big" data-rc="start">&#9654; Start Match</button>') + "</div></div>";
     }).join("");
-    return '<div class="anv-sec-h"><h4>Matches</h4><span style="font-size:11px;color:#9aa6d6">Real match schedule</span></div>' +
-      (rows || '<div class="anv-empty">No matches scheduled yet. Add matches from Classic admin → Matches.</div>') +
-      '<p style="font-size:12px;color:#9aa6d6;text-align:center">Room IDs, check-ins and score entry live in Classic admin for now - nova Match Rooms ship with the Room Control screen.</p>';
+    return '<style>.anv-room{background:linear-gradient(165deg,rgba(24,40,66,.9),rgba(12,18,34,.95));border:1px solid rgba(34,211,238,.35);border-radius:16px;padding:14px;margin-bottom:14px}.rc-top{display:flex;justify-content:space-between;align-items:center}.rc-h{font:800 12px Orbitron,sans-serif;letter-spacing:2px;color:#e6faff}.rc-t{margin:8px 0 2px;font-size:16px;color:#fff}.rc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.rc-grid label{font-size:11px;color:#9aa6d6;letter-spacing:1px}.rc-grid input{display:block;width:100%;box-sizing:border-box;margin-top:4px;background:rgba(10,16,30,.9);border:1px solid rgba(34,211,238,.25);border-radius:8px;color:#fff;padding:10px;font:800 16px Orbitron,sans-serif}.rc-ci{background:rgba(10,16,30,.7);border:1px solid rgba(34,211,238,.2);border-radius:10px;padding:10px;font-size:12.5px;color:#cfe8ff;margin-bottom:10px;white-space:pre-line}.rc-btns{display:flex;gap:8px;margin-top:8px}.rc-btns .anv-btn{flex:1;padding:11px}.rc-big{background:#22d3ee!important;color:#022!important;font-size:14px!important}</style>' +
+      '<div class="anv-sec-h"><h4>Match Room Control</h4><span style="font-size:11px;color:#9aa6d6">Real matches only</span></div>' +
+      (rows || '<div class="anv-empty">No matches scheduled yet. Add matches from Classic admin → Matches, then control rooms here.</div>');
   }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-rc]");
+    if (!b || b.tagName !== "BUTTON") return;
+    var card = b.closest(".anv-room"); if (!card) return;
+    var id = card.getAttribute("data-mid"), act = b.getAttribute("data-rc");
+    var ci = card.querySelector('[data-rc="ci"]');
+    function setStatus(st) {
+      b.disabled = true;
+      api().aPatch("matches", "id=eq." + id, { status: st }).then(function () {
+        try { api().audit("match_status", { match: id, status: st }); } catch (x) {}
+        loadMatches();
+      }).catch(function () { b.disabled = false; alert("Could not update the match."); });
+    }
+    if (act === "save") {
+      var room = card.querySelector('input[data-rc="room"]').value.trim(), pass = card.querySelector('input[data-rc="pass"]').value.trim();
+      b.disabled = true;
+      api().aPatch("matches", "id=eq." + id, { room_id: room || null, room_pass: pass || null }).then(function () {
+        b.disabled = false; b.textContent = "Saved"; setTimeout(function () { b.textContent = "Save Room"; }, 1500);
+      }).catch(function () { b.disabled = false; alert("Could not save the room."); });
+    } else if (act === "refresh") {
+      rpc("admin_match_checkins", { p_match: id }).then(function (r) {
+        if (!r || !r.ok) { ci.textContent = "Could not load check-ins."; return; }
+        var l = r.list || [];
+        ci.textContent = "Checked in: " + l.length + (l.length ? "\n" + l.map(function (x) { return x.ign + " · " + String(x.at).slice(11, 16); }).join("\n") : "\nNobody has checked in yet.");
+      });
+    } else if (act === "start") setStatus("live");
+    else if (act === "done") setStatus("done");
+  });
 
   /* ---------- analytics (sponsor revenue) ---------- */
   function renderAnalytics() {

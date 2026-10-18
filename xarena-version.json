@@ -1,18 +1,17 @@
 {
-  "version": "7.18.1",
-  "versionName": "7.18.1",
-  "versionCode": 82,
-  "code": 82,
-  "size": 2298041,
-  "sha256": "7e997cd9921c6a1cdcb68956bd37c06c8221d46220caa42c1ef1b33623d79bf5",
+  "version": "7.19.0",
+  "versionName": "7.19.0",
+  "versionCode": 83,
+  "code": 83,
+  "size": 2302137,
+  "sha256": "63e7d3c923d217378a186b018e436ba4585203dac9e1c9677ab37e93c20ebf88",
   "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
-  "updated": "2026-10-18T12:31:43.758103+00:00",
+  "updated": "2026-10-18T12:59:18.315258+00:00",
   "released": "October 18, 2026",
-  "notes": "Stability fix: the app no longer closes itself when Android reclaims memory.",
+  "notes": "Admin: Create Tournament and Match Room Control rebuilt to the mockups with real data.",
   "changes": [
-    "Recovers automatically if Android kills the web view on low-memory phones instead of closing the app",
-    "Microphone permission is now asked only when you join Voice, not at launch",
-    "Screen-setting changes (font size, language) no longer restart the app",
-    "Startup tasks guarded so one failure cannot crash the app"
+    "Create Tournament form rebuilt to the mockup - mode, map, team size, start time, registration toggle, free entry only",
+    "Match Room Control - real room ID and password, real check-in list, start and complete match",
+    "No fake scoreboard or stats: only real match data is shown"
   ]
 }
