@@ -1,6 +1,6 @@
 {
-  "versionCode": 12,
-  "versionName": "0.12.0",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/native-v0.12.0/xarena-native.apk",
-  "notes": "Clips, Live, Winners, Stats, Tasks, Scrims, Calendar. Liquid look is now the default; Nova in Settings > Look."
+  "versionCode": 13,
+  "versionName": "0.12.1",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.12.1-native/xarena-native.apk",
+  "notes": "Stability pass for low-RAM phones: no video autoplay in Feed/Clips (tap to play), DM decrypt and image reads off the UI thread."
 }
