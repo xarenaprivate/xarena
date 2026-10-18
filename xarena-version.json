@@ -1,8 +1,17 @@
 {
-  "version": "7.3.3",
-  "code": 66,
-  "size": 2517437,
-  "sha256": "c4f3f5566bc5016d954859a8019f816680c91b949c7edc1d3a8d14bf88b3aa52",
-  "updated": "2026-10-18T07:45:18.209033+00:00",
-  "notes": "Atomic audited registration verification and owner override"
+  "version": "7.7.0",
+  "versionName": "7.7.0",
+  "versionCode": 70,
+  "code": 70,
+  "size": 2205789,
+  "sha256": "1600b6b8f41167537b545831d04553ddb60d252797308f61b74477104c7ec8c8",
+  "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
+  "updated": "2026-10-18T08:50:39.266870+00:00",
+  "released": "October 18, 2026",
+  "notes": "XP Rewards Store - browse the real catalog and claim rewards with XP.",
+  "changes": [
+    "XP Rewards Store - balance card, categories and claim flow",
+    "Match Rooms improvements (from v7.6)",
+    "Crisp icons everywhere"
+  ]
 }
