@@ -541,19 +541,6 @@ window.xrUploadTeamLogo = function (file) {
     upd.textContent = "App update check · v" + (window.XarenaApp.getVersionName ? window.XarenaApp.getVersionName() : "1.0");
     upd.addEventListener("click", function () { window.XarenaApp.checkUpdate(); });
   }
-  var credit = document.getElementById("foot-credit");
-  if (credit) {
-    var taps = 0, timer = null;
-    credit.addEventListener("click", function () {
-      taps++;
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(function () { taps = 0; }, 3000);
-      if (taps >= 5) {
-        taps = 0;
-        if (window.XarenaApp) location.href = "admin.html";
-      }
-    });
-  }
 })();
 
 /* PWA install prompt (Chrome/Edge on Android + Windows). Not shown in the XARENA app or when already installed. */

@@ -1,16 +1,16 @@
 {
-  "version": "7.20.0",
-  "versionName": "7.20.0",
-  "versionCode": 84,
-  "code": 84,
+  "version": "7.20.1",
+  "versionName": "7.20.1",
+  "versionCode": 85,
+  "code": 85,
   "size": 2302137,
-  "sha256": "a674648f347791af67909726f286e31daac86d749b9c4561ae6972a9dc363174",
+  "sha256": "0f6852469a30984fb021e454da861efd10f3006307c69ffa7ecf526fd86c864f",
   "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
-  "updated": "2026-10-18T13:02:17.608894+00:00",
+  "updated": "2026-10-18T13:04:23.324110+00:00",
   "released": "October 18, 2026",
-  "notes": "Admin: World Chat Moderation tab with real reports, delete, ban and mute.",
+  "notes": "Admin entry removed from the player app. Admin is web-only.",
   "changes": [
-    "World Chat Moderation tab in the admin panel - real open reports, latest messages, delete, ban/unmute, resolve",
-    "Only real counts shown; no fake report numbers or bad-word toggle"
+    "Hidden admin shortcut removed from the player app",
+    "Admin panel files are no longer packaged inside the APK"
   ]
 }
