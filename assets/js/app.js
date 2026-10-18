@@ -781,3 +781,14 @@ window.xrUploadTeamLogo = function (file) {
     setInterval(refresh, 45000);
   });
 })();
+
+/* in-app error log (APK only): keeps the last page errors for the crash report; nothing leaves the device */
+(function () {
+  if (!window.XarenaApp || !window.XarenaApp.logJsError) return;
+  window.addEventListener("error", function (e) {
+    try { window.XarenaApp.logJsError((e.message || "error") + " @" + String(e.filename || "").split("/").pop() + ":" + (e.lineno || 0)); } catch (x) {}
+  });
+  window.addEventListener("unhandledrejection", function (e) {
+    try { window.XarenaApp.logJsError("promise: " + String((e.reason && e.reason.message) || e.reason || "").slice(0, 120)); } catch (x) {}
+  });
+})();

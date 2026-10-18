@@ -1,16 +1,17 @@
 {
-  "version": "7.20.2",
-  "versionName": "7.20.2",
-  "versionCode": 86,
-  "code": 86,
+  "version": "7.21.0",
+  "versionName": "7.21.0",
+  "versionCode": 87,
+  "code": 87,
   "size": 2252843,
-  "sha256": "04c6c4787f90eb7faba941fd2aaedabd6515246af8d77f096bca0c58c086c68e",
+  "sha256": "55ae9846cff66ae740e945f264f8f0f36af0e81483e3abbf7f59f32518b1d54b",
   "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
-  "updated": "2026-10-18T13:06:14.812104+00:00",
+  "updated": "2026-10-18T13:17:44.982216+00:00",
   "released": "October 18, 2026",
-  "notes": "Admin is web-only: removed from the player app.",
+  "notes": "Crash reporter added: if the app closes unexpectedly it shows why on the next launch.",
   "changes": [
-    "Hidden admin shortcut removed from the player app",
-    "Admin panel files are no longer packaged inside the APK"
+    "In-app crash reporter - on next launch shows the reason with Copy and Share buttons, stored on the device only",
+    "Records Android's own exit reason (crash, memory kill, not responding) and recent page errors",
+    "Background tasks guarded so they cannot close the app"
   ]
 }
