@@ -1,17 +1,17 @@
 {
-  "version": "7.17.0",
-  "versionName": "7.17.0",
-  "versionCode": 80,
-  "code": 80,
-  "size": 2285611,
-  "sha256": "7cee7fce9841219e09825fbc329506391f37170d1f33ec5879c85adfbec9cdfd",
+  "version": "7.18.0",
+  "versionName": "7.18.0",
+  "versionCode": 81,
+  "code": 81,
+  "size": 2298041,
+  "sha256": "2ebd9e4adc65fa4a2d5086884ffb1aaf6dc998537f54e08eb2483a987bb51187",
   "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
-  "updated": "2026-10-18T10:58:08.559842+00:00",
+  "updated": "2026-10-18T11:38:29.493081+00:00",
   "released": "October 18, 2026",
-  "notes": "Clip Highlights - real community clips, published after review. Watch, share and download.",
+  "notes": "Voice Lobby - real peer-to-peer voice chat. Everyone you see is really connected.",
   "changes": [
-    "Clip Highlights page - real approved clips from the Feed with Share and Download",
-    "Honest by design: no auto-detection claims, no fake stats - caption, uploader and date are real",
-    "Empty state points players to upload on the Feed until the first clips are approved"
+    "Voice Lobby - real WebRTC voice room with live presence, mute, deafen, invite and leave",
+    "Real speaking indicators from actual audio levels, real participant count, honest alone state",
+    "In-app mic permission added so voice works inside the Android app too"
   ]
 }
