@@ -1,17 +1,16 @@
 {
-  "version": "7.19.0",
-  "versionName": "7.19.0",
-  "versionCode": 83,
-  "code": 83,
+  "version": "7.20.0",
+  "versionName": "7.20.0",
+  "versionCode": 84,
+  "code": 84,
   "size": 2302137,
-  "sha256": "63e7d3c923d217378a186b018e436ba4585203dac9e1c9677ab37e93c20ebf88",
+  "sha256": "a674648f347791af67909726f286e31daac86d749b9c4561ae6972a9dc363174",
   "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
-  "updated": "2026-10-18T12:59:18.315258+00:00",
+  "updated": "2026-10-18T13:02:17.608894+00:00",
   "released": "October 18, 2026",
-  "notes": "Admin: Create Tournament and Match Room Control rebuilt to the mockups with real data.",
+  "notes": "Admin: World Chat Moderation tab with real reports, delete, ban and mute.",
   "changes": [
-    "Create Tournament form rebuilt to the mockup - mode, map, team size, start time, registration toggle, free entry only",
-    "Match Room Control - real room ID and password, real check-in list, start and complete match",
-    "No fake scoreboard or stats: only real match data is shown"
+    "World Chat Moderation tab in the admin panel - real open reports, latest messages, delete, ban/unmute, resolve",
+    "Only real counts shown; no fake report numbers or bad-word toggle"
   ]
 }
