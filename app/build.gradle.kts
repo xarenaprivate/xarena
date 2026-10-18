@@ -1,3 +1,4 @@
+import java.util.Properties
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -9,20 +10,37 @@ android {
         applicationId = "app.xarena.esports.native"
         minSdk = 24
         targetSdk = 34
-        versionCode = 6
-        versionName = "0.6.0-native"
+        versionCode = 7
+        versionName = "0.7.0-native"
+    }
+    val keyInfo = rootProject.file("keystore/KEY_INFO.txt")
+    if (keyInfo.exists()) {
+        val props = Properties().apply { keyInfo.inputStream().use { load(it) } }
+        signingConfigs {
+            create("native") {
+                storeFile = rootProject.file("keystore/" + props.getProperty("storeFile"))
+                storePassword = props.getProperty("storePassword")
+                keyAlias = props.getProperty("keyAlias")
+                keyPassword = props.getProperty("keyPassword")
+            }
+        }
     }
     buildTypes {
+        debug {
+            // Test builds are signed with the vaulted native key so in-place updates keep working
+            // even when this build sandbox is rebuilt (a fresh debug key would break updates).
+            if (signingConfigs.findByName("native") != null) signingConfig = signingConfigs.getByName("native")
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("debug")
+            if (signingConfigs.findByName("native") != null) signingConfig = signingConfigs.getByName("native")
         }
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
-    buildFeatures { compose = true }
+    buildFeatures { compose = true; buildConfig = true }
     composeOptions { kotlinCompilerExtensionVersion = "1.5.14" }
     packaging { resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}", "META-INF/*.version") }
 }

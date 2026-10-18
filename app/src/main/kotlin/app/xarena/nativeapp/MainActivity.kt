@@ -57,6 +57,12 @@ enum class Screen { Login, Signup, CompleteProfile, Home }
 fun XarenaApp() {
     var screen by remember { mutableStateOf(if (Api.loggedIn) Screen.Home else Screen.Login) }
     var setupChecked by remember { mutableStateOf(false) }
+    var update by remember { mutableStateOf<UpdateChecker.Info?>(null) }
+    var updateDismissed by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        val latest = UpdateChecker.latest()
+        if (latest != null && latest.code > BuildConfig.VERSION_CODE && latest.url.startsWith("https://github.com/xarenaprivate/xarena/releases/")) update = latest
+    }
     MaterialTheme(colorScheme = darkColorScheme(primary = Gold, background = Ink, surface = Card, onSurface = Color.White)) {
         NovaBackground {
             when (screen) {
@@ -79,6 +85,8 @@ fun XarenaApp() {
                 }
             }
         }
+        val u = update
+        if (u != null && !updateDismissed) UpdateDialog(u) { updateDismissed = true }
     }
 }
 
@@ -262,10 +270,13 @@ fun PanelCard(content: @Composable ColumnScope.() -> Unit) {
 @Composable
 fun TournamentsScreen() {
     var showRegister by remember { mutableStateOf(false) }
+    var showMatches by remember { mutableStateOf(false) }
     if (showRegister) { RegisterScreen(onBack = { showRegister = false }); return }
+    if (showMatches) { MatchCenterScreen(onBack = { showMatches = false }); return }
     Column(Modifier.fillMaxSize()) {
         Brand()
         Box(Modifier.padding(horizontal = 16.dp, vertical = 2.dp)) { GoldButton("REGISTER YOUR SQUAD - SEASON 1") { showRegister = true } }
+        Box(Modifier.padding(horizontal = 16.dp, vertical = 2.dp)) { GoldButton("MATCH CENTER - ROOMS, CHECK-IN, RESULTS") { showMatches = true } }
         LoadState({ Api.publicGet("/rest/v1/tournaments?select=id,name,status,slots,prize,date_text,reg_open,mode&order=sort.asc") }) { arr ->
             if (arr.length() == 0) EmptyNote("No tournaments yet", "Tournaments appear here as soon as the admin creates them.")
             else LazyColumn { items((0 until arr.length()).map { arr.getJSONObject(it) }) { t ->

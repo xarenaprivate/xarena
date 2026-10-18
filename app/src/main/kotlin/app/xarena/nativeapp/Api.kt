@@ -138,6 +138,39 @@ object Api {
 
 
 
+
+    /* ---- Cloudinary signed upload (match proofs), same as the site's uploadImage() ---- */
+
+    suspend fun cloudinaryUpload(jpeg: ByteArray): String = withContext(Dispatchers.IO) {
+        val sig = JSONObject(authed("POST", "/functions/v1/cloudinary-sign", JSONObject()))
+        val cloud = sig.optString("cloud")
+        if (cloud.isBlank()) throw ApiError("Upload unavailable right now - try again shortly.")
+        val boundary = "----xr" + System.currentTimeMillis()
+        val c = java.net.URL("https://api.cloudinary.com/v1_1/$cloud/image/upload").openConnection() as java.net.HttpURLConnection
+        c.requestMethod = "POST"; c.connectTimeout = 15000; c.readTimeout = 30000
+        c.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+        c.doOutput = true
+        val w = java.io.DataOutputStream(c.outputStream)
+        val crlf = "\r\n"
+        fun field(name: String, value: String) {
+            w.writeBytes("--$boundary" + crlf + "Content-Disposition: form-data; name=\"" + name + "\"" + crlf + crlf + value + crlf)
+        }
+        field("api_key", sig.optString("key"))
+        field("timestamp", sig.optString("timestamp"))
+        field("folder", sig.optString("folder"))
+        field("signature", sig.optString("signature"))
+        w.writeBytes("--$boundary" + crlf + "Content-Disposition: form-data; name=\"file\"; filename=\"proof.jpg\"" + crlf + "Content-Type: image/jpeg" + crlf + crlf)
+        w.write(jpeg)
+        w.writeBytes(crlf + "--$boundary--" + crlf)
+        w.flush()
+        val code = c.responseCode
+        val text = (if (code in 200..299) c.inputStream else c.errorStream)?.bufferedReader()?.readText() ?: ""
+        if (code !in 200..299) throw ApiError("Upload failed ($code) - try again.")
+        val url = JSONObject(text).optString("secure_url")
+        if (url.isBlank()) throw ApiError("Upload failed - try again.")
+        url
+    }
+
     /* ---- Tournament registration (same flow as the site's reg-form) ---- */
 
     fun deviceId(): String {
