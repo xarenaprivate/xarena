@@ -1,17 +1,18 @@
 {
-  "version": "7.21.0",
-  "versionName": "7.21.0",
-  "versionCode": 87,
-  "code": 87,
-  "size": 2252843,
-  "sha256": "55ae9846cff66ae740e945f264f8f0f36af0e81483e3abbf7f59f32518b1d54b",
+  "version": "7.22.0",
+  "versionName": "7.22.0",
+  "versionCode": 88,
+  "code": 88,
+  "size": 964291,
+  "sha256": "18ce437dff89409dc465fef4c59aa38c908e6ab2c94a601113d4a797a716a446",
   "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
-  "updated": "2026-10-18T13:17:44.982216+00:00",
+  "updated": "2026-10-18T13:41:03.594211+00:00",
   "released": "October 18, 2026",
-  "notes": "Crash reporter added: if the app closes unexpectedly it shows why on the next launch.",
+  "notes": "Stability release: simpler, safer app shell. If you have an older XARENA installed, uninstall it first (this build uses a new signing key).",
   "changes": [
-    "In-app crash reporter - on next launch shows the reason with Copy and Share buttons, stored on the device only",
-    "Records Android's own exit reason (crash, memory kill, not responding) and recent page errors",
-    "Background tasks guarded so they cannot close the app"
+    "Safer app shell to stop random closing",
+    "Shows why the last session ended (Share/Copy)",
+    "Version shown on launch and in Settings",
+    "Push alerts are paused in this build; use the Notifications page"
   ]
 }
