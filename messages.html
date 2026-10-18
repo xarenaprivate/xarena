@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://xarena.surge.sh/messages.html">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Messages · XARENA ESPORTS</title>
+<meta name="description" content="XARENA Messages - end-to-end encrypted chats between friends. Text, photos and short videos. Only you and your friend can read them.">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="%230b0b14" stroke="%23e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="%23f5b301" stroke-width="3.2"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="XARENA ESPORTS">
+<meta property="og:title" content="XARENA ESPORTS - Free Fire tournaments, feed, stories, Luna">
+<meta property="og:description" content="India's Free Fire esports platform - tournaments, scrims, highlights feed, stories, encrypted messages and the Luna assistant. Free forever.">
+<meta property="og:url" content="https://xarena.surge.sh/">
+<meta property="og:image" content="https://xarena.surge.sh/assets/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0104">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="XARENA">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/app-shell.css">
+</head>
+<body>
+<style>
+#xr-splash{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;transition:opacity .3s ease;overflow:hidden}
+#xr-splash::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none}
+#xr-splash .xs-stage{position:relative;width:118px;height:118px;display:flex;align-items:center;justify-content:center}
+#xr-splash .xs-ring{position:absolute;inset:0;animation:xsSpin 2.6s linear infinite}
+#xr-splash .xs-ring circle{fill:none;stroke:var(--xs-acc,#e10600);stroke-width:2.5;stroke-dasharray:44 22;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--xs-acc,#e10600))}
+#xr-splash .xs-ring.r2{animation:xsSpinR 3.8s linear infinite;inset:9px}
+#xr-splash .xs-ring.r2 circle{stroke-dasharray:10 30;opacity:.55;stroke-width:1.5}
+#xr-splash .xs-logo{width:62px;height:62px;animation:xsPulse 1.2s ease-in-out infinite}
+#xr-splash .xs-logo path{stroke:var(--xs-acc,#e10600)}
+#xr-splash .xs-logo .xs-x{stroke:#f5b301}
+#xr-splash .xs-name{font:900 24px Orbitron,system-ui,sans-serif;color:#fff;letter-spacing:7px;margin-left:7px;animation:xsGlitch 2.4s steps(1) infinite}
+#xr-splash .xs-tag{font:800 10px Orbitron,system-ui,sans-serif;letter-spacing:5px;color:var(--xs-acc,#e10600);margin-left:5px;text-shadow:0 0 10px var(--xs-acc,#e10600)}
+#xr-splash .xs-tip{font:600 12.5px Rajdhani,system-ui,sans-serif;color:#9aa0b8;letter-spacing:1px;min-height:16px;text-align:center;padding:0 24px;transition:opacity .25s}
+#xr-splash .xs-bar{width:170px;height:3px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+#xr-splash .xs-bar i{display:block;height:100%;width:0;border-radius:3px;background:var(--xs-acc,#e10600);box-shadow:0 0 12px var(--xs-acc,#e10600);animation:xsFill 1.5s ease forwards}
+#xr-splash.xs-done{opacity:0;pointer-events:none}
+@keyframes xsSpin{to{transform:rotate(360deg)}}
+@keyframes xsSpinR{to{transform:rotate(-360deg)}}
+@keyframes xsPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes xsFill{to{width:88%}}
+@keyframes xsGlitch{0%,93%,100%{text-shadow:none}94%{text-shadow:-2px 0 var(--xs-acc,#e10600),2px 0 #22d3ee}96%{text-shadow:2px 0 var(--xs-acc,#e10600),-2px 0 #22d3ee}98%{text-shadow:none}}
+@media (prefers-reduced-motion:reduce){#xr-splash .xs-ring,#xr-splash .xs-logo,#xr-splash .xs-name,#xr-splash .xs-bar i{animation:none!important}#xr-splash{transition:none!important}}
+</style>
+<div id="xr-splash" role="status" aria-label="Loading XARENA">
+<div class="xs-stage">
+<svg class="xs-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-ring r2" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-logo" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke-width="2.5"/><path class="xs-x" d="M13 13l14 14M27 13L13 27" stroke-width="3.2" fill="none"/></svg>
+</div>
+<div class="xs-name">XARENA</div>
+<div class="xs-tag">ENTERING THE ARENA</div>
+<div class="xs-tip" id="xs-tip"></div>
+<div class="xs-bar"><i></i></div>
+<script>(function(){try{var m={liquid:"#0a84ff",classic:"#e10600","3d":"#8b3dff",nexus:"#7c5cff",arena:"#ff7a1a","void":"#a970ff",ascend:"#19e3c2",hybrid:"#22d3ee",pulse:"#ff2e88",aura:"#8b5cf6",social:"#0095f6"};var t=localStorage.getItem("xr_theme")||"liquid";var s=document.getElementById("xr-splash");if(s&&m[t])s.style.setProperty("--xs-acc",m[t]);var tips=["Season 1 - 48 squad slots - registrations open","Real tournaments - tracked rankings - live World Chat","Tip: mention @luna in World Chat - she answers","Tip: finish tasks to earn points, badges and titles","48 squads. One crown. Season 1 is loading"];var tip=document.getElementById("xs-tip");if(tip&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){var i=Math.floor(Math.random()*tips.length);tip.textContent=tips[i];var iv=setInterval(function(){if(!document.getElementById("xr-splash")){clearInterval(iv);return;}i=(i+1)%tips.length;tip.style.opacity=0;setTimeout(function(){tip.textContent=tips[i];tip.style.opacity=1;},240);},1600);}}catch(e){}})();</script>
+</div>
+<header class="nav"><div class="wrap nav-in">
+<a class="brand" href="index.html" aria-label="XARENA ESPORTS home">
+<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="xg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3131"/><stop offset=".55" stop-color="#e10600"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="url(#xg)" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="url(#xg)" stroke-width="3.2" stroke-linecap="square"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<button class="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+<ul class="nav-links">
+<li><a href="index.html">Home</a></li>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="tasks.html">Tasks</a></li>
+<li><a href="play.html">Play</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="messages.html" class="active">Messages</a></li>
+<li><a href="feed.html">Feed</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+<li><a href="rules.html">RRs</a></li>
+<li><a href="contact.html">Contact</a></li>
+<li><a href="account.html">Account</a></li>
+<li><a class="nav-chat" href="chat.html"><span class="pulse"></span>World Chat<span class="chat-badge" id="xr-chat-badge"></span></a></li>
+<li class="nav-cta" style="display:flex;align-items:center;gap:8px"><a href="messages.html" aria-label="Messages" title="Messages" style="color:inherit;display:flex;padding:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></a><button class="xr-theme-btn" id="xr-theme-btn" type="button">Look</button><a class="btn btn-red btn-sm" href="tournaments.html#register">Register</a></li>
+</ul>
+</div></header>
+<main class="dm-main"><div id="dm-shell">
+  <div class="dm-apphead"><button type="button" id="dm-home" aria-label="Back">←</button><b>Messages</b><span class="dm-lock-note">🔒 end-to-end encrypted</span></div>
+  <div id="dm-app"><p style="color:var(--muted);padding:14px">Loading…</p></div>
+</div></main>
+<style>
+.dm-tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.dm-tab{padding:8px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:none;color:#fff;cursor:pointer;font:600 13px Rajdhani,sans-serif;letter-spacing:1px}
+.dm-tab.active{border-color:var(--gold);color:var(--gold2)}
+.dm-row{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(255,255,255,.1);border-radius:12px;margin-bottom:8px;background:rgba(255,255,255,.03)}
+.dm-av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--red));display:flex;align-items:center;justify-content:center;font:800 17px Orbitron,sans-serif;color:#fff;flex-shrink:0;position:relative}
+.dm-name{font-weight:700}
+.dm-sub{color:var(--muted);font-size:12.5px}
+.dm-dot{position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid var(--bg1,#0b0b14)}
+.dm-on{color:#22c55e!important;font-weight:600}
+.dm-act{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);padding:8px 2px;cursor:pointer;user-select:none}
+.dm-row .sp{flex:1;min-width:0;overflow:hidden}
+.dm-btn{padding:7px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:none;color:#fff;cursor:pointer;font-size:12.5px}
+.dm-btn.gold{border-color:var(--gold);color:var(--gold2)}
+.dm-btn.danger{color:#ff6b6b}
+.dm-thread{cursor:pointer}
+.dm-conv{display:flex;flex-direction:column;height:min(62vh,560px)}
+.dm-msgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(0,0,0,.25)}
+.dm-bub{max-width:78%;padding:9px 12px;border-radius:14px;font-size:14.5px;line-height:1.45;word-break:break-word;white-space:pre-wrap}
+.dm-bub.me{align-self:flex-end;background:linear-gradient(135deg,rgba(225,6,0,.35),rgba(160,32,240,.3));border:1px solid rgba(225,6,0,.4);border-bottom-right-radius:4px}
+.dm-bub.them{align-self:flex-start;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-bottom-left-radius:4px}
+.dm-bub .t{display:block;font-size:10.5px;color:var(--muted);margin-top:4px}
+.dm-bub img,.dm-bub video{max-width:220px;border-radius:10px;display:block}
+.dm-send{display:flex;gap:8px;margin-top:10px;align-items:center}
+.dm-send input[type=text]{flex:1;padding:11px 14px;border-radius:22px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:15px}
+.dm-lock{padding:10px 12px;border-radius:10px;background:rgba(245,179,1,.12);border:1px solid rgba(245,179,1,.4);color:#f5b301;font-size:13px;margin-bottom:10px}
+.dm-media-btn{cursor:pointer;color:var(--gold2);font-size:13px;text-decoration:underline}
+/* full-screen chat app view (all looks): no site chrome, composer pinned */
+body{padding-bottom:0!important}
+footer,header.nav,.xa-bnav,.xs-bnav,#xr-install-pill,#luna-fab{display:none!important}
+.dm-main{height:100vh;height:100dvh;padding:0!important}
+#dm-shell{height:100%;display:flex;flex-direction:column;background:var(--bg0,#0b0b14)}
+.dm-apphead{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line,rgba(128,128,128,.25));flex:none}
+.dm-apphead b{font-size:17px}
+.dm-apphead #dm-home{border:none;background:none;color:inherit;font-size:22px;cursor:pointer;padding:2px 8px 2px 0;line-height:1}
+.dm-apphead .dm-lock-note{margin-left:auto;font-size:11.5px;color:var(--muted)}
+body.dm-inconv .dm-apphead{display:none}
+#dm-app{flex:1;min-height:0;display:flex;flex-direction:column;overflow-y:auto}
+#dm-app>*{flex:none}
+.dm-tabs{position:sticky;top:0;z-index:2;background:var(--bg0,#0b0b14);padding-top:8px}
+#dm-app>.dm-conv{flex:1 1 auto;min-height:0;height:auto;border:none;border-radius:0;background:transparent;margin-top:0}
+.dm-msgs{border-radius:0;border:none;border-top:1px solid var(--line,rgba(128,128,128,.18));border-bottom:1px solid var(--line,rgba(128,128,128,.18))}
+.dm-send{margin-top:0;padding:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg1,#12101c)}
+.dm-conv .dm-row{margin:0;border-radius:0;border-left:none;border-right:none;border-top:none}
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  var app = document.getElementById("dm-app");
+  document.getElementById("dm-home").addEventListener("click", function () { history.back(); });
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function tm(ts) { var d = new Date(ts); return d.toLocaleDateString() === new Date().toLocaleDateString() ? d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) : d.toLocaleDateString(); }
+  var me = null, names = {}, pollTimer = null, presTimer = null, openThread = null, openPeer = null, openKey = null;
+
+  function nameOf(id) { var n = names[id]; return n ? (n.ign || n.username || "Player") : "Player"; }
+  function fetchNames(ids) {
+    ids = ids.filter(function (x) { return x && !names[x]; });
+    if (!ids.length) return Promise.resolve();
+    return window.xrDm.rest("GET", "/rest/v1/dm_player_search?id=in.(" + ids.join(",") + ")&select=id,username,ign,verified").then(function (rows) {
+      (rows || []).forEach(function (r) { names[r.id] = r; });
+    }).catch(function () {});
+  }
+
+  function gate() {
+    app.innerHTML = '<div class="empty"><div class="big">Log in to message</div><p>Private encrypted chats are for XARENA players with an account.</p><a class="btn btn-red btn-sm" href="account.html">Log in / Sign up</a></div>';
+  }
+
+  function tabs(active, reqCount) {
+    return '<div class="dm-tabs">' +
+      '<button class="dm-tab' + (active === "chats" ? " active" : "") + '" data-t="chats">CHATS</button>' +
+      '<button class="dm-tab' + (active === "friends" ? " active" : "") + '" data-t="friends">FRIENDS</button>' +
+      '<button class="dm-tab' + (active === "requests" ? " active" : "") + '" data-t="requests">REQUESTS' + (reqCount ? " (" + reqCount + ")" : "") + '</button></div>';
+  }
+  function bindTabs() {
+    Array.prototype.forEach.call(app.querySelectorAll(".dm-tab"), function (b) {
+      b.addEventListener("click", function () { stopPoll(); if (b.dataset.t === "chats") renderChats(); else if (b.dataset.t === "friends") renderFriends(); else renderRequests(); });
+    });
+  }
+  function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; openThread = null; } if (presTimer) { clearInterval(presTimer); presTimer = null; } }
+
+  /* ---------- presence (real last-seen heartbeat) ---------- */
+  var presMap = {};
+  function presText(p) {
+    if (!p) return "";
+    if (p.active) return "Active now";
+    if (!p.last_seen) return "";
+    var sec = (Date.now() - new Date(p.last_seen).getTime()) / 1000;
+    if (sec < 3600) return "Active " + Math.max(1, Math.floor(sec / 60)) + "m ago";
+    if (sec < 86400) return "Active " + Math.floor(sec / 3600) + "h ago";
+    return "";
+  }
+  function loadPresence(ids) {
+    ids = (ids || []).filter(Boolean);
+    if (!ids.length) return Promise.resolve();
+    return window.xrApi.uRpc("presence_of", { p_ids: ids }).then(function (r) {
+      ids.forEach(function (id) { delete presMap[id]; });
+      ((r && r.presence) || []).forEach(function (p) { presMap[p.id] = p; });
+    }).catch(function () {});
+  }
+  function paintPresence() {
+    Array.prototype.forEach.call(app.querySelectorAll("[data-peer]"), function (row) {
+      var p = presMap[row.dataset.peer];
+      var av = row.querySelector(".dm-av");
+      if (av) {
+        var d = av.querySelector(".dm-dot");
+        var on = !!(p && p.active);
+        if (on && !d) { d = document.createElement("span"); d.className = "dm-dot"; av.appendChild(d); }
+        else if (!on && d) d.remove();
+      }
+      var sub = row.querySelector(".sp .dm-sub");
+      if (sub) {
+        if (sub.dataset.orig == null) sub.dataset.orig = sub.innerHTML;
+        var txt = presText(p);
+        if (txt) sub.innerHTML = '<span class="' + (p.active ? "dm-on" : "") + '">' + txt + '</span>';
+        else sub.innerHTML = sub.dataset.orig;
+      }
+    });
+  }
+  function refreshPresence(ids) { loadPresence(ids).then(paintPresence); }
+
+
+  /* ---------- CHATS ---------- */
+  function renderChats() {
+    window.xrDm.rest("GET", "/rest/v1/dm_threads?or=(user_a.eq." + me.id + ",user_b.eq." + me.id + ")&select=*&order=created_at.desc").then(function (threads) {
+      var peers = (threads || []).map(function (t) { return t.user_a === me.id ? t.user_b : t.user_a; });
+      var openThreads = (threads || []).filter(function (t) { return t.status !== "requested"; });
+      var myReqThreads = (threads || []).filter(function (t) { return t.status === "requested" && t.requested_by === me.id; });
+      return fetchNames(peers).then(function () {
+        return Promise.all([
+          window.xrDm.rest("GET", "/rest/v1/friend_requests?to_user=eq." + me.id + "&status=eq.pending&select=id"),
+          window.xrDm.rest("GET", "/rest/v1/dm_threads?or=(user_a.eq." + me.id + ",user_b.eq." + me.id + ")&status=eq.requested&requested_by=neq." + me.id + "&select=id")
+        ]).then(function (rr) {
+          var reqs = rr[0] || [], mreqs = rr[1] || [];
+          var html = tabs("chats", reqs.length + mreqs.length);
+          html += '<label class="dm-act"><input type="checkbox" id="dm-act" style="accent-color:#22c55e"> Show my activity status (green dot and last-active time). Turn it off and you will not see others\' either.</label>';
+          if (!openThreads.length && !myReqThreads.length) html += '<div class="empty"><div class="big">No chats yet</div><p>Open a player profile and tap Message, or add friends first.</p></div>';
+          else {
+            html += openThreads.map(function (t) {
+              var peer = t.user_a === me.id ? t.user_b : t.user_a;
+              return '<div class="dm-row dm-thread" data-th="' + t.id + '" data-peer="' + peer + '" data-status="open">' +
+                '<div class="dm-av">' + esc(nameOf(peer).slice(0, 1).toUpperCase()) + '</div>' +
+                '<div class="sp"><div class="dm-name">' + esc(nameOf(peer)) + '</div><div class="dm-sub">🔒 Encrypted' + (t.locked ? ' · <span style="color:#f5b301">locked for review</span>' : "") + '</div></div>' +
+                '<span class="dm-sub">' + tm(t.created_at) + '</span></div>';
+            }).join("");
+            if (myReqThreads.length) html += '<p style="font-size:12px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin:12px 0 8px">Requests you sent</p>' + myReqThreads.map(function (t) {
+              var peer = t.user_a === me.id ? t.user_b : t.user_a;
+              return '<div class="dm-row dm-thread" data-th="' + t.id + '" data-peer="' + peer + '" data-status="requested" data-reqby="me">' +
+                '<div class="dm-av">' + esc(nameOf(peer).slice(0, 1).toUpperCase()) + '</div>' +
+                '<div class="sp"><div class="dm-name">' + esc(nameOf(peer)) + '</div><div class="dm-sub">⏳ Request sent - waiting for them to accept</div></div>' +
+                '<span class="dm-sub">' + tm(t.created_at) + '</span></div>';
+            }).join("");
+          }
+          app.innerHTML = html;
+          bindTabs();
+          refreshPresence(peers.concat([me.id]));
+          var act = app.querySelector("#dm-act");
+          if (act) {
+            loadPresence([me.id]).then(function () { var mp = presMap[me.id]; act.checked = !mp || mp.show !== false; paintPresence(); });
+            act.addEventListener("change", function () {
+              window.xrApi.uRpc("presence_set", { p_show: act.checked }).then(function () {
+                xrToast(act.checked ? "Activity status on." : "Activity status hidden.");
+                refreshPresence(peers.concat([me.id]));
+              });
+            });
+          }
+          Array.prototype.forEach.call(app.querySelectorAll(".dm-thread"), function (r) {
+            r.addEventListener("click", function () { openConv(r.dataset.th, r.dataset.peer, { status: r.dataset.status || "open", reqByMe: r.dataset.reqby === "me" }); });
+          });
+        });
+      });
+    }).catch(function (e) { app.innerHTML = tabs("chats", 0) + '<p style="color:#ffb4ae">' + esc(e.message) + "</p>"; bindTabs(); });
+  }
+
+  /* ---------- FRIENDS ---------- */
+  function renderFriends() {
+    Promise.all([
+      window.xrDm.rest("GET", "/rest/v1/friends?user_id=eq." + me.id + "&select=friend_id"),
+      window.xrDm.rest("GET", "/rest/v1/friend_requests?to_user=eq." + me.id + "&status=eq.pending&select=id")
+    ]).then(function (r) {
+      var friends = r[0] || [];
+      return fetchNames(friends.map(function (f) { return f.friend_id; })).then(function () {
+        var html = tabs("friends", (r[1] || []).length); /* badge = friend requests; message requests show on chats tab */
+        html += '<div class="dm-row" style="border-style:dashed"><div class="sp"><input id="dm-search" type="text" placeholder="Search players by name or IGN…" style="width:100%;padding:9px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff"></div><button class="dm-btn gold" id="dm-find">Find</button></div>';
+        html += '<div id="dm-results"></div>';
+        html += "<h3 style='margin:14px 0 8px'>Your friends (" + friends.length + ")</h3>";
+        html += friends.length ? friends.map(function (f) {
+          return '<div class="dm-row"><div class="dm-av">' + esc(nameOf(f.friend_id).slice(0, 1).toUpperCase()) + '</div>' +
+            '<div class="sp"><div class="dm-name">' + esc(nameOf(f.friend_id)) + '</div></div>' +
+            '<button class="dm-btn gold" data-msg="' + f.friend_id + '">Message</button>' +
+            '<button class="dm-btn" data-unf="' + f.friend_id + '">Remove</button></div>';
+        }).join("") : '<div class="empty"><div class="big">No friends yet</div><p>Search a player above and send a request.</p></div>';
+        app.innerHTML = html;
+        bindTabs();
+        el("#dm-find").addEventListener("click", doSearch);
+        el("#dm-search").addEventListener("keydown", function (e) { if (e.key === "Enter") doSearch(); });
+        Array.prototype.forEach.call(app.querySelectorAll("[data-msg]"), function (b) {
+          b.addEventListener("click", function () { window.xrApi.uRpc("dm_open", { p_friend: b.dataset.msg }).then(function (r2) { if (r2 && r2.ok) openConv(r2.thread, b.dataset.msg); else alert((r2 && r2.error) || "Could not open chat."); }); });
+        });
+        Array.prototype.forEach.call(app.querySelectorAll("[data-unf]"), function (b) {
+          b.addEventListener("click", function () { if (!confirm("Remove this friend?")) return; window.xrApi.uRpc("friend_remove", { p_friend: b.dataset.unf }).then(renderFriends); });
+        });
+        function el(s) { return app.querySelector(s); }
+        function doSearch() {
+          var qv = el("#dm-search").value.trim();
+          if (qv.length < 2) { el("#dm-results").innerHTML = '<p class="dm-sub">Type at least 2 letters.</p>'; return; }
+          window.xrDm.rest("GET", "/rest/v1/dm_player_search?or=(username.ilike.*" + encodeURIComponent(qv) + "*,ign.ilike.*" + encodeURIComponent(qv) + "*)&select=id,username,ign,verified&limit=10").then(function (rows) {
+            rows = (rows || []).filter(function (x) { return x.id !== me.id; });
+            el("#dm-results").innerHTML = rows.length ? rows.map(function (x) {
+              var isF = friends.some(function (f) { return f.friend_id === x.id; });
+              return '<div class="dm-row"><div class="dm-av">' + esc((x.ign || x.username || "?").slice(0, 1).toUpperCase()) + '</div>' +
+                '<div class="sp"><div class="dm-name">' + esc(x.ign || x.username) + (x.verified ? ' <span style="color:#4ade80">✓</span>' : "") + '</div><div class="dm-sub">@' + esc(x.username) + '</div></div>' +
+                (isF ? '<span class="dm-sub">friend</span>' : '<button class="dm-btn gold" data-add="' + x.id + '">+ Add friend</button>') + '</div>';
+            }).join("") : '<p class="dm-sub">No players found.</p>';
+            Array.prototype.forEach.call(app.querySelectorAll("[data-add]"), function (b) {
+              b.addEventListener("click", function () {
+                b.disabled = true;
+                window.xrApi.uRpc("friend_request", { p_to: b.dataset.add }).then(function (r2) {
+                  b.textContent = r2 && r2.accepted ? "Friends!" : "Request sent";
+                  if (r2 && r2.accepted) setTimeout(renderFriends, 800);
+                });
+              });
+            });
+          });
+        }
+      });
+    });
+  }
+
+  /* ---------- REQUESTS ---------- */
+  function renderRequests() {
+    Promise.all([
+      window.xrDm.rest("GET", "/rest/v1/friend_requests?to_user=eq." + me.id + "&status=eq.pending&select=*"),
+      window.xrDm.rest("GET", "/rest/v1/friend_requests?from_user=eq." + me.id + "&status=eq.pending&select=*"),
+      window.xrDm.rest("GET", "/rest/v1/dm_threads?or=(user_a.eq." + me.id + ",user_b.eq." + me.id + ")&status=eq.requested&requested_by=neq." + me.id + "&select=*")
+    ]).then(function (r) {
+      var inc = r[0] || [], out = r[1] || [], mreq = r[2] || [];
+      return fetchNames(inc.map(function (x) { return x.from_user; }).concat(out.map(function (x) { return x.to_user; })).concat(mreq.map(function (t) { return t.requested_by; }))).then(function () {
+        var html = tabs("requests", inc.length + mreq.length);
+        if (mreq.length) {
+          html += "<h3 style='margin:6px 0 8px'>Message requests (" + mreq.length + ")</h3>";
+          html += mreq.map(function (t) {
+            return '<div class="dm-row"><div class="dm-av">' + esc(nameOf(t.requested_by).slice(0, 1).toUpperCase()) + '</div>' +
+              '<div class="sp"><div class="dm-name">' + esc(nameOf(t.requested_by)) + '</div><div class="dm-sub">wants to message you</div></div>' +
+              '<button class="dm-btn" data-view="' + t.id + '" data-peer="' + t.requested_by + '">View</button>' +
+              '<button class="dm-btn gold" data-macc="' + t.id + '">Accept</button><button class="dm-btn" data-mdec="' + t.id + '">Decline</button></div>';
+          }).join("");
+        }
+        html += "<h3 style='margin:14px 0 8px'>Friend requests received (" + inc.length + ")</h3>";
+        html += "<h3 style='margin:6px 0 8px'>Received (" + inc.length + ")</h3>";
+        html += inc.length ? inc.map(function (x) {
+          return '<div class="dm-row"><div class="dm-av">' + esc(nameOf(x.from_user).slice(0, 1).toUpperCase()) + '</div>' +
+            '<div class="sp"><div class="dm-name">' + esc(nameOf(x.from_user)) + '</div></div>' +
+            '<button class="dm-btn gold" data-acc="' + x.id + '">Accept</button><button class="dm-btn" data-dec="' + x.id + '">Decline</button></div>';
+        }).join("") : '<p class="dm-sub">No incoming requests.</p>';
+        html += "<h3 style='margin:14px 0 8px'>Sent (" + out.length + ")</h3>";
+        html += out.length ? out.map(function (x) {
+          return '<div class="dm-row"><div class="dm-av">' + esc(nameOf(x.to_user).slice(0, 1).toUpperCase()) + '</div><div class="sp"><div class="dm-name">' + esc(nameOf(x.to_user)) + '</div><div class="dm-sub">waiting for their answer</div></div></div>';
+        }).join("") : '<p class="dm-sub">No outgoing requests.</p>';
+        app.innerHTML = html;
+        bindTabs();
+        Array.prototype.forEach.call(app.querySelectorAll("[data-acc],[data-dec]"), function (b) {
+          b.addEventListener("click", function () {
+            var accept = !!b.dataset.acc;
+            window.xrApi.uRpc("friend_respond", { p_request: accept ? b.dataset.acc : b.dataset.dec, p_accept: accept }).then(renderRequests);
+          });
+        });
+        Array.prototype.forEach.call(app.querySelectorAll("[data-macc],[data-mdec]"), function (b) {
+          b.addEventListener("click", function () {
+            var accept = !!b.dataset.macc;
+            window.xrApi.uRpc("dm_respond_request", { p_thread: accept ? b.dataset.macc : b.dataset.mdec, p_accept: accept }).then(function () {
+              if (accept) renderChats(); else renderRequests();
+            });
+          });
+        });
+        Array.prototype.forEach.call(app.querySelectorAll("[data-view]"), function (b) {
+          b.addEventListener("click", function () { openConv(b.dataset.view, b.dataset.peer, { status: "requested", reqByMe: false }); });
+        });
+      });
+    });
+  }
+
+  /* ---------- CONVERSATION ---------- */
+  function openConv(threadId, peerId, opts) {
+    opts = opts || {};
+    stopPoll();
+    openThread = threadId; openPeer = peerId;
+    app.innerHTML = tabs("chats", 0) + '<div class="dm-row" data-peer="' + peerId + '"><button class="dm-btn" id="dm-back" aria-label="Back to chats">←</button><div class="dm-av">' + esc(nameOf(peerId).slice(0, 1).toUpperCase()) + '</div><div class="sp"><div class="dm-name">' + esc(nameOf(peerId)) + '</div><div class="dm-sub">🔒 End-to-end encrypted</div></div>' +
+      '<button class="dm-btn danger" id="dm-report">Report</button><button class="dm-btn danger" id="dm-block">Block</button></div>' +
+      '<div id="dm-lockslot"></div><div class="dm-conv"><div class="dm-msgs" id="dm-msgs"><p class="dm-sub">Opening secure channel…</p></div>' +
+      '<div class="dm-send"><input type="file" id="dm-file" accept="image/*,video/*" style="display:none">' +
+      '<button class="dm-btn" id="dm-attach" title="Photo or short video">📎</button>' +
+      '<input type="text" id="dm-text" placeholder="Message…" maxlength="1000" autocomplete="off">' +
+      '<button class="dm-btn gold" id="dm-go">Send</button></div></div>';
+    bindTabs();
+    refreshPresence([peerId]);
+    presTimer = setInterval(function () { refreshPresence([peerId]); }, 30000);
+    if (opts.status === "requested") {
+      var slot = app.querySelector("#dm-lockslot");
+      if (opts.reqByMe) {
+        slot.innerHTML = '<div class="dm-sub" style="padding:8px 4px">⏳ Message request sent - they can read your messages and accept from Messages → Requests.</div>';
+      } else {
+        slot.innerHTML = '<div style="display:flex;gap:10px;align-items:center;padding:8px 4px;flex-wrap:wrap"><span class="dm-sub">They asked to message you. Accept to reply.</span>' +
+          '<button class="dm-btn gold" id="dm-acc">Accept</button><button class="dm-btn danger" id="dm-dec">Decline</button></div>';
+        slot.querySelector("#dm-acc").addEventListener("click", function () {
+          window.xrApi.uRpc("dm_respond_request", { p_thread: threadId, p_accept: true }).then(function () { stopPoll(); renderChats(); });
+        });
+        slot.querySelector("#dm-dec").addEventListener("click", function () {
+          window.xrApi.uRpc("dm_respond_request", { p_thread: threadId, p_accept: false }).then(function () { stopPoll(); renderChats(); });
+        });
+      }
+    }
+    app.querySelector("#dm-back").addEventListener("click", function () { stopPoll(); renderChats(); });
+    app.querySelector("#dm-block").addEventListener("click", function () {
+      if (!confirm("Block this player? They are removed from friends and can no longer message you.")) return;
+      window.xrApi.uRpc("block_user", { p_user: peerId }).then(function () { stopPoll(); renderChats(); });
+    });
+    app.querySelector("#dm-report").addEventListener("click", function () { reportModal(threadId, peerId); });
+    app.querySelector("#dm-attach").addEventListener("click", function () { app.querySelector("#dm-file").click(); });
+    app.querySelector("#dm-file").addEventListener("change", function () {
+      var f = this.files[0]; this.value = "";
+      if (!f) return;
+      sendMedia(threadId, peerId, f);
+    });
+    app.querySelector("#dm-go").addEventListener("click", sendText);
+    app.querySelector("#dm-text").addEventListener("keydown", function (e) { if (e.key === "Enter") sendText(); });
+
+    window.xrDm.threadKey(peerId).then(function (key) {
+      openKey = key;
+      loadMsgs(threadId, peerId, key, true);
+      pollTimer = setInterval(function () { loadMsgs(threadId, peerId, key, false); }, 4000);
+    }).catch(function (e) {
+      app.querySelector("#dm-msgs").innerHTML = '<p style="color:#ffb4ae">' + esc(e.message) + '</p><p class="dm-sub">They need to open Messages once on their device to set up encryption.</p>';
+    });
+
+    function sendText() {
+      var inp = app.querySelector("#dm-text");
+      var v = inp.value.trim();
+      if (!v || !openKey) return;
+      inp.value = ""; inp.focus();
+      window.xrDm.encText(openKey, v).then(function (e2) {
+        return window.xrApi.uRpc("dm_send", { p_thread: threadId, p_kind: "text", p_ciphertext: e2.ciphertext, p_iv: e2.iv, p_meta: {} });
+      }).then(function (r2) {
+        if (r2 && r2.ok) loadMsgs(threadId, peerId, openKey, true);
+        else alert((r2 && r2.error) || "Could not send.");
+      });
+    }
+    function sendMedia(tid, pid, file) {
+      var msgs = app.querySelector("#dm-msgs");
+      var note = document.createElement("p"); note.className = "dm-sub"; note.textContent = "Encrypting and sending media…";
+      msgs.appendChild(note); msgs.scrollTop = msgs.scrollHeight;
+      window.xrDm.uploadMedia(tid, pid, file).then(function (up) {
+        return window.xrApi.uRpc("dm_send", { p_thread: tid, p_kind: up.kind, p_ciphertext: up.path, p_iv: up.iv, p_meta: up.meta });
+      }).then(function (r2) {
+        note.remove();
+        if (r2 && r2.ok) loadMsgs(tid, pid, openKey, true);
+        else alert((r2 && r2.error) || "Could not send.");
+      }).catch(function (e) { note.remove(); alert(e.message); });
+    }
+  }
+
+  function loadMsgs(threadId, peerId, key, scroll) {
+    return window.xrDm.rest("GET", "/rest/v1/dm_messages?thread_id=eq." + threadId + "&select=*&order=created_at.asc&limit=100").then(function (rows) {
+      var box = app.querySelector("#dm-msgs");
+      if (!box || openThread !== threadId) return;
+      box.innerHTML = "";
+      if (!rows || !rows.length) { box.innerHTML = '<p class="dm-sub">No messages yet. Say hello 👋</p>'; return; }
+      var jobs = rows.map(function (m) {
+        var mine = m.sender_id === me.id;
+        var bub = document.createElement("div");
+        bub.className = "dm-bub" + (mine ? " me" : " them");
+        if (m.kind === "text") {
+          bub.textContent = "…";
+          window.xrDm.decText(key, m.ciphertext, m.iv).then(function (t) { bub.textContent = t; }).catch(function () { bub.textContent = "[cannot decrypt - different device key]"; });
+        } else {
+          var btn = document.createElement("span");
+          btn.className = "dm-media-btn";
+          btn.textContent = m.kind === "image" ? "📷 Photo - tap to view" : "🎬 Video" + (m.meta && m.meta.duration ? " (" + m.meta.duration + "s)" : "") + " - tap to play";
+          btn.addEventListener("click", function () {
+            btn.textContent = "Decrypting…";
+            window.xrDm.signMedia(m.ciphertext).then(function (d) {
+              return fetch("https://oskccuajgbyabogbvedj.supabase.co/storage/v1" + d.signedURL).then(function (r) { return r.arrayBuffer(); });
+            }).then(function (buf) {
+              return window.xrDm.decBytes(key, buf, m.iv);
+            }).then(function (plain) {
+              var blob = new Blob([plain], { type: (m.meta && m.meta.mime) || "application/octet-stream" });
+              var url = URL.createObjectURL(blob);
+              var med = document.createElement(m.kind === "image" ? "img" : "video");
+              med.src = url;
+              if (m.kind === "video") { med.controls = true; med.playsInline = true; }
+              bub.replaceChild(med, btn);
+            }).catch(function () { btn.textContent = "Could not open media."; });
+          });
+          bub.appendChild(btn);
+        }
+        var t2 = document.createElement("span");
+        t2.className = "t"; t2.textContent = tm(m.created_at);
+        bub.appendChild(t2);
+        box.appendChild(bub);
+      });
+      if (scroll) box.scrollTop = box.scrollHeight;
+    });
+  }
+
+  /* ---------- REPORT (locks the conversation for the reported side) ---------- */
+  function reportModal(threadId, peerId) {
+    var reasons = [["abuse", "Abuse"], ["spam", "Spam"], ["harassment", "Harassment"], ["fake", "Fake account"], ["other", "Other"]];
+    var ov = document.createElement("div");
+    ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:18px";
+    ov.innerHTML = '<div class="card" style="max-width:420px;width:100%;max-height:86vh;overflow:auto">' +
+      '<h3 style="color:var(--gold2)">Report ' + esc(nameOf(peerId)) + "</h3>" +
+      '<p class="dm-sub">Pick a reason. Your last 10 messages (decrypted on YOUR device) go to the owner for review - nothing else is readable. <b>The conversation locks for them until the owner decides.</b></p>' +
+      reasons.map(function (r, i) { return '<label style="display:flex;gap:8px;align-items:center;margin:8px 0;font-size:14.5px"><input type="radio" name="dmr" value="' + r[0] + '"' + (i === 0 ? " checked" : "") + "> " + r[1] + "</label>"; }).join("") +
+      '<textarea id="dmr-note" rows="2" placeholder="Optional note for the owner" style="width:100%;padding:9px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff"></textarea>' +
+      '<div style="display:flex;gap:8px;margin-top:12px"><button class="dm-btn danger" id="dmr-go">Send report & lock</button><button class="dm-btn" id="dmr-x">Cancel</button></div>' +
+      '<p id="dmr-msg" class="dm-sub" style="margin-top:8px"></p></div>';
+    document.body.appendChild(ov);
+    ov.querySelector("#dmr-x").addEventListener("click", function () { ov.remove(); });
+    ov.querySelector("#dmr-go").addEventListener("click", function () {
+      var reason = ov.querySelector("input[name=dmr]:checked").value;
+      var note = ov.querySelector("#dmr-note").value.trim();
+      var btn = ov.querySelector("#dmr-go"); btn.disabled = true;
+      window.xrDm.rest("GET", "/rest/v1/dm_messages?thread_id=eq." + threadId + "&select=*&order=created_at.desc&limit=10").then(function (rows) {
+        rows = (rows || []).reverse();
+        return Promise.all(rows.map(function (m) {
+          if (m.kind !== "text") return { from: m.sender_id === me.id ? "me" : "them", type: m.kind, at: m.created_at };
+          return window.xrDm.decText(openKey, m.ciphertext, m.iv).then(function (t) {
+            return { from: m.sender_id === me.id ? "me" : "them", type: "text", text: t, at: m.created_at };
+          }).catch(function () { return { from: "?", type: "text", text: "[undecryptable]", at: m.created_at }; });
+        }));
+      }).then(function (msgs) {
+        return window.xrApi.uRpc("dm_report", { p_thread: threadId, p_reported: peerId, p_reason: reason, p_note: note, p_messages: msgs });
+      }).then(function (r2) {
+        if (r2 && r2.ok) {
+          ov.querySelector("#dmr-msg").textContent = "Report sent. The conversation is locked for them until the owner reviews it.";
+          setTimeout(function () { ov.remove(); loadMsgs(threadId, peerId, openKey, true); }, 1600);
+        } else {
+          btn.disabled = false;
+          ov.querySelector("#dmr-msg").textContent = (r2 && r2.error) || "Report failed.";
+        }
+      });
+    });
+  }
+
+  /* ---------- boot ---------- */
+  window.xrApi.user().then(function (u) {
+    if (!u) { gate(); return; }
+    me = u;
+    window.xrDm.publishMyKey().then(renderChats);
+    var beat = function () { if (!document.hidden) window.xrApi.uRpc("presence_ping", {}).catch(function () {}); };
+    beat(); setInterval(beat, 45000);
+    document.addEventListener("visibilitychange", beat);
+  }).catch(gate);
+});
+</script>
+<footer><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand">
+<a class="brand" href="index.html">
+<svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="#e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="#f5b301" stroke-width="3.2"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<p>XARENA ESPORTS is a professional Free Fire esports organisation — tournaments, scrims, rankings and a competitive roster, run from India for the community.</p>
+</div>
+<div><h4>Arena</h4><ul>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="how-to-play.html">How to Play</a></li>
+<li><a href="verify.html">Photo Verify</a></li>
+<li><a href="play.html">Play &amp; Earn</a></li>
+<li><a href="feed.html">Highlights Feed</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="rules.html">Rules &amp; Regulations</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+</ul></div>
+<div><h4>Organisation</h4><ul>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="cup.html">Sponsor a Cup</a></li>
+<li><a href="contact.html">Contact & Support</a></li>
+<li><a href="download.html">Get the App</a></li>
+</ul></div>
+</div>
+<div class="foot-bottom">
+<span>© <b id="yr">2026</b> XARENA ESPORTS · All rights reserved</span>
+<span id="foot-credit">Founded &amp; owned by <b>Shivhari Rajput</b></span>
+<span id="app-update" style="display:none;cursor:pointer">App update check</span>
+</div>
+</div></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/vendor/supabase.min.js"></script>
+<script src="assets/js/vendor/qrcode.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/luna.js"></script>
+<script src="assets/js/reco.js"></script>
+<script src="assets/js/game.js"></script>
+<script src="assets/js/sfx.js"></script>
+<script src="assets/js/sharecard.js"></script>
+<script src="assets/js/funline.js"></script>
+<script src="assets/js/dm.js"></script>
+<script src="assets/js/chat-style.js"></script>
+<script src="assets/js/app-shell.js"></script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script>
+</body></html>

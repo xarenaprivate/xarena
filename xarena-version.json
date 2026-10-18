@@ -1,0 +1,8 @@
+{
+  "version": "7.3.3",
+  "code": 66,
+  "size": 2517437,
+  "sha256": "c4f3f5566bc5016d954859a8019f816680c91b949c7edc1d3a8d14bf88b3aa52",
+  "updated": "2026-10-18T07:45:18.209033+00:00",
+  "notes": "Atomic audited registration verification and owner override"
+}

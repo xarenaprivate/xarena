@@ -1,0 +1,157 @@
+/* XARENA look: SOCIAL - clean light community UI, system sans font (Instagram-style layout, own assets) */
+body.look-social{
+  --bg0:#fafafa; --bg1:#ffffff; --bg2:#efefef; --card:#ffffff;
+  --line:rgba(0,0,0,.1); --line2:rgba(0,0,0,.18);
+  --red:#0095f6; --red2:#0095f6; --redglow:rgba(0,149,246,.25);
+  --purple:#0095f6; --purple2:#47b5ff; --purpleglow:rgba(0,149,246,.2);
+  --gold:#ff3040; --gold2:#ff3040;
+  --text:#262626; --muted:#8e8e8e; --dim:#c7c7c7;
+  --cut:none;
+  --xsfont:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+body.look-social,body.look-social h1,body.look-social h2,body.look-social h3,body.look-social h4,
+body.look-social .brand-name,body.look-social .btn,body.look-social button,body.look-social input,
+body.look-social textarea,body.look-social select,body.look-social .xf-ava,body.look-social .overline,
+body.look-social .empty .big{font-family:var(--xsfont)!important}
+body.look-social{background:#fafafa}
+body.look-social::before{background:none}
+/* surfaces */
+body.look-social .card,body.look-social .form-panel,body.look-social .news-item,body.look-social .lb-table,
+body.look-social .empty,body.look-social .xg-quiz{
+  background:#fff;border:1px solid #dbdbdb;border-radius:8px;box-shadow:none}
+body.look-social .card:hover{border-color:#dbdbdb;box-shadow:none}
+body.look-social .news-item{border-left:3px solid #0095f6}
+body.look-social .page-hero{padding:20px 0 14px}
+body.look-social .page-hero h1{font-size:24px;font-weight:700;letter-spacing:0;text-transform:none}
+body.look-social .overline{color:#8e8e8e;font-size:12px;letter-spacing:.8px;text-transform:uppercase}
+/* buttons + inputs */
+body.look-social .btn,body.look-social .field input,body.look-social .field select,body.look-social .field textarea{clip-path:none;border-radius:8px}
+body.look-social .btn-red{background:#0095f6;box-shadow:none;border:none;font-weight:600}
+body.look-social .btn-red:hover{background:#1877f2;box-shadow:none}
+body.look-social .btn-gold{background:#efefef;color:#262626;border:none;box-shadow:none;font-weight:600}
+body.look-social .btn-ghost{border:1px solid #dbdbdb;color:#262626;background:#fff}
+body.look-social .field input,body.look-social .field select,body.look-social .field textarea{background:#fafafa;border:1px solid #dbdbdb;color:var(--text);border-radius:8px}
+body.look-social .field input:focus,body.look-social .field textarea:focus{border-color:#a8a8a8;box-shadow:none}
+/* top nav: white bar, hairline */
+body.look-social header.nav{background:#fff;border-bottom:1px solid #dbdbdb;box-shadow:none}
+body.look-social .brand-name{color:#262626;font-weight:700;letter-spacing:0}
+body.look-social .brand-name span{color:#0095f6}
+body.look-social .nav-links a{color:#262626;font-weight:500}
+body.look-social .nav-links a.active{color:#0095f6}
+body.look-social .burger i{background:#262626}
+body.look-social .xr-theme-btn{border:1px solid #dbdbdb;color:#262626;background:#fff;border-radius:8px}
+/* top icon buttons (added by look-social.js) */
+.xs-topic{width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;position:relative;color:#262626}
+.xs-topic svg{width:24px;height:24px}
+.xs-topava{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#405de6,#833ab4,#fd1d1d,#fcb045);
+  display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;margin-left:2px}
+.xs-badge{position:absolute;top:2px;right:0;min-width:17px;height:17px;border-radius:9px;background:#ff3040;color:#fff;
+  font-size:10.5px;font-weight:700;display:none;align-items:center;justify-content:center;padding:0 4px}
+/* bottom nav (mobile) */
+.xs-bnav{position:fixed;left:0;right:0;bottom:0;z-index:60;background:#fff;border-top:1px solid #dbdbdb;
+  display:flex;padding:4px 0 calc(6px + env(safe-area-inset-bottom))}
+.xs-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:#262626;text-decoration:none;
+  font-size:10px;font-weight:500;padding:5px 0;position:relative}
+.xs-bnav a svg{width:24px;height:24px}
+.xs-bnav a.on{color:#0095f6}
+.xs-bnav a .xs-badge{top:0;right:calc(50% - 20px)}
+@media(min-width:861px){.xs-bnav{display:none}}
+body.look-social{padding-bottom:64px}
+@media(min-width:861px){body.look-social{padding-bottom:0}}
+/* ---------- FEED: IG-style post cards ---------- */
+body.look-social .xf-post{border:1px solid #dbdbdb;border-radius:8px;background:#fff;margin-bottom:20px;overflow:hidden}
+body.look-social .xf-head{padding:10px 12px}
+body.look-social .xf-ava{width:32px;height:32px;border:none;font-size:13px;color:#fff;
+  background:linear-gradient(135deg,#405de6,#833ab4,#fd1d1d,#fcb045);font-weight:700}
+body.look-social .xf-head b,body.look-social .xf-head a{font-size:14px;font-weight:600}
+body.look-social .xf-head span{font-size:12px;color:#8e8e8e}
+body.look-social .xf-media{background:#fafafa}
+body.look-social .xf-actions{padding:8px 8px 2px;gap:2px}
+body.look-social .xf-like,body.look-social .xf-cbtn,body.look-social .xf-share{font-size:0!important;gap:0;padding:6px 8px;color:#262626}
+body.look-social .xf-like::before,body.look-social .xf-cbtn::before,body.look-social .xf-share::before{
+  content:"";width:24px;height:24px;display:inline-block;background-repeat:no-repeat;background-position:center;background-size:24px}
+body.look-social .xf-like::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23262626' stroke-width='1.8'%3E%3Cpath d='M12 20.7C6.4 17.1 3 13.9 3 10.2 3 7.6 5 5.5 7.6 5.5c1.7 0 3.3.9 4.4 2.4 1.1-1.5 2.7-2.4 4.4-2.4 2.6 0 4.6 2.1 4.6 4.7 0 3.7-3.4 6.9-9 10.5z'/%3E%3C/svg%3E")}
+body.look-social .xf-like.on::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ff3040'%3E%3Cpath d='M12 20.7C6.4 17.1 3 13.9 3 10.2 3 7.6 5 5.5 7.6 5.5c1.7 0 3.3.9 4.4 2.4 1.1-1.5 2.7-2.4 4.4-2.4 2.6 0 4.6 2.1 4.6 4.7 0 3.7-3.4 6.9-9 10.5z'/%3E%3C/svg%3E")}
+body.look-social .xf-cbtn::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23262626' stroke-width='1.8'%3E%3Cpath d='M12 3C6.9 3 3 6.9 3 11.1c0 2.5 1.3 4.7 3.3 6.2L5.2 21l3.9-1.1c.9.3 1.9.4 2.9.4 5.1 0 9-3.9 9-8.1S17.1 3 12 3z'/%3E%3C/svg%3E")}
+body.look-social .xf-share::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23262626' stroke-width='1.8' stroke-linejoin='round'%3E%3Cpath d='M22 2 11 13'/%3E%3Cpath d='M22 2 15 22l-4-9-9-4z'/%3E%3C/svg%3E")}
+body.look-social .xf-like .cnt,body.look-social .xf-cbtn .cnt{font-size:14px;font-weight:600;color:#262626;margin-left:6px}
+body.look-social .xf-cap{padding:2px 14px 12px;font-size:14px;line-height:1.45}
+body.look-social .xf-cap .xs-capauthor{font-weight:600;color:#262626;text-decoration:none;margin-right:5px}
+body.look-social .xf-comments{padding:0 14px 12px}
+body.look-social .xf-comment{font-size:14px;padding:2px 0}
+body.look-social .xf-cform{display:flex;gap:8px;margin-top:8px;border-top:1px solid #efefef;padding-top:10px}
+body.look-social .xf-cform input{flex:1;border:none;background:none;font-size:14px;color:#262626;outline:none}
+body.look-social .xf-cform button{border:none;background:none;color:#0095f6;font-weight:600;font-size:14px;cursor:pointer}
+/* ---------- PLAYER PROFILE: IG header + grid, WhatsApp about ---------- */
+.xs-pcard{padding:14px!important;text-align:left!important}
+.xs-pheadrow{display:flex;align-items:center;gap:22px}
+.xs-pava{width:82px;height:82px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  font-size:30px;font-weight:700;color:#fff;background:linear-gradient(135deg,#405de6,#833ab4,#fd1d1d,#fcb045);
+  border:3px solid #fff;box-shadow:0 0 0 2px #dbdbdb}
+.xs-pheadrow .xr-prof-stats{flex:1;display:flex;justify-content:space-around;margin:0}
+.xs-pheadrow .xr-prof-stats>div,.xs-pheadrow .xr-prof-stats>button{display:flex;flex-direction:column;align-items:center;
+  background:none;border:none;cursor:pointer;font-family:inherit;color:#262626;padding:0}
+.xs-pheadrow .xr-prof-stats b{font-size:17px;font-weight:700}
+.xs-pheadrow .xr-prof-stats span{font-size:13px;color:#262626;font-weight:400}
+.xs-pbio{margin-top:12px}
+.xs-pbio h2{font-size:14px;font-weight:700;margin:0}
+.xs-pbio p{font-size:14px;color:#262626;margin:2px 0}
+.xs-pbio .xs-about{font-size:13px;color:#8e8e8e;margin-top:4px;line-height:1.5}
+.xs-pbtns{display:flex;gap:6px;margin-top:12px}
+.xs-pbtns .btn{flex:1;text-align:center;font-size:14px;font-weight:600;padding:7px 0;border-radius:8px}
+.xs-pgridwrap{margin-top:16px}
+.xs-pgtabs{display:flex;justify-content:center;border-top:1px solid #dbdbdb}
+.xs-pgtabs span{padding:12px 18px;font-size:12px;letter-spacing:1px;text-transform:uppercase;font-weight:600;
+  color:#262626;border-top:1px solid #262626;margin-top:-1px}
+.xs-pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:2px}
+.xs-pgrid a{position:relative;display:block;aspect-ratio:1;background:#efefef;overflow:hidden;text-decoration:none}
+.xs-pgrid img{width:100%;height:100%;object-fit:cover;display:block}
+.xs-pgrid .xs-ptext{display:flex;align-items:center;justify-content:center;height:100%;padding:10px;
+  font-size:12px;color:#8e8e8e;text-align:center;line-height:1.4}
+.xs-pgrid .xs-pkind{position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;
+  background:rgba(0,0,0,.55);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center}
+.xs-pempty{padding:34px 0;text-align:center;color:#8e8e8e;font-size:14px;grid-column:1/-1;background:none}
+/* messages list (light IG-ish rows) */
+body.look-social .dm-row,body.look-social .xa-luna-row{background:#fff;border-bottom:1px solid #efefef}
+/* fixes: hero gradient off, action buttons reset to icon-only */
+body.look-social .page-hero{background:none;border-bottom:1px solid #dbdbdb}
+body.look-social .xf-like,body.look-social .xf-cbtn,body.look-social .xf-share{border:none;background:none;cursor:pointer}
+body.look-social .page-hero h1 em{text-shadow:none}
+/* fixes: stats font, light footer */
+body.look-social .xr-prof-stats b,body.look-social .xr-prof-stats span{font-family:var(--xsfont)!important}
+body.look-social footer{background:#fafafa;border-top:1px solid #dbdbdb}
+body.look-social footer,body.look-social footer a,body.look-social footer p,body.look-social footer h4{color:#8e8e8e}
+body.look-social footer .brand-name{color:#262626}
+body.look-social footer a:hover{color:#0095f6}
+/* ---------- MESSAGES: IG-style DM list + chat ---------- */
+body.look-social .dm-tabs{display:flex;border-bottom:1px solid #dbdbdb;margin-bottom:0;background:#fff}
+body.look-social .dm-tab{flex:1;background:none;border:none;border-bottom:1px solid transparent;padding:12px 0;
+  font-size:12px;letter-spacing:1px;font-weight:600;color:#8e8e8e;cursor:pointer;text-transform:uppercase}
+body.look-social .dm-tab.active{color:#262626;border-bottom-color:#262626}
+body.look-social .dm-row{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid #efefef;
+  background:#fff;border-radius:0;cursor:pointer}
+body.look-social .dm-row:hover{background:#fafafa}
+body.look-social .dm-av{width:46px;height:46px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  font-size:17px;font-weight:700;color:#fff;background:linear-gradient(135deg,#405de6,#833ab4,#fd1d1d,#fcb045)}
+body.look-social .dm-row .sp{flex:1;min-width:0}
+body.look-social .dm-name{font-size:14px;font-weight:600;color:#262626}
+body.look-social .dm-sub{font-size:13px;color:#8e8e8e}
+body.look-social .dm-btn{border:none;background:#efefef;color:#262626;border-radius:8px;padding:7px 14px;
+  font-size:13px;font-weight:600;cursor:pointer;font-family:var(--xsfont)}
+body.look-social .dm-btn.gold{background:#0095f6;color:#fff}
+body.look-social .dm-btn.danger{background:none;color:#ed4956;font-weight:600}
+/* chat view */
+body.look-social .dm-conv{background:#fff;border:1px solid #dbdbdb;border-radius:8px;margin-top:10px;overflow:hidden}
+body.look-social .dm-msgs{background:#fff;border:none;border-radius:0;min-height:280px}
+body.look-social .dm-bub{max-width:70%;padding:8px 14px;border-radius:22px;font-size:14.5px}
+body.look-social .dm-bub.me{background:#efefef;border:none;color:#262626;border-bottom-right-radius:22px}
+body.look-social .dm-bub.them{background:#fff;border:1px solid #dbdbdb;color:#262626;border-bottom-left-radius:22px}
+body.look-social .dm-bub .t{color:#8e8e8e}
+body.look-social .dm-send{display:flex;align-items:center;gap:8px;padding:10px;border-top:1px solid #efefef;background:#fff}
+body.look-social .dm-send input[type=text]{flex:1;border:1px solid #dbdbdb;border-radius:22px;background:#fff;
+  padding:9px 16px;font-size:14px;color:#262626;outline:none;font-family:var(--xsfont)}
+body.look-social .dm-send input[type=text]:focus{border-color:#a8a8a8}
+body.look-social .dm-send #dm-go{background:none;color:#0095f6;font-weight:600;border-radius:0;padding:7px 4px}
+body.look-social .dm-send #dm-attach{background:none;font-size:18px;padding:6px}
+body.look-social #dm-app .empty{background:#fff;border:1px solid #dbdbdb}
+body.look-social #dm-search{background:#efefef!important;border:none!important;color:#262626!important;border-radius:8px!important}

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://xarena.surge.sh/winners.html">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Winners · XARENA ESPORTS</title>
+<meta name="description" content="XARENA Hall of Fame — champions, MVPs and title holders, with shareable Instagram story cards.">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="%230b0b14" stroke="%23e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="%23f5b301" stroke-width="3.2"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="XARENA ESPORTS">
+<meta property="og:title" content="XARENA ESPORTS - Free Fire tournaments, feed, stories, Luna">
+<meta property="og:description" content="India's Free Fire esports platform - tournaments, scrims, highlights feed, stories, encrypted messages and the Luna assistant. Free forever.">
+<meta property="og:url" content="https://xarena.surge.sh/">
+<meta property="og:image" content="https://xarena.surge.sh/assets/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0104">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="XARENA">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/app-shell.css">
+</head>
+<body>
+<style>
+#xr-splash{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;transition:opacity .3s ease;overflow:hidden}
+#xr-splash::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none}
+#xr-splash .xs-stage{position:relative;width:118px;height:118px;display:flex;align-items:center;justify-content:center}
+#xr-splash .xs-ring{position:absolute;inset:0;animation:xsSpin 2.6s linear infinite}
+#xr-splash .xs-ring circle{fill:none;stroke:var(--xs-acc,#e10600);stroke-width:2.5;stroke-dasharray:44 22;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--xs-acc,#e10600))}
+#xr-splash .xs-ring.r2{animation:xsSpinR 3.8s linear infinite;inset:9px}
+#xr-splash .xs-ring.r2 circle{stroke-dasharray:10 30;opacity:.55;stroke-width:1.5}
+#xr-splash .xs-logo{width:62px;height:62px;animation:xsPulse 1.2s ease-in-out infinite}
+#xr-splash .xs-logo path{stroke:var(--xs-acc,#e10600)}
+#xr-splash .xs-logo .xs-x{stroke:#f5b301}
+#xr-splash .xs-name{font:900 24px Orbitron,system-ui,sans-serif;color:#fff;letter-spacing:7px;margin-left:7px;animation:xsGlitch 2.4s steps(1) infinite}
+#xr-splash .xs-tag{font:800 10px Orbitron,system-ui,sans-serif;letter-spacing:5px;color:var(--xs-acc,#e10600);margin-left:5px;text-shadow:0 0 10px var(--xs-acc,#e10600)}
+#xr-splash .xs-tip{font:600 12.5px Rajdhani,system-ui,sans-serif;color:#9aa0b8;letter-spacing:1px;min-height:16px;text-align:center;padding:0 24px;transition:opacity .25s}
+#xr-splash .xs-bar{width:170px;height:3px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+#xr-splash .xs-bar i{display:block;height:100%;width:0;border-radius:3px;background:var(--xs-acc,#e10600);box-shadow:0 0 12px var(--xs-acc,#e10600);animation:xsFill 1.5s ease forwards}
+#xr-splash.xs-done{opacity:0;pointer-events:none}
+@keyframes xsSpin{to{transform:rotate(360deg)}}
+@keyframes xsSpinR{to{transform:rotate(-360deg)}}
+@keyframes xsPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes xsFill{to{width:88%}}
+@keyframes xsGlitch{0%,93%,100%{text-shadow:none}94%{text-shadow:-2px 0 var(--xs-acc,#e10600),2px 0 #22d3ee}96%{text-shadow:2px 0 var(--xs-acc,#e10600),-2px 0 #22d3ee}98%{text-shadow:none}}
+@media (prefers-reduced-motion:reduce){#xr-splash .xs-ring,#xr-splash .xs-logo,#xr-splash .xs-name,#xr-splash .xs-bar i{animation:none!important}#xr-splash{transition:none!important}}
+</style>
+<div id="xr-splash" role="status" aria-label="Loading XARENA">
+<div class="xs-stage">
+<svg class="xs-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-ring r2" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-logo" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke-width="2.5"/><path class="xs-x" d="M13 13l14 14M27 13L13 27" stroke-width="3.2" fill="none"/></svg>
+</div>
+<div class="xs-name">XARENA</div>
+<div class="xs-tag">ENTERING THE ARENA</div>
+<div class="xs-tip" id="xs-tip"></div>
+<div class="xs-bar"><i></i></div>
+<script>(function(){try{var m={liquid:"#0a84ff",classic:"#e10600","3d":"#8b3dff",nexus:"#7c5cff",arena:"#ff7a1a","void":"#a970ff",ascend:"#19e3c2",hybrid:"#22d3ee",pulse:"#ff2e88",aura:"#8b5cf6",social:"#0095f6"};var t=localStorage.getItem("xr_theme")||"liquid";var s=document.getElementById("xr-splash");if(s&&m[t])s.style.setProperty("--xs-acc",m[t]);var tips=["Season 1 - 48 squad slots - registrations open","Real tournaments - tracked rankings - live World Chat","Tip: mention @luna in World Chat - she answers","Tip: finish tasks to earn points, badges and titles","48 squads. One crown. Season 1 is loading"];var tip=document.getElementById("xs-tip");if(tip&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){var i=Math.floor(Math.random()*tips.length);tip.textContent=tips[i];var iv=setInterval(function(){if(!document.getElementById("xr-splash")){clearInterval(iv);return;}i=(i+1)%tips.length;tip.style.opacity=0;setTimeout(function(){tip.textContent=tips[i];tip.style.opacity=1;},240);},1600);}}catch(e){}})();</script>
+</div>
+<header class="nav"><div class="wrap nav-in">
+<a class="brand" href="index.html" aria-label="XARENA ESPORTS home">
+<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="xg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3131"/><stop offset=".55" stop-color="#e10600"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="url(#xg)" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="url(#xg)" stroke-width="3.2" stroke-linecap="square"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<button class="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+<ul class="nav-links">
+<li><a href="index.html">Home</a></li>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="tasks.html">Tasks</a></li>
+<li><a href="play.html">Play</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="feed.html">Feed</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+<li><a href="rules.html">RRs</a></li>
+<li><a href="contact.html">Contact</a></li>
+<li><a href="account.html">Account</a></li>
+<li><a class="nav-chat" href="chat.html"><span class="pulse"></span>World Chat<span class="chat-badge" id="xr-chat-badge"></span></a></li>
+<li class="nav-cta" style="display:flex;align-items:center;gap:8px"><a href="messages.html" aria-label="Messages" title="Messages" style="color:inherit;display:flex;padding:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></a><button class="xr-theme-btn" id="xr-theme-btn" type="button">Look</button><a class="btn btn-red btn-sm" href="tournaments.html#register">Register</a></li>
+</ul>
+</div></header>
+<main><section class="section"><div class="wrap" style="max-width:860px">
+  <div class="section-head reveal"><div class="overline">Hall of Fame</div><h2>XARENA <em>Winners</em></h2>
+  <p>Real honors only — every title here was granted by the owner from actual match results. Champions get the gold badge, MVPs get the star, and every winner can download a story card for Instagram.</p></div>
+  <div id="hof-body"></div>
+  <div id="winners-body"><p style="color:var(--muted)">Loading…</p></div>
+  <div id="sponsor-qr"></div>
+</div></section></main>
+<script>
+window.addEventListener("load", function () {
+  var body = document.getElementById("winners-body");
+  var params = new URLSearchParams(location.search);
+  var awardId = params.get("award");
+  var KEY = "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7";
+  var URLB = "https://oskccuajgbyabogbvedj.supabase.co";
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function kindBadge(k) {
+    var map = { champion: ["🏆 CHAMPION", "var(--gold2)"], runner_up: ["🥈 RUNNER-UP", "#c9d1d9"], third: ["🥉 3RD PLACE", "#d08b4e"], mvp: ["⭐ MVP", "#bf6aff"], title: ["🎖 TITLE", "#5ad1ff"] };
+    var m = map[k] || ["🎖 TITLE", "#5ad1ff"];
+    return '<span style="color:' + m[1] + ';border:1px solid ' + m[1] + ';padding:2px 10px;font-size:11px;letter-spacing:1.5px;border-radius:4px">' + m[0] + "</span>";
+  }
+  function getAward(id) {
+    return fetch(URLB + "/rest/v1/awards?id=eq." + encodeURIComponent(id) + "&select=*", { headers: { apikey: KEY } }).then(function (r) { return r.json(); }).then(function (rows) { return rows && rows[0]; });
+  }
+
+  /* trophy QR - scan to follow the sponsor */
+  fetch(URLB + "/rest/v1/sponsors?select=name,url&active=eq.true&order=id.asc", { headers: { apikey: KEY } })
+    .then(function (r) { return r.json(); }).then(function (rows) {
+      var sp = (rows || []).filter(function (s) { return s.url; })[0];
+      var box = document.getElementById("sponsor-qr");
+      if (!sp || !box) return;
+      box.innerHTML = '<div class="card reveal" style="margin-top:18px;text-align:center"><div class="overline">Trophy sponsor</div><h3 style="margin:6px 0 10px">' + esc(sp.name) + '</h3><div id="sq-cv" style="display:flex;justify-content:center"></div><p style="color:var(--muted);font-size:13px;margin-top:10px">Scan to follow our sponsor - they make the prizes possible.</p></div>';
+      var target = document.getElementById("sq-cv");
+      if (window.xshare && xshare.qrCanvas) {
+        var cv = xshare.qrCanvas(sp.url, 220);
+        cv.style.borderRadius = "12px";
+        target.appendChild(cv);
+      } else {
+        target.innerHTML = '<a href="' + esc(sp.url) + '" target="_blank" rel="noopener" style="color:var(--gold2)">' + esc(sp.url) + "</a>";
+      }
+    }).catch(function () {});
+
+  /* ---------- Instagram story card (1080x1920, client-side canvas) ---------- */
+  function drawCard(a, scale) {
+    var W = 540 * scale, H = 960 * scale;
+    var cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    var x = cv.getContext("2d");
+    var g = x.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, "#0b0b14"); g.addColorStop(.55, "#1a0620"); g.addColorStop(1, "#2a0410");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    for (var i = 0; i < 60; i++) { x.fillStyle = "rgba(255," + (60 + (i * 7) % 120) + ",80," + (0.04 + (i % 5) * 0.02) + ")"; x.fillRect((i * 137) % W, (i * 251) % H, 3 * scale, 3 * scale); }
+    x.strokeStyle = "rgba(225,6,0,.8)"; x.lineWidth = 6 * scale; x.strokeRect(18 * scale, 18 * scale, W - 36 * scale, H - 36 * scale);
+    x.strokeStyle = "rgba(245,179,1,.5)"; x.lineWidth = 2 * scale; x.strokeRect(28 * scale, 28 * scale, W - 56 * scale, H - 56 * scale);
+    x.textAlign = "center";
+    x.fillStyle = "#e10600"; x.font = "900 " + 64 * scale + "px Orbitron, sans-serif";
+    x.fillText("XARENA", W / 2, 120 * scale);
+    x.fillStyle = "#f5b301"; x.font = "600 " + 20 * scale + "px Orbitron, sans-serif";
+    x.fillText("E S P O R T S", W / 2, 152 * scale);
+    x.fillStyle = "#b98fd9"; x.font = "600 " + 22 * scale + "px Rajdhani, sans-serif";
+    x.fillText((a.tournament_id || "").toUpperCase().replace(/-/g, " "), W / 2, 240 * scale);
+    x.font = "900 " + 54 * scale + "px Orbitron, sans-serif"; x.fillStyle = "#ffffff";
+    wrapText(x, (a.squad || "").toUpperCase(), W / 2, 330 * scale, W - 120 * scale, 60 * scale);
+    var tg = x.createLinearGradient(W / 2 - 200 * scale, 0, W / 2 + 200 * scale, 0);
+    tg.addColorStop(0, "#f5b301"); tg.addColorStop(.5, "#ffe27a"); tg.addColorStop(1, "#f5b301");
+    x.fillStyle = tg; x.font = "900 " + 44 * scale + "px Orbitron, sans-serif";
+    wrapText(x, (a.title || "WINNER").toUpperCase(), W / 2, 470 * scale, W - 100 * scale, 50 * scale);
+    var kindTxt = { champion: "🏆", runner_up: "🥈", third: "🥉", mvp: "⭐", title: "🎖" }[a.kind] || "🎖";
+    x.font = (90 * scale) + "px sans-serif"; x.fillText(kindTxt, W / 2, 640 * scale);
+    if (a.points) { x.fillStyle = "#f5b301"; x.font = "700 " + 30 * scale + "px Rajdhani, sans-serif"; x.fillText("+" + a.points + " POINTS", W / 2, 710 * scale); }
+    x.fillStyle = "rgba(255,255,255,.55)"; x.font = "500 " + 20 * scale + "px Rajdhani, sans-serif";
+    x.fillText(new Date(a.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }), W / 2, 780 * scale);
+    x.fillStyle = "rgba(255,255,255,.4)"; x.font = "500 " + 16 * scale + "px Rajdhani, sans-serif";
+    x.fillText("xarena.surge.sh · Founded & owned by Shivhari Rajput", W / 2, H - 50 * scale);
+    return cv;
+  }
+  function wrapText(x, text, cx, y, maxW, lh) {
+    var words = String(text).split(" "), line = "", lines = [];
+    words.forEach(function (w) { var t = line ? line + " " + w : w; if (x.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; });
+    if (line) lines.push(line);
+    lines.forEach(function (l, i) { x.fillText(l, cx, y + i * lh); });
+  }
+
+  function showStoryCard(a) {
+    body.innerHTML = '<div class="card" style="text-align:center">' +
+      "<h3>" + esc(a.squad) + " — " + esc(a.title) + "</h3>" +
+      '<p style="color:var(--muted);font-size:13.5px;margin-bottom:14px">Your Instagram story card (1080×1920). Download it and share it — tag @ud_speed!</p>' +
+      '<div id="card-mount" style="display:flex;justify-content:center"></div>' +
+      '<div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap">' +
+      '<button class="btn btn-gold" id="dl-card">Download story card</button>' +
+      '<button class="btn btn-ghost" id="share-card" style="display:none">Share…</button>' +
+      '<a class="btn btn-ghost" href="winners.html">Back to Hall of Fame</a></div></div>';
+    document.fonts.ready.then(function () {
+      var cv = drawCard(a, 1);
+      cv.style.width = "min(320px,80vw)"; cv.style.height = "auto"; cv.style.borderRadius = "10px";
+      document.getElementById("card-mount").appendChild(cv);
+      document.getElementById("dl-card").addEventListener("click", function () {
+        var big = drawCard(a, 2);
+        var fname = "xarena-" + (a.squad || "winner").toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + (a.title || "award").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        var url = big.toDataURL("image/png");
+        if (window.XarenaApp && XarenaApp.saveImage) {
+          var res = XarenaApp.saveImage(url.split(",")[1], fname);
+          alert(res.indexOf("saved:") === 0 ? "Saved to your gallery (Pictures/XARENA)." : "Save failed - try again.");
+        } else {
+          var link = document.createElement("a");
+          link.download = fname + ".png";
+          link.href = url;
+          link.click();
+        }
+      });
+      var big = drawCard(a, 2);
+      big.toBlob(function (blob) {
+        if (navigator.canShare && navigator.canShare({ files: [new File([blob], "xarena-win.png", { type: "image/png" })] })) {
+          var sb = document.getElementById("share-card");
+          sb.style.display = "";
+          sb.addEventListener("click", function () {
+            navigator.share({ files: [new File([blob], "xarena-win.png", { type: "image/png" })], title: "XARENA " + a.title, text: a.squad + " — " + a.title + " | XARENA ESPORTS" }).catch(function () {});
+          });
+        }
+      });
+    });
+  }
+
+  if (awardId) { getAward(awardId).then(function (a) { if (a) showStoryCard(a); else body.innerHTML = '<div class="empty"><div class="big">Award not found</div></div>'; }); return; }
+
+  fetch(URLB + "/rest/v1/hall_of_fame?select=*&order=sort.asc,id.asc", { headers: { apikey: KEY } })
+    .then(function (r) { return r.json(); }).then(function (rows) {
+      if (!rows || !rows.length) return;
+      var esc2 = function (t) { return String(t == null ? "" : t).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+      var seasons = {};
+      rows.forEach(function (r) { (seasons[r.season] = seasons[r.season] || []).push(r); });
+      document.getElementById("hof-body").innerHTML = Object.keys(seasons).map(function (sn) {
+        return '<div class="card" style="margin-bottom:14px;border-color:rgba(245,179,1,.4)"><h3 style="color:var(--gold2)">' + esc2(sn) + "</h3>" +
+          seasons[sn].map(function (r) {
+            return '<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid rgba(255,255,255,.07);flex-wrap:wrap">' +
+              '<span style="font-size:12.5px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase">' + esc2(r.category) + "</span>" +
+              '<b>' + esc2(r.name) + "</b>" + (r.detail ? '<span style="font-size:13px;color:var(--muted)">' + esc2(r.detail) + "</span>" : "") + "</div>";
+          }).join("") + "</div>";
+      }).join("");
+    }).catch(function () {});
+  fetch(URLB + "/rest/v1/awards?select=*&order=created_at.desc", { headers: { apikey: KEY } })
+    .then(function (r) { return r.json(); })
+    .then(function (rows) {
+      if (!rows || !rows.length) {
+        body.innerHTML = '<div class="empty"><div class="big">No champions yet</div><p>The first XARENA winners will be crowned here — Champion badge, MVP star, custom titles and a story card for each. Season 1 is open: 48 squads, one crown.</p><a class="btn btn-red" href="tournaments.html#register" style="margin-top:14px">Register your squad</a></div>';
+        return;
+      }
+      body.innerHTML = rows.map(function (a) {
+        return '<div class="news-item" style="border-left-color:' + (a.kind === "champion" ? "var(--gold2)" : "var(--purple)") + '">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="font-size:18px">' + esc(a.squad) + "</h3>" + kindBadge(a.kind) + "</div>" +
+          '<p style="font-size:20px;color:var(--gold2);font-weight:700;margin-top:6px">' + esc(a.title) + "</p>" +
+          "<p>" + esc(a.tournament_id) + (a.points ? " · +" + a.points + " pts" : "") + (a.note ? " · " + esc(a.note) : "") + " · " + new Date(a.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) + "</p>" +
+          '<div style="margin-top:8px"><a class="btn btn-ghost btn-sm" href="winners.html?award=' + a.id + '">📸 Story card</a> <button class="btn btn-ghost btn-sm" data-caption="' + esc(a.squad) + '">✍ Win caption</button> <span class="caption-out" style="font-size:13px"></span></div></div>';
+      }).join("");
+      Array.prototype.forEach.call(body.querySelectorAll("[data-caption]"), function (b) {
+        var out = b.parentNode.querySelector(".caption-out");
+        if (window.xrFunline) xrFunline.wire(b, "win", b.getAttribute("data-caption"), out, {});
+      });
+    })
+    .catch(function () { body.innerHTML = '<p style="color:var(--muted)">Could not load winners — please refresh.</p>'; });
+});
+</script>
+<footer><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand">
+<a class="brand" href="index.html">
+<svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="#e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="#f5b301" stroke-width="3.2"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<p>XARENA ESPORTS is a professional Free Fire esports organisation — tournaments, scrims, rankings and a competitive roster, run from India for the community.</p>
+</div>
+<div><h4>Arena</h4><ul>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="how-to-play.html">How to Play</a></li>
+<li><a href="verify.html">Photo Verify</a></li>
+<li><a href="play.html">Play &amp; Earn</a></li>
+<li><a href="feed.html">Highlights Feed</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="rules.html">Rules &amp; Regulations</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+</ul></div>
+<div><h4>Organisation</h4><ul>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="cup.html">Sponsor a Cup</a></li>
+<li><a href="contact.html">Contact & Support</a></li>
+<li><a href="download.html">Get the App</a></li>
+</ul></div>
+</div>
+<div class="foot-bottom">
+<span>© <b id="yr">2026</b> XARENA ESPORTS · All rights reserved</span>
+<span id="foot-credit">Founded &amp; owned by <b>Shivhari Rajput</b></span>
+<span id="app-update" style="display:none;cursor:pointer">App update check</span>
+</div>
+</div></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/vendor/supabase.min.js"></script>
+<script src="assets/js/vendor/qrcode.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/luna.js"></script>
+<script src="assets/js/reco.js"></script>
+<script src="assets/js/game.js"></script>
+<script src="assets/js/sfx.js"></script>
+<script src="assets/js/sharecard.js"></script>
+<script src="assets/js/funline.js"></script>
+<script src="assets/js/dm.js"></script>
+<script src="assets/js/chat-style.js"></script>
+<script src="assets/js/app-shell.js"></script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script>
+</body></html>

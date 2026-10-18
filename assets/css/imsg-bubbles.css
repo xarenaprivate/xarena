@@ -1,0 +1,59 @@
+/* XARENA Messages bubble skin (own design, no third-party assets) - the only
+   chat style, applied on messages.html in every look by chat-style.js.
+   Applies when body has .imsg-on. */
+body.imsg-on .dm-conv{background:transparent;border:none}
+body.imsg-on .dm-msgs{background:#fff;gap:3px;padding:12px 10px;border-top:none;border-bottom:none}
+body.imsg-on .dm-bub{position:relative;max-width:72%;padding:8px 13px;font-size:15px;line-height:1.35;
+  border-radius:19px;animation:imPop .28s cubic-bezier(.34,1.56,.64,1) backwards}
+body.imsg-on .dm-bub.me{align-self:flex-end;color:#fff;border:none;
+  background:linear-gradient(180deg,#3ea0ff 0%,#0a84ff 60%,#0870e6 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 1px 2px rgba(10,132,255,.35)}
+body.imsg-on .dm-bub.them{align-self:flex-start;color:#000;border:none;
+  background:linear-gradient(180deg,#f0f0f2 0%,#e9e9eb 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 1px 1px rgba(0,0,0,.06)}
+/* grouping: consecutive same-sender bubbles tuck together (JS adds .grp) */
+body.imsg-on .dm-bub.grp{margin-top:-1px}
+body.imsg-on .dm-bub.me.grp{border-top-right-radius:6px}
+body.imsg-on .dm-bub.them.grp{border-top-left-radius:6px}
+body.imsg-on .dm-bub.me.grpof{border-bottom-right-radius:6px}
+body.imsg-on .dm-bub.them.grpof{border-bottom-left-radius:6px}
+/* tails: only on the last bubble of a group (JS adds .tail) */
+body.imsg-on .dm-bub.tail.me{border-bottom-right-radius:4px}
+body.imsg-on .dm-bub.tail.them{border-bottom-left-radius:4px}
+body.imsg-on .dm-bub.tail::after{content:"";position:absolute;bottom:0;width:14px;height:18px;pointer-events:none;background-repeat:no-repeat;background-size:14px 18px}
+body.imsg-on .dm-bub.tail.me::after{right:-9px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 18'%3E%3Cpath d='M1 0C 9 3 13 9 14 18L 4 18C 2 12 0 6 1 0Z' fill='%230870e6'/%3E%3C/svg%3E")}
+body.imsg-on .dm-bub.tail.them::after{left:-9px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 18'%3E%3Cpath d='M13 0C 5 3 1 9 0 18L 10 18C 12 12 14 6 13 0Z' fill='%23e9e9eb'/%3E%3C/svg%3E")}
+body.imsg-on .dm-bub .t{color:rgba(255,255,255,.75)}
+body.imsg-on .dm-bub.them .t{color:#8e8e93}
+/* "Sent" marker under the last own bubble (read receipts not built - honest) */
+body.imsg-on .imsg-status{align-self:flex-end;font-size:11px;color:#8e8e93;margin:1px 4px 6px 0}
+body.imsg-on .dm-send{background:rgba(249,249,251,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid rgba(0,0,0,.08)}
+body.imsg-on .dm-send input[type=text]{border-radius:20px;border:1px solid rgba(0,0,0,.12);background:#fff;padding:8px 14px;font-size:15px}
+body.imsg-on .dm-send #dm-go{background:none;color:#0a84ff;font-weight:600}
+@keyframes imPop{from{transform:scale(.55) translateY(10px);opacity:0}to{transform:none;opacity:1}}
+/* reduce effects: no pop animation, no blur (cheaper + accessibility) */
+body.imsg-on.imsg-calm .dm-bub{animation:none}
+body.imsg-on.imsg-calm .dm-send{backdrop-filter:none;-webkit-backdrop-filter:none;background:#f9f9fb}
+body.imsg-on .dm-send input[type=text]{color:#1c1c1e}
+body.imsg-on .dm-tabs .dm-tab{border-radius:999px;border:1px solid rgba(60,60,67,.22);background:#fff;color:#3a3a3c;font-family:inherit}
+body.imsg-on .dm-tabs .dm-tab.active{border-color:#0a84ff;color:#0a84ff;background:rgba(10,132,255,.1)}
+body.imsg-on .dm-row{border-color:rgba(60,60,67,.1);background:#fff;color:#1c1c1e}
+body.imsg-on .dm-row .dm-sub{color:#8e8e93}
+body.imsg-on .dm-list .dm-btn{border-radius:999px;border-color:rgba(60,60,67,.2);color:#0a84ff}
+body.imsg-on .dm-lock{background:rgba(255,159,10,.1);border-color:rgba(255,159,10,.4);color:#8a6000}
+body.imsg-on .dm-media-btn{color:#0a84ff}
+@media (prefers-reduced-motion: reduce){body.imsg-on .dm-bub{animation:none}}
+/* frosted bars on the Messages screen (blur confined to the two small bars) */
+body.imsg-on .dm-apphead{background:rgba(249,249,251,.78);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);border-bottom:1px solid rgba(0,0,0,.08);color:#1c1c1e}
+body.imsg-on .dm-apphead #dm-home{color:#0a84ff}
+body.imsg-on .dm-apphead .dm-lock-note{color:#8e8e93}
+body.imsg-on .dm-apphead .cs-fx{margin-left:auto;border:1px solid rgba(60,60,67,.22);background:rgba(255,255,255,.7);color:#3a3a3c;border-radius:999px;padding:4px 11px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+body.imsg-on .dm-apphead .cs-fx.on{border-color:#0a84ff;color:#0a84ff;background:rgba(10,132,255,.1)}
+body.imsg-on .dm-apphead .dm-lock-note{margin-left:0}
+body.imsg-on.imsg-calm .dm-apphead{backdrop-filter:none;-webkit-backdrop-filter:none;background:#f9f9fb}
+/* conversation header row (back + peer) matches the light chat surface */
+body.imsg-on .dm-conv .dm-row{background:rgba(249,249,251,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(0,0,0,.08);color:#1c1c1e;padding:10px 14px}
+body.imsg-on.imsg-calm .dm-conv .dm-row{backdrop-filter:none;-webkit-backdrop-filter:none;background:#f9f9fb}
+body.imsg-on .dm-conv .dm-row .dm-sub{color:#8e8e93}
+body.imsg-on .dm-conv .dm-btn{color:#0a84ff;border-color:rgba(60,60,67,.2);background:rgba(255,255,255,.7);border-radius:999px}

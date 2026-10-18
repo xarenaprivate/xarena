@@ -1,0 +1,94 @@
+/* XARENA look: ARENA ORANGE (Arena Online mockup) - dark slate, orange esports, angular tournament-table vibe */
+body.look-arena{
+  --bg0:#0b1018; --bg1:#101826; --bg2:#172130; --card:#121b29;
+  --line:rgba(255,122,26,.14); --line2:rgba(255,122,26,.3);
+  --red:#ff5a1f; --red2:#ff8a3d; --redglow:rgba(255,106,26,.45);
+  --purple:#ff7a1a; --purple2:#ffab6b; --purpleglow:rgba(255,122,26,.4);
+  --gold:#ffb84d; --gold2:#ffd08a;
+  --text:#f5f3ef; --muted:#a8a29a; --dim:#7d766c;
+}
+body.look-arena::before{background:
+  radial-gradient(900px 500px at 90% -5%,rgba(255,106,26,.14),transparent 60%),
+  radial-gradient(800px 520px at 0% 0%,rgba(255,60,30,.08),transparent 58%),
+  repeating-linear-gradient(45deg,rgba(255,255,255,.014) 0 1px,transparent 1px 46px)}
+body.look-arena .btn-red{background:linear-gradient(135deg,#ff8a3d,#e64a0a);box-shadow:0 0 22px rgba(255,106,26,.45)}
+body.look-arena .btn-ghost{background:rgba(255,122,26,.1);color:var(--purple2);box-shadow:inset 0 0 0 1px #ff7a1a}
+body.look-arena .card{background:linear-gradient(160deg,#172130,#111a28);border-color:rgba(255,122,26,.16)}
+body.look-arena .card:hover{border-color:rgba(255,122,26,.55);box-shadow:0 12px 40px rgba(0,0,0,.55),0 0 24px rgba(255,122,26,.18)}
+body.look-arena .card .icon{background:rgba(255,106,26,.1);border-color:rgba(255,106,26,.4)}
+body.look-arena .card .icon svg{stroke:var(--red2)}
+body.look-arena .form-panel{border-color:rgba(255,122,26,.4);box-shadow:0 0 40px rgba(255,106,26,.1)}
+body.look-arena .lb-tab.active{background:linear-gradient(135deg,rgba(255,90,31,.4),rgba(255,150,60,.28));border-color:#ff5a1f;box-shadow:0 0 18px rgba(255,106,26,.3)}
+body.look-arena .lb-table th{color:#ffab6b;border-bottom-color:rgba(255,122,26,.3);background:rgba(255,122,26,.05)}
+body.look-arena .lb-table td{border-bottom-color:rgba(255,122,26,.1)}
+body.look-arena .lb-table tbody tr:hover td{background:rgba(255,122,26,.05)}
+body.look-arena .lb-rank{color:#ffb84d}
+body.look-arena .lb-score{color:#ffab6b}
+body.look-arena .badge.info{color:#ffab6b;background:rgba(255,122,26,.1);box-shadow:inset 0 0 0 1px rgba(255,122,26,.45)}
+body.look-arena .tmeta div{border-left-color:#ff7a1a}
+body.look-arena .news-item{border-left-color:#ff5a1f;background:linear-gradient(90deg,rgba(255,106,26,.08),transparent 55%)}
+body.look-arena .hero-tag{color:#ffd08a;border-color:rgba(255,184,77,.45);background:rgba(255,184,77,.06)}
+body.look-arena .nav-chat{border-color:rgba(255,106,26,.6);background:linear-gradient(120deg,rgba(255,106,26,.18),rgba(255,150,60,.12))}
+body.look-arena .nav-chat:hover{box-shadow:0 0 18px rgba(255,106,26,.4)}
+body.look-arena .field input:focus,body.look-arena .field select:focus,body.look-arena .field textarea:focus{border-color:#ff7a1a;box-shadow:0 0 0 3px rgba(255,122,26,.16)}
+
+/* ===== ARENA LAYOUT: esports tab bar + tournament rows with detail panel ===== */
+body.look-arena:not(.os-embed) header.nav{background:linear-gradient(180deg,#0d1622,#0a111b);border-bottom:2px solid rgba(255,122,26,.35)}
+body.look-arena:not(.os-embed) .nav-links a{font-family:var(--font-d);text-transform:uppercase;letter-spacing:1.2px;font-size:11.5px;position:relative;padding-bottom:6px}
+body.look-arena:not(.os-embed) .nav-links a.active{color:#ffb84d}
+body.look-arena:not(.os-embed) .nav-links a.active::after{content:"";position:absolute;left:8px;right:8px;bottom:-2px;height:3px;background:linear-gradient(90deg,#ff5a1f,#ffb84d);border-radius:2px;box-shadow:0 0 12px rgba(255,106,26,.7)}
+/* tournament list -> row table */
+body.look-arena #tournament-list{display:flex;flex-direction:column;gap:8px}
+body.look-arena #tournament-list .tcard{display:grid;grid-template-columns:minmax(170px,1.4fr) minmax(0,3fr) auto;gap:16px;align-items:center;padding:12px 18px;background:linear-gradient(90deg,#101a29,#0d1622);border:1px solid rgba(255,122,26,.18);border-left:3px solid rgba(255,122,26,.25);border-radius:10px;margin:0;cursor:pointer;transition:.18s}
+body.look-arena #tournament-list .tcard:hover{border-left-color:#ff7a1a;background:linear-gradient(90deg,#142032,#0e1826)}
+body.look-arena #tournament-list .tcard.sel{border-left-color:#ff5a1f;outline:2px solid rgba(255,106,26,.75);background:linear-gradient(90deg,rgba(255,106,26,.2),rgba(255,106,26,.05))}
+body.look-arena #tournament-list .tcard-top{display:flex;flex-direction:column;gap:6px;align-items:flex-start;border:none;padding:0;margin:0}
+body.look-arena #tournament-list .tcard-top h3{font-size:15px;letter-spacing:.6px;margin:0}
+body.look-arena #tournament-list .tcard>p{display:none}
+body.look-arena #tournament-list .tmeta{display:grid;grid-template-columns:repeat(4,minmax(80px,1fr));gap:12px;margin:0}
+body.look-arena #tournament-list .tmeta b{font-size:13px;color:#ffd9b8}
+body.look-arena #tournament-list .tmeta span{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:#8a7a6a}
+body.look-arena #tournament-list .tcard-foot{margin:0;border:none;padding:0;display:flex;gap:8px}
+body.look-arena #tournament-list .tcard-foot .btn-red{background:linear-gradient(135deg,#ff5a1f,#ff8a3d);box-shadow:0 0 16px rgba(255,106,26,.4);text-transform:uppercase;letter-spacing:1px}
+@media (max-width:800px){
+body.look-arena #tournament-list .tcard{grid-template-columns:1fr;gap:10px}
+body.look-arena #tournament-list .tmeta{grid-template-columns:repeat(2,1fr)}
+}
+/* right detail panel */
+#arena-detail{position:fixed;right:18px;top:86px;width:330px;max-height:calc(100vh - 110px);overflow-y:auto;z-index:75;background:linear-gradient(170deg,#101a29,#0a111b);border:1px solid rgba(255,122,26,.45);border-radius:12px;box-shadow:0 24px 70px rgba(0,0,0,.6),0 0 30px rgba(255,106,26,.15);animation:arenaIn .25s ease}
+@keyframes arenaIn{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}
+#arena-detail .ad-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,122,26,.35);background:linear-gradient(90deg,rgba(255,106,26,.22),transparent)}
+#arena-detail .ad-head b{font-family:var(--font-d);font-size:12px;letter-spacing:2px;color:#ffb84d;text-transform:uppercase}
+#arena-detail .ad-close{background:none;border:1px solid rgba(255,122,26,.5);color:#ffb84d;border-radius:8px;width:26px;height:26px;cursor:pointer;line-height:1}
+#arena-detail .ad-body{padding:16px}
+#arena-detail h3{margin:0 0 8px;color:#fff}
+#arena-detail .ad-status{display:inline-block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#ffb84d;border:1px solid rgba(255,122,26,.5);border-radius:999px;padding:3px 10px;margin-bottom:12px}
+#arena-detail .ad-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,122,26,.12);font-size:13px}
+#arena-detail .ad-row span{color:#a8a29a;letter-spacing:.5px}
+#arena-detail .ad-row b{color:#ffd9b8;text-align:right}
+#arena-detail p.ad-desc{font-size:13px;line-height:1.55;color:#c9c2ba;margin:12px 0}
+#arena-detail .ad-cta{display:block;text-align:center;margin-top:14px;background:linear-gradient(135deg,#ff5a1f,#ff8a3d);color:#160b04;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;border-radius:10px;padding:12px;text-decoration:none;box-shadow:0 0 20px rgba(255,106,26,.4)}
+@media (max-width:800px){
+#arena-detail{position:fixed;left:10px;right:10px;top:auto;bottom:10px;width:auto;max-height:60vh}
+}
+@media (min-width:1000px){
+body.look-arena.arena-has-detail:not(.os-embed) #tournament-list{padding-right:352px;transition:padding .2s}
+}
+
+/* ===== ARENA LAYOUT — portrait phone: top tab strip + stacked rows + bottom sheet ===== */
+@media (max-width:900px){
+body.look-arena:not(.os-embed) .burger{display:none!important}
+body.look-arena:not(.os-embed) header.nav .nav-in{flex-wrap:wrap;row-gap:0}
+body.look-arena:not(.os-embed) header.nav .brand{order:1}
+body.look-arena:not(.os-embed) .nav-links{order:2;position:static;transform:none;display:flex;flex-direction:row;overflow-x:auto;width:100%;background:#0d1622;border-top:1px solid rgba(255,122,26,.3);box-shadow:none;padding:6px 4px;gap:2px;margin-top:6px}
+body.look-arena:not(.os-embed) .nav-links li{flex:0 0 auto}
+body.look-arena:not(.os-embed) .nav-links a{border-bottom:none;white-space:nowrap;font-size:10px;padding:8px 10px;background:none;letter-spacing:1px}
+body.look-arena:not(.os-embed) .nav-links a.active{color:#ffb84d}
+body.look-arena:not(.os-embed) .nav-links a.active::after{display:block;left:8px;right:8px;bottom:0;height:2px;background:linear-gradient(90deg,#ff5a1f,#ffb84d)}
+body.look-arena:not(.os-embed) .nav-links li.nav-cta{margin-left:auto;flex-direction:row;gap:6px;align-items:center}
+body.look-arena:not(.os-embed) .nav-cta .btn-red{font-size:10px;padding:8px 12px}
+/* rows become compact stacked cards, detail becomes bottom sheet (already global <800px) */
+body.look-arena #tournament-list .tcard{grid-template-columns:1fr;gap:8px;padding:14px 16px}
+body.look-arena #tournament-list .tmeta{grid-template-columns:repeat(2,1fr);gap:8px}
+body.look-arena #tournament-list .tcard-foot{flex-wrap:wrap}
+}

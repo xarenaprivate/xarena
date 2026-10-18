@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Owner Panel · XARENA ESPORTS</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="%230b0b14" stroke="%23e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="%23f5b301" stroke-width="3.2"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<header class="nav"><div class="wrap nav-in">
+<a class="brand" href="index.html">
+<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="xg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3131"/><stop offset=".55" stop-color="#e10600"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="url(#xg)" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="url(#xg)" stroke-width="3.2" stroke-linecap="square"/></svg>
+<span class="brand-name">X<span>ARENA</span>&nbsp;<span style="color:var(--gold2);font-size:12px;letter-spacing:2px">OWNER</span></span></a>
+<button class="btn btn-ghost btn-sm" id="logout-btn" style="display:none">Log out</button>
+</div></header>
+
+<main class="wrap" style="padding:34px 0 70px;min-height:70vh">
+
+  <!-- LOGIN -->
+  <section id="login-view" style="max-width:460px;margin:40px auto">
+    <div class="form-panel">
+      <div class="overline">Owner only</div>
+      <h3 style="margin-top:10px">Admin Login</h3>
+      <p class="fp-sub">This panel is for the XARENA owner. Every action is logged.</p>
+      <form id="login-form" novalidate>
+        <div class="field"><label for="a-email">Admin email</label><input id="a-email" type="email" autocomplete="username" data-req placeholder="you@example.com"><div class="err">Email is required.</div></div>
+        <div class="field"><label for="a-pass">Password</label><input id="a-pass" type="password" autocomplete="current-password" data-req placeholder="Your admin password"><div class="err">Password is required.</div></div>
+        <button class="btn btn-red" type="submit" style="width:100%">Enter Panel</button>
+        <p class="form-note" id="login-err" style="display:none;color:#ff6b6b"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- PANEL -->
+  <section id="panel-view" style="display:none">
+<div id="adm-nova" style="display:none">
+<style>
+.anv{background:linear-gradient(165deg,#0c1120 0%,#0a0e1c 55%,#120a24 100%);border:1px solid rgba(240,180,41,.18);border-radius:18px;padding:16px 14px 86px;color:#eef1ff;position:relative;overflow:hidden}
+.anv-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.anv-brand{font-family:var(--font-d);font-weight:900;font-size:17px;letter-spacing:1px;color:#f0b429}
+.anv-brand small{display:block;font-family:var(--font-b);font-weight:600;font-size:10px;letter-spacing:2px;color:#8f9bd0;margin-top:2px}
+.anv-hicons{display:flex;gap:8px}
+.anv-ic{width:32px;height:32px;border-radius:50%;border:1px solid rgba(240,180,41,.3);display:inline-flex;align-items:center;justify-content:center;color:#f0b429;background:rgba(240,180,41,.06);cursor:pointer;text-decoration:none;font-size:14px}
+.anv-greet{background:linear-gradient(120deg,rgba(124,58,237,.35),rgba(240,180,41,.12));border:1px solid rgba(240,180,41,.22);border-radius:14px;padding:16px;margin-bottom:14px}
+.anv-greet h3{font-family:var(--font-d);font-size:19px;margin:0 0 4px;color:#fff}
+.anv-greet p{margin:0;color:#b9c2e8;font-size:13px}
+.anv-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.anv-stat{background:rgba(24,32,58,.75);border:1px solid rgba(240,180,41,.18);border-radius:14px;padding:14px}
+.anv-stat .k{display:flex;align-items:center;gap:7px;font-size:12px;color:#b9c2e8;margin-bottom:6px}
+.anv-stat .k svg{width:16px;height:16px;stroke:#f0b429;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.anv-stat .n{font-family:var(--font-d);font-weight:900;font-size:26px;color:#ffd977}
+.anv-stat .s{font-size:11px;color:#7ee2a8;margin-top:3px}
+.anv-sec-h{display:flex;align-items:center;justify-content:space-between;margin:6px 0 10px}
+.anv-sec-h h4{font-family:var(--font-d);font-size:13px;letter-spacing:1.5px;margin:0;color:#fff}
+.anv-link{font-size:12px;color:#ffd977;text-decoration:none;cursor:pointer}
+.anv-tcard{background:rgba(24,32,58,.75);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;margin-bottom:10px}
+.anv-tcard h5{margin:0 0 4px;font-size:15px;color:#fff}
+.anv-tcard .meta{font-size:12px;color:#9aa6d6}
+.anv-chip{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:1px;padding:2px 8px;border-radius:6px;vertical-align:2px;margin-right:6px}
+.anv-chip.live{background:rgba(239,68,68,.18);color:#ff6b6b;border:1px solid rgba(239,68,68,.4)}
+.anv-chip.upcoming{background:rgba(139,92,246,.18);color:#b79cff;border:1px solid rgba(139,92,246,.4)}
+.anv-chip.done{background:rgba(148,163,184,.15);color:#94a3b8;border:1px solid rgba(148,163,184,.35)}
+.anv-prog{height:6px;border-radius:99px;background:rgba(255,255,255,.1);margin-top:8px;overflow:hidden}
+.anv-prog i{display:block;height:100%;background:linear-gradient(90deg,#7dd3fc,#38bdf8);border-radius:99px}
+.anv-prog-lbl{font-size:10.5px;color:#9aa6d6;text-align:right;margin-top:3px}
+.anv-nav{position:absolute;left:0;right:0;bottom:0;display:flex;background:rgba(10,14,28,.96);border-top:1px solid rgba(240,180,41,.18);backdrop-filter:blur(8px)}
+.anv-nav button{flex:1;background:none;border:0;padding:10px 2px 12px;color:#7c86b3;font-family:var(--font-b);font-size:10px;font-weight:600;letter-spacing:.5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+.anv-nav button.on{color:#f0b429}
+.anv-nav svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.anv-counts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.anv-count{background:rgba(24,32,58,.75);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;text-align:center}
+.anv-count .n{font-family:var(--font-d);font-weight:900;font-size:20px;color:#fff}
+.anv-count .l{font-size:10.5px;color:#9aa6d6;letter-spacing:1px;margin-top:2px}
+.anv-search{width:100%;background:rgba(15,23,42,.9);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;padding:10px 12px;font-family:var(--font-b);font-size:13px;margin-bottom:12px;box-sizing:border-box}
+.anv-prow{display:flex;align-items:center;gap:10px;background:rgba(24,32,58,.75);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px;margin-bottom:8px}
+.anv-pava{width:40px;height:40px;border-radius:50%;flex:none;background:linear-gradient(135deg,#3d1a78,#7a1020);border:2px solid rgba(240,180,41,.5);display:flex;align-items:center;justify-content:center;font-weight:900;color:#ffd977;font-family:var(--font-d);overflow:hidden}
+.anv-pava img{width:100%;height:100%;object-fit:cover}
+.anv-pinfo{flex:1;min-width:0}
+.anv-pinfo .nm{font-weight:700;font-size:14px;color:#fff}
+.anv-pinfo .xp{font-size:11.5px;color:#7dd3fc}
+.anv-pact{display:flex;flex-direction:column;gap:5px}
+.anv-btn{border:0;border-radius:8px;padding:6px 12px;font-family:var(--font-b);font-weight:700;font-size:11.5px;cursor:pointer;letter-spacing:.5px}
+.anv-btn.ban{background:#e11d48;color:#fff}
+.anv-btn.unban{background:transparent;color:#7ee2a8;border:1px solid rgba(126,226,168,.5)}
+.anv-btn.warn{background:transparent;color:#fbbf24;border:1px solid rgba(251,191,36,.5)}
+.anv-btn.edit{background:#2563eb;color:#fff}
+.anv-btn.del{background:#ef4444;color:#fff}
+.anv-btn.start{background:#22c55e;color:#fff}
+.anv-swipe{overflow:hidden;border-radius:12px;margin-bottom:10px}
+.anv-swipe-in{display:flex;transition:transform .18s ease}
+.anv-swipe-in > .anv-tcard{flex:1 0 100%;margin-bottom:0}
+.anv-acts{display:flex;flex-direction:column;gap:6px;justify-content:center;padding:8px;min-width:88px}
+.anv-fab{display:block;width:100%;margin-top:6px;background:#2563eb;color:#fff;border:0;border-radius:12px;padding:13px;font-family:var(--font-d);font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer}
+.anv-modal{position:fixed;inset:0;background:rgba(2,4,12,.7);display:flex;align-items:center;justify-content:center;z-index:200;padding:18px}
+.anv-mbox{background:#121a30;border:1px solid rgba(240,180,41,.3);border-radius:16px;padding:18px;width:100%;max-width:420px;max-height:86vh;overflow:auto}
+.anv-mbox h4{margin:0 0 12px;font-family:var(--font-d);font-size:15px;color:#ffd977}
+.anv-f{margin-bottom:10px}
+.anv-f label{display:block;font-size:11px;color:#9aa6d6;letter-spacing:1px;margin-bottom:4px;text-transform:uppercase}
+.anv-f input,.anv-f select,.anv-f textarea{width:100%;background:rgba(15,23,42,.9);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;padding:9px 10px;font-family:var(--font-b);font-size:13.5px;box-sizing:border-box}
+.anv-empty{border:1px dashed rgba(240,180,41,.3);border-radius:12px;padding:20px;text-align:center;color:#9aa6d6;font-size:13px;margin-bottom:10px}
+.anv-total{background:rgba(24,32,58,.75);border:1px solid rgba(240,180,41,.18);border-radius:14px;padding:16px;margin-bottom:14px}
+.anv-total .k{font-size:12px;color:#b9c2e8;margin-bottom:4px}
+.anv-total .n{font-family:var(--font-d);font-weight:900;font-size:26px;color:#ffd977}
+.anv-total .s{font-size:11.5px;color:#7ee2a8;margin-top:3px}
+.anv-deal{display:flex;align-items:center;gap:10px;background:rgba(24,32,58,.75);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px;margin-bottom:8px}
+.anv-deal .nm{font-weight:700;color:#fff;font-size:14px}
+.anv-deal .amt{color:#ffd977;font-weight:700;font-size:13px}
+.anv-deal .dt{font-size:11px;color:#9aa6d6}
+</style>
+<div class="anv">
+  <div class="anv-head">
+    <div class="anv-brand">XARENA ESPORTS<small>ADMIN PANEL · ONLINE</small></div>
+    <div class="anv-hicons"><a class="anv-ic" href="notifications.html" title="Notifications">🔔</a><span class="anv-ic" id="anv-who" title="Admin">👤</span></div>
+  </div>
+  <div id="anv-body"></div>
+  <div class="anv-nav" id="anv-nav"></div>
+</div>
+<div id="anv-modal-root"></div>
+</div>
+
+<div id="adm-classic">
+    <div class="section-head row">
+      <div><div class="overline">Control</div><h2>Owner <em>Panel</em></h2></div>
+      <span class="badge info" id="admin-email-badge"></span>
+    </div>
+    <div class="lb-tabs" id="admin-tabs" style="position:sticky;top:64px;z-index:20;background:rgba(6,6,10,.92);backdrop-filter:blur(10px);padding:10px 0;overflow-x:auto;flex-wrap:nowrap"></div>
+    <div id="admin-body"><p style="color:var(--muted)">Loading…</p></div>
+  </div>
+  </section>
+</main><footer style="text-align:center;padding:16px;color:#9aa6d6;font-size:12px">Founded &amp; owned by Shivhari Rajput</footer>
+
+<script src="assets/js/api.js"></script>
+<script src="assets/js/admin.js"></script>
+<script>
+/* XARENA admin nova shell - exact copy of the owner's admin mockups, real data only */
+(function () {
+  "use strict";
+  var LOOK_KEY = "xr_admin_look";
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function fmt(n) { return (n || 0).toLocaleString("en-IN"); }
+  function inr(n) { return "₹" + (Number(n) || 0).toLocaleString("en-IN"); }
+  var IC = {
+    dash: '<svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+    trophy: '<svg viewBox="0 0 24 24"><path d="M7 3h10v5a5 5 0 0 1-10 0z"/><path d="M7 4H4a3 3 0 0 0 3 5M17 4h3a3 3 0 0 1-3 5"/><path d="M12 13v4"/><path d="M8.5 21h7"/></svg>',
+    users: '<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9" r="2.5"/><path d="M16 14.5a5.5 5.5 0 0 1 5.5 5.5"/></svg>',
+    swords: '<svg viewBox="0 0 24 24"><path d="M4 4l7 7M4 4v3M4 4h3"/><path d="M20 4l-7 7M20 4v3M20 4h3"/><path d="M6.5 17.5L4 20l3 3 2.5-2.5"/><path d="M17.5 17.5L20 20l-3 3-2.5-2.5"/><path d="M9 13l2 2M13 9l2 2"/></svg>',
+    chart: '<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M21 20H3"/></svg>',
+    shield: '<svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/></svg>',
+    dot: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" fill="currentColor" stroke="none"/></svg>'
+  };
+  var TAB_DEFS = [
+    ["dashboard", "Dashboard", IC.dash],
+    ["tournaments", "Tournaments", IC.trophy],
+    ["players", "Players", IC.users],
+    ["matches", "Matches", IC.swords],
+    ["analytics", "Analytics", IC.chart]
+  ];
+  var state = { tab: "dashboard", dash: null, players: null, search: "", deals: null, matches: null };
+
+  function api() { return window.xrApi; }
+  function rpc(name, args) { return api().rpc(name, args || {}, true); }
+
+  function look() { return localStorage.getItem(LOOK_KEY) || "nova"; }
+  function applyLook() {
+    var nova = document.getElementById("adm-nova");
+    var classic = document.getElementById("adm-classic");
+    if (look() === "nova") {
+      nova.style.display = ""; classic.style.display = "none";
+      if (!state.dash) loadDashboard();
+      renderNav(); renderBody();
+    } else {
+      nova.style.display = "none"; classic.style.display = "";
+    }
+    var tb = document.getElementById("anv-look-btn");
+    if (tb) tb.textContent = look() === "nova" ? "Classic admin" : "Nova admin";
+  }
+  function renderNav() {
+    document.getElementById("anv-nav").innerHTML = TAB_DEFS.map(function (t) {
+      return '<button data-tab="' + t[0] + '" class="' + (state.tab === t[0] ? "on" : "") + '">' + t[2] + "<span>" + t[1] + "</span></button>";
+    }).join("");
+    Array.prototype.forEach.call(document.querySelectorAll("#anv-nav button"), function (b) {
+      b.addEventListener("click", function () {
+        state.tab = b.getAttribute("data-tab");
+        if (state.tab === "dashboard" && !state.dash) loadDashboard();
+        if (state.tab === "players" && !state.players) loadPlayers();
+        if (state.tab === "analytics" && !state.deals) loadDeals();
+        if (state.tab === "matches" && !state.matches) loadMatches();
+        renderNav(); renderBody();
+      });
+    });
+  }
+
+  /* ---------- data ---------- */
+  function loadDashboard() {
+    rpc("admin_dashboard_nova").then(function (d) { if (d && d.ok) { state.dash = d; if (look() === "nova") renderBody(); } });
+  }
+  function loadPlayers() {
+    rpc("admin_players_nova", { p_search: state.search }).then(function (d) { if (d && d.ok) { state.players = d.players; if (look() === "nova") renderBody(); } });
+  }
+  function loadDeals() {
+    rpc("admin_sponsor_deals_list").then(function (d) { if (d && d.ok) { state.deals = d.deals; if (look() === "nova") renderBody(); } });
+  }
+  function loadMatches() {
+    api().aGet("matches", "?select=*,tournaments(name)&order=created_at.desc&limit=30").then(function (rows) {
+      state.matches = rows || []; if (look() === "nova") renderBody();
+    }).catch(function () { state.matches = []; renderBody(); });
+  }
+
+  /* ---------- shared bits ---------- */
+  function statusChip(st) {
+    if (st === "live") return '<span class="anv-chip live">● LIVE</span>';
+    if (st === "upcoming") return '<span class="anv-chip upcoming">UPCOMING</span>';
+    return '<span class="anv-chip done">COMPLETED</span>';
+  }
+  function greetWord() { var h = new Date().getHours(); return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening"; }
+  function modal(title, fieldsHtml, onSave, saveLabel) {
+    var root = document.getElementById("anv-modal-root");
+    root.innerHTML = '<div class="anv-modal"><div class="anv-mbox"><h4>' + esc(title) + "</h4>" + fieldsHtml +
+      '<div style="display:flex;gap:8px;margin-top:14px"><button class="anv-btn start" id="anv-m-save" style="flex:1;padding:11px">' + esc(saveLabel || "Save") + '</button><button class="anv-btn warn" id="anv-m-cancel" style="padding:11px 16px">Cancel</button></div></div></div>';
+    document.getElementById("anv-m-cancel").addEventListener("click", function () { root.innerHTML = ""; });
+    document.getElementById("anv-m-save").addEventListener("click", function () {
+      var btn = this; btn.disabled = true;
+      onSave(function () { root.innerHTML = ""; }, function (msg) { btn.disabled = false; alert(msg || "Could not save."); });
+    });
+  }
+  function field(id, label, type, val, opts) {
+    if (type === "select") {
+      return '<div class="anv-f"><label>' + esc(label) + '</label><select id="' + id + '">' + opts.map(function (o) {
+        return '<option value="' + esc(o) + '"' + (o === val ? " selected" : "") + ">" + esc(o.charAt(0).toUpperCase() + o.slice(1)) + "</option>";
+      }).join("") + "</select></div>";
+    }
+    if (type === "checkbox") {
+      return '<div class="anv-f" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="' + id + '"' + (val ? " checked" : "") + ' style="width:auto"><label for="' + id + '" style="margin:0">' + esc(label) + "</label></div>";
+    }
+    if (type === "textarea") {
+      return '<div class="anv-f"><label>' + esc(label) + '</label><textarea id="' + id + '" rows="3">' + esc(val || "") + "</textarea></div>";
+    }
+    return '<div class="anv-f"><label>' + esc(label) + '</label><input id="' + id + '" type="' + type + '" value="' + esc(val == null ? "" : val) + '"></div>';
+  }
+  function val(id) { var e = document.getElementById(id); return e ? e.value : ""; }
+  function checked(id) { var e = document.getElementById(id); return e ? e.checked : false; }
+
+  /* ---------- dashboard ---------- */
+  function renderDashboard() {
+    var d = state.dash;
+    if (!d) return '<p style="color:#9aa6d6;text-align:center;padding:30px 0">Loading overview…</p>';
+    var recent = (d.recent_tournaments || []).map(function (t) {
+      var pct = t.slots > 0 ? Math.min(100, Math.round((t.registered / t.slots) * 100)) : 0;
+      return '<div class="anv-tcard">' + statusChip(t.status) + "<h5 style=\"display:inline\">" + esc(t.name) + "</h5>" +
+        '<div class="meta">' + esc(t.date_text || "Date to be announced") + " · " + fmt(t.registered) + "/" + fmt(t.slots || 0) + " squads registered</div>" +
+        '<div class="anv-prog"><i style="width:' + pct + '%"></i></div></div>';
+    }).join("");
+    return '<div class="anv-greet"><h3>' + greetWord() + ', Admin</h3><p>Here\'s your esports overview for today</p></div>' +
+      '<div class="anv-stats">' +
+      '<div class="anv-stat"><div class="k">' + IC.users + "Total Players</div><div class=\"n\">" + fmt(d.players) + '</div><div class="s">↑ +' + fmt(d.players_week) + " this week</div></div>" +
+      '<div class="anv-stat"><div class="k">' + IC.trophy + "Active Tournaments</div><div class=\"n\">" + fmt(d.live_tournaments) + '</div><div class="s" style="color:#7dd3fc">● ' + fmt(d.upcoming_tournaments) + " upcoming</div></div></div>" +
+      '<div class="anv-sec-h"><h4>Recent Tournaments</h4><a class="anv-link" data-goto="tournaments">See all →</a></div>' +
+      (recent || '<div class="anv-empty">No tournaments yet. Create the first one from the Tournaments tab.</div>');
+  }
+
+  /* ---------- tournaments ---------- */
+  function tourCard(t) {
+    var pct = t.slots > 0 ? Math.min(100, Math.round(((t.registered || 0) / t.slots) * 100)) : 0;
+    var statusLine = t.status === "live" ? "Live" : (t.status === "upcoming" ? "Upcoming" : "Completed");
+    return '<div class="anv-swipe"><div class="anv-swipe-in" data-tid="' + esc(t.id) + '">' +
+      '<div class="anv-tcard">' + statusChip(t.status) + '<h5 style="display:inline">' + esc(t.name) + "</h5>" +
+      '<div class="meta">' + statusLine + " · " + fmt(t.registered || 0) + "/" + fmt(t.slots || 0) + " squads" + (t.prize ? " · " + esc(t.prize) : "") + "</div>" +
+      '<div class="anv-prog"><i style="width:' + pct + '%"></i></div><div class="anv-prog-lbl">' + fmt(t.registered || 0) + "/" + fmt(t.slots || 0) + "</div></div>" +
+      '<div class="anv-acts">' +
+      '<button class="anv-btn edit" data-act="edit">✎ Edit</button>' +
+      (t.status !== "live" ? '<button class="anv-btn start" data-act="start">▶ Start</button>' : '<button class="anv-btn warn" data-act="stop">■ End</button>') +
+      '<button class="anv-btn del" data-act="del">🗑 Delete</button>' +
+      "</div></div></div>";
+  }
+  function renderTournaments() {
+    var list = (state.dash && state.dash.recent_tournaments) || null;
+    return '<div class="anv-sec-h"><h4>Tournament Control</h4><span style="font-size:11px;color:#9aa6d6">Admin · Live Management</span></div>' +
+      '<input class="anv-search" id="anv-tsearch" placeholder="Search tournaments…">' +
+      '<div class="anv-sec-h"><h4>Tournaments</h4><span class="anv-chip live" id="anv-tcount">… Active</span></div>' +
+      '<div id="anv-tlist"><p style="color:#9aa6d6;text-align:center;padding:20px">Loading tournaments…</p></div>' +
+      '<button class="anv-fab" id="anv-tcreate">＋ Create Tournament</button>';
+  }
+  function fillTournaments(rows) {
+    var q = (document.getElementById("anv-tsearch") || {}).value || "";
+    q = q.trim().toLowerCase();
+    var list = (rows || []).filter(function (t) { return !q || (t.name || "").toLowerCase().indexOf(q) >= 0; });
+    var live = (rows || []).filter(function (t) { return t.status === "live"; }).length;
+    var cnt = document.getElementById("anv-tcount"); if (cnt) cnt.textContent = live + " Active";
+    var box = document.getElementById("anv-tlist"); if (!box) return;
+    box.innerHTML = list.length ? list.map(tourCard).join("") : '<div class="anv-empty">No tournaments match.</div>';
+    wireTournamentActions(list);
+  }
+  function wireTournamentActions(list) {
+    Array.prototype.forEach.call(document.querySelectorAll("#anv-tlist .anv-swipe-in"), function (row) {
+      var tid = row.getAttribute("data-tid");
+      var t = null;
+      list.forEach(function (x) { if (String(x.id) === String(tid)) t = x; });
+      if (!t) return;
+      /* swipe to reveal actions */
+      var sx = null;
+      row.addEventListener("touchstart", function (e) { sx = e.touches[0].clientX; }, { passive: true });
+      row.addEventListener("touchend", function (e) {
+        if (sx == null) return;
+        var dx = e.changedTouches[0].clientX - sx; sx = null;
+        row.style.transform = dx < -40 ? "translateX(-96px)" : (dx > 40 ? "translateX(0)" : row.style.transform);
+      }, { passive: true });
+      row.querySelector(".anv-tcard").addEventListener("click", function () {
+        row.style.transform = row.style.transform ? "" : "translateX(-96px)";
+      });
+      Array.prototype.forEach.call(row.querySelectorAll("[data-act]"), function (b) {
+        b.addEventListener("click", function () {
+          var act = b.getAttribute("data-act");
+          if (act === "del") {
+            if (!confirm('Delete tournament "' + t.name + '"? This cannot be undone.')) return;
+            api().aDel("tournaments", "id=eq." + encodeURIComponent(t.id)).then(function () { refreshTours(); }).catch(function () { alert("Delete failed."); });
+          } else if (act === "start" || act === "stop") {
+            var st = act === "start" ? "live" : "done";
+            api().aPatch("tournaments", "id=eq." + encodeURIComponent(t.id), { status: st }).then(function () { refreshTours(); }).catch(function () { alert("Could not update."); });
+          } else if (act === "edit") {
+            openTournamentModal(t);
+          }
+        });
+      });
+    });
+  }
+  function openTournamentModal(t) {
+    var isNew = !t;
+    t = t || {};
+    modal(isNew ? "Create Tournament" : "Edit Tournament",
+      (isNew ? field("tm-id", "ID (short, e.g. xr-s2)", "text", t.id) : "") +
+      field("tm-name", "Name", "text", t.name) +
+      field("tm-mode", "Mode", "text", t.mode || "Squad BR") +
+      field("tm-status", "Status", "select", t.status || "upcoming", ["upcoming", "live", "done"]) +
+      field("tm-date", "Date text (shown publicly)", "text", t.date_text) +
+      field("tm-prize", "Prize pool text", "text", t.prize) +
+      field("tm-slots", "Squad slots", "number", t.slots || 48) +
+      field("tm-reg", "Registration open", "checkbox", t.reg_open !== false) +
+      field("tm-desc", "Description", "textarea", t.description),
+      function (ok, fail) {
+        var row = {
+          name: val("tm-name").trim(), mode: val("tm-mode").trim(), status: val("tm-status"),
+          date_text: val("tm-date").trim(), prize: val("tm-prize").trim(),
+          slots: parseInt(val("tm-slots"), 10) || 0, reg_open: checked("tm-reg"), description: val("tm-desc").trim()
+        };
+        if (!row.name) return fail("Name is required.");
+        var p;
+        if (isNew) {
+          row.id = val("tm-id").trim();
+          if (!row.id) return fail("ID is required.");
+          p = api().aPost("tournaments", row);
+        } else {
+          p = api().aPatch("tournaments", "id=eq." + encodeURIComponent(t.id), row);
+        }
+        p.then(function () { ok(); refreshTours(); }).catch(function () { fail("Save failed - check the values and try again."); });
+      }, isNew ? "Create" : "Save changes");
+  }
+  function refreshTours() {
+    state.dash = null;
+    rpc("admin_dashboard_nova").then(function (d) { if (d && d.ok) state.dash = d; });
+    api().aGet("tournaments", "?select=id,name,status,slots,prize,date_text,reg_open,mode,description,created_at&order=created_at.desc").then(function (rows) {
+      state.tours = rows || [];
+      /* attach registration counts */
+      api().aGet("registrations", "?select=tournament_id").then(function (regs) {
+        var counts = {};
+        (regs || []).forEach(function (r) { counts[r.tournament_id] = (counts[r.tournament_id] || 0) + 1; });
+        state.tours.forEach(function (t) { t.registered = counts[t.id] || 0; });
+        fillTournaments(state.tours);
+      }).catch(function () { fillTournaments(state.tours); });
+    }).catch(function () {
+      var box = document.getElementById("anv-tlist"); if (box) box.innerHTML = '<div class="anv-empty">Could not load tournaments.</div>';
+    });
+  }
+
+  /* ---------- players ---------- */
+  function renderPlayers() {
+    var ps = state.players;
+    var counts = { on: 0, ban: 0, warn: 0 };
+    (ps || []).forEach(function (p) { if (p.online) counts.on++; if (p.banned) counts.ban++; if (p.warned) counts.warn++; });
+    return '<div class="anv-sec-h"><h4>Player Ban Management</h4><span style="font-size:11px;color:#9aa6d6">Admin · Moderation &amp; Safety</span></div>' +
+      '<div class="anv-counts">' +
+      '<div class="anv-count"><div class="n" style="color:#7ee2a8">● ' + fmt(counts.on) + '</div><div class="l">ONLINE</div></div>' +
+      '<div class="anv-count"><div class="n" style="color:#ff6b6b">' + fmt(counts.ban) + '</div><div class="l">BANNED</div></div>' +
+      '<div class="anv-count"><div class="n" style="color:#fbbf24">' + fmt(counts.warn) + '</div><div class="l">WARNED</div></div></div>' +
+      '<input class="anv-search" id="anv-psearch" placeholder="Search player…" value="' + esc(state.search) + '">' +
+      '<div class="anv-sec-h"><h4>Player List</h4><span style="font-size:11px;color:#9aa6d6">Sort: Most XP</span></div>' +
+      '<div id="anv-plist">' + (ps ? ps.map(playerRow).join("") || '<div class="anv-empty">No players found.</div>' : '<p style="color:#9aa6d6;text-align:center;padding:20px">Loading players…</p>') + "</div>";
+  }
+  function playerRow(p) {
+    var ava = p.avatar ? '<div class="anv-pava"><img src="' + esc(p.avatar) + '" alt=""></div>' : '<div class="anv-pava">' + esc((p.username || "X").charAt(0).toUpperCase()) + "</div>";
+    var status = p.banned ? '<span style="color:#ff6b6b">Banned</span>' : (p.online ? '<span style="color:#7ee2a8">● Active</span>' : '<span style="color:#fbbf24">Inactive</span>');
+    return '<div class="anv-prow">' + ava +
+      '<div class="anv-pinfo"><div class="nm">' + esc(p.username) + (p.verified ? " ✓" : "") + '</div><div class="xp">⚡' + fmt(p.xp) + " XP · " + status + (p.warned ? ' · <span style="color:#fbbf24">Warned</span>' : "") + "</div></div>" +
+      '<div class="anv-pact">' +
+      (p.banned
+        ? '<button class="anv-btn unban" data-pact="unban" data-pid="' + p.id + '" data-pname="' + esc(p.username) + '">Unban</button>'
+        : '<button class="anv-btn ban" data-pact="ban" data-pid="' + p.id + '" data-pname="' + esc(p.username) + '">Ban</button>') +
+      (p.warned
+        ? '<button class="anv-btn unban" data-pact="unwarn" data-pid="' + p.id + '" data-pname="' + esc(p.username) + '">Clear warn</button>'
+        : '<button class="anv-btn warn" data-pact="warn" data-pid="' + p.id + '" data-pname="' + esc(p.username) + '">Warn</button>') +
+      "</div></div>";
+  }
+  function wirePlayers() {
+    var sb = document.getElementById("anv-psearch");
+    if (sb) {
+      var deb = null;
+      sb.addEventListener("input", function () {
+        clearTimeout(deb);
+        deb = setTimeout(function () { state.search = sb.value.trim(); loadPlayers(); }, 400);
+      });
+    }
+    Array.prototype.forEach.call(document.querySelectorAll("#anv-plist [data-pact]"), function (b) {
+      b.addEventListener("click", function () {
+        var act = b.getAttribute("data-pact"), pid = b.getAttribute("data-pid"), name = b.getAttribute("data-pname");
+        if (act === "ban") {
+          var reason = prompt('Ban "' + name + '"? Reason (shown to the player):');
+          if (reason === null) return;
+          rpc("admin_set_ban", { p_user_id: pid, p_banned: true, p_reason: reason || null }).then(refreshPlayers);
+        } else if (act === "unban") {
+          if (!confirm('Unban "' + name + '"?')) return;
+          rpc("admin_set_ban", { p_user_id: pid, p_banned: false }).then(refreshPlayers);
+        } else if (act === "warn") {
+          var wr = prompt('Warn "' + name + '"? Note (optional):');
+          if (wr === null) return;
+          rpc("admin_set_warn", { p_user_id: pid, p_warned: true, p_reason: wr || null }).then(refreshPlayers);
+        } else if (act === "unwarn") {
+          rpc("admin_set_warn", { p_user_id: pid, p_warned: false }).then(refreshPlayers);
+        }
+      });
+    });
+  }
+  function refreshPlayers(r) {
+    if (r && r.ok === false) { alert(r.error || "Action failed."); return; }
+    loadPlayers();
+    state.dash = null; loadDashboard();
+  }
+
+  /* ---------- matches ---------- */
+  function renderMatches() {
+    var ms = state.matches;
+    if (!ms) return '<p style="color:#9aa6d6;text-align:center;padding:30px 0">Loading matches…</p>';
+    var rows = ms.map(function (m) {
+      return '<div class="anv-tcard">' + statusChip(m.status === "done" ? "done" : (m.status === "live" ? "live" : "upcoming")) +
+        '<h5 style="display:inline">' + esc(m.title) + "</h5>" +
+        '<div class="meta">' + esc((m.tournaments && m.tournaments.name) || "No tournament") + " · " + esc(m.stage || "") + (m.starts_at ? " · " + new Date(m.starts_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</div></div>";
+    }).join("");
+    return '<div class="anv-sec-h"><h4>Matches</h4><span style="font-size:11px;color:#9aa6d6">Real match schedule</span></div>' +
+      (rows || '<div class="anv-empty">No matches scheduled yet. Add matches from Classic admin → Matches.</div>') +
+      '<p style="font-size:12px;color:#9aa6d6;text-align:center">Room IDs, check-ins and score entry live in Classic admin for now - nova Match Rooms ship with the Room Control screen.</p>';
+  }
+
+  /* ---------- analytics (sponsor revenue) ---------- */
+  function renderAnalytics() {
+    var deals = state.deals;
+    if (!deals) return '<p style="color:#9aa6d6;text-align:center;padding:30px 0">Loading sponsor revenue…</p>';
+    if (!deals.length) {
+      return '<div class="anv-sec-h"><h4>Sponsor Revenue Admin</h4></div>' +
+        '<div class="anv-empty">No sponsor deals recorded yet. When a real sponsor signs a deal, add it here - the total, trend chart and sponsor list are built only from these real entries.</div>' +
+        '<button class="anv-fab" id="anv-dadd">＋ Add Sponsor Deal</button>';
+    }
+    var total = deals.reduce(function (s, d) { return s + (Number(d.amount) || 0); }, 0);
+    var now = new Date();
+    var thisMonth = 0, lastMonth = 0;
+    deals.forEach(function (d) {
+      var dt = new Date(d.date);
+      var mDiff = (now.getFullYear() - dt.getFullYear()) * 12 + (now.getMonth() - dt.getMonth());
+      if (mDiff === 0) thisMonth += Number(d.amount) || 0;
+      else if (mDiff === 1) lastMonth += Number(d.amount) || 0;
+    });
+    var cmp = lastMonth > 0 ? '<div class="s">↑ ' + Math.round(((thisMonth - lastMonth) / lastMonth) * 100) + "% vs last month</div>" : "";
+    /* 6-month trend */
+    var months = [], i;
+    for (i = 5; i >= 0; i--) {
+      var dt2 = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push({ key: dt2.getFullYear() + "-" + dt2.getMonth(), label: dt2.toLocaleString("en", { month: "short" }), sum: 0 });
+    }
+    deals.forEach(function (d) {
+      var dt3 = new Date(d.date);
+      var key = dt3.getFullYear() + "-" + dt3.getMonth();
+      months.forEach(function (m) { if (m.key === key) m.sum += Number(d.amount) || 0; });
+    });
+    var max = Math.max.apply(null, months.map(function (m) { return m.sum; }).concat([1]));
+    var bars = months.map(function (m) {
+      var h = Math.max(2, Math.round((m.sum / max) * 90));
+      return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:70%;height:' + h + 'px;background:linear-gradient(180deg,#a78bfa,#7c3aed);border-radius:4px"></div><span style="font-size:10px;color:#9aa6d6">' + m.label + "</span></div>";
+    }).join("");
+    var list = deals.map(function (d) {
+      return '<div class="anv-deal"><div style="flex:1"><div class="nm">' + esc(d.name) + ' <span class="anv-chip upcoming" style="margin-left:4px">' + esc(d.tier || "partner") + '</span></div>' +
+        '<div class="dt">' + esc(d.date) + (d.note ? " · " + esc(d.note) : "") + '</div></div>' +
+        '<div style="text-align:right"><div class="amt">' + inr(d.amount) + '</div><button class="anv-btn del" data-del="' + d.id + '" style="margin-top:4px;padding:3px 8px;font-size:10px">Delete</button></div></div>';
+    }).join("");
+    return '<div class="anv-sec-h"><h4>Sponsor Revenue Admin</h4></div>' +
+      '<div class="anv-total"><div class="k">Sponsor Contribution</div><div class="n">' + inr(total) + "</div>" + cmp + "</div>" +
+      '<div class="anv-sec-h"><h4>Revenue Trend (Last 6 Months)</h4></div>' +
+      '<div style="display:flex;align-items:flex-end;height:120px;gap:6px;background:rgba(24,32,58,.5);border-radius:12px;padding:12px">' + bars + "</div>" +
+      '<div class="anv-sec-h" style="margin-top:14px"><h4>Sponsor List</h4><a class="anv-link" id="anv-dadd">＋ Add Sponsor</a></div>' + list;
+  }
+  function wireAnalytics() {
+    var add = document.getElementById("anv-dadd");
+    if (add) add.addEventListener("click", function () {
+      modal("Add Sponsor Deal",
+        field("dl-name", "Sponsor / brand name", "text", "") +
+        field("dl-tier", "Tier", "select", "partner", ["title", "gold", "partner"]) +
+        field("dl-amount", "Amount (₹, real signed deal)", "number", "") +
+        field("dl-date", "Deal date", "date", new Date().toISOString().slice(0, 10)) +
+        field("dl-note", "Note (optional)", "text", ""),
+        function (ok, fail) {
+          rpc("admin_sponsor_deal_save", { p_id: null, p_name: val("dl-name").trim(), p_tier: val("dl-tier"), p_amount: parseFloat(val("dl-amount")) || 0, p_note: val("dl-note").trim() || null, p_date: val("dl-date") || null })
+            .then(function (r) { if (r && r.ok) { ok(); state.deals = null; loadDeals(); } else fail((r && r.error) || "Save failed."); })
+            .catch(function () { fail("Save failed."); });
+        }, "Save deal");
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-del]"), function (b) {
+      b.addEventListener("click", function () {
+        if (!confirm("Delete this deal entry?")) return;
+        rpc("admin_sponsor_deal_delete", { p_id: parseInt(b.getAttribute("data-del"), 10) }).then(function () { state.deals = null; loadDeals(); });
+      });
+    });
+  }
+
+  /* ---------- body router ---------- */
+  function renderBody() {
+    var el = document.getElementById("anv-body");
+    if (state.tab === "dashboard") {
+      el.innerHTML = renderDashboard();
+      var sa = el.querySelector("[data-goto]");
+      if (sa) sa.addEventListener("click", function () { state.tab = "tournaments"; renderNav(); renderBody(); });
+    } else if (state.tab === "tournaments") {
+      el.innerHTML = renderTournaments();
+      if (state.tours) fillTournaments(state.tours); else refreshTours();
+      var ts = document.getElementById("anv-tsearch");
+      if (ts) ts.addEventListener("input", function () { fillTournaments(state.tours || []); });
+      var tc = document.getElementById("anv-tcreate");
+      if (tc) tc.addEventListener("click", function () { openTournamentModal(null); });
+    } else if (state.tab === "players") {
+      el.innerHTML = renderPlayers();
+      wirePlayers();
+    } else if (state.tab === "matches") {
+      el.innerHTML = renderMatches();
+    } else if (state.tab === "analytics") {
+      el.innerHTML = renderAnalytics();
+      wireAnalytics();
+    }
+  }
+
+  /* ---------- boot: wait for the panel to be visible ---------- */
+  var tries = 0;
+  var iv = setInterval(function () {
+    tries++;
+    var pv = document.getElementById("panel-view");
+    var toggle = document.getElementById("anv-look-btn");
+    if (pv && pv.style.display !== "none") {
+      clearInterval(iv);
+      if (!document.getElementById("anv-look-btn")) {
+        var head = pv.querySelector(".section-head");
+        if (head) {
+          var btn = document.createElement("button");
+          btn.className = "btn btn-ghost btn-sm"; btn.id = "anv-look-btn"; btn.style.marginLeft = "10px";
+          head.appendChild(btn);
+        }
+      }
+      if (!document.getElementById("anv-look-btn2")) {
+        var hic = document.querySelector("#adm-nova .anv-hicons");
+        if (hic) {
+          var b2 = document.createElement("button");
+          b2.id = "anv-look-btn2";
+          b2.style.cssText = "border:1px solid rgba(240,180,41,.4);background:rgba(240,180,41,.08);color:#f0b429;border-radius:8px;padding:5px 10px;font-family:var(--font-b);font-weight:700;font-size:11px;cursor:pointer";
+          b2.textContent = "Classic admin";
+          b2.addEventListener("click", function () {
+            localStorage.setItem(LOOK_KEY, "classic");
+            applyLook();
+          });
+          hic.appendChild(b2);
+        }
+      }
+      applyLook();
+    } else if (tries > 200) clearInterval(iv);
+  }, 400);
+  document.getElementById("adm-nova").addEventListener("click", function (e) {
+    if (e.target && e.target.id === "anv-look-btn") {
+      localStorage.setItem(LOOK_KEY, look() === "nova" ? "classic" : "nova");
+      applyLook();
+    }
+  });
+  document.addEventListener("click", function (e) {
+    if (e.target && e.target.id === "anv-look-btn") {
+      localStorage.setItem(LOOK_KEY, look() === "nova" ? "classic" : "nova");
+      applyLook();
+    }
+  });
+})();
+</script>
+
+</body></html>

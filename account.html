@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://xarena.surge.sh/account.html">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Account · XARENA ESPORTS</title>
+<meta name="description" content="Create your free XARENA account — one account for chat handle, squad registration and the verified badge.">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="%230b0b14" stroke="%23e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="%23f5b301" stroke-width="3.2"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="XARENA ESPORTS">
+<meta property="og:title" content="XARENA ESPORTS - Free Fire tournaments, feed, stories, Luna">
+<meta property="og:description" content="India's Free Fire esports platform - tournaments, scrims, highlights feed, stories, encrypted messages and the Luna assistant. Free forever.">
+<meta property="og:url" content="https://xarena.surge.sh/">
+<meta property="og:image" content="https://xarena.surge.sh/assets/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0104">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="XARENA">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/app-shell.css">
+</head>
+<body>
+<style>
+#xr-splash{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;transition:opacity .3s ease;overflow:hidden}
+#xr-splash::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none}
+#xr-splash .xs-stage{position:relative;width:118px;height:118px;display:flex;align-items:center;justify-content:center}
+#xr-splash .xs-ring{position:absolute;inset:0;animation:xsSpin 2.6s linear infinite}
+#xr-splash .xs-ring circle{fill:none;stroke:var(--xs-acc,#e10600);stroke-width:2.5;stroke-dasharray:44 22;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--xs-acc,#e10600))}
+#xr-splash .xs-ring.r2{animation:xsSpinR 3.8s linear infinite;inset:9px}
+#xr-splash .xs-ring.r2 circle{stroke-dasharray:10 30;opacity:.55;stroke-width:1.5}
+#xr-splash .xs-logo{width:62px;height:62px;animation:xsPulse 1.2s ease-in-out infinite}
+#xr-splash .xs-logo path{stroke:var(--xs-acc,#e10600)}
+#xr-splash .xs-logo .xs-x{stroke:#f5b301}
+#xr-splash .xs-name{font:900 24px Orbitron,system-ui,sans-serif;color:#fff;letter-spacing:7px;margin-left:7px;animation:xsGlitch 2.4s steps(1) infinite}
+#xr-splash .xs-tag{font:800 10px Orbitron,system-ui,sans-serif;letter-spacing:5px;color:var(--xs-acc,#e10600);margin-left:5px;text-shadow:0 0 10px var(--xs-acc,#e10600)}
+#xr-splash .xs-tip{font:600 12.5px Rajdhani,system-ui,sans-serif;color:#9aa0b8;letter-spacing:1px;min-height:16px;text-align:center;padding:0 24px;transition:opacity .25s}
+#xr-splash .xs-bar{width:170px;height:3px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+#xr-splash .xs-bar i{display:block;height:100%;width:0;border-radius:3px;background:var(--xs-acc,#e10600);box-shadow:0 0 12px var(--xs-acc,#e10600);animation:xsFill 1.5s ease forwards}
+#xr-splash.xs-done{opacity:0;pointer-events:none}
+@keyframes xsSpin{to{transform:rotate(360deg)}}
+@keyframes xsSpinR{to{transform:rotate(-360deg)}}
+@keyframes xsPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes xsFill{to{width:88%}}
+@keyframes xsGlitch{0%,93%,100%{text-shadow:none}94%{text-shadow:-2px 0 var(--xs-acc,#e10600),2px 0 #22d3ee}96%{text-shadow:2px 0 var(--xs-acc,#e10600),-2px 0 #22d3ee}98%{text-shadow:none}}
+@media (prefers-reduced-motion:reduce){#xr-splash .xs-ring,#xr-splash .xs-logo,#xr-splash .xs-name,#xr-splash .xs-bar i{animation:none!important}#xr-splash{transition:none!important}}
+</style>
+<div id="xr-splash" role="status" aria-label="Loading XARENA">
+<div class="xs-stage">
+<svg class="xs-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-ring r2" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-logo" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke-width="2.5"/><path class="xs-x" d="M13 13l14 14M27 13L13 27" stroke-width="3.2" fill="none"/></svg>
+</div>
+<div class="xs-name">XARENA</div>
+<div class="xs-tag">ENTERING THE ARENA</div>
+<div class="xs-tip" id="xs-tip"></div>
+<div class="xs-bar"><i></i></div>
+<script>(function(){try{var m={liquid:"#0a84ff",classic:"#e10600","3d":"#8b3dff",nexus:"#7c5cff",arena:"#ff7a1a","void":"#a970ff",ascend:"#19e3c2",hybrid:"#22d3ee",pulse:"#ff2e88",aura:"#8b5cf6",social:"#0095f6"};var t=localStorage.getItem("xr_theme")||"liquid";var s=document.getElementById("xr-splash");if(s&&m[t])s.style.setProperty("--xs-acc",m[t]);var tips=["Season 1 - 48 squad slots - registrations open","Real tournaments - tracked rankings - live World Chat","Tip: mention @luna in World Chat - she answers","Tip: finish tasks to earn points, badges and titles","48 squads. One crown. Season 1 is loading"];var tip=document.getElementById("xs-tip");if(tip&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){var i=Math.floor(Math.random()*tips.length);tip.textContent=tips[i];var iv=setInterval(function(){if(!document.getElementById("xr-splash")){clearInterval(iv);return;}i=(i+1)%tips.length;tip.style.opacity=0;setTimeout(function(){tip.textContent=tips[i];tip.style.opacity=1;},240);},1600);}}catch(e){}})();</script>
+</div>
+<header class="nav"><div class="wrap nav-in">
+<a class="brand" href="index.html" aria-label="XARENA ESPORTS home">
+<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="xg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3131"/><stop offset=".55" stop-color="#e10600"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="url(#xg)" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="url(#xg)" stroke-width="3.2" stroke-linecap="square"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<button class="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+<ul class="nav-links">
+<li><a href="index.html">Home</a></li>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="tasks.html">Tasks</a></li>
+<li><a href="play.html">Play</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="feed.html">Feed</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+<li><a href="rules.html">RRs</a></li>
+<li><a href="contact.html">Contact</a></li>
+<li><a href="account.html">Account</a></li>
+<li><a class="nav-chat" href="chat.html"><span class="pulse"></span>World Chat<span class="chat-badge" id="xr-chat-badge"></span></a></li>
+<li class="nav-cta" style="display:flex;align-items:center;gap:8px"><a href="messages.html" aria-label="Messages" title="Messages" style="color:inherit;display:flex;padding:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></a><button class="xr-theme-btn" id="xr-theme-btn" type="button">Look</button><a class="btn btn-red btn-sm" href="tournaments.html#register">Register</a></li>
+</ul>
+</div></header>
+<main><section class="section"><div class="wrap" style="max-width:640px">
+  <div class="section-head reveal"><div class="overline">Players</div><h2>Your <em>Account</em></h2>
+  <p>One free account links your chat handle, squad registration and the VERIFIED badge. Just like Instagram, but for esports.</p></div>
+  <div class="form-panel reveal" id="acct-box"><p style="color:var(--muted)">Loading…</p></div>
+</div></section></main>
+<script>
+window.addEventListener("load", function () {
+  var box = document.getElementById("acct-box");
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function errBox(msg) { return '<div class="server-err" style="' + (msg ? "display:block" : "display:none") + ';background:rgba(225,6,0,.12);border:1px solid var(--red);color:#ffb4ae;padding:10px 14px;margin:12px 0;font-size:14px;border-radius:6px">' + esc(msg || "") + "</div>"; }
+
+  function getAcctView() { try { return sessionStorage.getItem("xr_acct_view") || ""; } catch (e) { return ""; } }
+  function clearAcctState() { try { sessionStorage.removeItem("xr_acct_view"); sessionStorage.removeItem("xr_acct_phone"); } catch (e) {} }
+  function normPhone(v) {
+    var d = String(v || "").replace(/[^0-9]/g, "");
+    if (/^[0-9]{10}$/.test(d)) return "91" + d;
+    if (/^91[0-9]{10}$/.test(d)) return d;
+    return null;
+  }
+  function loginEmail(v) {
+    v = String(v || "").trim();
+    if (v.indexOf("@") >= 0) return v;
+    var p = normPhone(v);
+    return p ? "p" + p + "@phone.xarena" : null;
+  }
+
+  function showLogin(note) {
+    box.innerHTML = "<h3>Login</h3>" + (note ? '<p style="color:var(--gold2);font-size:13.5px">' + esc(note) + "</p>" : "") +
+      '<form id="login-form"><div class="field"><label>Phone number or email</label><input id="l-email" required inputmode="text" placeholder="10-digit number or email"></div>' +
+      '<div class="field"><label>Password</label><input id="l-pass" type="password" required minlength="6"></div>' +
+      errBox() + '<button class="btn btn-red" type="submit">Login</button></form>' +
+      '<p style="margin-top:14px;color:var(--muted);font-size:13.5px">New player? <a href="#" id="go-signup" style="color:var(--gold2)">Create a free account</a><br>Forgot your password? Message the owner (contact page or World Chat) and they will reset it for you.</p>';
+    document.getElementById("go-signup").addEventListener("click", function (e) { e.preventDefault(); showSignup(); });
+    document.getElementById("login-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var em = loginEmail(document.getElementById("l-email").value);
+      if (!em) { box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = "Enter your 10-digit phone number or email."; return; }
+      var btn = e.target.querySelector("button"); btn.disabled = true; btn.textContent = "LOGGING IN…";
+      xrSb.auth.signInWithPassword({ email: em, password: document.getElementById("l-pass").value })
+        .then(function (r) {
+          if (r.error) { btn.disabled = false; btn.textContent = "LOGIN"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = r.error.message === "Invalid login credentials" ? "Wrong number/email or password." : r.error.message; return; }
+          clearAcctState(); routeAfterLogin();
+        });
+    });
+  }
+
+  function showSignup() {
+    box.innerHTML = "<h3>Create free account</h3>" +
+      '<form id="su-form"><div class="field"><label>WhatsApp phone number (10 digit)</label><input id="s-phone" required inputmode="numeric" placeholder="e.g. 9876543210"><p style="color:var(--muted);font-size:12px;margin-top:4px">This is your login ID. One number = one account.</p></div>' +
+      '<div class="field"><label>Password (6+ chars)</label><input id="s-pass" type="password" required minlength="6"></div>' +
+      errBox() + '<button class="btn btn-red" type="submit">Sign up</button></form>' +
+      '<p style="margin-top:14px;color:var(--muted);font-size:13.5px">No email needed. Right after signup you get a verification code — send it to the owner on Instagram @ud_speed (manual verification, completely free). <a href="#" id="go-login" style="color:var(--gold2)">Already have an account? Login</a></p>';
+    try { sessionStorage.setItem("xr_acct_view", "signup"); } catch (e) {}
+    try { var savedPh = sessionStorage.getItem("xr_acct_phone"); if (savedPh) document.getElementById("s-phone").value = savedPh; } catch (e) {}
+    document.getElementById("s-phone").addEventListener("input", function () { try { sessionStorage.setItem("xr_acct_phone", this.value); } catch (e) {} });
+    document.getElementById("go-login").addEventListener("click", function (e) { e.preventDefault(); clearAcctState(); showLogin(); });
+    document.getElementById("su-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var ph = normPhone(document.getElementById("s-phone").value);
+      if (!ph) { box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = "Phone number must be 10 digits."; return; }
+      var btn = e.target.querySelector("button"); btn.disabled = true; btn.textContent = "CHECKING…";
+      xrApi.rpc("phone_available", { p_phone: ph }).then(function (chk) {
+        if (!chk || !chk.ok) { btn.disabled = false; btn.textContent = "SIGN UP"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = (chk && chk.error) || "Could not check right now. Try again."; return; }
+        if (!chk.available) { btn.disabled = false; btn.textContent = "SIGN UP"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = "An account already exists with this number. Please log in."; return; }
+        btn.textContent = "CREATING…";
+        xrSb.auth.signUp({ email: "p" + ph + "@phone.xarena", password: document.getElementById("s-pass").value, options: { data: { phone: ph } } })
+          .then(function (r) {
+            if (r.error) { btn.disabled = false; btn.textContent = "SIGN UP"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = r.error.message; return; }
+            clearAcctState(); routeAfterLogin();
+          });
+      });
+    });
+  }
+
+  function showCompleteProfile(user) {
+    box.innerHTML = "<h3>Complete your profile</h3><p style='color:var(--muted);font-size:13.5px'>One-time setup — this is your XARENA identity.</p>" +
+      '<form id="cp-form"><div class="field"><label>Username (3-16, e.g. night_hunter)</label><input id="c-user" required minlength="3" maxlength="16" pattern="[A-Za-z0-9_.]{3,16}"></div>' +
+      '<div class="field"><label>In-game name (IGN)</label><input id="c-ign" maxlength="24"></div>' +
+      '<div class="field"><label>Free Fire UID</label><input id="c-uid" inputmode="numeric" pattern="[0-9]{5,15}"><p style="color:var(--muted);font-size:12px;margin-top:4px">Your UID locks after verification.</p></div>' +
+      errBox() + '<button class="btn btn-red" type="submit">Save profile</button></form>';
+    document.getElementById("cp-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var btn = e.target.querySelector("button"); btn.disabled = true; btn.textContent = "SAVING…";
+      xrApi.uRpc("complete_profile", { p_username: document.getElementById("c-user").value.trim(), p_ign: document.getElementById("c-ign").value.trim(), p_ff_uid: document.getElementById("c-uid").value.trim() })
+        .then(function (r) {
+          if (r && r.ok) { location.href = "profile.html"; return; }
+          btn.disabled = false; btn.textContent = "SAVE PROFILE"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = (r && r.error) || "Could not save. Try again.";
+        });
+    });
+  }
+
+  function showAccount(user, profile) {
+    var p = profile || {};
+    var isPhoneAcct = (user.email || "").indexOf("@phone.xarena") >= 0;
+    var vCard = "";
+    if (isPhoneAcct && !p.phone_verified) {
+      var ig = (window.XARENA && XARENA.site && XARENA.site.ownerInstagram) || "ud_speed";
+      var codeTxt = esc(p.phone_code || "------");
+      vCard = '<div style="background:rgba(255,215,64,.07);border:1px solid var(--gold);border-radius:8px;padding:14px;margin:14px 0">' +
+        '<b style="color:var(--gold2)">PHONE VERIFICATION PENDING</b>' +
+        '<p style="font-size:13.5px;color:var(--muted);margin:8px 0">This is manual verification (instead of email, completely free). Send this code to the owner on Instagram (@' + esc(ig) + ") — once they confirm, squad registration opens for you:</p>" +
+        '<div id="pf-code" title="Tap to copy" style="font-size:30px;letter-spacing:6px;font-weight:800;text-align:center;padding:10px;background:rgba(0,0,0,.35);border-radius:6px;cursor:pointer">' + codeTxt + '</div>' +
+        '<p id="pf-copy-note" style="font-size:12px;color:var(--muted);text-align:center;margin-top:4px">Tap the code to copy it</p>' +
+        '<div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-red btn-sm" target="_blank" rel="noopener" href="https://instagram.com/' + encodeURIComponent(ig) + '">Open Instagram @' + esc(ig) + "</a></div>" +
+        '<div style="border-top:1px solid rgba(255,255,255,.12);margin-top:14px;padding-top:12px">' +
+        '<b style="font-size:13px;color:var(--gold2)">OR SEND IT HERE (straight to the owner)</b>' +
+        '<div class="field" style="margin-top:8px"><label>Your 6-character code</label><input id="vm-code" maxlength="6" style="text-transform:uppercase" placeholder="e.g. 3C9754"></div>' +
+        '<div class="field"><label>Note for the owner (optional)</label><input id="vm-note" maxlength="280" placeholder="e.g. My Instagram is @yourname"></div>' +
+        '<button class="btn btn-gold btn-sm" id="vm-send">Send verification request</button>' +
+        '<p id="vm-msg" style="font-size:13px;margin-top:8px"></p></div>' +
+        "</div>";
+    } else if (isPhoneAcct && p.phone_verified) {
+      vCard = '<div style="background:rgba(60,255,120,.06);border:1px solid rgba(60,255,120,.35);border-radius:8px;padding:10px 14px;margin:14px 0;color:#9fe8b5;font-size:13.5px">✓ Phone verified — squad registration is open for you.</div>';
+    }
+    box.innerHTML = "<h3>" + esc(p.username || "player") + (p.verified ? ' <span style="color:var(--gold2)">✓ VERIFIED</span>' : "") + "</h3>" +
+      (isPhoneAcct ? "" : '<p style="color:var(--muted);font-size:13.5px">' + esc(user.email) + "</p>") +
+      '<div class="row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)"><span>Phone</span><b>' + esc(p.phone || "—") + (p.phone_verified ? " ✓" : "") + "</b></div>" +
+      '<div class="row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)"><span>IGN</span><b>' + esc(p.ign || "—") + "</b></div>" +
+      '<div class="row" style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)"><span>FF UID</span><b>' + esc(p.ff_uid || "—") + (p.verified ? " 🔒" : "") + "</b></div>" +
+      vCard +
+      '<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><a class="btn btn-gold btn-sm" href="profile.html">Open profile</a>' +
+      '<button class="btn btn-ghost btn-sm" id="logout-btn">Logout</button></div>';
+    document.getElementById("logout-btn").addEventListener("click", function () {
+      clearAcctState(); xrSb.auth.signOut().then(function () { location.reload(); });
+    });
+    var vmBtn = document.getElementById("vm-send");
+    if (vmBtn) vmBtn.addEventListener("click", function () {
+      var msg = document.getElementById("vm-msg");
+      vmBtn.disabled = true; vmBtn.textContent = "SENDING…";
+      xrApi.uRpc("submit_verification", { p_code: document.getElementById("vm-code").value.trim(), p_note: document.getElementById("vm-note").value.trim() })
+        .then(function (r) {
+          vmBtn.disabled = false; vmBtn.textContent = "SEND VERIFICATION REQUEST";
+          msg.style.color = r && r.ok ? "#9fe8b5" : "#ffb4ae";
+          msg.textContent = r && r.ok ? "Sent! The owner will verify you soon — check back here." : ((r && r.error) || "Could not send. Try again.");
+        });
+    });
+    var codeEl = document.getElementById("pf-code");
+    if (codeEl && navigator.clipboard) codeEl.addEventListener("click", function () {
+      navigator.clipboard.writeText(codeEl.textContent.trim()).then(function () {
+        var n = document.getElementById("pf-copy-note");
+        if (n) { n.textContent = "Copied! Now paste it in the Instagram DM."; n.style.color = "var(--gold2)"; }
+      });
+    });
+  }
+
+  function routeAfterLogin() {
+    xrSb.auth.getUser().then(function (r) {
+      var user = r && r.data && r.data.user;
+      if (!user) { if (getAcctView() === "signup") showSignup(); else showLogin(); return; }
+      xrApi.userToken().then(function (t) {
+        fetch(xrApi.url + "/rest/v1/profiles?id=eq." + user.id + "&select=username,ign,ff_uid,verified,phone,phone_code,phone_verified", { headers: { "apikey": xrApi.key, "Authorization": "Bearer " + t } })
+          .then(function (x) { return x.json(); })
+          .then(function (rows) {
+            var p = rows && rows[0];
+            if (!p || /^user[0-9a-f]{8}$/.test(p.username || "")) showCompleteProfile(user);
+            else showAccount(user, p);
+          });
+      });
+    });
+  }
+
+  var refCode = new URLSearchParams(location.search).get("ref");
+  if (refCode) { try { localStorage.setItem("xr_ref_code", refCode.toUpperCase()); } catch (e) {} }
+  if (!window.xrSb) { box.innerHTML = '<div class="empty"><div class="big">Accounts could not load</div><p>Check your connection and refresh.</p></div>'; return; }
+  routeAfterLogin();
+});
+</script>
+<footer><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand">
+<a class="brand" href="index.html">
+<svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="#e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="#f5b301" stroke-width="3.2"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<p>XARENA ESPORTS is a professional Free Fire esports organisation — tournaments, scrims, rankings and a competitive roster, run from India for the community.</p>
+</div>
+<div><h4>Arena</h4><ul>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="how-to-play.html">How to Play</a></li>
+<li><a href="verify.html">Photo Verify</a></li>
+<li><a href="play.html">Play &amp; Earn</a></li>
+<li><a href="feed.html">Highlights Feed</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="rules.html">Rules &amp; Regulations</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+</ul></div>
+<div><h4>Organisation</h4><ul>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="cup.html">Sponsor a Cup</a></li>
+<li><a href="contact.html">Contact & Support</a></li>
+<li><a href="download.html">Get the App</a></li>
+</ul></div>
+</div>
+<div class="foot-bottom">
+<span>© <b id="yr">2026</b> XARENA ESPORTS · All rights reserved</span>
+<span id="foot-credit">Founded &amp; owned by <b>Shivhari Rajput</b></span>
+<span id="app-update" style="display:none;cursor:pointer">App update check</span>
+</div>
+</div></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/vendor/supabase.min.js"></script>
+<script src="assets/js/vendor/qrcode.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/luna.js"></script>
+<script src="assets/js/reco.js"></script>
+<script src="assets/js/game.js"></script>
+<script src="assets/js/sfx.js"></script>
+<script src="assets/js/sharecard.js"></script>
+<script src="assets/js/funline.js"></script>
+<script src="assets/js/dm.js"></script>
+<script src="assets/js/chat-style.js"></script>
+<script src="assets/js/app-shell.js"></script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script>
+</body></html>

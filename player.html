@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://xarena.surge.sh/player.html">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Card · XARENA ESPORTS</title>
+<meta name="description" content="XARENA player card — Free Fire identity, XARENA record, badges and titles, shareable to Instagram stories.">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="%230b0b14" stroke="%23e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="%23f5b301" stroke-width="3.2"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="XARENA ESPORTS">
+<meta property="og:title" content="XARENA ESPORTS - Free Fire tournaments, feed, stories, Luna">
+<meta property="og:description" content="India's Free Fire esports platform - tournaments, scrims, highlights feed, stories, encrypted messages and the Luna assistant. Free forever.">
+<meta property="og:url" content="https://xarena.surge.sh/">
+<meta property="og:image" content="https://xarena.surge.sh/assets/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0104">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="XARENA">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/app-shell.css">
+</head>
+<body>
+<style>
+#xr-splash{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;transition:opacity .3s ease;overflow:hidden}
+#xr-splash::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none}
+#xr-splash .xs-stage{position:relative;width:118px;height:118px;display:flex;align-items:center;justify-content:center}
+#xr-splash .xs-ring{position:absolute;inset:0;animation:xsSpin 2.6s linear infinite}
+#xr-splash .xs-ring circle{fill:none;stroke:var(--xs-acc,#e10600);stroke-width:2.5;stroke-dasharray:44 22;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--xs-acc,#e10600))}
+#xr-splash .xs-ring.r2{animation:xsSpinR 3.8s linear infinite;inset:9px}
+#xr-splash .xs-ring.r2 circle{stroke-dasharray:10 30;opacity:.55;stroke-width:1.5}
+#xr-splash .xs-logo{width:62px;height:62px;animation:xsPulse 1.2s ease-in-out infinite}
+#xr-splash .xs-logo path{stroke:var(--xs-acc,#e10600)}
+#xr-splash .xs-logo .xs-x{stroke:#f5b301}
+#xr-splash .xs-name{font:900 24px Orbitron,system-ui,sans-serif;color:#fff;letter-spacing:7px;margin-left:7px;animation:xsGlitch 2.4s steps(1) infinite}
+#xr-splash .xs-tag{font:800 10px Orbitron,system-ui,sans-serif;letter-spacing:5px;color:var(--xs-acc,#e10600);margin-left:5px;text-shadow:0 0 10px var(--xs-acc,#e10600)}
+#xr-splash .xs-tip{font:600 12.5px Rajdhani,system-ui,sans-serif;color:#9aa0b8;letter-spacing:1px;min-height:16px;text-align:center;padding:0 24px;transition:opacity .25s}
+#xr-splash .xs-bar{width:170px;height:3px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+#xr-splash .xs-bar i{display:block;height:100%;width:0;border-radius:3px;background:var(--xs-acc,#e10600);box-shadow:0 0 12px var(--xs-acc,#e10600);animation:xsFill 1.5s ease forwards}
+#xr-splash.xs-done{opacity:0;pointer-events:none}
+@keyframes xsSpin{to{transform:rotate(360deg)}}
+@keyframes xsSpinR{to{transform:rotate(-360deg)}}
+@keyframes xsPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes xsFill{to{width:88%}}
+@keyframes xsGlitch{0%,93%,100%{text-shadow:none}94%{text-shadow:-2px 0 var(--xs-acc,#e10600),2px 0 #22d3ee}96%{text-shadow:2px 0 var(--xs-acc,#e10600),-2px 0 #22d3ee}98%{text-shadow:none}}
+@media (prefers-reduced-motion:reduce){#xr-splash .xs-ring,#xr-splash .xs-logo,#xr-splash .xs-name,#xr-splash .xs-bar i{animation:none!important}#xr-splash{transition:none!important}}
+</style>
+<div id="xr-splash" role="status" aria-label="Loading XARENA">
+<div class="xs-stage">
+<svg class="xs-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-ring r2" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-logo" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke-width="2.5"/><path class="xs-x" d="M13 13l14 14M27 13L13 27" stroke-width="3.2" fill="none"/></svg>
+</div>
+<div class="xs-name">XARENA</div>
+<div class="xs-tag">ENTERING THE ARENA</div>
+<div class="xs-tip" id="xs-tip"></div>
+<div class="xs-bar"><i></i></div>
+<script>(function(){try{var m={liquid:"#0a84ff",classic:"#e10600","3d":"#8b3dff",nexus:"#7c5cff",arena:"#ff7a1a","void":"#a970ff",ascend:"#19e3c2",hybrid:"#22d3ee",pulse:"#ff2e88",aura:"#8b5cf6",social:"#0095f6"};var t=localStorage.getItem("xr_theme")||"liquid";var s=document.getElementById("xr-splash");if(s&&m[t])s.style.setProperty("--xs-acc",m[t]);var tips=["Season 1 - 48 squad slots - registrations open","Real tournaments - tracked rankings - live World Chat","Tip: mention @luna in World Chat - she answers","Tip: finish tasks to earn points, badges and titles","48 squads. One crown. Season 1 is loading"];var tip=document.getElementById("xs-tip");if(tip&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){var i=Math.floor(Math.random()*tips.length);tip.textContent=tips[i];var iv=setInterval(function(){if(!document.getElementById("xr-splash")){clearInterval(iv);return;}i=(i+1)%tips.length;tip.style.opacity=0;setTimeout(function(){tip.textContent=tips[i];tip.style.opacity=1;},240);},1600);}}catch(e){}})();</script>
+</div>
+<header class="nav"><div class="wrap nav-in">
+<a class="brand" href="index.html" aria-label="XARENA ESPORTS home">
+<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="xg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3131"/><stop offset=".55" stop-color="#e10600"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="url(#xg)" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="url(#xg)" stroke-width="3.2" stroke-linecap="square"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<button class="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+<ul class="nav-links">
+<li><a href="index.html">Home</a></li>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="tasks.html">Tasks</a></li>
+<li><a href="play.html">Play</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="feed.html">Feed</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+<li><a href="rules.html">RRs</a></li>
+<li><a href="contact.html">Contact</a></li>
+<li><a href="account.html">Account</a></li>
+<li><a class="nav-chat" href="chat.html"><span class="pulse"></span>World Chat<span class="chat-badge" id="xr-chat-badge"></span></a></li>
+<li class="nav-cta" style="display:flex;align-items:center;gap:8px"><a href="messages.html" aria-label="Messages" title="Messages" style="color:inherit;display:flex;padding:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></a><button class="xr-theme-btn" id="xr-theme-btn" type="button">Look</button><a class="btn btn-red btn-sm" href="tournaments.html#register">Register</a></li>
+</ul>
+</div></header>
+<main><section class="section"><div class="wrap" style="max-width:720px">
+  <style>
+.ppv{background:linear-gradient(160deg,#1c0b38 0%,#12051f 55%,#1e0726 100%);border:1px solid rgba(240,180,41,.22);border-radius:18px;padding:18px 16px 20px;margin-bottom:16px;color:#fff}
+.ppv-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ppv-title{font-family:var(--font-d);letter-spacing:3px;font-size:15px;font-weight:700;color:#fff}
+.ppv-ic{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:#f0b429;background:rgba(240,180,41,.08);border:1px solid rgba(240,180,41,.25);cursor:pointer;text-decoration:none;font-size:16px}
+.ppv-hero{display:flex;align-items:center;gap:14px;margin:2px 0 16px}
+.ppv-ava{width:96px;height:96px;border-radius:50%;border:3px solid #f0b429;box-shadow:0 0 0 3px rgba(240,180,41,.18),0 0 22px rgba(240,180,41,.25);object-fit:cover;background:linear-gradient(135deg,#3d1a78,#7a1020);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:900;font-size:38px;color:#f0b429;flex:none;overflow:hidden}
+.ppv-ava img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.ppv-brand{text-align:right;flex:1}
+.ppv-brand .x{font-family:var(--font-d);font-weight:900;font-size:21px;letter-spacing:2px;color:#f0b429}
+.ppv-brand .e{font-size:9.5px;letter-spacing:6px;color:#e8c876;margin-top:2px}
+.ppv-name{font-family:var(--font-d);font-weight:900;font-size:23px;letter-spacing:1px;color:#f0b429;text-transform:uppercase}
+.ppv-pill{display:inline-block;border:1.5px solid #f0b429;border-radius:999px;padding:3px 14px;font-size:12px;font-weight:700;letter-spacing:1.5px;color:#ffd977;margin:6px 0 4px}
+.ppv-xp{color:#ffd977;font-weight:700;font-size:14px}
+.ppv-bar{height:8px;border-radius:99px;background:rgba(255,255,255,.12);margin-top:8px;overflow:hidden}
+.ppv-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#ffe08a,#f0b429)}
+.ppv-barlbl{text-align:right;font-size:11.5px;color:#c9b8e8;margin-top:5px}
+.ppv-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0 4px}
+.ppv-stat{background:rgba(46,18,88,.55);border:1px solid rgba(240,180,41,.28);border-radius:14px;padding:14px 6px 12px;text-align:center}
+.ppv-stat svg{width:26px;height:26px;stroke:#f0b429;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ppv-stat .l{font-size:10.5px;letter-spacing:2px;color:#d9c7f2;margin-top:6px}
+.ppv-stat .v{font-family:var(--font-d);font-weight:900;font-size:24px;color:#ffd977;margin-top:2px}
+.ppv-h{font-family:var(--font-d);font-size:14px;letter-spacing:2.5px;font-weight:700;margin:20px 0 12px;border-left:3px solid #f0b429;padding-left:9px;color:#fff}
+.ppv-badges{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ppv-badge{background:rgba(46,18,88,.55);border:1px solid rgba(240,180,41,.22);border-radius:14px;padding:14px 10px;text-align:center}
+.ppv-badge svg{width:30px;height:30px;stroke:#f0b429;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ppv-badge .n{font-weight:700;font-size:13px;letter-spacing:1px;margin-top:8px;text-transform:uppercase;color:#fff}
+.ppv-badge .s{font-size:11px;color:#c9b8e8;margin-top:2px}
+.ppv-perf{background:rgba(46,18,88,.55);border:1px solid rgba(240,180,41,.28);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ppv-perf .t{font-size:13.5px;color:#e9ddf7}
+.ppv-perf .t b{color:#ffd977}
+.ppv-chip{margin-left:auto;border:1.5px solid #f0b429;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:700;color:#ffd977;white-space:nowrap}
+.ppv-cta{display:block;margin-top:16px;border:1.5px solid #f0b429;border-radius:12px;padding:13px;text-align:center;font-family:var(--font-d);font-weight:700;letter-spacing:3px;font-size:13px;color:#ffd977;text-decoration:none;background:rgba(240,180,41,.06)}
+.ppv-empty{border:1px dashed rgba(240,180,41,.35);border-radius:14px;padding:18px;text-align:center;color:#c9b8e8;font-size:13px}
+.ppv-actions{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+</style>
+<div id="pc-nova"></div>
+<div style="text-align:right;margin-bottom:10px"><button class="btn btn-ghost btn-sm" id="pc-look" type="button">Classic card</button></div>
+<div id="pc-body"><p style="color:var(--muted);text-align:center;padding-top:40px">Loading…</p></div>
+</div></section></main>
+<script>
+window.addEventListener("load", function () {
+  var body = document.getElementById("pc-body");
+  var u = (new URLSearchParams(location.search)).get("u");
+  var KEY = "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7";
+  var URLB = "https://oskccuajgbyabogbvedj.supabase.co";
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  if (!u) { body.innerHTML = '<div class="empty"><div class="big">Player card</div><p>Every XARENA player gets a public card: player.html?u=<b>username</b></p></div>'; return; }
+
+  function drawCard(p, scale) {
+    var W = 540 * scale, H = 960 * scale;
+    var cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    var x = cv.getContext("2d");
+    var g = x.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, "#0b0b14"); g.addColorStop(.5, "#160a2a"); g.addColorStop(1, "#26040c");
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    for (var i = 0; i < 50; i++) { x.fillStyle = "rgba(160,80,255," + (0.03 + (i % 4) * 0.02) + ")"; x.fillRect((i * 173) % W, (i * 211) % H, 3 * scale, 3 * scale); }
+    x.strokeStyle = "rgba(139,61,255,.8)"; x.lineWidth = 6 * scale; x.strokeRect(18 * scale, 18 * scale, W - 36 * scale, H - 36 * scale);
+    x.strokeStyle = "rgba(225,6,0,.5)"; x.lineWidth = 2 * scale; x.strokeRect(28 * scale, 28 * scale, W - 56 * scale, H - 56 * scale);
+    x.textAlign = "center";
+    x.fillStyle = "#e10600"; x.font = "900 " + 44 * scale + "px Orbitron, sans-serif"; x.fillText("XARENA", W / 2, 100 * scale);
+    x.fillStyle = "#f5b301"; x.font = "600 " + 16 * scale + "px Orbitron, sans-serif"; x.fillText("P L A Y E R   C A R D", W / 2, 128 * scale);
+    x.beginPath(); x.arc(W / 2, 240 * scale, 74 * scale, 0, 7); x.fillStyle = "#2a1150"; x.fill();
+    x.lineWidth = 4 * scale; x.strokeStyle = "#f5b301"; x.stroke();
+    x.fillStyle = "#f5b301"; x.font = "900 " + 64 * scale + "px Orbitron, sans-serif";
+    x.fillText((p.ign || p.username || "?").charAt(0).toUpperCase(), W / 2, 262 * scale);
+    x.fillStyle = "#ffffff"; x.font = "900 " + 40 * scale + "px Orbitron, sans-serif";
+    x.fillText((p.ign || p.username || "").toUpperCase(), W / 2, 380 * scale);
+    x.fillStyle = "#b98fd9"; x.font = "600 " + 22 * scale + "px Rajdhani, sans-serif";
+    x.fillText("@" + p.username + (p.verified ? "  ✓ VERIFIED" : ""), W / 2, 414 * scale);
+    if (p.titles) { x.fillStyle = "#f5b301"; x.font = "700 " + 24 * scale + "px Orbitron, sans-serif"; x.fillText("🏆 " + p.titles.toUpperCase(), W / 2, 462 * scale); }
+    if (p.squad) { x.fillStyle = "#ffffff"; x.font = "600 " + 24 * scale + "px Rajdhani, sans-serif"; x.fillText("Squad: " + p.squad, W / 2, 506 * scale); }
+    var rows = [["ROLE", p.role || "—"], ["FF RANK", p.ff_rank || "—"], ["K/D", p.kd != null ? String(p.kd) : "—"], ["DEVICE", p.device || "—"]];
+    var y0 = 570 * scale;
+    rows.forEach(function (r, i) {
+      var yy = y0 + i * 52 * scale;
+      x.fillStyle = "rgba(255,255,255,.06)"; x.fillRect(70 * scale, yy - 26 * scale, W - 140 * scale, 40 * scale);
+      x.textAlign = "left"; x.fillStyle = "#8f7fb5"; x.font = "600 " + 18 * scale + "px Rajdhani, sans-serif"; x.fillText(r[0], 90 * scale, yy);
+      x.textAlign = "right"; x.fillStyle = "#ffffff"; x.font = "700 " + 20 * scale + "px Rajdhani, sans-serif"; x.fillText(r[1], W - 90 * scale, yy);
+      x.textAlign = "center";
+    });
+    x.fillStyle = "#f5b301"; x.font = "700 " + 22 * scale + "px Rajdhani, sans-serif";
+    x.fillText("XARENA RECORD: " + (p.matches || 0) + " matches · " + (p.wins || 0) + " wins", W / 2, 830 * scale);
+    x.fillStyle = "rgba(255,255,255,.4)"; x.font = "500 " + 15 * scale + "px Rajdhani, sans-serif";
+    x.fillText("xarena.surge.sh · Founded & owned by Shivhari Rajput", W / 2, H - 50 * scale);
+    return cv;
+  }
+
+  fetch(URLB + "/rest/v1/player_cards?username=eq." + encodeURIComponent(u.toLowerCase()) + "&select=*", { headers: { apikey: KEY } })
+    .then(function (r) { return r.json(); })
+    .then(function (rows) {
+      if (rows && rows[0]) return rows[0];
+      return fetch(URLB + "/rest/v1/player_cards?ign=eq." + encodeURIComponent(u) + "&select=*", { headers: { apikey: KEY } })
+        .then(function (r2) { return r2.json(); }).then(function (rows2) { return rows2 && rows2[0]; });
+    })
+    .then(function (p) {
+      if (!p) { body.innerHTML = '<div class="empty"><div class="big">Player not found</div><p>Check the username and try again.</p></div>'; return; }
+      document.title = (p.ign || p.username) + " · XARENA Player Card";
+      var selfRows = [["Role", p.role], ["Free Fire rank", p.ff_rank], ["K/D", p.kd != null ? p.kd : null], ["Device", p.device], ["UID", p.ff_uid]];
+      body.innerHTML =
+        '<div id="pc-classic-top"><div class="card" style="text-align:center;margin-bottom:16px">' +
+        '<div style="width:88px;height:88px;border-radius:50%;margin:0 auto 12px;border:3px solid var(--gold2);background:linear-gradient(135deg,var(--purple),var(--red));display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;color:#fff;font-family:var(--font-d)">' + esc((p.ign || p.username || "X")[0].toUpperCase()) + "</div>" +
+        '<h2 style="margin-bottom:2px">' + esc(p.ign || p.username) + (p.verified ? ' <em style="font-size:18px">✓</em>' : "") + "</h2>" +
+        '<p style="color:var(--muted);font-size:14px">@' + esc(p.username) + (p.squad ? " · Squad: <b style='color:var(--gold2)'>" + esc(p.squad) + "</b>" : "") + "</p>" +
+        '<div class="xr-prof-stats" id="pc-stats"><span style="color:var(--muted);font-size:13px">Loading stats…</span></div>' +
+        '<div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">' +
+        '<button class="btn btn-gold btn-sm" id="pc-follow">Follow</button>' +
+        '<button class="btn btn-ghost btn-sm" id="pc-msg">✉ Message</button>' +
+        '<button class="btn btn-ghost btn-sm" id="pc-add">＋ Friend</button>' +
+        '<a class="btn btn-gold btn-sm" id="pc-edit" href="profile.html" style="display:none">Edit profile</a></div>' +
+        '<p id="pc-fmsg" style="text-align:center;font-size:13px;margin-top:8px"></p>' +
+        '<div id="pc-list" style="text-align:left"></div>' +
+        "</div></div>" +
+        (p.titles ? '<div class="card" style="border-color:var(--gold2);text-align:center"><p style="color:var(--gold2);font-size:18px;font-weight:700">🏆 ' + esc(p.titles) + "</p></div>" : "") +
+        '<div class="card"><h3 style="margin-bottom:8px">Free Fire identity <span style="font-size:11px;color:var(--muted);font-weight:400">— entered by the player</span></h3>' +
+        selfRows.map(function (r) { return '<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.06)"><span style="color:var(--muted)">' + r[0] + "</span><b>" + esc(r[1] || "—") + "</b></div>"; }).join("") +
+        (p.instagram ? '<div style="margin-top:10px"><a class="btn btn-ghost btn-sm" target="_blank" rel="noopener" href="https://instagram.com/' + encodeURIComponent(p.instagram) + '">Instagram @' + esc(p.instagram) + "</a></div>" : "") +
+        "</div>" +
+        '<div class="card"><h3 style="margin-bottom:8px">XARENA record <span style="font-size:11px;color:var(--gold2);font-weight:400">— earned on this platform</span></h3>' +
+        '<div class="grid c3" style="text-align:center">' +
+        '<div><h3 style="color:var(--gold2)">' + (p.matches || 0) + '</h3><p style="font-size:12px">Matches</p></div>' +
+        '<div><h3 style="color:var(--gold2)">' + (p.wins || 0) + '</h3><p style="font-size:12px">Wins</p></div>' +
+        '<div><h3 style="color:var(--gold2)">' + (p.verified ? "✓" : "—") + '</h3><p style="font-size:12px">Verified</p></div></div></div>' +
+        '<div id="pc-tasks"></div>' +
+        '<div class="card" style="text-align:center"><h3>Story card</h3>' +
+        '<p style="color:var(--muted);font-size:13px;margin-bottom:12px">1080×1920 image for Instagram stories.</p>' +
+        '<div id="pc-mount" style="display:flex;justify-content:center"></div>' +
+        '<div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">' +
+        '<button class="btn btn-gold btn-sm" id="pc-dl">Download card</button>' +
+        '<button class="btn btn-ghost btn-sm" id="pc-share" style="display:none">Share…</button>' +
+        '<button class="btn btn-ghost btn-sm" id="pc-copy">Copy card link</button></div>' +
+        '<p id="pc-note" style="font-size:12.5px;color:var(--muted);margin-top:8px"></p></div>';
+      /* social actions: follow / message (request-aware) / friend - all real RPCs */
+      (function () {
+        var followBtn = document.getElementById("pc-follow");
+        var msgBtn = document.getElementById("pc-msg");
+        var addBtn = document.getElementById("pc-add");
+        var editBtn = document.getElementById("pc-edit");
+        var stats = document.getElementById("pc-stats");
+        var list = document.getElementById("pc-list");
+        var note = document.getElementById("pc-fmsg");
+        function say(t) { note.textContent = t; }
+        function needLogin() { location.href = "account.html"; }
+        function statBtn(id, n, label, tappable) {
+          return tappable
+            ? '<button type="button" data-plist="' + id + '"><b>' + n + "</b><span>" + label + "</span></button>"
+            : "<div><b>" + n + "</b><span>" + label + "</span></div>";
+        }
+        function renderStats(c) {
+          stats.innerHTML = statBtn("posts", c.posts || 0, "Posts", false) +
+            statBtn("followers", c.followers || 0, "Followers", true) +
+            statBtn("following", c.following || 0, "Following", true);
+        }
+        function loadCounts() {
+          return xrApi.uRpc("follow_counts", { p_name: p.username }).then(function (c) {
+            if (c && c.ok) renderStats(c);
+          });
+        }
+        stats.addEventListener("click", function (e) {
+          var b = e.target.closest("[data-plist]");
+          if (!b) return;
+          var kind = b.getAttribute("data-plist");
+          if (list.dataset.open === kind) { list.innerHTML = ""; list.dataset.open = ""; return; }
+          list.dataset.open = kind;
+          list.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center">Loading…</p>';
+          xrApi.uRpc("follow_list", { p_name: p.username, p_kind: kind }).then(function (r2) {
+            var people = (r2 && r2.people) || [];
+            list.innerHTML = '<div style="border-top:1px solid var(--line);margin-top:12px;padding-top:10px">' +
+              '<p style="font-size:12px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">' + kind + "</p>" +
+              (people.length ? people.map(function (x) {
+                return '<a href="player.html?u=' + encodeURIComponent(x.name) + '" style="display:block;padding:8px 4px;border-bottom:1px solid var(--line);font-weight:700">' + esc(x.name) + "</a>";
+              }).join("") : '<p style="color:var(--muted);font-size:13px">Nobody here yet.</p>') + "</div>";
+          });
+        });
+        if (!window.xrApi) {
+          followBtn.addEventListener("click", needLogin);
+          msgBtn.addEventListener("click", needLogin);
+          addBtn.addEventListener("click", needLogin);
+          return;
+        }
+        loadCounts();
+        xrApi.user().then(function (u2) {
+          if (!u2) {
+            followBtn.addEventListener("click", needLogin);
+            msgBtn.addEventListener("click", needLogin);
+            addBtn.addEventListener("click", needLogin);
+            return;
+          }
+          xrApi.userToken().then(function (tk) {
+            return fetch(xrApi.url + "/rest/v1/profiles?id=eq." + u2.id + "&select=username", { headers: { "apikey": xrApi.key, "Authorization": "Bearer " + (tk || xrApi.key) } });
+          }).then(function (x) { return x.json(); }).then(function (meRows) {
+            var meName = meRows && meRows[0] && meRows[0].username;
+            var own = meName && meName.toLowerCase() === String(p.username).toLowerCase();
+            if (own) {
+              followBtn.style.display = "none"; msgBtn.style.display = "none"; addBtn.style.display = "none";
+              editBtn.style.display = "";
+              return;
+            }
+            xrApi.uRpc("follow_state", { p_name: p.username }).then(function (st) {
+              if (st && st.ok) followBtn.textContent = st.following ? "Following ✓" : (st.follows_you ? "Follow back" : "Follow");
+            });
+            followBtn.addEventListener("click", function () {
+              followBtn.disabled = true;
+              xrApi.uRpc("follow_toggle", { p_name: p.username }).then(function (r2) {
+                followBtn.disabled = false;
+                if (r2 && r2.ok) {
+                  followBtn.textContent = r2.following ? "Following ✓" : "Follow";
+                  if (window.xrSfx) xrSfx.play("pop");
+                  loadCounts();
+                } else say((r2 && r2.error) || "Could not follow right now.");
+              });
+            });
+            msgBtn.addEventListener("click", function () {
+              msgBtn.disabled = true;
+              xrApi.uRpc("dm_open_by_name", { p_name: p.username }).then(function (r2) {
+                msgBtn.disabled = false;
+                if (r2 && r2.ok) {
+                  if (r2.requested) say("Message request sent - they can read it and accept in Messages → Requests.");
+                  else location.href = "messages.html";
+                } else say((r2 && r2.error) || "Could not open chat.");
+              });
+            });
+            addBtn.addEventListener("click", function () {
+              addBtn.disabled = true;
+              xrApi.uRpc("friend_request_by_name", { p_name: p.username }).then(function (r2) {
+                addBtn.disabled = false;
+                if (r2 && r2.ok) { say(r2.already ? "Already friends ✓" : (r2.accepted ? "You are friends now ✓" : "Friend request sent ✓")); if (window.xrSfx) xrSfx.play("pop"); }
+                else say((r2 && r2.error) || "Could not send the request.");
+              });
+            });
+          });
+        });
+      })();
+      /* task rewards: real, owner-approved */
+      fetch(URLB + "/rest/v1/player_task_rewards?username=eq." + encodeURIComponent(p.username) + "&order=created_at.desc&limit=50", { headers: { apikey: KEY } })
+        .then(function (x) { return x.json(); })
+        .then(function (rows) {
+          if (!rows || !rows.length) return;
+          var total = rows.reduce(function (s, r) { return s + (r.points || 0); }, 0);
+          document.getElementById("pc-tasks").innerHTML =
+            '<div class="card"><h3 style="margin-bottom:8px">Task rewards <span style="font-size:11px;color:var(--gold2);font-weight:400">— earned from approved tasks</span></h3>' +
+            '<p style="margin-bottom:8px">Task score: <b class="task-pts">' + total + ' pts</b> · ' + rows.length + ' task' + (rows.length === 1 ? "" : "s") + " completed</p>" +
+            rows.map(function (r) {
+              return '<div class="reward-row"><div><b>' + esc(r.task_title) + '</b> <span class="task-kind ' + esc(r.kind) + '">' + esc(r.kind) + '</span>' +
+                (r.badge ? ' <span class="reward-badge">🎖 ' + esc(r.badge) + '</span>' : "") + '</div><span class="task-pts">+' + r.points + "</span></div>";
+            }).join("") + "</div>";
+        })
+        .catch(function () {});
+      document.fonts.ready.then(function () {
+        var cv = drawCard(p, 1);
+        cv.style.width = "min(300px,76vw)"; cv.style.height = "auto"; cv.style.borderRadius = "10px";
+        document.getElementById("pc-mount").appendChild(cv);
+        document.getElementById("pc-dl").addEventListener("click", function () {
+          var big = drawCard(p, 2);
+          var fname = "xarena-player-" + p.username;
+          var url = big.toDataURL("image/png");
+          if (window.XarenaApp && XarenaApp.saveImage) {
+            var res = XarenaApp.saveImage(url.split(",")[1], fname);
+            alert(res.indexOf("saved:") === 0 ? "Saved to your gallery (Pictures/XARENA)." : "Save failed - try again.");
+          } else {
+            var a = document.createElement("a");
+            a.download = fname + ".png";
+            a.href = url; a.click();
+          }
+        });
+        drawCard(p, 2).toBlob(function (blob) {
+          if (navigator.canShare && navigator.canShare({ files: [new File([blob], "xarena-player.png", { type: "image/png" })] })) {
+            var sb = document.getElementById("pc-share"); sb.style.display = "";
+            sb.addEventListener("click", function () { navigator.share({ files: [new File([blob], "xarena-player.png", { type: "image/png" })], title: "XARENA Player Card" }).catch(function () {}); });
+          }
+        });
+        document.getElementById("pc-copy").addEventListener("click", function () {
+          var link = location.origin + "/player.html?u=" + encodeURIComponent(p.username);
+          (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(function () {
+            document.getElementById("pc-note").textContent = "Link copied: " + link;
+          }).catch(function () { document.getElementById("pc-note").textContent = link; });
+        });
+      });
+    })
+    .catch(function () { body.innerHTML = '<p style="color:var(--muted)">Could not load the card — please refresh.</p>'; })});
+</script>
+<script>
+window.addEventListener("load", function () {
+  var KEY = "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7";
+  var URLB = "https://oskccuajgbyabogbvedj.supabase.co";
+  var LOOK = "xr_pp_look";
+  var novaBox = document.getElementById("pc-nova");
+  var lookBtn = document.getElementById("pc-look");
+  var look = localStorage.getItem(LOOK) || "nova";
+  var uname = (new URLSearchParams(location.search)).get("u");
+  function escN(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function fmtN(n) { return (n || 0).toLocaleString("en-IN"); }
+  function tierOf(xp) { xp = xp || 0; return xp >= 5000 ? "GRANDMASTER" : xp >= 2500 ? "HEROIC" : xp >= 1200 ? "DIAMOND" : xp >= 600 ? "PLATINUM" : xp >= 250 ? "GOLD" : xp >= 80 ? "SILVER" : "BRONZE"; }
+  var IC = {
+    cross: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><line x1="12" y1="1.5" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22.5" y2="12"/></svg>',
+    trophy: '<svg viewBox="0 0 24 24"><path d="M7 3h10v5a5 5 0 0 1-10 0z"/><path d="M7 4H4a3 3 0 0 0 3 5M17 4h3a3 3 0 0 1-3 5"/><path d="M12 13v4"/><path d="M8.5 21h7M10 17h4v4h-4z"/></svg>',
+    cal: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2.5" x2="8" y2="7"/><line x1="16" y1="2.5" x2="16" y2="7"/><path d="M9 15l2 2 4-4"/></svg>',
+    medal: '<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="6"/><path d="M12 11.5l1.5 1.8-1.5 1.8-1.5-1.8z" fill="#f0b429" stroke="none"/><path d="M8 8.5L5 2h5l2 4 2-4h5l-3 6.5"/></svg>',
+    flame: '<svg viewBox="0 0 24 24"><path d="M12 2c1 4-4 6-4 11a4.5 4.5 0 0 0 9 0c0-2-1-3.5-2-4.5.5 2-1 3-2 2.5C14.5 8 13 5 12 2z"/></svg>',
+    shield: '<svg viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/><path d="M9 12l2 2 4-4"/></svg>',
+    star: '<svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.8-4.5 4.3 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.4l6.1-.8z"/></svg>',
+    back: '<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:#f0b429;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><path d="M15 5l-7 7 7 7"/></svg>',
+    share: '<svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:#f0b429;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round"><path d="M12 15V4"/><path d="M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>',
+    gear: '<svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:#f0b429;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5l1 2.7a6.5 6.5 0 0 1 2.4 1l2.6-1.1 1.7 2.9-2 1.9a6.6 6.6 0 0 1 0 2.8l2 1.9-1.7 2.9-2.6-1.1a6.5 6.5 0 0 1-2.4 1l-1 2.7h-3.4l-1-2.7a6.5 6.5 0 0 1-2.4-1l-2.6 1.1-1.7-2.9 2-1.9a6.6 6.6 0 0 1 0-2.8l-2-1.9L5 5.1l2.6 1.1a6.5 6.5 0 0 1 2.4-1l1-2.7z" transform="scale(0.88) translate(1.7 1.7)"/></svg>'
+  };
+  function badgeIcon(name) {
+    var n = String(name || "").toLowerCase();
+    if (n.indexOf("sharp") >= 0 || n.indexOf("snip") >= 0 || n.indexOf("aim") >= 0) return IC.cross;
+    if (n.indexOf("streak") >= 0 || n.indexOf("fire") >= 0) return IC.flame;
+    if (n.indexOf("surviv") >= 0 || n.indexOf("shield") >= 0) return IC.shield;
+    if (n.indexOf("mvp") >= 0 || n.indexOf("champ") >= 0 || n.indexOf("win") >= 0) return IC.trophy;
+    if (n.indexOf("star") >= 0) return IC.star;
+    return IC.medal;
+  }
+  lookBtn.addEventListener("click", function () {
+    localStorage.setItem(LOOK, look === "nova" ? "classic" : "nova");
+    location.reload();
+  });
+  if (look !== "nova") { lookBtn.textContent = "Nova view"; return; }
+  if (!uname) { novaBox.innerHTML = ""; return; }
+  fetch(URLB + "/rest/v1/rpc/player_profile_nova", {
+    method: "POST",
+    headers: { "apikey": KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ p_username: uname })
+  }).then(function (r) { return r.json(); }).then(function (d) {
+    if (!d || !d.ok) { novaBox.innerHTML = ""; return; }
+    var tier = tierOf(d.xp);
+    var pct = d.needed > 0 ? Math.min(100, Math.round((d.into_level / d.needed) * 100)) : 0;
+    var ava = d.avatar
+      ? '<div class="ppv-ava"><img src="' + escN(d.avatar) + '" alt=""></div>'
+      : '<div class="ppv-ava">' + escN((d.username || "X").charAt(0).toUpperCase()) + "</div>";
+    var days = d.days || [];
+    var vals = [];
+    for (var i = 6; i >= 0; i--) {
+      var dt = new Date(Date.now() - i * 86400000);
+      var key = dt.getFullYear() + "-" + String(dt.getMonth() + 1).padStart(2, "0") + "-" + String(dt.getDate()).padStart(2, "0");
+      var hit = days.filter(function (x) { return x.d === key; })[0];
+      vals.push(hit ? hit.xp : 0);
+    }
+    var maxV = Math.max.apply(null, vals.concat([1]));
+    var pts = vals.map(function (v, i) { return (6 + i * 17) + "," + (36 - (v / maxV) * 30); }).join(" ");
+    var spark = '<svg width="112" height="42" viewBox="0 0 112 42"><polyline points="' + pts + '" fill="none" stroke="#f0b429" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    var awards = (d.awards || []).map(function (a) {
+      return '<div class="ppv-badge">' + badgeIcon(a.kind + " " + a.title) + '<div class="n">' + escN(a.title || a.kind) + '</div><div class="s">' + escN(a.kind) + (a.points ? " · +" + a.points + " pts" : "") + "</div></div>";
+    });
+    var bdg = (d.badges || []).map(function (b) {
+      return '<div class="ppv-badge">' + badgeIcon(b) + '<div class="n">' + escN(b) + '</div><div class="s">XARENA badge</div></div>';
+    });
+    var badgeHtml = (awards.length + bdg.length)
+      ? '<div class="ppv-badges">' + awards.concat(bdg).join("") + "</div>"
+      : '<div class="ppv-empty">No badges yet. Badges and awards are given by match control after real matches.</div>';
+    var perf = d.week_xp > 0
+      ? '<div class="ppv-perf"><div class="t">Last 7 days<br><b>+' + fmtN(d.week_xp) + " XP</b></div>" + spark + '<div class="ppv-chip">' + tier + "</div></div>"
+      : '<div class="ppv-empty">No XP earned in the last 7 days. Check in to matches, finish tasks and play to level up.</div>';
+    novaBox.innerHTML =
+      '<div class="ppv">' +
+      '<div class="ppv-head"><a class="ppv-ic" href="players.html" title="Back">' + IC.back + '</a><div class="ppv-title">PLAYER PROFILE</div>' +
+      '<span style="display:flex;gap:8px"><button class="ppv-ic" id="ppv-share" title="Share profile" style="border:1px solid rgba(240,180,41,.25)">' + IC.share + '</button>' +
+      '<a class="ppv-ic" id="ppv-gear" href="profile.html" title="Settings" style="display:none">' + IC.gear + "</a></span></div>" +
+      '<div class="ppv-hero">' + ava + '<div class="ppv-brand"><div class="x">XARENA</div><div class="e">ESPORTS</div></div></div>' +
+      '<div class="ppv-name">' + escN(d.username) + (d.verified ? ' <span style="font-size:15px;vertical-align:2px">✓</span>' : "") + "</div>" +
+      '<div class="ppv-pill">LEVEL ' + d.level + " · " + tier + "</div>" +
+      '<div class="ppv-xp">🔥 ' + fmtN(d.xp) + " XP" + (d.role ? ' · <span style="color:#c9b8e8;font-weight:400">' + escN(d.role) + "</span>" : "") + "</div>" +
+      '<div class="ppv-bar"><div class="ppv-fill" style="width:' + pct + '%"></div></div>' +
+      '<div class="ppv-barlbl">' + fmtN(d.into_level) + " / " + fmtN(d.needed) + " XP to Level " + (d.level + 1) + "</div>" +
+      '<div class="ppv-actions" id="ppv-actions"></div>' +
+      '<div class="ppv-stats">' +
+      '<div class="ppv-stat">' + IC.cross + '<div class="l">MATCHES</div><div class="v">' + fmtN(d.matches) + "</div></div>" +
+      '<div class="ppv-stat">' + IC.trophy + '<div class="l">BOOYAH</div><div class="v">' + fmtN(d.wins) + "</div></div>" +
+      '<div class="ppv-stat">' + IC.cal + '<div class="l">CHECK-INS</div><div class="v">' + fmtN(d.checkins) + "</div></div></div>" +
+      '<div class="ppv-h">BADGES &amp; ACHIEVEMENTS</div>' + badgeHtml +
+      '<div class="ppv-h">RECENT ACTIVITY</div>' + perf +
+      '<a class="ppv-cta" href="stats.html">VIEW FULL STATISTICS</a>' +
+      "</div>";
+    document.getElementById("ppv-share").addEventListener("click", function () {
+      var link = location.origin + "/player.html?u=" + encodeURIComponent(d.username);
+      (navigator.clipboard ? navigator.clipboard.writeText(link) : Promise.reject()).then(function () {
+        alert("Profile link copied: " + link);
+      }).catch(function () { prompt("Copy the profile link:", link); });
+    });
+    var act = document.getElementById("ppv-actions");
+    function hideClassic() {
+      var el = document.getElementById("pc-classic-top");
+      if (el) { el.style.display = "none"; return true; }
+      return false;
+    }
+    if (!hideClassic()) { var iv = setInterval(function () { if (hideClassic()) clearInterval(iv); }, 250); }
+    if (!window.xrApi) return;
+    xrApi.user().then(function (me) {
+      if (!me) {
+        act.innerHTML = '<a class="btn btn-gold btn-sm" href="account.html">Log in to follow</a>';
+        return;
+      }
+      xrApi.userToken().then(function (tk) {
+        return fetch(URLB + "/rest/v1/profiles?id=eq." + me.id + "&select=username", { headers: { "apikey": KEY, "Authorization": "Bearer " + (tk || KEY) } });
+      }).then(function (x) { return x.json(); }).then(function (rows) {
+        var meName = rows && rows[0] && rows[0].username;
+        if (meName && meName.toLowerCase() === String(d.username).toLowerCase()) {
+          document.getElementById("ppv-gear").style.display = "";
+          act.innerHTML = '<a class="btn btn-gold btn-sm" href="profile.html">Edit profile</a>';
+          return;
+        }
+        act.innerHTML = '<button class="btn btn-gold btn-sm" id="ppv-follow">Follow</button><button class="btn btn-ghost btn-sm" id="ppv-msg">✉ Message</button>';
+        var fb = document.getElementById("ppv-follow"), mb = document.getElementById("ppv-msg");
+        xrApi.uRpc("follow_state", { p_name: d.username }).then(function (st) {
+          if (st && st.ok) fb.textContent = st.following ? "Following ✓" : (st.follows_you ? "Follow back" : "Follow");
+        });
+        fb.addEventListener("click", function () {
+          fb.disabled = true;
+          xrApi.uRpc("follow_toggle", { p_name: d.username }).then(function (r2) {
+            fb.disabled = false;
+            if (r2 && r2.ok) { fb.textContent = r2.following ? "Following ✓" : "Follow"; if (window.xrSfx) xrSfx.play("pop"); }
+          });
+        });
+        mb.addEventListener("click", function () {
+          mb.disabled = true;
+          xrApi.uRpc("dm_open_by_name", { p_name: d.username }).then(function (r2) {
+            mb.disabled = false;
+            if (r2 && r2.ok) { if (!r2.requested) location.href = "messages.html"; else alert("Message request sent - they can accept it in Messages → Requests."); }
+          });
+        });
+      });
+    });
+  }).catch(function () { novaBox.innerHTML = ""; });
+});
+</script>
+<footer><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand">
+<a class="brand" href="index.html">
+<svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="#e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="#f5b301" stroke-width="3.2"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<p>XARENA ESPORTS is a professional Free Fire esports organisation — tournaments, scrims, rankings and a competitive roster, run from India for the community.</p>
+</div>
+<div><h4>Arena</h4><ul>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="how-to-play.html">How to Play</a></li>
+<li><a href="verify.html">Photo Verify</a></li>
+<li><a href="play.html">Play &amp; Earn</a></li>
+<li><a href="feed.html">Highlights Feed</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="rules.html">Rules &amp; Regulations</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+</ul></div>
+<div><h4>Organisation</h4><ul>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="cup.html">Sponsor a Cup</a></li>
+<li><a href="contact.html">Contact & Support</a></li>
+<li><a href="download.html">Get the App</a></li>
+</ul></div>
+</div>
+<div class="foot-bottom">
+<span>© <b id="yr">2026</b> XARENA ESPORTS · All rights reserved</span>
+<span id="foot-credit">Founded &amp; owned by <b>Shivhari Rajput</b></span>
+<span id="app-update" style="display:none;cursor:pointer">App update check</span>
+</div>
+</div></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/vendor/supabase.min.js"></script>
+<script src="assets/js/vendor/qrcode.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/luna.js"></script>
+<script src="assets/js/reco.js"></script>
+<script src="assets/js/game.js"></script>
+<script src="assets/js/sfx.js"></script>
+<script src="assets/js/sharecard.js"></script>
+<script src="assets/js/funline.js"></script>
+<script src="assets/js/dm.js"></script>
+<script src="assets/js/chat-style.js"></script>
+<script src="assets/js/app-shell.js"></script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script>
+</body></html>

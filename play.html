@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://xarena.surge.sh/play.html">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Play & Earn · XARENA ESPORTS</title>
+<meta name="description" content="XARENA Play hub — daily login streak, free daily spin, quick quizzes. Earn real XP, levels and badges.">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="%230b0b14" stroke="%23e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="%23f5b301" stroke-width="3.2"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="XARENA ESPORTS">
+<meta property="og:title" content="XARENA ESPORTS - Free Fire tournaments, feed, stories, Luna">
+<meta property="og:description" content="India's Free Fire esports platform - tournaments, scrims, highlights feed, stories, encrypted messages and the Luna assistant. Free forever.">
+<meta property="og:url" content="https://xarena.surge.sh/">
+<meta property="og:image" content="https://xarena.surge.sh/assets/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0104">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="XARENA">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/app-shell.css">
+</head>
+<body>
+<style>
+#xr-splash{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;transition:opacity .3s ease;overflow:hidden}
+#xr-splash::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none}
+#xr-splash .xs-stage{position:relative;width:118px;height:118px;display:flex;align-items:center;justify-content:center}
+#xr-splash .xs-ring{position:absolute;inset:0;animation:xsSpin 2.6s linear infinite}
+#xr-splash .xs-ring circle{fill:none;stroke:var(--xs-acc,#e10600);stroke-width:2.5;stroke-dasharray:44 22;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--xs-acc,#e10600))}
+#xr-splash .xs-ring.r2{animation:xsSpinR 3.8s linear infinite;inset:9px}
+#xr-splash .xs-ring.r2 circle{stroke-dasharray:10 30;opacity:.55;stroke-width:1.5}
+#xr-splash .xs-logo{width:62px;height:62px;animation:xsPulse 1.2s ease-in-out infinite}
+#xr-splash .xs-logo path{stroke:var(--xs-acc,#e10600)}
+#xr-splash .xs-logo .xs-x{stroke:#f5b301}
+#xr-splash .xs-name{font:900 24px Orbitron,system-ui,sans-serif;color:#fff;letter-spacing:7px;margin-left:7px;animation:xsGlitch 2.4s steps(1) infinite}
+#xr-splash .xs-tag{font:800 10px Orbitron,system-ui,sans-serif;letter-spacing:5px;color:var(--xs-acc,#e10600);margin-left:5px;text-shadow:0 0 10px var(--xs-acc,#e10600)}
+#xr-splash .xs-tip{font:600 12.5px Rajdhani,system-ui,sans-serif;color:#9aa0b8;letter-spacing:1px;min-height:16px;text-align:center;padding:0 24px;transition:opacity .25s}
+#xr-splash .xs-bar{width:170px;height:3px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+#xr-splash .xs-bar i{display:block;height:100%;width:0;border-radius:3px;background:var(--xs-acc,#e10600);box-shadow:0 0 12px var(--xs-acc,#e10600);animation:xsFill 1.5s ease forwards}
+#xr-splash.xs-done{opacity:0;pointer-events:none}
+@keyframes xsSpin{to{transform:rotate(360deg)}}
+@keyframes xsSpinR{to{transform:rotate(-360deg)}}
+@keyframes xsPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes xsFill{to{width:88%}}
+@keyframes xsGlitch{0%,93%,100%{text-shadow:none}94%{text-shadow:-2px 0 var(--xs-acc,#e10600),2px 0 #22d3ee}96%{text-shadow:2px 0 var(--xs-acc,#e10600),-2px 0 #22d3ee}98%{text-shadow:none}}
+@media (prefers-reduced-motion:reduce){#xr-splash .xs-ring,#xr-splash .xs-logo,#xr-splash .xs-name,#xr-splash .xs-bar i{animation:none!important}#xr-splash{transition:none!important}}
+</style>
+<div id="xr-splash" role="status" aria-label="Loading XARENA">
+<div class="xs-stage">
+<svg class="xs-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-ring r2" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-logo" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke-width="2.5"/><path class="xs-x" d="M13 13l14 14M27 13L13 27" stroke-width="3.2" fill="none"/></svg>
+</div>
+<div class="xs-name">XARENA</div>
+<div class="xs-tag">ENTERING THE ARENA</div>
+<div class="xs-tip" id="xs-tip"></div>
+<div class="xs-bar"><i></i></div>
+<script>(function(){try{var m={liquid:"#0a84ff",classic:"#e10600","3d":"#8b3dff",nexus:"#7c5cff",arena:"#ff7a1a","void":"#a970ff",ascend:"#19e3c2",hybrid:"#22d3ee",pulse:"#ff2e88",aura:"#8b5cf6",social:"#0095f6"};var t=localStorage.getItem("xr_theme")||"liquid";var s=document.getElementById("xr-splash");if(s&&m[t])s.style.setProperty("--xs-acc",m[t]);var tips=["Season 1 - 48 squad slots - registrations open","Real tournaments - tracked rankings - live World Chat","Tip: mention @luna in World Chat - she answers","Tip: finish tasks to earn points, badges and titles","48 squads. One crown. Season 1 is loading"];var tip=document.getElementById("xs-tip");if(tip&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){var i=Math.floor(Math.random()*tips.length);tip.textContent=tips[i];var iv=setInterval(function(){if(!document.getElementById("xr-splash")){clearInterval(iv);return;}i=(i+1)%tips.length;tip.style.opacity=0;setTimeout(function(){tip.textContent=tips[i];tip.style.opacity=1;},240);},1600);}}catch(e){}})();</script>
+</div>
+<header class="nav"><div class="wrap nav-in">
+<a class="brand" href="index.html" aria-label="XARENA ESPORTS home">
+<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="xg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3131"/><stop offset=".55" stop-color="#e10600"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="url(#xg)" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="url(#xg)" stroke-width="3.2" stroke-linecap="square"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<button class="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+<ul class="nav-links">
+<li><a href="index.html">Home</a></li>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="tasks.html">Tasks</a></li>
+<li><a href="play.html" class="active">Play</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="feed.html">Feed</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+<li><a href="rules.html">RRs</a></li>
+<li><a href="contact.html">Contact</a></li>
+<li><a href="account.html">Account</a></li>
+<li><a class="nav-chat" href="chat.html"><span class="pulse"></span>World Chat<span class="chat-badge" id="xr-chat-badge"></span></a></li>
+<li class="nav-cta" style="display:flex;align-items:center;gap:8px"><a href="messages.html" aria-label="Messages" title="Messages" style="color:inherit;display:flex;padding:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></a><button class="xr-theme-btn" id="xr-theme-btn" type="button">Look</button><a class="btn btn-red btn-sm" href="tournaments.html#register">Register</a></li>
+</ul>
+</div></header>
+<main>
+<section class="page-hero"><div class="wrap">
+  <div class="overline">Play &amp; Earn</div>
+  <h1>Play <em>Hub</em></h1>
+  <p>Daily streaks, a free daily spin and quick Free Fire quizzes. Everything earns real XP, levels and badges on your profile — free forever, nothing fake.</p>
+</div></section>
+<section class="section"><div class="wrap" style="max-width:880px">
+  <div id="play-gate"></div>
+  <div id="play-body" style="display:none">
+    <div class="card" id="play-me-card"></div>
+    <div class="grid c2" style="margin-top:16px;align-items:stretch">
+      <div class="card" style="text-align:center">
+        <h3 style="margin-bottom:4px">Daily Check-in</h3>
+        <div class="xg-flame">🔥</div>
+        <p style="font-size:14px;color:var(--muted);margin:6px 0 12px">Check in daily to grow your streak. Longer streaks pay more XP and unlock streak badges.</p>
+        <div id="streak-state"></div>
+        <button class="btn btn-red" id="checkin-btn">Check in today</button>
+        <p id="checkin-msg" style="font-size:13px;margin-top:10px"></p>
+      </div>
+      <div class="card" style="text-align:center">
+        <h3 style="margin-bottom:4px">Daily Spin</h3>
+        <p style="font-size:13px;color:var(--muted);margin:2px 0 6px">One free spin a day. The server picks the prize — the wheel just shows it.</p>
+        <div class="xg-wheel-wrap">
+          <div class="xg-pointer"></div>
+          <div class="xg-wheel" id="xg-wheel"></div>
+          <div class="xg-hub">⚡</div>
+        </div>
+        <button class="btn btn-gold" id="spin-btn">Spin</button>
+        <div class="xg-spin-result" id="spin-result"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;text-align:center">
+      <h3 style="margin-bottom:4px">AI Coach</h3>
+      <p style="font-size:13px;color:var(--muted);margin:2px 0 12px">The coach agent studies your real match stats and sends one personal training tip a day to your Notifications.</p>
+      <button class="btn btn-gold" id="coach-btn">Get my coach tip</button>
+      <p id="coach-msg" style="font-size:13px;margin-top:10px"></p>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3 style="margin-bottom:4px">Quizzes</h3>
+      <p style="font-size:13px;color:var(--muted);margin:2px 0 14px">One attempt per quiz. Correct answers pay XP instantly.</p>
+      <div id="quiz-list"><p style="color:var(--muted)">Loading quizzes…</p></div>
+    </div>
+    <link rel="stylesheet" href="assets/css/store-nova.css">
+    <script src="assets/js/store-nova.js" defer></script>
+    <div class="card" style="margin-top:16px" id="rw-card">
+      <h3 style="margin-bottom:4px">Rewards</h3>
+      <p style="font-size:13px;color:var(--muted);margin:2px 0 14px">Every check-in, spin and quiz win also adds <b>Arena Points</b> to your wallet. Spend them on rewards here — the owner reviews each request and fulfils it himself. Points are never cash and never expire.</p>
+      <div id="rw-wallet"></div>
+      <div id="rw-list" style="margin-top:8px"></div>
+      <div id="rw-mine" style="margin-top:16px"></div>
+    </div>
+    <div class="card" style="margin-top:16px" id="ref-card">
+      <h3 style="margin-bottom:4px">Invite friends</h3>
+      <p style="font-size:13px;color:var(--muted);margin:2px 0 14px">Share your code. When a friend creates their account with it, <b>you get 25 Arena Points and they get 10</b>. Codes work on new accounts (first 48 hours), one reward per new account, and points are never cash.</p>
+      <div id="ref-box"></div>
+    </div>
+    <div class="card" style="margin-top:16px" id="mission-card">
+      <h3 style="margin-bottom:4px">Daily mission</h3>
+      <p style="font-size:13px;color:var(--muted);margin:2px 0 14px">Check in, spin the wheel and answer one quiz today - claim a <b>+15 Arena Points</b> bonus. Streak milestones pay extra: day 7 +25, day 30 +100.</p>
+      <div id="mission-box"></div>
+    </div>
+  </div>
+</div></section>
+</main>
+<script>
+window.addEventListener("load", function () {
+  var escG = xrGame.esc;
+  var coachBtn = document.getElementById("coach-btn");
+  if (coachBtn) coachBtn.addEventListener("click", function () {
+    var msg = document.getElementById("coach-msg");
+    if (!me) { msg.textContent = "Log in first - the coach needs your stats."; return; }
+    coachBtn.disabled = true; msg.textContent = "Coach is studying your stats…";
+    xrApi.uRpc("coach_request", {}).then(function (r) {
+      coachBtn.disabled = false;
+      if (r && r.ok) { msg.textContent = r.note || "Tip is on its way to your Notifications."; }
+      else { msg.textContent = (r && r.error) || "Failed - try again."; }
+    }).catch(function () { coachBtn.disabled = false; msg.textContent = "Network error - try again."; });
+  });
+  var SEG_LABELS = ["5 XP", "10 XP", "15 XP", "20 XP", "30 XP", "50 XP", "🍀"];
+  var SEG_COLORS = ["#e10600", "#8b3dff", "#19e3c2", "#ff7a1a", "#22d3ee", "#f5b301", "#ff2e88"];
+  var me = null, stats = null, spinning = false;
+
+  /* build the wheel face */
+  (function buildWheel() {
+    var w = document.getElementById("xg-wheel");
+    var n = SEG_LABELS.length, seg = 360 / n;
+    var stops = [];
+    for (var i = 0; i < n; i++) stops.push(SEG_COLORS[i] + " " + (i * seg) + "deg " + ((i + 1) * seg) + "deg");
+    w.style.background = "conic-gradient(" + stops.join(",") + ")";
+    SEG_LABELS.forEach(function (label, i) {
+      var el = document.createElement("span");
+      el.className = "xg-wheel-seg";
+      el.textContent = label;
+      var ang = (i + 0.5) * seg - 90;
+      var rad = 66;
+      var x = Math.cos(ang * Math.PI / 180) * rad, y = Math.sin(ang * Math.PI / 180) * rad;
+      el.style.transform = "translate(" + x + "px," + y + "px) rotate(" + ((i + 0.5) * seg) + "deg)";
+      el.style.transformOrigin = "center";
+      el.style.marginLeft = "-16px"; el.style.marginTop = "-8px";
+      el.style.width = "32px"; el.style.textAlign = "center";
+      w.appendChild(el);
+    });
+  })();
+
+  function needLogin() {
+    document.getElementById("play-gate").innerHTML =
+      '<div class="card" style="text-align:center"><h3>Log in to play</h3>' +
+      '<p style="color:var(--muted);margin:8px 0 14px">Streaks, spins and quiz XP live on your player account. Free, one minute to create.</p>' +
+      '<a class="btn btn-red" href="account.html">Log in / create account</a></div>';
+    document.getElementById("play-body").style.display = "block";
+    document.getElementById("checkin-btn").disabled = true;
+    document.getElementById("spin-btn").disabled = true;
+    document.getElementById("play-me-card").innerHTML =
+      '<p style="color:var(--muted);text-align:center">Your level, XP, streak and badges appear here once you log in.</p>';
+    loadQuizzes(false);
+    loadRewards();
+    loadReferrals();
+    loadMission();
+  }
+
+  function renderMe() {
+    var badges = (stats.badges || []).map(function (b) {
+      var m = xrGame.badgeMeta(b);
+      return '<span class="xg-badge" title="' + escG(m.desc) + '">' + m.icon + ' <b>' + escG(m.name) + "</b></span>";
+    }).join("") || '<span style="color:var(--muted);font-size:13px">No badges yet — they come from streaks, spins and quizzes.</span>';
+    document.getElementById("play-me-card").innerHTML =
+      xrGame.xpBarHtml(stats, true) +
+      '<div class="xg-stat-row">' +
+      '<div class="xg-stat"><b>' + (stats.streak || 0) + '</b><span>DAY STREAK</span></div>' +
+      '<div class="xg-stat"><b>' + (stats.spins_total || 0) + '</b><span>SPINS</span></div>' +
+      '<div class="xg-stat"><b>' + (stats.quizzes_correct || 0) + "/" + (stats.quizzes_answered || 0) + '</b><span>QUIZ WINS</span></div>' +
+      "</div>" +
+      '<div class="xg-badges">' + badges + "</div>";
+    document.getElementById("streak-state").innerHTML =
+      stats.checked_in_today
+        ? '<p style="color:var(--gold2);font-weight:700">Checked in today ✓ — streak ' + stats.streak + ' day' + (stats.streak === 1 ? "" : "s") + "</p>"
+        : '<p style="color:var(--muted)">Today is still open. Current streak: <b>' + (stats.streak || 0) + "</b></p>";
+    document.getElementById("checkin-btn").style.display = stats.checked_in_today ? "none" : "";
+    document.getElementById("spin-btn").textContent = stats.spun_today ? "Spun today — back tomorrow" : "Spin";
+    document.getElementById("spin-btn").disabled = !!stats.spun_today;
+  }
+
+  function refreshStats() {
+    return xrApi.uRpc("my_game_stats", {}).then(function (r) {
+      if (r && r.ok) { stats = r; renderMe(); }
+    }).then(loadRewards);
+  }
+
+  function loadRewards() {
+    var w = document.getElementById("rw-wallet");
+    if (!w) return;
+    if (!me) {
+      w.innerHTML = '<p style="color:var(--muted);font-size:13px">Log in to see your points wallet and redeem rewards.</p>';
+      document.getElementById("rw-list").innerHTML = "";
+      document.getElementById("rw-mine").innerHTML = "";
+      return;
+    }
+    xrApi.uRpc("points_balance", {}).then(function (b) {
+      if (b && b.ok) {
+        w.innerHTML = '<div class="xg-stat-row">' +
+          '<div class="xg-stat"><b>' + b.balance + '</b><span>POINTS</span></div>' +
+          '<div class="xg-stat"><b>' + b.earned + '</b><span>EARNED</span></div>' +
+          '<div class="xg-stat"><b>' + b.spent + '</b><span>SPENT</span></div></div>';
+      }
+    });
+    fetch(xrApi.url + "/rest/v1/rewards_catalog?active=eq.true&select=id,title,description,cost&order=sort.asc,cost.asc", { headers: { "apikey": xrApi.key } })
+      .then(function (r) { return r.json(); }).then(function (rows) {
+        var l = document.getElementById("rw-list");
+        if (!rows || !rows.length) {
+          l.innerHTML = '<p style="color:var(--muted);font-size:13px">No rewards in the catalog yet — the owner adds them soon. Keep stacking points.</p>';
+          return;
+        }
+        l.innerHTML = rows.map(function (it) {
+          return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)">' +
+            '<div style="flex:1;min-width:0"><b style="font-size:14.5px">' + escG(it.title) + '</b>' +
+            (it.description ? '<p style="color:var(--muted);font-size:12.5px;margin:2px 0 0">' + escG(it.description) + '</p>' : '') +
+            '</div><span style="font-weight:800;color:var(--gold2);white-space:nowrap">' + it.cost + ' pts</span>' +
+            '<button class="btn btn-gold btn-sm" data-rw="' + it.id + '" data-title="' + escG(it.title) + '" data-cost="' + it.cost + '">Redeem</button></div>';
+        }).join("");
+      }).catch(function () {});
+    xrApi.uRpc("my_redemptions", {}).then(function (r) {
+      var m = document.getElementById("rw-mine");
+      var rows = (r && r.rows) || [];
+      m.innerHTML = '<h4 style="margin-bottom:6px">My requests</h4>' + (rows.length ? rows.map(function (x) {
+        var col = x.status === "fulfilled" ? "#4ade80" : x.status === "rejected" ? "#ff9d9d" : "var(--gold2)";
+        return '<div style="display:flex;gap:10px;align-items:center;font-size:13px;padding:6px 0;border-bottom:1px solid var(--line)">' +
+          '<span style="flex:1">' + escG(x.title) + '</span><span style="color:' + col + ';font-weight:700;text-transform:capitalize">' + x.status + '</span></div>';
+      }).join("") : '<p style="color:var(--muted);font-size:13px">Nothing yet — your redeem requests will show here.</p>');
+    });
+  }
+
+  document.getElementById("rw-list").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-rw]");
+    if (!b || b.disabled) return;
+    if (!confirm('Redeem "' + b.getAttribute("data-title") + '" for ' + b.getAttribute("data-cost") + ' points? The owner reviews every request.')) return;
+    b.disabled = true;
+    xrApi.uRpc("redeem_reward", { p_item: parseInt(b.getAttribute("data-rw"), 10) }).then(function (r) {
+      if (r && r.ok) { alert("Request sent! The owner will review it. New balance: " + r.balance + " points."); }
+      else { alert((r && r.error) || "Could not redeem right now."); b.disabled = false; }
+      loadRewards();
+    }).catch(function () { b.disabled = false; alert("Network error — try again."); });
+  });
+
+  document.getElementById("checkin-btn").addEventListener("click", function () {
+    var btn = this;
+    btn.disabled = true;
+    xrApi.uRpc("daily_checkin", {}).then(function (r) {
+      var msg = document.getElementById("checkin-msg");
+      if (r && r.ok) {
+        if (r.already) { msg.textContent = "Already checked in today."; }
+        else {
+          msg.innerHTML = '<b style="color:var(--gold2)">+' + r.awarded + " XP</b> — streak day " + r.streak + "!";
+          xrSfx.play("coin"); xrSfx.buzz([20, 40, 20]);
+          if (r.new_badges && r.new_badges.length) {
+            msg.innerHTML += " Badge earned: " + r.new_badges.map(function (b) { var m = xrGame.badgeMeta(b); return m.icon + " <b>" + escG(m.name) + "</b>"; }).join(", ");
+            xrSfx.play("levelup");
+          }
+        }
+        refreshStats();
+      } else {
+        msg.textContent = (r && r.error) || "Check-in failed — try again.";
+        btn.disabled = false;
+      }
+    }).catch(function () { btn.disabled = false; });
+  });
+
+  document.getElementById("spin-btn").addEventListener("click", function () {
+    if (spinning) return;
+    var btn = this;
+    btn.disabled = true; spinning = true;
+    document.getElementById("spin-result").textContent = "";
+    xrApi.uRpc("spin_daily", {}).then(function (r) {
+      if (!r || !r.ok) {
+        document.getElementById("spin-result").textContent = (r && r.error) || "Spin failed.";
+        btn.disabled = false; spinning = false;
+        return;
+      }
+      var wheel = document.getElementById("xg-wheel");
+      var n = SEG_LABELS.length, seg = 360 / n;
+      var target = 360 * 5 + (360 - (r.segment * seg + seg / 2));
+      wheel.style.transform = "rotate(" + target + "deg)";
+      xrSfx.play("spin"); xrSfx.buzz(15);
+      setTimeout(function () {
+        var res = document.getElementById("spin-result");
+        res.innerHTML = '<b style="color:var(--gold2)">+' + r.xp + " XP</b>" + (r.badge ? ' + 🍀 <b>Lucky Spinner</b> badge!' : " landed on " + SEG_LABELS[r.segment] + "!");
+        if (r.badge || r.xp >= 30) { xrSfx.play("win"); xrSfx.buzz([30, 50, 30, 50, 60]); } else { xrSfx.play("coin"); }
+        refreshStats();
+        spinning = false;
+      }, 4400);
+    }).catch(function () { btn.disabled = false; spinning = false; });
+  });
+
+  function loadQuizzes(loggedIn) {
+    xrApi.uRpc("quiz_feed", {}).then(function (r) {
+      var qs = (r && r.quizzes) || [];
+      var box = document.getElementById("quiz-list");
+      if (!qs.length) { box.innerHTML = '<p style="color:var(--muted)">New quizzes drop here regularly — check back soon.</p>'; return; }
+      box.innerHTML = qs.map(function (q) {
+        var opts = (q.options || []).map(function (o, i) {
+          var cls = "xg-opt", dis = "";
+          if (q.answered) {
+            dis = " disabled";
+            if (q.was_correct && i === q.my_choice) cls += " right";
+            if (!q.was_correct && i === q.my_choice) cls += " wrong";
+          }
+          return '<button class="' + cls + '" data-q="' + q.id + '" data-i="' + i + '"' + dis + ">" + escG(o) + "</button>";
+        }).join("");
+        var state = q.answered
+          ? (q.was_correct ? '<span style="color:#8ff0b8">✓ Correct — +' + q.points + ' XP</span>' : '<span style="color:#ff9d9d">Answered — wrong this time</span>')
+          : '<span style="color:var(--muted)">+' + q.points + " XP if correct</span>";
+        return '<div class="xg-quiz" data-quiz="' + q.id + '">' +
+          '<div class="qmeta"><span class="xg-qtag ' + q.kind + '">' + (q.kind === "daily" ? "DAILY" : "QUIZ") + "</span>" + state + "</div>" +
+          "<h4>" + escG(q.question) + "</h4>" +
+          '<div class="xg-opts">' + opts + "</div></div>";
+      }).join("");
+      if (!loggedIn) {
+        box.insertAdjacentHTML("afterbegin", '<p style="color:var(--muted);font-size:13px">Log in above to answer and earn the XP.</p>');
+      }
+    }).catch(function () {
+      document.getElementById("quiz-list").innerHTML = '<p style="color:var(--muted)">Could not load quizzes. Try refreshing.</p>';
+    });
+  }
+
+  document.getElementById("quiz-list").addEventListener("click", function (e) {
+    var b = e.target.closest(".xg-opt");
+    if (!b || b.disabled || !me) return;
+    var qid = b.getAttribute("data-q"), choice = parseInt(b.getAttribute("data-i"), 10);
+    var quizBox = b.closest(".xg-quiz");
+    quizBox.querySelectorAll(".xg-opt").forEach(function (o) { o.disabled = true; });
+    xrApi.uRpc("quiz_answer", { p_quiz: parseInt(qid, 10), p_choice: choice }).then(function (r) {
+      if (r && r.ok) {
+        quizBox.querySelectorAll(".xg-opt").forEach(function (o) {
+          var i = parseInt(o.getAttribute("data-i"), 10);
+          if (i === r.correct_index) o.classList.add("right");
+          else if (i === choice) o.classList.add("wrong");
+        });
+        var meta = quizBox.querySelector(".qmeta");
+        if (r.correct) {
+          meta.innerHTML = '<span class="xg-qtag quiz">QUIZ</span><span style="color:#8ff0b8">✓ Correct — +' + r.awarded + " XP</span>";
+          xrSfx.play("success"); xrSfx.buzz(25);
+          if (r.new_badges && r.new_badges.length) {
+            meta.innerHTML += " — badge: " + r.new_badges.map(function (x) { var m = xrGame.badgeMeta(x); return m.icon + " " + escG(m.name); }).join(", ");
+            xrSfx.play("levelup");
+          }
+        } else {
+          meta.innerHTML = '<span class="xg-qtag quiz">QUIZ</span><span style="color:#ff9d9d">Wrong — the right answer is marked green.</span>';
+          xrSfx.play("error");
+        }
+        refreshStats();
+      } else {
+        quizBox.querySelectorAll(".xg-opt").forEach(function (o) { o.disabled = false; });
+        xrToast((r && r.error) || "Could not submit the answer.");
+      }
+    }).catch(function () {
+      quizBox.querySelectorAll(".xg-opt").forEach(function (o) { o.disabled = false; });
+    });
+  });
+
+  function loadMission() {
+    var box = document.getElementById("mission-box");
+    if (!box) return;
+    if (!me) { box.innerHTML = '<p style="color:var(--muted);font-size:13px">Log in to see today&#39;s mission.</p>'; return; }
+    xrApi.uRpc("daily_mission", {}).then(function (m) {
+      if (!(m && m.ok)) { box.innerHTML = '<p style="color:var(--muted);font-size:13px">Could not load the mission.</p>'; return; }
+      function tick(done, label) {
+        return '<span style="display:inline-block;margin:2px 8px 2px 0;font-size:13.5px">' + (done ? '<b style="color:#8ff0b8">&#10003;</b> ' : '<span style="color:var(--muted)">&#9675;</span> ') + label + "</span>";
+      }
+      box.innerHTML =
+        '<div style="margin-bottom:10px">' + tick(m.checkin, "Check in") + tick(m.spin, "Spin the wheel") + tick(m.quiz, "Answer a quiz") + "</div>" +
+        (m.claimed
+          ? '<p style="color:var(--gold2);font-weight:700;font-size:14px">Claimed - new mission tomorrow.</p>'
+          : m.done
+            ? '<button class="btn btn-gold btn-sm" id="mission-claim">Claim +15 Arena Points</button> <span id="mission-msg" style="font-size:13px"></span>'
+            : '<p style="color:var(--muted);font-size:13px">Finish all three, then claim here.</p>');
+      var cb = document.getElementById("mission-claim");
+      if (cb) cb.addEventListener("click", function () {
+        cb.disabled = true;
+        xrApi.uRpc("daily_mission_claim", {}).then(function (r) {
+          if (r && r.ok) {
+            box.innerHTML = '<p style="color:#8ff0b8;font-weight:700;font-size:14px">+' + r.reward + " Arena Points claimed" + (r.streak_bonus ? " + streak bonus +" + r.streak_bonus : "") + "!</p>";
+            if (window.xrSfx) { xrSfx.play("win"); xrSfx.buzz([30, 40, 60]); }
+            refreshStats();
+          } else { cb.disabled = false; document.getElementById("mission-msg").textContent = (r && r.error) || "Could not claim."; }
+        });
+      });
+    }).catch(function () { box.innerHTML = '<p style="color:var(--muted);font-size:13px">Could not load the mission.</p>'; });
+  }
+
+  function loadReferrals() {
+    var box = document.getElementById("ref-box");
+    if (!box) return;
+    if (!me) { box.innerHTML = '<p style="color:var(--muted);font-size:13px">Log in to get your invite code and rewards.</p>'; return; }
+    xrApi.uRpc("my_referral", {}).then(function (r) {
+      if (!(r && r.ok)) { box.innerHTML = '<p style="color:var(--muted);font-size:13px">Could not load invites. Try refreshing.</p>'; return; }
+      var link = "https://xarena.surge.sh/account.html?ref=" + r.code;
+      var msg = "Join me on XARENA ESPORTS - free Free Fire tournaments. Sign up with my code " + r.code + " and we both get Arena Points: " + link;
+      box.innerHTML =
+        '<div class="xg-stat-row">' +
+        '<div class="xg-stat"><b>' + escG(r.code) + '</b><span>YOUR CODE</span></div>' +
+        '<div class="xg-stat"><b>' + r.count + '</b><span>FRIENDS JOINED</span></div>' +
+        '<div class="xg-stat"><b>' + r.earned + '</b><span>POINTS EARNED</span></div></div>' +
+        '<p style="font-size:13px;color:var(--muted);margin:10px 0;user-select:all">' + link + '</p>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+        '<button class="btn btn-ghost btn-sm" id="ref-copy">Copy invite</button>' +
+        '<a class="btn btn-gold btn-sm" href="https://wa.me/?text=' + encodeURIComponent(msg) + '" target="_blank" rel="noopener">Share on WhatsApp</a>' +
+        '<button class="btn btn-gold btn-sm" id="ref-poster">Invite poster</button>' +
+        '<button class="btn btn-ghost btn-sm" id="ref-share">Share</button></div>' +
+        (r.applied
+          ? '<p style="font-size:13px;color:var(--muted);margin-top:12px">You joined with a friend&#39;s code.</p>'
+          : '<div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+            '<input id="ref-in" maxlength="12" placeholder="Have a friend&#39;s code?" style="flex:1;min-width:160px" autocapitalize="characters">' +
+            '<button class="btn btn-red btn-sm" id="ref-apply">Apply</button></div>' +
+            '<p id="ref-note" style="font-size:12.5px;color:var(--muted);margin-top:6px">New accounts only (first 48 hours).</p>');
+      document.getElementById("ref-copy").onclick = function () {
+        function done() { xrToast("Invite copied - paste it anywhere"); }
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(msg).then(done, done);
+        else { var t = document.createElement("textarea"); t.value = msg; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); } catch (e) {} t.remove(); done(); }
+      };
+      document.getElementById("ref-poster").onclick = function () {
+        if (!window.xshare) { xrToast("Poster maker not loaded - refresh once"); return; }
+        var cv = xshare.draw({
+          kicker: "Join me on XARENA",
+          title: "Free Fire MAX",
+          lines: ["Real tournaments - entry always free", "My invite code: " + r.code, "Sign up with my code - we both get Arena Points"],
+          sub: "Points and glory, never cash - free to play, always",
+          qrText: link,
+          qrCaption: "Scan to join with my invite code"
+        });
+        xshare.share(cv, "XARENA invite", msg).then(function (ok) { if (!ok) xshare.download(cv, "xarena-invite-" + r.code + ".png"); });
+      };
+      document.getElementById("ref-share").onclick = function () {
+        if (navigator.share) navigator.share({ title: "XARENA ESPORTS", text: msg }).catch(function () {});
+        else xrToast("Copy the invite and paste it anywhere");
+      };
+      var ap = document.getElementById("ref-apply");
+      if (ap) ap.onclick = function () {
+        var code = document.getElementById("ref-in").value.trim();
+        if (!code) return;
+        ap.disabled = true;
+        xrApi.uRpc("referral_apply", { p_code: code }).then(function (a) {
+          var note = document.getElementById("ref-note");
+          if (a && a.ok) {
+            note.innerHTML = '<b style="color:#8ff0b8">Applied - you got ' + a.you_got + " Arena Points, your friend got " + a.friend_got + ".</b>";
+            document.getElementById("ref-in").style.display = "none"; ap.style.display = "none";
+            refreshStats();
+          } else { note.textContent = (a && a.error) || "Could not apply the code."; ap.disabled = false; }
+        }).catch(function () { ap.disabled = false; });
+      };
+    }).catch(function () { box.innerHTML = '<p style="color:var(--muted);font-size:13px">Could not load invites. Try refreshing.</p>'; });
+  }
+
+  /* boot */
+  if (!window.xrApi) { needLogin(); return; }
+  xrApi.user().then(function (u) {
+    if (!u) { needLogin(); return; }
+    me = u;
+    document.getElementById("play-body").style.display = "block";
+    /* auto-apply an invite code picked up from an account.html?ref= link */
+    var pendingRef = null;
+    try { pendingRef = localStorage.getItem("xr_ref_code"); } catch (e) {}
+    if (pendingRef) {
+      xrApi.uRpc("referral_apply", { p_code: pendingRef }).then(function (a) {
+        if (a && a.ok) { localStorage.removeItem("xr_ref_code"); xrToast("Invite applied: +" + a.you_got + " Arena Points for you"); }
+        else if (a && a.error && /already applied/i.test(a.error)) localStorage.removeItem("xr_ref_code");
+      }).catch(function () {});
+    }
+    refreshStats();
+    loadQuizzes(true);
+    loadReferrals();
+    loadMission();
+  }).catch(function () { needLogin(); });
+});
+</script>
+<footer><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand">
+<a class="brand" href="index.html">
+<svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="#e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="#f5b301" stroke-width="3.2"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<p>XARENA ESPORTS is a professional Free Fire esports organisation — tournaments, scrims, rankings and a competitive roster, run from India for the community.</p>
+</div>
+<div><h4>Arena</h4><ul>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="how-to-play.html">How to Play</a></li>
+<li><a href="verify.html">Photo Verify</a></li>
+<li><a href="play.html">Play &amp; Earn</a></li>
+<li><a href="feed.html">Highlights Feed</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="rules.html">Rules &amp; Regulations</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+</ul></div>
+<div><h4>Organisation</h4><ul>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="cup.html">Sponsor a Cup</a></li>
+<li><a href="contact.html">Contact & Support</a></li>
+<li><a href="download.html">Get the App</a></li>
+</ul></div>
+</div>
+<div class="foot-bottom">
+<span>© <b id="yr">2026</b> XARENA ESPORTS · All rights reserved</span>
+<span id="foot-credit">Founded &amp; owned by <b>Shivhari Rajput</b></span>
+<span id="app-update" style="display:none;cursor:pointer">App update check</span>
+</div>
+</div></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/vendor/supabase.min.js"></script>
+<script src="assets/js/vendor/qrcode.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/luna.js"></script>
+<script src="assets/js/reco.js"></script>
+<script src="assets/js/game.js"></script>
+<script src="assets/js/sfx.js"></script>
+<script src="assets/js/sharecard.js"></script>
+<script src="assets/js/funline.js"></script>
+<script src="assets/js/dm.js"></script>
+<script src="assets/js/chat-style.js"></script>
+<script src="assets/js/app-shell.js"></script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script>
+</body></html>

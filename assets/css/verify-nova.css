@@ -1,0 +1,30 @@
+/* Photo verification - exact-copy layout of the owner's mockup, truthful states */
+.vfn{background:radial-gradient(ellipse 900px 700px at 85% -10%,rgba(123,47,247,.35) 0%,transparent 60%),linear-gradient(165deg,#0d0618 0%,#16092b 55%,#0a0512 100%);margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding-top:30px}
+.vfn-head{text-align:center;margin-bottom:20px;position:relative}
+.vfn-back{position:absolute;left:6px;top:0;font-size:26px}
+.vfn-back a{color:#ffd23f;text-decoration:none}
+.vfn-title{font-family:'Orbitron';font-weight:900;font-size:clamp(24px,7vw,34px);color:#ffd23f;letter-spacing:2px;line-height:1.25;text-shadow:0 0 24px rgba(255,210,63,.3)}
+.vfn-brand{font-family:'Orbitron';font-size:13px;letter-spacing:4px;color:#ffd23f;margin-top:12px}
+.vfn-sub{color:#cfc2ee;font-size:14px;margin-top:8px}
+.vfn-card{background:rgba(30,17,54,.85);border:1.5px solid rgba(255,210,63,.35);border-radius:20px;padding:22px 20px;margin-bottom:16px}
+.vfn-badge-card{text-align:center}
+.vfn-shield{font-size:34px;color:#ffd23f}
+.vfn-badge-card h2{font-family:'Orbitron';font-size:24px;color:#fff;margin:8px 0 16px}
+.vfn-sec{font-size:15px;color:#e9defc;font-weight:700;margin-bottom:10px}
+.vfn-shot{background:rgba(13,6,24,.8);border:1px solid rgba(255,210,63,.3);border-radius:14px;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;position:relative}
+.vfn-shot-empty{color:#8f7fb0;font-size:13px;line-height:1.5}
+.vfn-shot img{max-width:100%;border-radius:10px;max-height:220px;object-fit:contain}
+.vfn-shot-label{position:absolute;top:8px;left:0;right:0;font-size:10px;letter-spacing:3px;color:#c9a7ff}
+.vfn-progress{height:8px;background:rgba(139,61,255,.25);border-radius:99px;margin:18px 0 12px;overflow:hidden}
+.vfn-progress-fill{height:100%;background:linear-gradient(90deg,#ffd23f,#f5b301);border-radius:99px;transition:width .5s}
+.vfn-result{font-size:13.5px;font-weight:700;margin-bottom:10px}
+.vfn-result.ok{color:#3ddc84}.vfn-result.err{color:#ff6b81}.vfn-result.pend{color:#ffd23f}
+.vfn-stamp{display:inline-block;background:linear-gradient(135deg,#1f7a3d,#14532d);border:2px solid #3ddc84;color:#fff;font-family:'Orbitron';font-weight:900;font-size:17px;letter-spacing:2px;border-radius:12px;padding:10px 22px;margin:6px 0 14px;box-shadow:0 0 22px rgba(61,220,132,.35)}
+.vfn-stamp-sub{font-family:'Rajdhani';font-size:10.5px;letter-spacing:3px;font-weight:700;margin-top:3px}
+.vfn-rows{text-align:left;margin-top:8px}
+.vfn-row{display:flex;justify-content:space-between;padding:9px 2px;border-bottom:1px solid rgba(139,61,255,.18);font-size:14px}
+.vfn-row span{color:#cfc2ee}.vfn-row b{color:#ffd23f}
+.vfn-green{color:#3ddc84}.vfn-gold{color:#ffd23f}.vfn-red{color:#ff6b81}
+.vfn-btn{display:block;text-align:center;background:linear-gradient(135deg,#ffd23f,#f5b301);color:#231303;font-family:'Orbitron';font-weight:900;font-size:16px;border-radius:14px;padding:15px;text-decoration:none;border:none;width:100%;cursor:pointer;box-shadow:0 8px 22px rgba(245,179,1,.25)}
+.vfn-btn-ghost{display:block;text-align:center;background:rgba(30,17,54,.85);border:1.5px solid rgba(255,210,63,.5);color:#ffd23f;font-family:'Orbitron';font-weight:800;font-size:14px;border-radius:14px;padding:14px;width:100%;cursor:pointer;margin-top:12px}
+.vfn-foot{text-align:center;color:#8f7fb0;font-size:12px;margin-top:16px}

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://xarena.surge.sh/">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Fire Esports, Tournaments & Scrims · XARENA ESPORTS</title>
+<meta name="description" content="XARENA ESPORTS - Free Fire tournaments, scrims and leaderboards run from India. Season 1 registrations open, free entry.">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="%230b0b14" stroke="%23e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="%23f5b301" stroke-width="3.2"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="XARENA ESPORTS">
+<meta property="og:title" content="XARENA ESPORTS - Free Fire tournaments, feed, stories, Luna">
+<meta property="og:description" content="India's Free Fire esports platform - tournaments, scrims, highlights feed, stories, encrypted messages and the Luna assistant. Free forever.">
+<meta property="og:url" content="https://xarena.surge.sh/">
+<meta property="og:image" content="https://xarena.surge.sh/assets/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0104">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="XARENA">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/app-shell.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","name":"XARENA ESPORTS","url":"https://xarena.surge.sh/","logo":"https://xarena.surge.sh/assets/icon-512.png","description":"Professional Free Fire esports organisation from India - tournaments, scrims, rankings and community.","founder":{"@type":"Person","name":"Shivhari Rajput"},"sameAs":["https://www.instagram.com/ud_speed"]},{"@type":"WebSite","name":"XARENA ESPORTS","url":"https://xarena.surge.sh/","inLanguage":"en","publisher":{"@type":"Organization","name":"XARENA ESPORTS"}}]}</script>
+</head>
+<body>
+<style>
+#xr-splash{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;transition:opacity .3s ease;overflow:hidden}
+#xr-splash::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none}
+#xr-splash .xs-stage{position:relative;width:118px;height:118px;display:flex;align-items:center;justify-content:center}
+#xr-splash .xs-ring{position:absolute;inset:0;animation:xsSpin 2.6s linear infinite}
+#xr-splash .xs-ring circle{fill:none;stroke:var(--xs-acc,#e10600);stroke-width:2.5;stroke-dasharray:44 22;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--xs-acc,#e10600))}
+#xr-splash .xs-ring.r2{animation:xsSpinR 3.8s linear infinite;inset:9px}
+#xr-splash .xs-ring.r2 circle{stroke-dasharray:10 30;opacity:.55;stroke-width:1.5}
+#xr-splash .xs-logo{width:62px;height:62px;animation:xsPulse 1.2s ease-in-out infinite}
+#xr-splash .xs-logo path{stroke:var(--xs-acc,#e10600)}
+#xr-splash .xs-logo .xs-x{stroke:#f5b301}
+#xr-splash .xs-name{font:900 24px Orbitron,system-ui,sans-serif;color:#fff;letter-spacing:7px;margin-left:7px;animation:xsGlitch 2.4s steps(1) infinite}
+#xr-splash .xs-tag{font:800 10px Orbitron,system-ui,sans-serif;letter-spacing:5px;color:var(--xs-acc,#e10600);margin-left:5px;text-shadow:0 0 10px var(--xs-acc,#e10600)}
+#xr-splash .xs-tip{font:600 12.5px Rajdhani,system-ui,sans-serif;color:#9aa0b8;letter-spacing:1px;min-height:16px;text-align:center;padding:0 24px;transition:opacity .25s}
+#xr-splash .xs-bar{width:170px;height:3px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+#xr-splash .xs-bar i{display:block;height:100%;width:0;border-radius:3px;background:var(--xs-acc,#e10600);box-shadow:0 0 12px var(--xs-acc,#e10600);animation:xsFill 1.5s ease forwards}
+#xr-splash.xs-done{opacity:0;pointer-events:none}
+@keyframes xsSpin{to{transform:rotate(360deg)}}
+@keyframes xsSpinR{to{transform:rotate(-360deg)}}
+@keyframes xsPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes xsFill{to{width:88%}}
+@keyframes xsGlitch{0%,93%,100%{text-shadow:none}94%{text-shadow:-2px 0 var(--xs-acc,#e10600),2px 0 #22d3ee}96%{text-shadow:2px 0 var(--xs-acc,#e10600),-2px 0 #22d3ee}98%{text-shadow:none}}
+@media (prefers-reduced-motion:reduce){#xr-splash .xs-ring,#xr-splash .xs-logo,#xr-splash .xs-name,#xr-splash .xs-bar i{animation:none!important}#xr-splash{transition:none!important}}
+</style>
+<div id="xr-splash" role="status" aria-label="Loading XARENA">
+<div class="xs-stage">
+<svg class="xs-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-ring r2" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-logo" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke-width="2.5"/><path class="xs-x" d="M13 13l14 14M27 13L13 27" stroke-width="3.2" fill="none"/></svg>
+</div>
+<div class="xs-name">XARENA</div>
+<div class="xs-tag">ENTERING THE ARENA</div>
+<div class="xs-tip" id="xs-tip"></div>
+<div class="xs-bar"><i></i></div>
+<script>(function(){try{var m={liquid:"#0a84ff",classic:"#e10600","3d":"#8b3dff",nexus:"#7c5cff",arena:"#ff7a1a","void":"#a970ff",ascend:"#19e3c2",hybrid:"#22d3ee",pulse:"#ff2e88",aura:"#8b5cf6",social:"#0095f6"};var t=localStorage.getItem("xr_theme")||"liquid";var s=document.getElementById("xr-splash");if(s&&m[t])s.style.setProperty("--xs-acc",m[t]);var tips=["Season 1 - 48 squad slots - registrations open","Real tournaments - tracked rankings - live World Chat","Tip: mention @luna in World Chat - she answers","Tip: finish tasks to earn points, badges and titles","48 squads. One crown. Season 1 is loading"];var tip=document.getElementById("xs-tip");if(tip&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){var i=Math.floor(Math.random()*tips.length);tip.textContent=tips[i];var iv=setInterval(function(){if(!document.getElementById("xr-splash")){clearInterval(iv);return;}i=(i+1)%tips.length;tip.style.opacity=0;setTimeout(function(){tip.textContent=tips[i];tip.style.opacity=1;},240);},1600);}}catch(e){}})();</script>
+</div>
+<header class="nav"><div class="wrap nav-in">
+<a class="brand" href="index.html" aria-label="XARENA ESPORTS home">
+<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="xg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3131"/><stop offset=".55" stop-color="#e10600"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="url(#xg)" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="url(#xg)" stroke-width="3.2" stroke-linecap="square"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<button class="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+<ul class="nav-links">
+<li><a href="index.html" class="active">Home</a></li>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="tasks.html">Tasks</a></li>
+<li><a href="play.html">Play</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="feed.html">Feed</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+<li><a href="rules.html">RRs</a></li>
+<li><a href="contact.html">Contact</a></li>
+<li><a href="account.html">Account</a></li>
+<li><a class="nav-chat" href="chat.html"><span class="pulse"></span>World Chat<span class="chat-badge" id="xr-chat-badge"></span></a></li>
+<li class="nav-cta" style="display:flex;align-items:center;gap:8px"><a href="messages.html" aria-label="Messages" title="Messages" style="color:inherit;display:flex;padding:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></a><button class="xr-theme-btn" id="xr-theme-btn" type="button">Look</button><a class="btn btn-red btn-sm" href="tournaments.html#register">Register</a></li>
+</ul>
+</div></header>
+<main>
+<div id="bn-carousel" class="bn" hidden></div>
+<section class="hero">
+  <div id="hero3d"></div>
+  <div class="hero-bg" style="background-image:url('assets/img/hero.jpg')"></div>
+  <div class="hero-veil"></div>
+  <div class="wrap hero-in">
+    <span class="hero-tag"><span class="dot"></span>Season 1 · Registrations Open</span>
+    <h1><span class="x">X</span><span class="rest">ARENA</span><br>ESPORTS</h1>
+    <p class="hero-sub">A professional <b>Free Fire</b> esports organisation. Real tournaments, tracked rankings, daily scrims and a roster built to win. 48 squads. One crown.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-red" href="tournaments.html#register">Register for Season 1</a>
+      <a class="btn btn-ghost" href="tournaments.html">Explore Tournaments</a>
+    </div>
+    <div class="hero-strip">
+      <div class="hstat"><b>SEASON 01</b><span>Championship</span></div>
+      <div class="hstat"><b>48</b><span>Squad Slots</span></div>
+      <div class="hstat"><b>FREE FIRE</b><span>Battle Royale</span></div>
+      <div class="hstat"><b>OPEN</b><span>Recruitment</span></div>
+    </div>
+  </div>
+</section>
+
+<style>
+.bn{position:relative;overflow:hidden;background:var(--bg0)}
+.bn-track{display:flex;transition:transform .45s ease}
+.bn-slide{flex:0 0 100%;position:relative;display:block;text-decoration:none}
+.bn-slide img{display:block;width:100%;max-height:340px;object-fit:cover}
+.bn-cap{position:absolute;left:0;right:0;bottom:0;padding:26px 16px 12px;color:#fff;font-weight:700;font-size:15px;text-shadow:0 2px 8px rgba(0,0,0,.6);background:linear-gradient(transparent,rgba(0,0,0,.55))}
+.bn-dots{position:absolute;bottom:8px;right:12px;display:flex;gap:6px;z-index:2}
+.bn-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.45);border:none;padding:0;cursor:pointer}
+.bn-dot.on{background:#fff}
+.bn-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:2;background:rgba(0,0,0,.35);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;display:none}
+@media (min-width:720px){.bn-arrow{display:block}}
+.bn-arrow.l{left:10px}.bn-arrow.r{right:10px}
+</style>
+<script>
+window.addEventListener("load", function () {
+  var host = document.getElementById("bn-carousel");
+  if (!host || !window.xrApi) return;
+  window.xrApi.uRpc("banner_list_public", {}).then(function (r) {
+    var list = (r && r.banners) || [];
+    if (!list.length) return; /* honest: nothing shown when there are no banners */
+    function imgUrl(u) {
+      if (u.indexOf("https://res.cloudinary.com/") === 0) return u.replace("/upload/", "/upload/q_auto,f_auto,w_1080/");
+      return u;
+    }
+    var idx = 0, timer = null;
+    host.innerHTML = '<div class="bn-track">' + list.map(function (b, i) {
+      var inner = '<img src="' + imgUrl(b.image) + '" alt="' + (b.title ? b.title.replace(/"/g, "") : "XARENA banner") + '"' + (i ? ' loading="lazy"' : "") + '>' +
+        (b.title ? '<div class="bn-cap">' + b.title.replace(/</g, "&lt;") + "</div>" : "");
+      return b.link
+        ? '<a class="bn-slide" href="' + b.link.replace(/"/g, "") + '"' + (/^https?:/i.test(b.link) ? ' target="_blank" rel="noopener"' : "") + ">" + inner + "</a>"
+        : '<div class="bn-slide">' + inner + "</div>";
+    }).join("") + "</div>" +
+    (list.length > 1 ? '<button class="bn-arrow l" aria-label="Previous">&#8249;</button><button class="bn-arrow r" aria-label="Next">&#8250;</button>' +
+    '<div class="bn-dots">' + list.map(function (_, i) { return '<button class="bn-dot' + (i ? "" : " on") + '" aria-label="Banner ' + (i + 1) + '"></button>'; }).join("") + "</div>" : "");
+    host.hidden = false;
+    var track = host.querySelector(".bn-track");
+    function go(n) {
+      idx = (n + list.length) % list.length;
+      track.style.transform = "translateX(-" + idx * 100 + "%)";
+      var dots = host.querySelectorAll(".bn-dot");
+      for (var d = 0; d < dots.length; d++) dots[d].classList.toggle("on", d === idx);
+    }
+    if (list.length > 1) {
+      timer = setInterval(function () { if (!document.hidden) go(idx + 1); }, 5000);
+      host.querySelector(".bn-arrow.l").addEventListener("click", function () { go(idx - 1); });
+      host.querySelector(".bn-arrow.r").addEventListener("click", function () { go(idx + 1); });
+      Array.prototype.forEach.call(host.querySelectorAll(".bn-dot"), function (d, i) {
+        d.addEventListener("click", function () { go(i); });
+      });
+      var sx = 0;
+      host.addEventListener("touchstart", function (e) { sx = e.touches[0].clientX; }, { passive: true });
+      host.addEventListener("touchend", function (e) {
+        var dx = e.changedTouches[0].clientX - sx;
+        if (dx < -40) go(idx + 1); else if (dx > 40) go(idx - 1);
+      }, { passive: true });
+    }
+  }).catch(function () {});
+});
+</script>
+
+<section class="section" id="foryou-sec" style="display:none">
+  <div class="wrap">
+    <div class="section-head row reveal">
+      <div><div class="overline">For You</div><h2>Your <em>Picks</em></h2>
+      <p class="fy-note" style="color:var(--muted)"></p></div>
+    </div>
+    <div class="fy-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px"></div>
+  </div>
+</section>
+
+<section class="section" id="live-lobby">
+  <div class="wrap">
+    <div class="section-head row reveal">
+      <div><div class="overline">Live Lobby</div><h2>World <em>Chat</em></h2>
+      <p>Live talk, right this second. Pick a name and jump into the lobby. <a href="chat.html" style="color:var(--gold2)">Open full chat &rarr;</a></p></div>
+    </div>
+    <div class="chat-shell chat-embed">
+      <div class="chat-gate" id="chat-gate" style="display:none">
+        <h3>PICK YOUR CHAT NAME</h3>
+        <p>One name per player. This is how the lobby knows you &mdash; 3 to 20 letters, numbers or underscore.</p>
+        <div class="gate-row">
+          <input id="gate-handle" maxlength="20" placeholder="e.g. HeadshotRaja" autocomplete="off">
+          <button class="btn btn-red btn-sm" id="gate-btn" type="button">Enter Lobby</button>
+        </div>
+        <div class="chat-err"></div>
+      </div>
+      <div class="chat-card" id="chat-main" style="display:none">
+        <div class="chat-top">
+        <span class="chat-ava"><svg viewBox="0 0 40 40" width="20" height="20" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0a1428" stroke="#2ec5ff" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="#7dd3fc" stroke-width="3.2"/></svg></span>
+        <button class="chat-more" id="chat-more" type="button" aria-label="Chat options" title="Rules and options">&#8226;&#8226;&#8226;</button>
+        <span class="live-dot"></span>
+        <h2>World Chat</h2>
+        <span class="online" id="chat-online">connecting&hellip;</span>
+        </div>
+        <div class="chat-rules">Rules: respect everyone &middot; no links &middot; no abuses &middot; no spam. Mutes and bans are instant.</div>
+        <div class="chat-log" id="chat-log"></div>
+        <div class="chat-typing" id="chat-typing"></div>
+        <div class="emoji-panel" id="emoji-panel"></div>
+<div class="chat-qa chat-classic-only">
+          <a href="tournaments.html" title="Tournaments" aria-label="Tournaments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9h4M8 7v4M15 8h.01M18 10h.01M7 5h10a5 5 0 0 1 5 5v3a3 3 0 0 1-5.4 1.8L15 12H9l-1.6 2.8A3 3 0 0 1 2 13v-3a5 5 0 0 1 5-5z"/></svg></a>
+          <a href="tasks.html" title="Tasks" aria-label="Tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></a>
+          <a href="leaderboard.html" title="Leaderboard" aria-label="Leaderboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM7 6H4a1 1 0 0 0-1 1c0 2 1.5 3.5 4 3.5M17 6h3a1 1 0 0 1 1 1c0 2-1.5 3.5-4 3.5"/></svg></a>
+          <a href="profile.html" title="My profile" aria-label="My profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 1 0-16 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/></svg></a>
+        </div>
+                <div class="chat-input">
+          <button class="emoji-btn" id="emoji-btn" type="button" aria-label="Emojis">😀</button>
+          <input id="chat-input" maxlength="400" placeholder="Message the lobby&hellip;" autocomplete="off">
+          <button class="send-btn" id="send-btn" type="button" aria-label="Send">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="yt-live"></div>
+<section class="section">
+  <div class="wrap">
+    <div class="section-head row reveal">
+      <div><div class="overline">Competition</div><h2>Featured <em>Tournaments</em></h2>
+      <p>Official XARENA championships with tracked results, published schedules and real prize pools.</p></div>
+      <a class="btn btn-ghost btn-sm" href="tournaments.html">All Tournaments</a>
+    </div>
+    <div class="grid c1" id="featured-tournaments"></div>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="wrap split">
+    <div class="reveal">
+      <div class="overline">The Organisation</div>
+      <p class="big-quote" style="margin-top:14px">Built by players, <em>run like a pro league.</em></p>
+      <ul class="feature-list">
+        <li><b>Verified results</b> — every official match updates rankings, stats and leaderboards.</li>
+        <li><b>Squad registry</b> — rosters, roles and player profiles maintained in one place.</li>
+        <li><b>Daily scrims</b> — structured practice lobbies for registered squads.</li>
+        <li><b>Anti-cheat first</b> — fair-play rules enforced on every XARENA event.</li>
+      </ul>
+    </div>
+    <div class="grid c2 reveal">
+      <div class="card"><div class="icon"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M8 21h8m-4-4v4M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4v2a3 3 0 0 0 3 3m10-5h3v2a3 3 0 0 1-3 3"/></svg></div><h3>Tournaments</h3><p>Seasonal championships with qualifiers, finals and published brackets.</p></div>
+      <div class="card"><div class="icon"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></div><h3>Leaderboards</h3><p>Kills, points and wins ranked across every XARENA season.</p></div>
+      <div class="card"><div class="icon"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c.8-3.4 3.4-5 6.5-5s5.7 1.6 6.5 5"/><path d="M16 4.5a3.2 3.2 0 0 1 0 7M21.5 20c-.5-2.3-1.8-3.8-3.7-4.5"/></svg></div><h3>Roster</h3><p>An official squad with public profiles, roles and achievements.</p></div>
+      <div class="card"><div class="icon"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8.4-7 10-4-1.6-7-5.5-7-10V6l7-3Z"/><path d="M9 12l2 2 4-4"/></svg></div><h3>Fair Play</h3><p>Hackers and teamers get banned. Clean competition, always.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="section-head row reveal">
+      <div><div class="overline">Latest</div><h2>News &amp; <em>Announcements</em></h2></div>
+      <a class="btn btn-ghost btn-sm" href="news.html">All News</a>
+    </div>
+    <div id="news-home"></div>
+  </div>
+</section>
+
+<section class="section alt">
+  <div class="wrap" style="text-align:center">
+    <div class="reveal">
+      <div class="overline" style="justify-content:center">Season 1</div>
+      <p class="big-quote" style="max-width:760px;margin:16px auto 28px">48 squads drop in. <em>One walks out with the crown.</em></p>
+      <a class="btn btn-gold" href="tournaments.html#register">Claim Your Squad Slot</a>
+    </div>
+  </div>
+</section>
+</main>
+<script>
+window.addEventListener("load", function () {
+  if (!window.xrApi) return;
+  xrApi.get("site_settings", "?key=eq.youtube_live&select=value").then(function (rows) {
+    var v = rows && rows[0] && rows[0].value;
+    if (!v || !v.active || !v.video_id) return;
+    var esc = function (t) { return String(t).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+    document.getElementById("yt-live").innerHTML =
+      '<section class="section" style="padding-top:26px"><div class="wrap"><div class="card" style="border-color:rgba(225,6,0,.55)">' +
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="badge live">LIVE</span><h3 style="margin:0">' + esc(v.title || "XARENA live stream") + '</h3>' +
+      '<a class="btn btn-ghost btn-sm" style="margin-left:auto" href="https://www.youtube.com/watch?v=' + encodeURIComponent(v.video_id) + '" target="_blank" rel="noopener">Open in YouTube</a></div>' +
+      '<div style="position:relative;padding-top:56.25%;margin-top:12px;border-radius:12px;overflow:hidden;background:#000">' +
+      '<iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(v.video_id) + '" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>' +
+      "</div></div></section>";
+  }).catch(function () {});
+});
+</script>
+<script src="assets/js/vendor/supabase.min.js"></script>
+<script src="assets/js/chat.js"></script>
+<footer><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand">
+<a class="brand" href="index.html">
+<svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="#e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="#f5b301" stroke-width="3.2"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<p>XARENA ESPORTS is a professional Free Fire esports organisation — tournaments, scrims, rankings and a competitive roster, run from India for the community.</p>
+</div>
+<div><h4>Arena</h4><ul>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="how-to-play.html">How to Play</a></li>
+<li><a href="verify.html">Photo Verify</a></li>
+<li><a href="play.html">Play &amp; Earn</a></li>
+<li><a href="feed.html">Highlights Feed</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="rules.html">Rules &amp; Regulations</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+</ul></div>
+<div><h4>Organisation</h4><ul>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="cup.html">Sponsor a Cup</a></li>
+<li><a href="contact.html">Contact & Support</a></li>
+<li><a href="download.html">Get the App</a></li>
+</ul></div>
+</div>
+<div class="foot-bottom">
+<span>© <b id="yr">2026</b> XARENA ESPORTS · All rights reserved</span>
+<span id="foot-credit">Founded &amp; owned by <b>Shivhari Rajput</b></span>
+<span id="app-update" style="display:none;cursor:pointer">App update check</span>
+</div>
+</div></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/vendor/supabase.min.js"></script>
+<script src="assets/js/vendor/qrcode.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/luna.js"></script>
+<script src="assets/js/reco.js"></script>
+<script src="assets/js/game.js"></script>
+<script src="assets/js/sfx.js"></script>
+<script src="assets/js/sharecard.js"></script>
+<script src="assets/js/funline.js"></script>
+<script src="assets/js/dm.js"></script>
+<script src="assets/js/chat-style.js"></script>
+<script src="assets/js/app-shell.js"></script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script>
+</body></html>

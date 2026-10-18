@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://xarena.surge.sh/feed.html">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feed · XARENA ESPORTS</title>
+<meta name="description" content="XARENA Feed - photos, clips and posts from players. AI pre-screened, owner moderated.">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="%230b0b14" stroke="%23e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="%23f5b301" stroke-width="3.2"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="XARENA ESPORTS">
+<meta property="og:title" content="XARENA ESPORTS - Free Fire tournaments, feed, stories, Luna">
+<meta property="og:description" content="India's Free Fire esports platform - tournaments, scrims, highlights feed, stories, encrypted messages and the Luna assistant. Free forever.">
+<meta property="og:url" content="https://xarena.surge.sh/">
+<meta property="og:image" content="https://xarena.surge.sh/assets/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0104">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="XARENA">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/app-shell.css">
+</head>
+<body>
+<style>
+#xr-splash{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;transition:opacity .3s ease;overflow:hidden}
+#xr-splash::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none}
+#xr-splash .xs-stage{position:relative;width:118px;height:118px;display:flex;align-items:center;justify-content:center}
+#xr-splash .xs-ring{position:absolute;inset:0;animation:xsSpin 2.6s linear infinite}
+#xr-splash .xs-ring circle{fill:none;stroke:var(--xs-acc,#e10600);stroke-width:2.5;stroke-dasharray:44 22;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--xs-acc,#e10600))}
+#xr-splash .xs-ring.r2{animation:xsSpinR 3.8s linear infinite;inset:9px}
+#xr-splash .xs-ring.r2 circle{stroke-dasharray:10 30;opacity:.55;stroke-width:1.5}
+#xr-splash .xs-logo{width:62px;height:62px;animation:xsPulse 1.2s ease-in-out infinite}
+#xr-splash .xs-logo path{stroke:var(--xs-acc,#e10600)}
+#xr-splash .xs-logo .xs-x{stroke:#f5b301}
+#xr-splash .xs-name{font:900 24px Orbitron,system-ui,sans-serif;color:#fff;letter-spacing:7px;margin-left:7px;animation:xsGlitch 2.4s steps(1) infinite}
+#xr-splash .xs-tag{font:800 10px Orbitron,system-ui,sans-serif;letter-spacing:5px;color:var(--xs-acc,#e10600);margin-left:5px;text-shadow:0 0 10px var(--xs-acc,#e10600)}
+#xr-splash .xs-tip{font:600 12.5px Rajdhani,system-ui,sans-serif;color:#9aa0b8;letter-spacing:1px;min-height:16px;text-align:center;padding:0 24px;transition:opacity .25s}
+#xr-splash .xs-bar{width:170px;height:3px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+#xr-splash .xs-bar i{display:block;height:100%;width:0;border-radius:3px;background:var(--xs-acc,#e10600);box-shadow:0 0 12px var(--xs-acc,#e10600);animation:xsFill 1.5s ease forwards}
+#xr-splash.xs-done{opacity:0;pointer-events:none}
+@keyframes xsSpin{to{transform:rotate(360deg)}}
+@keyframes xsSpinR{to{transform:rotate(-360deg)}}
+@keyframes xsPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes xsFill{to{width:88%}}
+@keyframes xsGlitch{0%,93%,100%{text-shadow:none}94%{text-shadow:-2px 0 var(--xs-acc,#e10600),2px 0 #22d3ee}96%{text-shadow:2px 0 var(--xs-acc,#e10600),-2px 0 #22d3ee}98%{text-shadow:none}}
+@media (prefers-reduced-motion:reduce){#xr-splash .xs-ring,#xr-splash .xs-logo,#xr-splash .xs-name,#xr-splash .xs-bar i{animation:none!important}#xr-splash{transition:none!important}}
+</style>
+<div id="xr-splash" role="status" aria-label="Loading XARENA">
+<div class="xs-stage">
+<svg class="xs-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-ring r2" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-logo" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke-width="2.5"/><path class="xs-x" d="M13 13l14 14M27 13L13 27" stroke-width="3.2" fill="none"/></svg>
+</div>
+<div class="xs-name">XARENA</div>
+<div class="xs-tag">ENTERING THE ARENA</div>
+<div class="xs-tip" id="xs-tip"></div>
+<div class="xs-bar"><i></i></div>
+<script>(function(){try{var m={liquid:"#0a84ff",classic:"#e10600","3d":"#8b3dff",nexus:"#7c5cff",arena:"#ff7a1a","void":"#a970ff",ascend:"#19e3c2",hybrid:"#22d3ee",pulse:"#ff2e88",aura:"#8b5cf6",social:"#0095f6"};var t=localStorage.getItem("xr_theme")||"liquid";var s=document.getElementById("xr-splash");if(s&&m[t])s.style.setProperty("--xs-acc",m[t]);var tips=["Season 1 - 48 squad slots - registrations open","Real tournaments - tracked rankings - live World Chat","Tip: mention @luna in World Chat - she answers","Tip: finish tasks to earn points, badges and titles","48 squads. One crown. Season 1 is loading"];var tip=document.getElementById("xs-tip");if(tip&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){var i=Math.floor(Math.random()*tips.length);tip.textContent=tips[i];var iv=setInterval(function(){if(!document.getElementById("xr-splash")){clearInterval(iv);return;}i=(i+1)%tips.length;tip.style.opacity=0;setTimeout(function(){tip.textContent=tips[i];tip.style.opacity=1;},240);},1600);}}catch(e){}})();</script>
+</div>
+<header class="nav"><div class="wrap nav-in">
+<a class="brand" href="index.html" aria-label="XARENA ESPORTS home">
+<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="xg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3131"/><stop offset=".55" stop-color="#e10600"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="url(#xg)" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="url(#xg)" stroke-width="3.2" stroke-linecap="square"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<button class="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+<ul class="nav-links">
+<li><a href="index.html">Home</a></li>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="tasks.html">Tasks</a></li>
+<li><a href="play.html">Play</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="feed.html" class="active">Feed</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+<li><a href="rules.html">RRs</a></li>
+<li><a href="contact.html">Contact</a></li>
+<li><a href="account.html">Account</a></li>
+<li><a class="nav-chat" href="chat.html"><span class="pulse"></span>World Chat<span class="chat-badge" id="xr-chat-badge"></span></a></li>
+<li class="nav-cta" style="display:flex;align-items:center;gap:8px"><a href="messages.html" aria-label="Messages" title="Messages" style="color:inherit;display:flex;padding:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></a><button class="xr-theme-btn" id="xr-theme-btn" type="button">Look</button><a class="btn btn-red btn-sm" href="tournaments.html#register">Register</a></li>
+</ul>
+</div></header>
+<main class="fd-main">
+  <div class="fd-bar">
+    <a class="fd-brand" href="index.html">XARENA</a>
+    <div class="fd-barbtns">
+      <a class="fd-baric" id="fd-msgs" href="messages.html" aria-label="Messages" title="Messages"></a>
+      <button type="button" id="fd-saved" aria-label="Saved posts" title="Saved posts"></button>
+      <button type="button" id="fd-new" aria-label="New highlight" title="New highlight"></button>
+    </div>
+  </div>
+  <div id="feed-note" class="fd-note" style="display:none"></div>
+  <div class="fd-stories" id="fd-stories" style="display:none"></div>
+  <div class="fd-list" id="feed-list"><p class="fd-muted" style="padding:20px">Loading the feed…</p></div>
+  <div style="text-align:center;margin:6px 0 26px"><button class="fd-more" id="feed-more" style="display:none">Load more</button></div>
+  <div id="fd-sheet" class="fd-sheet" hidden>
+    <div class="fd-sheetbg"></div>
+    <div class="fd-sheetcard">
+      <div class="fd-sheethead"><b>New highlight</b><button type="button" id="fd-close" aria-label="Close">✕</button></div>
+      <div id="feed-compose"></div>
+      <div id="feed-mine"></div>
+    </div>
+  </div>
+  <div id="fd-story-sheet" class="fd-sheet" hidden>
+    <div class="fd-sheetbg"></div>
+    <div class="fd-sheetcard">
+      <div class="fd-sheethead"><b>New story</b><button type="button" id="fd-story-close" aria-label="Close">✕</button></div>
+      <div id="story-compose"></div>
+    </div>
+  </div>
+  <div id="fd-viewer" class="fd-viewer" hidden></div>
+</main>
+<style>
+header.nav,footer,.xa-bnav,.xs-bnav,#xr-install-pill,#luna-fab{display:none!important}
+body{padding-bottom:0!important}
+.fd-main{min-height:100vh;min-height:100dvh;background:var(--bg0)}
+.fd-bar{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;
+  background:color-mix(in srgb,var(--bg1) 82%,transparent);backdrop-filter:blur(14px) saturate(1.4);-webkit-backdrop-filter:blur(14px) saturate(1.4);
+  border-bottom:1px solid var(--line)}
+body.imsg-calm .fd-bar{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--bg1)}
+.fd-brand{font-family:var(--font-d);font-weight:800;font-size:20px;letter-spacing:.5px;color:var(--text);text-decoration:none}
+.fd-barbtns{display:flex;gap:4px}
+.fd-barbtns button,.fd-barbtns a{background:none;border:none;color:var(--text);padding:7px;cursor:pointer;display:flex;border-radius:50%;text-decoration:none}
+.fd-barbtns button svg,.fd-barbtns a svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.fd-barbtns button.on svg{fill:currentColor}
+.fd-note{padding:8px 16px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.fd-note button{background:none;border:none;color:#0a84ff;font-weight:700;font-size:13px;cursor:pointer}
+.fd-muted{color:var(--muted)}
+.fd-list{max-width:470px;margin:0 auto;padding:14px 10px calc(20px + env(safe-area-inset-bottom,0px))}
+.fd-more{background:none;border:1px solid var(--line2);color:var(--text);border-radius:999px;padding:8px 18px;font:600 13px var(--font-b);cursor:pointer}
+/* IG post card (own design + own SVG icons; themed by the active look) */
+.xf-post{background:var(--card);border:1px solid var(--line);border-radius:14px;margin:0 0 18px;overflow:hidden}
+.xf-head{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.xf-ava{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--red));display:flex;align-items:center;justify-content:center;font:800 15px var(--font-d);color:#fff;flex:none}
+.xf-hname{font-weight:700;font-size:14px;color:var(--text);text-decoration:none;display:block;line-height:1.2}
+.xf-hsub{display:block;font-size:11.5px;color:var(--muted);line-height:1.3}
+.xf-mediawrap{position:relative;background:#050508;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.xf-media{display:block;width:100%;max-height:78vh;object-fit:contain;margin:0 auto}
+.xf-burst{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.xf-burst svg{width:96px;height:96px;fill:#fff;stroke:#fff;stroke-width:1.5;filter:drop-shadow(0 4px 16px rgba(0,0,0,.45));animation:xfBurst .8s ease-out forwards}
+@keyframes xfBurst{0%{transform:scale(0);opacity:0}30%{transform:scale(1.15);opacity:1}60%{transform:scale(.95)}100%{transform:scale(1);opacity:0}}
+.xf-actions{display:flex;align-items:center;padding:4px 8px 0}
+.xf-ic{background:none;border:none;color:var(--text);padding:7px;cursor:pointer;display:flex}
+.xf-ic svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.xf-ic.like.on{color:#ff3b5c}
+.xf-ic.like.on svg{fill:#ff3b5c;stroke:#ff3b5c}
+.xf-ic.save{margin-left:auto}
+.xf-ic.save.on svg{fill:currentColor}
+.xf-likes{padding:2px 15px 0;font-weight:700;font-size:14px;color:var(--text)}
+.xf-cap{padding:4px 15px 0;font-size:14px;line-height:1.42;color:var(--text)}
+.xf-capauthor,.xs-capauthor{font-weight:700;color:inherit;text-decoration:none;margin-right:5px}
+.xf-viewc{background:none;border:none;color:var(--muted);font-size:13.5px;padding:5px 15px 0;cursor:pointer;text-align:left}
+.xf-comments{padding:2px 15px 0}
+.xf-comment{font-size:13.5px;padding:3px 0;color:var(--text)}
+.xf-comment b{margin-right:5px}
+.xf-cform{display:flex;gap:8px;padding:8px 0 2px;align-items:center}
+.xf-cform input{flex:1;border:none;background:none;border-bottom:1px solid var(--line);padding:7px 2px;font-size:13.5px;color:var(--text);font-family:inherit;outline:none}
+.xf-cform button{background:none;border:none;color:#0a84ff;font-weight:700;font-size:13.5px;cursor:pointer;padding:6px}
+.xf-time{padding:5px 15px 13px;font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+/* stories row (own design) */
+.fd-stories{display:flex;gap:13px;overflow-x:auto;max-width:470px;margin:0 auto;padding:14px 12px 0;scrollbar-width:none}
+.fd-stories::-webkit-scrollbar{display:none}
+.fd-story{flex:none;width:68px;background:none;border:none;cursor:pointer;padding:0;font-family:inherit;text-align:center}
+.fd-sring{display:block;width:64px;height:64px;border-radius:50%;padding:3px;margin:0 auto;background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7);position:relative;box-sizing:border-box}
+.fd-sring.seen{background:var(--line2)}
+.fd-sring.none{background:var(--line)}
+.fd-sava{width:100%;height:100%;border-radius:50%;background:var(--bg1);display:flex;align-items:center;justify-content:center;font:800 20px var(--font-d);color:var(--text);border:2px solid var(--bg0);box-sizing:border-box}
+.fd-splus{display:block;position:absolute;right:-1px;bottom:-1px;width:20px;height:20px;border-radius:50%;background:#0a84ff;color:#fff;font:700 14px/18px var(--font-b);border:2px solid var(--bg0);box-sizing:border-box;text-align:center}
+.fd-sname{display:block;font-size:11px;color:var(--text);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* story viewer */
+.fd-viewer{position:fixed;inset:0;z-index:1000;background:#000;display:flex;flex-direction:column}
+.fd-viewer[hidden]{display:none}
+.fd-viewing #xr-tabs{display:none!important}
+.fd-vprog{display:flex;gap:4px;padding:calc(8px + env(safe-area-inset-top,0px)) 10px 6px}
+.fd-vseg{flex:1;height:2.5px;border-radius:2px;background:rgba(255,255,255,.3);overflow:hidden}
+.fd-vseg i{display:block;height:100%;width:0;background:#fff}
+.fd-vhead{display:flex;align-items:center;gap:10px;padding:4px 12px 10px;color:#fff}
+.fd-vava{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--red));display:flex;align-items:center;justify-content:center;font:800 14px var(--font-d);color:#fff;flex:none}
+.fd-vname{font-weight:700;font-size:14px}
+.fd-vtime{font-size:12px;color:rgba(255,255,255,.65)}
+.fd-vx{margin-left:auto;background:none;border:none;color:#fff;font-size:21px;cursor:pointer;padding:4px 8px}
+.fd-vbody{position:relative;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0}
+.fd-vbody img,.fd-vbody video{max-width:100%;max-height:100%;object-fit:contain}
+.fd-vzone{position:absolute;top:0;bottom:0;width:32%;z-index:2;touch-action:manipulation}
+.fd-vzone.l{left:0}.fd-vzone.r{right:0}
+.fd-vcap{position:absolute;left:0;right:0;bottom:0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));color:#fff;font-size:15px;text-align:center;background:linear-gradient(transparent,rgba(0,0,0,.65));z-index:3}
+.fd-vown{display:flex;gap:18px;align-items:center;justify-content:center;padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));color:#fff}
+.fd-vown button{background:none;border:none;color:#fff;font-size:13.5px;font-weight:600;cursor:pointer;padding:6px}
+.fd-vtag{position:absolute;top:10px;right:12px;z-index:4;background:rgba(0,0,0,.55);color:#ffd166;font-size:11.5px;padding:4px 9px;border-radius:999px}
+.fd-vlist{position:absolute;left:0;right:0;bottom:0;z-index:5;max-height:60%;overflow-y:auto;background:var(--bg1);color:var(--text);border-radius:16px 16px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+/* compose sheet */
+.fd-sheet{position:fixed;inset:0;z-index:900}
+.fd-sheetbg{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.fd-sheetcard{position:absolute;left:0;right:0;bottom:0;max-width:640px;margin:0 auto;max-height:88dvh;overflow-y:auto;
+  background:var(--bg1);border:1px solid var(--line);border-bottom:none;border-radius:18px 18px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.fd-sheethead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:16px}
+.fd-sheethead button{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 8px}
+.fd-sheet .card{background:var(--card);border:1px solid var(--line)}
+</style>
+<script>
+window.addEventListener("load", function () {
+  var escG = xrGame.esc;
+  var me = null, userToken = null, lastId = null, loading = false, savedMode = false;
+  var MAX_IMG = 5 * 1024 * 1024, MAX_VID = 30 * 1024 * 1024;
+  var SVG = {
+    heart: '<svg viewBox="0 0 24 24"><path d="M12 20.7C6.4 16.9 3 13.6 3 10.2 3 7.6 5 5.6 7.6 5.6c1.7 0 3.3.9 4.4 2.4 1.1-1.5 2.7-2.4 4.4-2.4C19 5.6 21 7.6 21 10.2c0 3.4-3.4 6.7-9 10.5z"/></svg>',
+    comment: '<svg viewBox="0 0 24 24"><path d="M21 11.8c0 4.1-4 7.4-9 7.4-1 0-2-.1-2.9-.4L3.6 20.4l1.2-3.8C3.7 15.3 3 13.6 3 11.8 3 7.7 7 4.4 12 4.4s9 3.3 9 7.4z"/></svg>',
+    share: '<svg viewBox="0 0 24 24"><path d="M21 3L10.4 13.6M21 3l-6.8 18-3.8-7.4L3 9.8 21 3z"/></svg>',
+    save: '<svg viewBox="0 0 24 24"><path d="M6 3.5h12V21l-6-4.4L6 21V3.5z"/></svg>',
+    plus: '<svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><path d="M12 8.5v7M8.5 12h7"/></svg>',
+    plane: '<svg viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>'
+  };
+  document.getElementById("fd-new").innerHTML = SVG.plus;
+  document.getElementById("fd-saved").innerHTML = SVG.save;
+  document.getElementById("fd-msgs").innerHTML = SVG.plane;
+
+  function timeAgo(iso) {
+    var s = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (s < 60) return "just now";
+    if (s < 3600) return Math.floor(s / 60) + "m ago";
+    if (s < 86400) return Math.floor(s / 3600) + "h ago";
+    return Math.floor(s / 86400) + "d ago";
+  }
+
+  /* ---------- compose sheet ---------- */
+  var sheet = document.getElementById("fd-sheet");
+  function openSheet() { sheet.hidden = false; renderCompose(); loadMine(); }
+  function closeSheet() { sheet.hidden = true; }
+  document.getElementById("fd-new").addEventListener("click", openSheet);
+  document.getElementById("fd-close").addEventListener("click", closeSheet);
+  sheet.querySelector(".fd-sheetbg").addEventListener("click", closeSheet);
+
+  function renderCompose() {
+    var box = document.getElementById("feed-compose");
+    if (!me) {
+      box.innerHTML = '<div class="card" style="text-align:center"><h3>Share your highlights</h3>' +
+        '<p style="color:var(--muted);margin:8px 0 14px">Log in to post a photo or write text.</p>' +
+        '<a class="btn btn-red" href="account.html">Log in / create account</a></div>';
+      return;
+    }
+    box.innerHTML = '<div class="card"><div class="field"><textarea id="fc-caption" maxlength="220" rows="2" placeholder="Booyah! Describe the moment… (caption, 220 chars max)"></textarea></div>' +
+      '<div class="field"><label for="fc-file" style="font-size:13px">Photo (up to 5 MB) — optional</label>' +
+      '<input id="fc-file" type="file" accept="image/*" style="padding:10px"></div>' +
+      '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' +
+      '<button class="btn btn-red btn-sm" id="fc-post">Post</button>' +
+      '<span id="fc-msg" style="font-size:13px"></span></div>' +
+      '<p style="color:var(--muted);font-size:12px;margin-top:10px">Tag #XRCLIP in your caption to enter Clip of the Week - the winner gets +50 XP and a Hall of Fame spot. Clean posts publish instantly after an automatic content check. Borderline posts go to the owner for review — nothing is removed without a human look.</p></div>';
+    document.getElementById("fc-post").addEventListener("click", submitPost);
+  }
+
+  function submitPost() {
+    var btn = document.getElementById("fc-post");
+    var msg = document.getElementById("fc-msg");
+    var caption = document.getElementById("fc-caption").value.trim();
+    var fileInput = document.getElementById("fc-file");
+    var file = fileInput.files && fileInput.files[0];
+    if (!file && caption.length < 3) { msg.textContent = "Write a caption or attach a photo."; return; }
+    var kind = "text";
+    if (file) {
+      if (file.type.indexOf("image/") !== 0) { msg.textContent = "Only photos."; return; }
+      kind = "photo";
+      if (file.size > MAX_IMG) { msg.textContent = "Image too large (max 5 MB)."; return; }
+    }
+    btn.disabled = true; msg.textContent = "Posting…";
+    function createPost(mediaPath) {
+      return xrApi.uRpc("feed_create", { p_kind: kind, p_media_path: mediaPath || null, p_caption: caption || null }).then(function (r) {
+        if (!r || !r.ok) throw new Error((r && r.error) || "Could not post.");
+        return r.id;
+      });
+    }
+    function moderate(id) {
+      return fetch(xrApi.url + "/functions/v1/feed-moderate", {
+        method: "POST",
+        headers: { "apikey": xrApi.key, "Authorization": "Bearer " + userToken, "Content-Type": "application/json" },
+        body: JSON.stringify({ post_id: id })
+      }).then(function (r) { return r.json(); }).catch(function () { return { status: "pending" }; });
+    }
+    function supaUpload() {
+      var ext = (file.name.split(".").pop() || "bin").toLowerCase().replace(/[^a-z0-9]/g, "") || "bin";
+      var path = me.id + "/" + Date.now() + "." + ext;
+      return fetch(xrApi.url + "/storage/v1/object/feed-media/" + path, {
+        method: "POST",
+        headers: { "apikey": xrApi.key, "Authorization": "Bearer " + userToken, "Content-Type": file.type, "x-upsert": "false" },
+        body: file
+      }).then(function (r) { if (!r.ok) throw new Error("Upload failed."); return path; });
+    }
+    var uploadP;
+    if (file) {
+      uploadP = fetch(xrApi.url + "/functions/v1/cloudinary-sign", {
+        method: "POST",
+        headers: { "apikey": xrApi.key, "Authorization": "Bearer " + userToken, "Content-Type": "application/json" },
+        body: "{}"
+      }).then(function (r) { return r.json(); }).then(function (sig) {
+        if (!sig || !sig.cloud) throw new Error("no-ticket");
+        var fd = new FormData();
+        fd.append("file", file);
+        fd.append("api_key", sig.key);
+        fd.append("timestamp", sig.timestamp);
+        fd.append("folder", sig.folder);
+        fd.append("signature", sig.signature);
+        var rtype = file.type.indexOf("video/") === 0 ? "video" : "image";
+        return fetch("https://api.cloudinary.com/v1_1/" + sig.cloud + "/" + rtype + "/upload", { method: "POST", body: fd })
+          .then(function (r) { return r.json(); })
+          .then(function (up) {
+            if (!up || !up.secure_url) throw new Error("cloud-upload-failed");
+            return up.secure_url;
+          });
+      }).catch(function () { return supaUpload(); });
+    } else { uploadP = Promise.resolve(null); }
+    uploadP.then(createPost).then(moderate).then(function (m) {
+      btn.disabled = false;
+      document.getElementById("fc-caption").value = "";
+      fileInput.value = "";
+      if (m && m.status === "approved") {
+        msg.innerHTML = '<b style="color:#8ff0b8">Live!</b> Your highlight is on the feed.';
+        xrSfx.play("success"); xrSfx.buzz([20, 40, 20]);
+      } else {
+        msg.innerHTML = '<b style="color:var(--gold2)">Queued.</b> The owner will review it shortly — it appears once approved.';
+      }
+      lastId = null;
+      if (!savedMode) loadFeed(true);
+      loadMine();
+    }).catch(function (e) {
+      btn.disabled = false;
+      msg.textContent = e.message || "Could not post — try again.";
+      xrSfx.play("error");
+    });
+  }
+
+  function mediaUrl(post) {
+    if (!post.media_path) return Promise.resolve(null);
+    if (post.media_path.indexOf("https://res.cloudinary.com/") === 0) {
+      var t = post.kind === "clip" ? "/upload/q_auto/" : "/upload/q_auto,f_auto,w_1080/";
+      return Promise.resolve(post.media_path.replace("/upload/", t));
+    }
+    return fetch(xrApi.url + "/storage/v1/object/feed-media/" + post.media_path, { headers: { "apikey": xrApi.key } })
+      .then(function (r) { if (!r.ok) return null; return r.blob(); })
+      .then(function (b) { return b ? URL.createObjectURL(b) : null; })
+      .catch(function () { return null; });
+  }
+
+  /* ---------- IG post card ---------- */
+  function postCard(p) {
+    var card = document.createElement("div");
+    card.className = "xf-post";
+    card.dataset.postId = p.id;
+    var likesLine = (p.likes || 0) > 0 ? '<div class="xf-likes">' + p.likes + (p.likes === 1 ? " like" : " likes") + "</div>" : '<div class="xf-likes" style="display:none"></div>';
+    card.innerHTML =
+      '<div class="xf-head"><a href="player.html?u=' + encodeURIComponent(p.author || "") + '" style="flex:none"><div class="xf-ava">' + escG((p.author || "P")[0].toUpperCase()) + '</div></a>' +
+      '<div><a class="xf-hname" href="player.html?u=' + encodeURIComponent(p.author || "") + '">' + escG(p.author) + "</a>" +
+      '<span class="xf-hsub">' + timeAgo(p.at) + (p.kind === "clip" ? " · clip" : p.kind === "photo" ? " · photo" : "") + "</span></div></div>" +
+      '<div class="xf-actions">' +
+      '<button type="button" class="xf-ic like' + (p.liked ? " on" : "") + '" data-post="' + p.id + '" aria-label="Like">' + SVG.heart + "</button>" +
+      '<button type="button" class="xf-ic" data-cpost="' + p.id + '" aria-label="Comments">' + SVG.comment + "</button>" +
+      '<button type="button" class="xf-ic" data-share="' + p.id + '" aria-label="Share">' + SVG.share + "</button>" +
+      '<button type="button" class="xf-ic save' + (p.saved ? " on" : "") + '" data-save="' + p.id + '" aria-label="Save">' + SVG.save + "</button></div>" +
+      likesLine +
+      (p.caption ? '<div class="xf-cap"><a class="xf-capauthor" href="player.html?u=' + encodeURIComponent(p.author || "") + '">' + escG(p.author) + "</a>" + escG(p.caption) + "</div>" : "") +
+      ((p.comments || 0) > 0 ? '<button type="button" class="xf-viewc" data-cpost="' + p.id + '">View all ' + p.comments + (p.comments === 1 ? " comment" : " comments") + "</button>" : '<button type="button" class="xf-viewc" data-cpost="' + p.id + '">Add a comment</button>') +
+      '<div class="xf-comments" id="xfc-' + p.id + '" style="display:none"></div>' +
+      '<div class="xf-time">' + timeAgo(p.at) + "</div>";
+    if (p.media_path) {
+      var wrap = document.createElement("div");
+      wrap.className = "xf-mediawrap";
+      wrap.innerHTML = '<p style="color:var(--muted);font-size:12.5px;padding:26px 14px;text-align:center">Loading media…</p>';
+      card.insertBefore(wrap, card.querySelector(".xf-actions"));
+      mediaUrl(p).then(function (url) {
+        if (!url) { wrap.innerHTML = '<p style="color:var(--muted);font-size:12.5px;padding:26px 14px;text-align:center">Media unavailable.</p>'; return; }
+        wrap.innerHTML = "";
+        var m;
+        if (p.kind === "clip") { m = document.createElement("video"); m.controls = true; m.preload = "metadata"; m.setAttribute("playsinline", ""); }
+        else { m = document.createElement("img"); m.loading = "lazy"; m.alt = p.caption || "XARENA highlight"; }
+        m.className = "xf-media"; m.src = url;
+        wrap.appendChild(m);
+      });
+      armDoubleTap(wrap, p);
+    }
+    return card;
+  }
+
+  /* double-tap media = like (never unlikes), with the heart burst */
+  function armDoubleTap(wrap, p) {
+    var lastTap = 0;
+    wrap.addEventListener("pointerdown", function () {
+      var now = Date.now();
+      if (now - lastTap < 320) {
+        lastTap = 0;
+        var b = document.createElement("div");
+        b.className = "xf-burst"; b.innerHTML = SVG.heart;
+        wrap.appendChild(b);
+        setTimeout(function () { b.remove(); }, 850);
+        if (!me) { xrToast("Log in to like posts."); return; }
+        var btn = wrap.parentNode.querySelector('.xf-ic.like[data-post="' + p.id + '"]');
+        if (btn && !btn.classList.contains("on")) btn.click();
+      } else { lastTap = now; }
+    });
+  }
+
+  function setLikesUI(card, liked, likes) {
+    var btn = card.querySelector(".xf-ic.like");
+    var line = card.querySelector(".xf-likes");
+    if (btn) btn.classList.toggle("on", !!liked);
+    if (line) {
+      line.style.display = likes > 0 ? "" : "none";
+      line.textContent = likes + (likes === 1 ? " like" : " likes");
+    }
+  }
+
+
+  /* ---------- stories (24h highlights, own design) ---------- */
+  var storySheet = document.getElementById("fd-story-sheet");
+  var viewer = document.getElementById("fd-viewer");
+  var V = null;
+
+  function cloudUpload(file) {
+    return fetch(xrApi.url + "/functions/v1/cloudinary-sign", {
+      method: "POST",
+      headers: { "apikey": xrApi.key, "Authorization": "Bearer " + userToken, "Content-Type": "application/json" },
+      body: "{}"
+    }).then(function (r) { return r.json(); }).then(function (sig) {
+      if (!sig || !sig.cloud) throw new Error("Upload unavailable.");
+      var fd = new FormData();
+      fd.append("file", file); fd.append("api_key", sig.key); fd.append("timestamp", sig.timestamp);
+      fd.append("folder", sig.folder); fd.append("signature", sig.signature);
+      var rtype = file.type.indexOf("video/") === 0 ? "video" : "image";
+      return fetch("https://api.cloudinary.com/v1_1/" + sig.cloud + "/" + rtype + "/upload", { method: "POST", body: fd })
+        .then(function (r) { return r.json(); })
+        .then(function (up) { if (!up || !up.secure_url) throw new Error("Upload failed."); return up.secure_url; });
+    });
+  }
+
+  function openStorySheet() {
+    var box = document.getElementById("story-compose");
+    if (!me) {
+      box.innerHTML = '<div class="card" style="text-align:center"><h3>Stories are for players</h3>' +
+        '<p style="color:var(--muted);margin:8px 0 14px">Log in to share a 24-hour story.</p>' +
+        '<a class="btn btn-red" href="account.html">Log in / create account</a></div>';
+    } else {
+      box.innerHTML = '<div class="card"><div class="field"><label for="st-file" style="font-size:13px">Photo or short video (image up to 5 MB, video up to 30 MB)</label>' +
+        '<input id="st-file" type="file" accept="image/*,video/*" style="padding:10px"></div>' +
+        '<div class="field"><input id="st-caption" maxlength="120" placeholder="Caption (optional, 120 chars)" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--line2);background:var(--bg0);color:var(--text);font-family:inherit"></div>' +
+        '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' +
+        '<button class="btn btn-red btn-sm" id="st-post">Share story</button><span id="st-msg" style="font-size:13px"></span></div>' +
+        '<p style="color:var(--muted);font-size:12px;margin-top:10px">Stories live for 24 hours, then disappear. The same automatic check and owner review as feed posts applies.</p></div>';
+      box.querySelector("#st-post").addEventListener("click", submitStory);
+    }
+    storySheet.hidden = false;
+  }
+  function closeStorySheet() { storySheet.hidden = true; }
+  document.getElementById("fd-story-close").addEventListener("click", closeStorySheet);
+  storySheet.querySelector(".fd-sheetbg").addEventListener("click", closeStorySheet);
+
+  function submitStory() {
+    var btn = document.getElementById("st-post"), msg = document.getElementById("st-msg");
+    var fi = document.getElementById("st-file");
+    var file = fi.files && fi.files[0];
+    if (!file) { msg.textContent = "Pick a photo or video first."; return; }
+    var isVid = file.type.indexOf("video/") === 0;
+    if (!isVid && file.type.indexOf("image/") !== 0) { msg.textContent = "Only photos or videos."; return; }
+    if (isVid && file.size > MAX_VID) { msg.textContent = "Video too large (max 30 MB)."; return; }
+    if (!isVid && file.size > MAX_IMG) { msg.textContent = "Image too large (max 5 MB)."; return; }
+    var caption = document.getElementById("st-caption").value.trim();
+    btn.disabled = true; msg.textContent = "Uploading…";
+    cloudUpload(file).then(function (url) {
+      msg.textContent = "Posting…";
+      return xrApi.uRpc("story_create", { p_kind: isVid ? "clip" : "photo", p_media_path: url, p_caption: caption || null });
+    }).then(function (r) {
+      if (!r || !r.ok) throw new Error((r && r.error) || "Could not post.");
+      return fetch(xrApi.url + "/functions/v1/feed-moderate", {
+        method: "POST",
+        headers: { "apikey": xrApi.key, "Authorization": "Bearer " + userToken, "Content-Type": "application/json" },
+        body: JSON.stringify({ story_id: r.id })
+      }).then(function (x) { return x.json(); }).catch(function () { return { status: "pending" }; });
+    }).then(function (m) {
+      btn.disabled = false;
+      fi.value = ""; document.getElementById("st-caption").value = "";
+      if (m && m.status === "approved") { msg.innerHTML = '<b style="color:#8ff0b8">Live!</b> Your story is up for 24 hours.'; xrSfx.play("success"); xrSfx.buzz([20, 40, 20]); }
+      else { msg.innerHTML = '<b style="color:var(--gold2)">Queued.</b> The owner will review it shortly.'; }
+      loadStories();
+    }).catch(function (e) { btn.disabled = false; msg.textContent = e.message || "Could not post — try again."; xrSfx.play("error"); });
+  }
+
+  function loadStories() {
+    xrApi.uRpc("story_trays", {}).then(function (r) {
+      var trays = (r && r.trays) || [];
+      var row = document.getElementById("fd-stories");
+      var html = "";
+      if (me) {
+        var mine = null;
+        for (var i = 0; i < trays.length; i++) if (trays[i].mine) { mine = trays[i]; break; }
+        html += '<button type="button" class="fd-story" data-own="1"><span class="fd-sring' + (mine ? "" : " none") + '">' +
+          '<span class="fd-sava">' + escG((localStorage.getItem("xr_chat_handle") || "Y")[0].toUpperCase()) + '</span><span class="fd-splus">+</span></span>' +
+          '<span class="fd-sname">Your story</span></button>';
+      }
+      trays.forEach(function (t) {
+        if (t.mine) return;
+        html += '<button type="button" class="fd-story" data-author="' + t.author_id + '">' +
+          '<span class="fd-sring' + (t.unseen ? "" : " seen") + '"><span class="fd-sava">' + escG((t.author || "P")[0].toUpperCase()) + '</span></span>' +
+          '<span class="fd-sname">' + escG(t.author) + '</span></button>';
+      });
+      if (!html) { row.style.display = "none"; return; }
+      row.innerHTML = html; row.style.display = "";
+      Array.prototype.forEach.call(row.querySelectorAll(".fd-story"), function (b) {
+        b.addEventListener("click", function (e) {
+          if (b.dataset.own) {
+            if (e.target.closest(".fd-splus")) { openStorySheet(); return; }
+            var mineT = null;
+            for (var i = 0; i < trays.length; i++) if (trays[i].mine) { mineT = trays[i]; break; }
+            if (mineT) openViewer(me.id); else openStorySheet();
+          } else openViewer(b.dataset.author);
+        });
+      });
+    }).catch(function () {});
+  }
+
+  function openViewer(authorId) {
+    xrApi.uRpc("story_list", { p_author: authorId }).then(function (r) {
+      var stories = (r && r.stories) || [];
+      if (!stories.length) { xrToast("No active stories."); return; }
+      V = { stories: stories, idx: 0, author: r.author || "Player", authorId: authorId, elapsed: 0, dur: 5000, timer: null, media: null };
+      viewer.hidden = false;
+      document.body.style.overflow = "hidden";
+      document.body.classList.add("fd-viewing");
+      showSlide();
+    }).catch(function () { xrToast("Could not load stories."); });
+  }
+  function closeViewer() {
+    stopTick();
+    V = null; viewer.hidden = true; viewer.innerHTML = "";
+    document.body.style.overflow = "";
+    document.body.classList.remove("fd-viewing");
+    loadStories();
+  }
+  function stopTick() { if (V && V.timer) { clearInterval(V.timer); V.timer = null; } }
+  function startTick() {
+    if (!V || V.timer) return;
+    V.timer = setInterval(function () {
+      if (!V) return;
+      if (V.media && V.media.tagName === "VIDEO" && V.media.duration) {
+        V.dur = Math.min(30000, V.media.duration * 1000); V.elapsed = V.media.currentTime * 1000;
+      } else V.elapsed += 100;
+      var segs = viewer.querySelectorAll(".fd-vseg i");
+      var seg = segs[V.idx];
+      if (seg) seg.style.width = Math.min(100, (V.elapsed / V.dur) * 100) + "%";
+      if (V.elapsed >= V.dur) nextSlide();
+    }, 100);
+  }
+  function nextSlide() { if (!V) return; V.idx++; stopTick(); if (V.idx >= V.stories.length) closeViewer(); else showSlide(); }
+  function prevSlide() { if (!V) return; stopTick(); if (V.idx > 0) V.idx--; V.elapsed = 0; showSlide(); }
+
+  function showSlide() {
+    var st = V.stories[V.idx];
+    if (!st) { closeViewer(); return; }
+    V.elapsed = 0; V.dur = 5000; V.media = null;
+    var segs = "";
+    for (var i = 0; i < V.stories.length; i++) segs += '<span class="fd-vseg"><i style="width:' + (i < V.idx ? 100 : 0) + '%"></i></span>';
+    viewer.innerHTML = '<div class="fd-vprog">' + segs + '</div>' +
+      '<div class="fd-vhead"><span class="fd-vava">' + escG((V.author || "P")[0].toUpperCase()) + '</span>' +
+      '<span class="fd-vname">' + escG(V.author) + '</span><span class="fd-vtime">' + timeAgo(st.at) + '</span>' +
+      '<button type="button" class="fd-vx" aria-label="Close">✕</button></div>' +
+      '<div class="fd-vbody">' +
+      '<div class="fd-vzone l"></div><div class="fd-vzone r"></div>' +
+      (st.status && st.status !== "approved" ? '<span class="fd-vtag">' + (st.status === "held" ? "In owner review" : "Posting…") + '</span>' : "") +
+      '<p style="color:rgba(255,255,255,.6);font-size:13px;position:absolute">Loading…</p></div>' +
+      (st.caption ? '<div class="fd-vcap">' + escG(st.caption) + '</div>' : "") +
+      (st.views != null ? '<div class="fd-vown"><button type="button" id="fd-vviews">👁 ' + st.views + (st.views === 1 ? " viewer" : " viewers") + '</button><button type="button" id="fd-vdel" style="color:#ff6b6b">Delete</button></div>' : "");
+    viewer.querySelector(".fd-vx").addEventListener("click", closeViewer);
+    var body = viewer.querySelector(".fd-vbody");
+    mediaUrl({ media_path: st.media_path, kind: st.kind }).then(function (url) {
+      if (!V) return;
+      var old = body.querySelector("p"); if (old) old.remove();
+      if (!url) { body.insertAdjacentHTML("beforeend", '<p style="color:rgba(255,255,255,.6);font-size:13px;position:absolute">Media unavailable.</p>'); return; }
+      var m;
+      if (st.kind === "clip") { m = document.createElement("video"); m.autoplay = true; m.playsInline = true; m.setAttribute("playsinline", ""); m.muted = false; }
+      else { m = document.createElement("img"); m.alt = st.caption || "Story"; }
+      m.src = url;
+      body.insertBefore(m, body.firstChild);
+      V.media = m;
+      if (st.kind === "clip") {
+        m.addEventListener("loadedmetadata", function () { if (V) V.dur = Math.min(30000, Math.max(3000, m.duration * 1000)); });
+        m.addEventListener("ended", function () { nextSlide(); });
+        var pr = m.play(); if (pr && pr.catch) pr.catch(function () { m.muted = true; m.play().catch(function () {}); });
+      }
+    });
+    if (me && V.authorId !== me.id && !st.seen) {
+      xrApi.uRpc("story_mark_seen", { p_story: st.id }).catch(function () {});
+      st.seen = true;
+    }
+    startTick();
+    function arm(zone, dir) {
+      var holdT = null, held = false;
+      zone.addEventListener("pointerdown", function () {
+        held = false;
+        holdT = setTimeout(function () {
+          held = true; stopTick();
+          if (V && V.media && V.media.pause) V.media.pause();
+        }, 220);
+      });
+      zone.addEventListener("pointerup", function () {
+        clearTimeout(holdT);
+        if (held) {
+          startTick();
+          if (V && V.media && V.media.play) { var q = V.media.play(); if (q && q.catch) q.catch(function () {}); }
+          return;
+        }
+        if (dir > 0) nextSlide(); else prevSlide();
+      });
+      zone.addEventListener("pointercancel", function () { clearTimeout(holdT); if (held) startTick(); });
+    }
+    arm(viewer.querySelector(".fd-vzone.l"), -1);
+    arm(viewer.querySelector(".fd-vzone.r"), 1);
+    var vb = viewer.querySelector("#fd-vviews");
+    if (vb) vb.addEventListener("click", function () { showViewers(st.id); });
+    var del = viewer.querySelector("#fd-vdel");
+    if (del) del.addEventListener("click", function () {
+      del.disabled = true;
+      xrApi.uRpc("story_delete", { p_story: st.id }).then(function () {
+        if (!V) return;
+        V.stories.splice(V.idx, 1);
+        stopTick();
+        if (!V.stories.length || V.idx >= V.stories.length) closeViewer(); else showSlide();
+      }).catch(function () { del.disabled = false; });
+    });
+  }
+  function showViewers(storyId) {
+    xrApi.uRpc("story_viewers", { p_story: storyId }).then(function (r) {
+      var vs = (r && r.viewers) || [];
+      var list = document.createElement("div");
+      list.className = "fd-vlist";
+      list.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Viewers</b><button type="button" class="fd-vlx" style="background:none;border:none;color:var(--muted);font-size:17px;cursor:pointer">✕</button></div>' +
+        (vs.length ? vs.map(function (x) { return '<div style="padding:7px 0;font-size:14px;border-bottom:1px solid var(--line)"><b>' + escG(x.author) + '</b> <span style="color:var(--muted);font-size:12px">' + timeAgo(x.at) + '</span></div>'; }).join("") : '<p style="color:var(--muted);font-size:13px">No viewers yet.</p>');
+      viewer.appendChild(list);
+      list.querySelector(".fd-vlx").addEventListener("click", function () { list.remove(); });
+    }).catch(function () {});
+  }
+
+  function loadFeed(reset) {
+    if (loading) return; loading = true;
+    if (reset) { document.getElementById("feed-list").innerHTML = ""; lastId = null; }
+    xrApi.uRpc("feed_list", lastId ? { p_before: lastId } : {}).then(function (r) {
+      var posts = (r && r.posts) || [];
+      var box = document.getElementById("feed-list");
+      if (reset && !posts.length) {
+        box.innerHTML = '<div class="empty"><div class="big">No highlights yet</div><p>Be the first — tap + and post your best Free Fire moment.</p></div>';
+      }
+      posts.forEach(function (p) { box.appendChild(postCard(p)); });
+      if (posts.length) lastId = posts[posts.length - 1].id;
+      document.getElementById("feed-more").style.display = posts.length >= 20 ? "" : "none";
+      loading = false;
+    }).catch(function () {
+      if (reset) document.getElementById("feed-list").innerHTML = '<p class="fd-muted" style="padding:20px">Could not load the feed. Try refreshing.</p>';
+      loading = false;
+    });
+  }
+
+  function loadSaved() {
+    var box = document.getElementById("feed-list");
+    box.innerHTML = '<p class="fd-muted" style="padding:20px">Loading saved posts…</p>';
+    document.getElementById("feed-more").style.display = "none";
+    xrApi.uRpc("feed_saved", {}).then(function (r) {
+      var posts = (r && r.posts) || [];
+      box.innerHTML = "";
+      if (!posts.length) {
+        box.innerHTML = '<div class="empty"><div class="big">Nothing saved yet</div><p>Tap the bookmark on any post and it waits for you here. Only you can see your saved posts.</p></div>';
+        return;
+      }
+      posts.forEach(function (p) { box.appendChild(postCard(p)); });
+    }).catch(function () {
+      box.innerHTML = '<p class="fd-muted" style="padding:20px">Could not load saved posts.</p>';
+    });
+  }
+
+  /* saved view toggle in the top bar */
+  var savedBtn = document.getElementById("fd-saved");
+  savedBtn.addEventListener("click", function () {
+    if (!me) { xrToast("Log in to see your saved posts."); return; }
+    savedMode = !savedMode;
+    savedBtn.classList.toggle("on", savedMode);
+    var note = document.getElementById("feed-note");
+    if (savedMode) {
+      note.style.display = "";
+      note.innerHTML = '<span>Saved posts · only you can see these</span><button type="button" id="fd-backfeed">Back to feed</button>';
+      document.getElementById("fd-backfeed").addEventListener("click", function () { savedBtn.click(); });
+      loadSaved();
+    } else {
+      note.style.display = "none";
+      loadFeed(true);
+    }
+  });
+
+  function loadMine() {
+    var box = document.getElementById("feed-mine");
+    if (!me) { box.innerHTML = ""; return; }
+    xrApi.userToken().then(function (t) {
+      return fetch(xrApi.url + "/rest/v1/feed_posts?user_id=eq." + me.id + "&status=neq.approved&select=id,kind,caption,status,ai_reason,created_at&order=created_at.desc&limit=5", {
+        headers: { "apikey": xrApi.key, "Authorization": "Bearer " + (t || xrApi.key) }
+      });
+    }).then(function (r) { return r.ok ? r.json() : []; }).then(function (rows) {
+      if (!rows || !rows.length) { box.innerHTML = ""; return; }
+      box.innerHTML = '<div class="card" style="margin-top:10px"><h3 style="margin-bottom:8px">My recent posts</h3>' + rows.map(function (r) {
+        var st = r.status === "rejected" ? '<b style="color:#ff6b6b">Not published</b>' : '<b style="color:var(--gold2)">In review</b>';
+        return '<div class="news-item" style="margin-bottom:6px"><p style="font-size:13px">' + escG((r.caption || "(" + r.kind + ")").slice(0, 80)) + '</p>' +
+          '<p style="font-size:12px;color:var(--muted)">' + st + " · " + timeAgo(r.created_at) + (r.ai_reason ? " · " + escG(r.ai_reason) : "") + "</p></div>";
+      }).join("") + "</div>";
+    }).catch(function () {});
+  }
+
+  /* comments */
+  function toggleComments(postId) {
+    var box = document.getElementById("xfc-" + postId);
+    if (!box) return;
+    if (box.style.display !== "none" && box.dataset.loaded) { box.style.display = "none"; return; }
+    box.style.display = "";
+    box.dataset.loaded = "1";
+    box.innerHTML = '<p style="color:var(--muted);font-size:12.5px">Loading comments…</p>';
+    xrApi.uRpc("feed_comments_list", { p_post: postId }).then(function (r) {
+      var cs = (r && r.comments) || [];
+      var html = cs.length ? cs.map(function (c) {
+        return '<div class="xf-comment"><b>' + escG(c.author) + "</b>" + escG(c.body) + "</div>";
+      }).join("") : '<p style="color:var(--muted);font-size:12.5px">No comments yet - say something nice.</p>';
+      if (me) {
+        html += '<div class="xf-cform"><input maxlength="300" placeholder="Add a comment…" id="xfin-' + postId + '"><button data-csend="' + postId + '">Post</button></div>';
+      } else {
+        html += '<p style="font-size:12.5px;margin-top:6px"><a href="account.html" style="color:#0a84ff">Log in</a> to comment.</p>';
+      }
+      box.innerHTML = html;
+      var send = box.querySelector("[data-csend]");
+      if (send) send.addEventListener("click", function () {
+        var inp = document.getElementById("xfin-" + postId);
+        var bodyText = inp.value.trim();
+        if (!bodyText) return;
+        send.disabled = true;
+        xrApi.uRpc("feed_comment", { p_post: postId, p_body: bodyText }).then(function (r) {
+          if (r && r.ok) {
+            inp.value = "";
+            box.dataset.loaded = ""; box.style.display = "none";
+            toggleComments(postId);
+            var card = box.closest(".xf-post");
+            var vc = card && card.querySelector(".xf-viewc");
+            if (vc && r.comments != null) vc.textContent = "View all " + r.comments + (r.comments === 1 ? " comment" : " comments");
+          } else {
+            send.disabled = false;
+            xrToast((r && r.error) || "Could not comment.");
+          }
+        }).catch(function (e) { send.disabled = false; xrToast("Could not comment."); });
+      });
+    }).catch(function () { box.innerHTML = '<p style="color:var(--muted);font-size:12.5px">Could not load comments.</p>'; });
+  }
+
+  /* one delegated click handler for the stream */
+  document.getElementById("feed-list").addEventListener("click", function (e) {
+    var lk = e.target.closest(".xf-ic.like[data-post]");
+    if (lk) {
+      if (!me) { xrToast("Log in to like posts."); return; }
+      lk.disabled = true;
+      var postId = parseInt(lk.getAttribute("data-post"), 10);
+      var card = lk.closest(".xf-post");
+      xrApi.uRpc("feed_toggle_like", { p_post: postId }).then(function (r) {
+        lk.disabled = false;
+        if (r && r.ok) { setLikesUI(card, r.liked, r.likes); if (r.liked) xrSfx.play("pop"); }
+      }).catch(function () { lk.disabled = false; });
+      return;
+    }
+    var sv = e.target.closest(".xf-ic.save[data-save]");
+    if (sv) {
+      if (!me) { xrToast("Log in to save posts."); return; }
+      sv.disabled = true;
+      xrApi.uRpc("feed_toggle_save", { p_post: parseInt(sv.getAttribute("data-save"), 10) }).then(function (r) {
+        sv.disabled = false;
+        if (r && r.ok) {
+          sv.classList.toggle("on", !!r.saved);
+          xrToast(r.saved ? "Saved - find it under the bookmark up top." : "Removed from saved.");
+          if (savedMode && !r.saved) { var c = sv.closest(".xf-post"); if (c) c.remove(); }
+        } else { xrToast((r && r.error) || "Could not save."); }
+      }).catch(function () { sv.disabled = false; });
+      return;
+    }
+    var cb = e.target.closest("[data-cpost]");
+    if (cb) { toggleComments(parseInt(cb.getAttribute("data-cpost"), 10)); return; }
+    var sh = e.target.closest("[data-share]");
+    if (sh) {
+      var card2 = sh.closest(".xf-post");
+      var cap = card2 && card2.querySelector(".xf-cap") ? card2.querySelector(".xf-cap").textContent : "XARENA highlight";
+      var text = cap + " - XARENA Feed https://xarena.surge.sh/feed.html";
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { xrToast("Copied - share it anywhere."); xrSfx.play("pop"); });
+      else xrToast("Copy not available on this device.");
+    }
+  });
+  document.getElementById("feed-more").addEventListener("click", function () { loadFeed(false); });
+
+  /* boot */
+  if (!window.xrApi) { renderCompose(); return; }
+  xrApi.userToken().then(function (t) {
+    userToken = t;
+    return xrApi.user();
+  }).then(function (u) {
+    me = u;
+    renderCompose();
+    loadFeed(true);
+    loadMine();
+    loadStories();
+  }).catch(function () { renderCompose(); loadFeed(true); loadStories(); });
+});
+</script>
+<footer><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand">
+<a class="brand" href="index.html">
+<svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="#e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="#f5b301" stroke-width="3.2"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<p>XARENA ESPORTS is a professional Free Fire esports organisation — tournaments, scrims, rankings and a competitive roster, run from India for the community.</p>
+</div>
+<div><h4>Arena</h4><ul>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="how-to-play.html">How to Play</a></li>
+<li><a href="verify.html">Photo Verify</a></li>
+<li><a href="play.html">Play &amp; Earn</a></li>
+<li><a href="feed.html">Highlights Feed</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="rules.html">Rules &amp; Regulations</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+</ul></div>
+<div><h4>Organisation</h4><ul>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="cup.html">Sponsor a Cup</a></li>
+<li><a href="contact.html">Contact & Support</a></li>
+<li><a href="download.html">Get the App</a></li>
+</ul></div>
+</div>
+<div class="foot-bottom">
+<span>© <b id="yr">2026</b> XARENA ESPORTS · All rights reserved</span>
+<span id="foot-credit">Founded &amp; owned by <b>Shivhari Rajput</b></span>
+<span id="app-update" style="display:none;cursor:pointer">App update check</span>
+</div>
+</div></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/vendor/supabase.min.js"></script>
+<script src="assets/js/vendor/qrcode.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/luna.js"></script>
+<script src="assets/js/reco.js"></script>
+<script src="assets/js/game.js"></script>
+<script src="assets/js/sfx.js"></script>
+<script src="assets/js/sharecard.js"></script>
+<script src="assets/js/funline.js"></script>
+<script src="assets/js/dm.js"></script>
+<script src="assets/js/chat-style.js"></script>
+<script src="assets/js/app-shell.js"></script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script>
+</body></html>

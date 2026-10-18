@@ -1,0 +1,94 @@
+/* XARENA HYBRID OS — windowed shell (user's XARENA 2.0 prompt). Standalone page styling. */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --osd-font-d:'Orbitron',sans-serif; --osd-font-b:'Rajdhani',sans-serif;
+  --osd-cyan:#22d3ee; --osd-purple:#8b5cf6; --osd-red:#ff2d55;
+  --osd-glass:rgba(255,255,255,.055); --osd-glass2:rgba(255,255,255,.09);
+  --osd-line:rgba(255,255,255,.12); --osd-text:#f4f6ff; --osd-muted:#9aa3c0;
+}
+html,body{height:100%}
+body.os-body{background:#000;color:var(--osd-text);font-family:var(--osd-font-b);overflow:hidden;height:100dvh}
+.os-wall{position:fixed;inset:0;z-index:0;background:
+  radial-gradient(1000px 620px at 85% -10%,rgba(139,92,246,.24),transparent 60%),
+  radial-gradient(900px 620px at -8% 108%,rgba(34,211,238,.16),transparent 60%),
+  radial-gradient(700px 480px at 8% 0%,rgba(255,45,85,.11),transparent 58%),
+  linear-gradient(160deg,#020208,#05070f 55%,#03040a)}
+.os-wall::after{content:"";position:absolute;inset:0;background:
+  repeating-linear-gradient(0deg,rgba(255,255,255,.016) 0 1px,transparent 1px 46px),
+  repeating-linear-gradient(90deg,rgba(255,255,255,.016) 0 1px,transparent 1px 46px)}
+.os-gloworb{position:fixed;border-radius:50%;filter:blur(90px);opacity:.5;z-index:0;animation:osDrift 26s ease-in-out infinite alternate}
+.os-gloworb.a{width:420px;height:420px;background:rgba(139,92,246,.35);top:-120px;right:-100px}
+.os-gloworb.b{width:380px;height:380px;background:rgba(34,211,238,.22);bottom:-140px;left:-120px;animation-delay:-12s}
+@keyframes osDrift{from{transform:translate(0,0) scale(1)}to{transform:translate(-60px,50px) scale(1.12)}}
+@media (prefers-reduced-motion: reduce){.os-gloworb{animation:none}}
+
+/* ---------- desktop layout ---------- */
+.os-desktop{position:relative;z-index:1;height:calc(100dvh - 84px);overflow-y:auto;padding:26px clamp(16px,4vw,54px) 20px;display:flex;flex-direction:column;gap:26px}
+.os-topbar{display:flex;align-items:center;gap:12px}
+.os-logo{display:flex;align-items:center;gap:10px;font-family:var(--osd-font-d);font-weight:900;font-size:19px;letter-spacing:2px}
+.os-logo img{width:34px;height:34px;border-radius:9px}
+.os-logo em{font-style:normal;color:var(--osd-cyan)}
+.os-clock{margin-left:auto;text-align:right}
+.os-clock .t{font-family:var(--osd-font-d);font-weight:800;font-size:22px;letter-spacing:1px;text-shadow:0 0 18px rgba(34,211,238,.5)}
+.os-clock .d{font-size:12.5px;color:var(--osd-muted);letter-spacing:1.5px;text-transform:uppercase}
+
+/* widgets */
+.os-widgets{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:14px}
+.os-widget{background:var(--osd-glass);border:1px solid var(--osd-line);border-radius:18px;padding:16px 18px;backdrop-filter:blur(14px);cursor:pointer;transition:.2s;min-height:104px}
+.os-widget:hover{background:var(--osd-glass2);border-color:rgba(139,92,246,.5);box-shadow:0 10px 34px rgba(0,0,0,.5),0 0 22px rgba(139,92,246,.14);transform:translateY(-2px)}
+.os-widget .wl{font-family:var(--osd-font-d);font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--osd-muted);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.os-widget .wl i{width:7px;height:7px;border-radius:50%;background:var(--osd-cyan);box-shadow:0 0 8px var(--osd-cyan)}
+.os-widget .wb{font-size:15.5px;font-weight:600;line-height:1.45}
+.os-widget .wb b{color:#fff}
+.os-widget .wb .big{font-family:var(--osd-font-d);font-size:21px;font-weight:800;color:var(--osd-cyan)}
+.os-widget .ws{font-size:12px;color:var(--osd-muted);margin-top:5px}
+.os-widget.purp .wl i{background:var(--osd-purple);box-shadow:0 0 8px var(--osd-purple)}
+.os-widget.red .wl i{background:var(--osd-red);box-shadow:0 0 8px var(--osd-red)}
+
+/* app grid */
+.os-grid-label{font-family:var(--osd-font-d);font-size:11px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--osd-muted)}
+.os-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:18px 10px;max-width:860px}
+.os-app{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;cursor:pointer;color:var(--osd-text);padding:6px 2px;border-radius:16px;transition:.15s}
+.os-app:hover{background:rgba(255,255,255,.05)}
+.os-app .ic{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:27px;background:linear-gradient(150deg,rgba(255,255,255,.13),rgba(255,255,255,.04));border:1px solid var(--osd-line);backdrop-filter:blur(10px);box-shadow:0 8px 22px rgba(0,0,0,.4);transition:.15s}
+.os-app:hover .ic{transform:scale(1.09);border-color:rgba(34,211,238,.55);box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 18px rgba(34,211,238,.22)}
+.os-app .nm{font-size:12.5px;font-weight:600;letter-spacing:.4px;text-align:center}
+
+/* ---------- dock ---------- */
+.os-dock{position:fixed;left:50%;transform:translateX(-50%);bottom:12px;z-index:400;display:flex;align-items:center;gap:8px;padding:9px 12px;background:rgba(10,12,22,.72);border:1px solid var(--osd-line);border-radius:22px;backdrop-filter:blur(18px);box-shadow:0 18px 50px rgba(0,0,0,.6)}
+.os-dock button{position:relative;width:48px;height:48px;border-radius:14px;border:1px solid transparent;background:rgba(255,255,255,.06);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;color:var(--osd-text)}
+.os-dock button:hover{background:rgba(255,255,255,.12);transform:translateY(-4px);border-color:rgba(34,211,238,.4)}
+.os-dock .sep{width:1px;height:34px;background:var(--osd-line);margin:0 4px}
+.os-dock .task.on{border-color:rgba(139,92,246,.6);background:rgba(139,92,246,.18)}
+.os-dock .task.on::after{content:"";position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:14px;height:3px;border-radius:2px;background:var(--osd-purple);box-shadow:0 0 8px var(--osd-purple)}
+.os-dock .dot{position:absolute;top:5px;right:6px;width:9px;height:9px;border-radius:50%;background:var(--osd-red);box-shadow:0 0 8px var(--osd-red);display:none}
+.os-dock .dot.on{display:block}
+.os-dock .exit{font-size:17px}
+
+/* ---------- windows ---------- */
+#os-windows{position:fixed;inset:0;z-index:300;pointer-events:none}
+.os-win{position:absolute;pointer-events:auto;background:rgba(8,10,18,.97);border:1px solid rgba(139,92,246,.4);border-radius:16px;box-shadow:0 26px 80px rgba(0,0,0,.75),0 0 34px rgba(139,92,246,.14);display:flex;flex-direction:column;overflow:hidden;min-width:300px;min-height:220px;animation:osWinIn .18s ease}
+@keyframes osWinIn{from{opacity:0;transform:scale(.96) translateY(10px)}to{opacity:1;transform:none}}
+.os-win.focus{border-color:rgba(34,211,238,.6);box-shadow:0 26px 90px rgba(0,0,0,.8),0 0 40px rgba(34,211,238,.16)}
+.os-win-head{display:flex;align-items:center;gap:9px;padding:9px 12px;background:linear-gradient(120deg,rgba(139,92,246,.16),rgba(34,211,238,.1));border-bottom:1px solid var(--osd-line);cursor:grab;user-select:none;touch-action:none}
+.os-win-head:active{cursor:grabbing}
+.os-win-head .wi{font-size:16px}
+.os-win-head .wt{font-family:var(--osd-font-d);font-size:11.5px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.os-win-head button{width:28px;height:28px;border-radius:9px;border:1px solid var(--osd-line);background:rgba(255,255,255,.06);color:var(--osd-text);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.os-win-head button:hover{background:rgba(255,255,255,.14)}
+.os-win-head .wc:hover{background:rgba(255,45,85,.3);border-color:rgba(255,45,85,.6)}
+.os-win-body{flex:1;overflow:hidden;background:#06070d}
+.os-win-body iframe{width:100%;height:100%;border:0;display:block}
+.os-win.min{display:none}
+
+/* mobile: windows go full-screen */
+@media (max-width:760px){
+  .os-desktop{padding:16px 14px 14px;height:calc(100dvh - 78px);gap:18px}
+  .os-win{inset:0 !important;width:100% !important;height:100% !important;border-radius:0;border-left:0;border-right:0}
+  .os-win-head{cursor:default}
+  .os-grid{grid-template-columns:repeat(4,1fr);gap:14px 6px}
+  .os-app .ic{width:54px;height:54px;font-size:25px}
+  .os-clock .t{font-size:18px}
+  .os-dock{bottom:8px;padding:8px 10px;gap:6px}
+  .os-dock button{width:44px;height:44px;font-size:20px}
+}

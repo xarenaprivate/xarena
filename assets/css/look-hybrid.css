@@ -1,0 +1,39 @@
+/* XARENA look: HYBRID OS (user's XARENA 2.0 prompt) - pure black glassmorphism, multi-neon purple/cyan/red */
+body.look-hybrid{
+  --bg0:#000000; --bg1:#05070d; --bg2:#0a0e1a; --card:#0a0e18;
+  --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.18);
+  --red:#ff2d55; --red2:#ff6b87; --redglow:rgba(255,45,85,.45);
+  --purple:#8b5cf6; --purple2:#a78bfa; --purpleglow:rgba(139,92,246,.45);
+  --gold:#22d3ee; --gold2:#7deffb;
+  --text:#f4f6ff; --muted:#9aa3c0; --dim:#626b88;
+  --cut:none;
+}
+body.look-hybrid::before{background:
+  radial-gradient(900px 540px at 88% -8%,rgba(139,92,246,.2),transparent 60%),
+  radial-gradient(820px 540px at 4% 100%,rgba(34,211,238,.13),transparent 60%),
+  radial-gradient(700px 420px at 6% 0%,rgba(255,45,85,.09),transparent 58%)}
+body.look-hybrid .btn,body.look-hybrid .card,body.look-hybrid .badge,body.look-hybrid .lb-tab,body.look-hybrid .lb-table,body.look-hybrid .empty,body.look-hybrid .form-panel,body.look-hybrid .hero-tag,body.look-hybrid .hero-strip,body.look-hybrid .card .icon{border-radius:16px}
+body.look-hybrid .card,body.look-hybrid .form-panel,body.look-hybrid .lb-table,body.look-hybrid .empty,body.look-hybrid .hero-strip{background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.02));backdrop-filter:blur(14px);border-color:rgba(255,255,255,.11)}
+body.look-hybrid .card:hover{border-color:rgba(139,92,246,.55);box-shadow:0 16px 48px rgba(0,0,0,.65),0 0 28px rgba(139,92,246,.22),inset 0 0 22px rgba(34,211,238,.05)}
+body.look-hybrid .field input,body.look-hybrid .field select,body.look-hybrid .field textarea{clip-path:none;border-radius:12px;background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14)}
+body.look-hybrid .field input:focus,body.look-hybrid .field select:focus,body.look-hybrid .field textarea:focus{border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.15)}
+body.look-hybrid .btn-red{background:linear-gradient(135deg,#ff2d55,#b3123a);box-shadow:0 0 24px rgba(255,45,85,.45)}
+body.look-hybrid .btn-ghost{background:rgba(139,92,246,.12);color:var(--purple2);box-shadow:inset 0 0 0 1px #8b5cf6}
+body.look-hybrid .btn-gold{background:linear-gradient(135deg,#7deffb,#0ea5c4);color:#02181d;box-shadow:0 0 20px rgba(34,211,238,.35)}
+body.look-hybrid .card .icon{background:rgba(255,45,85,.1);border-color:rgba(255,45,85,.4)}
+body.look-hybrid .form-panel{border-color:rgba(139,92,246,.4);box-shadow:0 0 44px rgba(139,92,246,.12)}
+body.look-hybrid .hero-tag{color:#7deffb;border-color:rgba(34,211,238,.4);background:rgba(34,211,238,.06);text-shadow:0 0 12px rgba(34,211,238,.6)}
+body.look-hybrid .hero-tag .dot{background:#22d3ee;box-shadow:0 0 10px #22d3ee}
+body.look-hybrid .lb-tab{border-radius:999px}
+body.look-hybrid .lb-tab.active{background:linear-gradient(135deg,rgba(139,92,246,.4),rgba(34,211,238,.28));border-color:#8b5cf6;box-shadow:0 0 18px rgba(139,92,246,.3)}
+body.look-hybrid .lb-rank{color:#7deffb}
+body.look-hybrid .lb-rank.r1{color:#7deffb;text-shadow:0 0 12px rgba(34,211,238,.75)}
+body.look-hybrid .lb-score{color:#a78bfa}
+body.look-hybrid .badge{border-radius:999px}
+body.look-hybrid .badge.up{color:#7deffb;background:rgba(34,211,238,.08);box-shadow:inset 0 0 0 1px rgba(34,211,238,.45)}
+body.look-hybrid .tmeta div{border-left-color:#8b5cf6}
+body.look-hybrid .news-item{border-left-color:#ff2d55;background:linear-gradient(90deg,rgba(255,45,85,.07),transparent 55%);border-radius:0 12px 12px 0}
+body.look-hybrid .ntag{color:#7deffb}
+body.look-hybrid .nav-chat{border-color:rgba(34,211,238,.55);clip-path:none;border-radius:999px;background:linear-gradient(120deg,rgba(139,92,246,.16),rgba(34,211,238,.12))}
+body.look-hybrid .nav-chat:hover{box-shadow:0 0 18px rgba(34,211,238,.4)}
+body.look-hybrid .task-kind.solo{color:#7deffb;background:rgba(34,211,238,.1);box-shadow:inset 0 0 0 1px rgba(34,211,238,.45)}

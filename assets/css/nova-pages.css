@@ -1,0 +1,21 @@
+/* XARENA nova shared pages - pixel-faithful to the owner's mockups, real data only */
+.section.xnp{background:
+ radial-gradient(ellipse 700px 500px at 90% -5%,rgba(123,47,247,.40) 0%,transparent 60%),
+ radial-gradient(ellipse 600px 500px at -15% 105%,rgba(245,179,1,.10) 0%,transparent 55%),
+ linear-gradient(165deg,#150826 0%,#1d0b38 50%,#0d0518 100%);
+ margin-left:calc(50% - 50vw);margin-right:calc(50% - 50vw);padding:44px 0 60px}
+.xnp-brand{text-align:center;margin-bottom:26px}
+.xnp-logo{width:74px;height:74px;filter:drop-shadow(0 0 22px rgba(255,210,63,.35))}
+.xnp-word{font-family:'Orbitron';font-weight:900;font-size:30px;color:#ffd23f;letter-spacing:4px;margin-top:10px}
+.xnp-word2{font-family:'Orbitron';font-weight:700;font-size:15px;color:#ffd23f;letter-spacing:10px;margin-top:2px}
+.xnp-title{font-family:'Orbitron';font-weight:900;font-size:clamp(38px,10vw,52px);color:#fff;letter-spacing:.5px;margin:22px 0 10px}
+.xnp-sub{color:#e9defc;font-size:16px;margin-bottom:30px}
+.xnp-step{display:flex;align-items:center;gap:18px;background:rgba(24,11,46,.82);border:1px solid rgba(255,210,63,.28);border-radius:18px;padding:22px 20px;margin-bottom:18px}
+.xnp-ico{flex:none;width:78px;height:78px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,210,63,.28),rgba(245,179,1,.10) 70%);border:2.5px solid #ffd23f;display:flex;align-items:center;justify-content:center;box-shadow:0 0 24px rgba(255,210,63,.22)}
+.xnp-ico svg{width:44px;height:44px}
+.xnp-dash{flex:none;width:0;align-self:stretch;border-left:2px dashed rgba(255,210,63,.35)}
+.xnp-num{font-family:'Orbitron';font-weight:900;font-size:19px;color:#ffd23f}
+.xnp-body h3{font-family:'Orbitron';font-size:21px;font-weight:800;color:#ffd23f;margin:3px 0 7px}
+.xnp-body p{color:#d9ccf2;font-size:15px;line-height:1.5}
+.xnp-body a{color:#ffd23f;text-decoration:none;border-bottom:1px dotted rgba(255,210,63,.5)}
+.xnp-cta{display:block;text-align:center;background:linear-gradient(180deg,#ffe9a3 0%,#ffd23f 45%,#f5b301 100%);color:#231303;font-family:'Orbitron';font-weight:900;font-size:19px;letter-spacing:.5px;border-radius:16px;padding:19px;margin-top:26px;text-decoration:none;box-shadow:0 10px 30px rgba(245,179,1,.35)}

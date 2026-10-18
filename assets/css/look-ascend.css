@@ -1,0 +1,132 @@
+/* XARENA look: ASCEND TEAL (Ascend Tweaks mockup) - black-teal glass ops dashboard, cyan data glow */
+body.look-ascend{
+  --bg0:#020c0b; --bg1:#051311; --bg2:#0a1f1c; --card:#071a17;
+  --line:rgba(25,227,194,.15); --line2:rgba(25,227,194,.32);
+  --red:#12d6b4; --red2:#4ef0d3; --redglow:rgba(18,214,180,.45);
+  --purple:#19e3c2; --purple2:#7df5e1; --purpleglow:rgba(25,227,194,.4);
+  --gold:#ffd34d; --gold2:#ffe08a;
+  --text:#eafffb; --muted:#93c4ba; --dim:#5f948b;
+  --cut:none;
+}
+body.look-ascend::before{background:
+  radial-gradient(900px 520px at 88% -6%,rgba(25,227,194,.13),transparent 60%),
+  radial-gradient(760px 520px at 2% 6%,rgba(18,150,140,.14),transparent 58%),
+  repeating-linear-gradient(0deg,rgba(25,227,194,.022) 0 1px,transparent 1px 40px),
+  repeating-linear-gradient(90deg,rgba(25,227,194,.022) 0 1px,transparent 1px 40px)}
+body.look-ascend .btn,body.look-ascend .card,body.look-ascend .badge,body.look-ascend .lb-tab,body.look-ascend .lb-table,body.look-ascend .empty,body.look-ascend .form-panel,body.look-ascend .hero-tag,body.look-ascend .hero-strip,body.look-ascend .card .icon{border-radius:13px}
+body.look-ascend .card,body.look-ascend .form-panel,body.look-ascend .lb-table,body.look-ascend .empty,body.look-ascend .hero-strip{background:linear-gradient(165deg,rgba(14,42,38,.6),rgba(6,22,20,.72));backdrop-filter:blur(10px);border-color:rgba(25,227,194,.22)}
+body.look-ascend .field input,body.look-ascend .field select,body.look-ascend .field textarea{clip-path:none;border-radius:10px;background:rgba(2,12,11,.7)}
+body.look-ascend .field input:focus,body.look-ascend .field select:focus,body.look-ascend .field textarea:focus{border-color:#19e3c2;box-shadow:0 0 0 3px rgba(25,227,194,.14)}
+body.look-ascend .btn-red{background:linear-gradient(135deg,#3ff0d1,#0aa58d);color:#02201b;box-shadow:0 0 24px rgba(18,214,180,.4)}
+body.look-ascend .btn-red:hover{box-shadow:0 0 36px rgba(25,227,194,.55)}
+body.look-ascend .btn-ghost{background:rgba(25,227,194,.09);color:var(--purple2);box-shadow:inset 0 0 0 1px #19e3c2}
+body.look-ascend .card:hover{border-color:rgba(125,245,225,.55);box-shadow:0 12px 40px rgba(0,10,9,.6),0 0 26px rgba(25,227,194,.18)}
+body.look-ascend .card .icon{background:rgba(18,214,180,.1);border-color:rgba(18,214,180,.42)}
+body.look-ascend .card .icon svg{stroke:var(--red2)}
+body.look-ascend .form-panel{border-color:rgba(25,227,194,.4);box-shadow:0 0 44px rgba(25,227,194,.1)}
+body.look-ascend .lb-tab.active{background:linear-gradient(135deg,rgba(18,214,180,.32),rgba(25,227,194,.22));border-color:#12d6b4;box-shadow:0 0 18px rgba(18,214,180,.28);color:#eafffb}
+body.look-ascend .lb-table th{color:#7df5e1;border-bottom-color:rgba(25,227,194,.3)}
+body.look-ascend .lb-score{color:#7df5e1}
+body.look-ascend .badge.info{color:#7df5e1;background:rgba(25,227,194,.1);box-shadow:inset 0 0 0 1px rgba(25,227,194,.45)}
+body.look-ascend .badge.live{color:#5eead4;background:rgba(18,214,180,.12);box-shadow:inset 0 0 0 1px rgba(18,214,180,.5)}
+body.look-ascend .tmeta div{border-left-color:#19e3c2}
+body.look-ascend .news-item{border-left-color:#12d6b4;background:linear-gradient(90deg,rgba(18,214,180,.08),transparent 55%)}
+body.look-ascend .hero-tag{color:#ffe08a;border-color:rgba(255,211,77,.4);background:rgba(255,211,77,.05)}
+body.look-ascend .nav-chat{border-color:rgba(25,227,194,.55);clip-path:none;border-radius:999px;background:linear-gradient(120deg,rgba(18,214,180,.16),rgba(25,227,194,.1))}
+body.look-ascend .nav-chat:hover{box-shadow:0 0 18px rgba(25,227,194,.4)}
+body.look-ascend h1,body.look-ascend h2,body.look-ascend h3{text-shadow:0 0 22px rgba(25,227,194,.18)}
+
+/* ===== ASCEND LAYOUT: ops-HUD sidebar dashboard (desktop, not in OS windows) ===== */
+@media (min-width:1000px){
+body.look-ascend:not(.os-embed){padding-left:218px}
+body.look-ascend:not(.os-embed) header.nav{position:fixed;left:0;top:0;bottom:0;width:218px;background:linear-gradient(180deg,#031210,#020b0a);border-right:1px solid var(--line2);z-index:70;box-shadow:8px 0 40px rgba(0,8,7,.6)}
+body.look-ascend:not(.os-embed) header.nav .nav-in{flex-direction:column;align-items:stretch;justify-content:flex-start;height:100%;width:100%;max-width:none;margin:0;padding:18px 12px;gap:10px}
+body.look-ascend:not(.os-embed) header.nav .brand{justify-content:center;padding:6px 0 12px;border-bottom:1px solid var(--line)}
+body.look-ascend:not(.os-embed) .nav-links{flex-direction:column;align-items:stretch;gap:2px;flex:1;overflow-y:auto;display:flex;position:static;background:none;border:none;padding:0;box-shadow:none}
+body.look-ascend:not(.os-embed) .nav-links li{width:100%}
+body.look-ascend:not(.os-embed) .nav-links a{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;border-radius:8px;font-size:13px;color:var(--muted);letter-spacing:.6px;border:1px solid transparent;font-family:var(--font-d);text-transform:uppercase}
+body.look-ascend:not(.os-embed) .nav-links a:hover{background:rgba(25,227,194,.08);color:var(--text)}
+body.look-ascend:not(.os-embed) .nav-links a.active{background:linear-gradient(90deg,rgba(25,227,194,.22),rgba(25,227,194,.06));color:#eafffb;border-color:rgba(25,227,194,.5);box-shadow:inset 3px 0 0 #19e3c2,0 0 18px rgba(25,227,194,.2)}
+body.look-ascend:not(.os-embed) .nav-links a::before{font-size:14px;width:20px;text-align:center}
+body.look-ascend:not(.os-embed) .nav-links a[href="index.html"]::before{content:"▣"}
+body.look-ascend:not(.os-embed) .nav-links a[href="tournaments.html"]::before{content:"🏆"}
+body.look-ascend:not(.os-embed) .nav-links a[href="teams.html"]::before{content:"🛡️"}
+body.look-ascend:not(.os-embed) .nav-links a[href="players.html"]::before{content:"👥"}
+body.look-ascend:not(.os-embed) .nav-links a[href="squads.html"]::before{content:"⚔️"}
+body.look-ascend:not(.os-embed) .nav-links a[href="tasks.html"]::before{content:"✅"}
+body.look-ascend:not(.os-embed) .nav-links a[href="leaderboard.html"]::before{content:"📊"}
+body.look-ascend:not(.os-embed) .nav-links a[href="winners.html"]::before{content:"🥇"}
+body.look-ascend:not(.os-embed) .nav-links a[href="scrims.html"]::before{content:"🎯"}
+body.look-ascend:not(.os-embed) .nav-links a[href="news.html"]::before{content:"📰"}
+body.look-ascend:not(.os-embed) .nav-links a[href="rules.html"]::before{content:"📜"}
+body.look-ascend:not(.os-embed) .nav-links a[href="contact.html"]::before{content:"✉️"}
+body.look-ascend:not(.os-embed) .nav-links a[href="account.html"]::before{content:"👤"}
+body.look-ascend:not(.os-embed) .nav-links a.nav-chat::before{content:"💬"}
+body.look-ascend:not(.os-embed) .nav-links li.nav-cta{flex-direction:column;align-items:stretch;gap:8px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line)}
+body.look-ascend:not(.os-embed) .nav-cta .xr-theme-btn{width:100%;border-radius:8px;border:1px solid rgba(25,227,194,.4);background:rgba(25,227,194,.08);color:#9ff5e6;padding:8px;cursor:pointer;font-family:var(--font-d);letter-spacing:1px}
+body.look-ascend:not(.os-embed) .nav-cta .btn-red{width:100%;text-align:center;border-radius:8px;background:linear-gradient(135deg,#19e3c2,#0aa78d);color:#02110e;box-shadow:0 0 22px rgba(25,227,194,.45);padding:11px 14px;font-weight:800;letter-spacing:1px}
+body.look-ascend:not(.os-embed) .hero{min-height:0;border-radius:14px;margin:20px 20px 0;border:1px solid var(--line2);overflow:hidden;box-shadow:0 24px 70px rgba(0,8,7,.55),0 0 40px rgba(25,227,194,.08)}
+body.look-ascend:not(.os-embed) .hero-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;background:none;border:none;padding:0;margin-top:26px}
+body.look-ascend:not(.os-embed) .hero-strip .hstat{background:rgba(5,22,19,.9);border:1px solid var(--line2);border-radius:10px;padding:16px;position:relative}
+body.look-ascend:not(.os-embed) .hero-strip .hstat::before{content:"";position:absolute;top:8px;left:8px;width:6px;height:6px;border-radius:50%;background:#19e3c2;box-shadow:0 0 8px #19e3c2}
+body.look-ascend:not(.os-embed) .hero-strip .hstat b{color:#4ef0d3;font-size:24px;text-shadow:0 0 14px rgba(25,227,194,.5)}
+}
+/* HUD panels + labels, all sizes */
+body.look-ascend .card{border-radius:10px;background:linear-gradient(170deg,rgba(6,20,17,.96),rgba(4,14,12,.96));box-shadow:0 14px 40px rgba(0,8,7,.5),inset 0 0 30px rgba(25,227,194,.03)}
+body.look-ascend .card:hover{box-shadow:0 16px 46px rgba(0,8,7,.6),0 0 24px rgba(25,227,194,.16)}
+body.look-ascend .section-head .overline{color:#19e3c2;font-family:var(--font-d);letter-spacing:3px}
+body.look-ascend .section-head .overline::before{content:"// "}
+body.look-ascend .lb-table tr:hover td{background:rgba(25,227,194,.06)}
+.asc-clock{position:fixed;top:14px;right:18px;z-index:80;background:rgba(4,16,14,.92);border:1px solid rgba(25,227,194,.5);border-radius:10px;padding:8px 16px;font-family:var(--font-d);color:#4ef0d3;font-size:15px;letter-spacing:2px;text-shadow:0 0 12px rgba(25,227,194,.6);box-shadow:0 0 22px rgba(25,227,194,.18)}
+.asc-clock small{display:block;font-size:8.5px;letter-spacing:2.5px;color:#5f948b;margin-top:1px}
+@media (max-width:999px){.asc-clock{display:none}}
+@media (min-width:1000px){
+body.look-ascend:not(.os-embed) .nav-links{scrollbar-width:thin;scrollbar-color:rgba(25,227,194,.45) transparent}
+body.look-ascend:not(.os-embed) .nav-links::-webkit-scrollbar{width:5px}
+body.look-ascend:not(.os-embed) .nav-links::-webkit-scrollbar-thumb{background:rgba(25,227,194,.45);border-radius:3px}
+body.look-ascend:not(.os-embed) #xr-install-pill{left:236px!important}
+}
+
+/* ===== ASCEND LAYOUT — portrait phone: bottom icon tab bar + stacked HUD ===== */
+@media (max-width:999px){
+body.look-ascend:not(.os-embed){padding-bottom:72px}
+body.look-ascend:not(.os-embed) header.nav{position:fixed;left:0;right:0;bottom:0;top:auto;height:64px;background:linear-gradient(180deg,#04201b,#020f0d);border-top:1px solid var(--line2);z-index:70;box-shadow:0 -8px 30px rgba(0,8,7,.6)}
+body.look-ascend:not(.os-embed) header.nav .nav-in{width:100%;max-width:none;margin:0;padding:6px 8px;height:100%;align-items:center}
+body.look-ascend:not(.os-embed) header.nav .brand{display:none}
+body.look-ascend:not(.os-embed) .burger{display:none!important}
+body.look-ascend:not(.os-embed) .nav-links{position:static;transform:none;display:flex;flex-direction:row;overflow-x:auto;width:100%;align-items:center;gap:4px;background:none;border:none;box-shadow:none;padding:0}
+body.look-ascend:not(.os-embed) .nav-links li{flex:0 0 auto;display:flex}
+body.look-ascend:not(.os-embed) .nav-links a{font-size:0;width:52px;height:52px;display:flex;align-items:center;justify-content:center;border-radius:10px;border-bottom:none;background:none;color:var(--muted)}
+body.look-ascend:not(.os-embed) .nav-links a::before{font-size:19px;width:auto}
+body.look-ascend:not(.os-embed) .nav-links a[href="index.html"]::before{content:"▣"}
+body.look-ascend:not(.os-embed) .nav-links a[href="tournaments.html"]::before{content:"🏆"}
+body.look-ascend:not(.os-embed) .nav-links a[href="teams.html"]::before{content:"🛡️"}
+body.look-ascend:not(.os-embed) .nav-links a[href="players.html"]::before{content:"👥"}
+body.look-ascend:not(.os-embed) .nav-links a[href="squads.html"]::before{content:"⚔️"}
+body.look-ascend:not(.os-embed) .nav-links a[href="tasks.html"]::before{content:"✅"}
+body.look-ascend:not(.os-embed) .nav-links a[href="leaderboard.html"]::before{content:"📊"}
+body.look-ascend:not(.os-embed) .nav-links a[href="winners.html"]::before{content:"🥇"}
+body.look-ascend:not(.os-embed) .nav-links a[href="scrims.html"]::before{content:"🎯"}
+body.look-ascend:not(.os-embed) .nav-links a[href="news.html"]::before{content:"📰"}
+body.look-ascend:not(.os-embed) .nav-links a[href="rules.html"]::before{content:"📜"}
+body.look-ascend:not(.os-embed) .nav-links a[href="contact.html"]::before{content:"✉️"}
+body.look-ascend:not(.os-embed) .nav-links a[href="account.html"]::before{content:"👤"}
+body.look-ascend:not(.os-embed) .nav-links a.nav-chat::before{content:"💬"}
+body.look-ascend:not(.os-embed) .nav-links a.active{background:linear-gradient(135deg,rgba(25,227,194,.35),rgba(25,227,194,.12));box-shadow:inset 0 -3px 0 #19e3c2,0 0 16px rgba(25,227,194,.35);color:#eafffb}
+body.look-ascend:not(.os-embed) .nav-links a.active::after{display:none}
+body.look-ascend:not(.os-embed) .nav-links .pulse,body.look-ascend:not(.os-embed) .nav-links .chat-badge{display:none}
+body.look-ascend:not(.os-embed) .nav-links li.nav-cta{flex-direction:row;gap:6px;align-items:center;margin-left:auto}
+body.look-ascend:not(.os-embed) .nav-cta .xr-theme-btn{font-size:0;width:52px;height:52px;border-radius:10px;border:1px solid rgba(25,227,194,.4);background:rgba(25,227,194,.1)}
+body.look-ascend:not(.os-embed) .nav-cta .xr-theme-btn::before{content:"🎨";font-size:19px}
+body.look-ascend:not(.os-embed) .nav-cta .btn-red{font-size:0;width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#19e3c2,#0aa78d)}
+body.look-ascend:not(.os-embed) .nav-cta .btn-red::before{content:"📝";font-size:17px}
+body.look-ascend:not(.os-embed) #xr-install-pill{bottom:76px!important}
+body.look-ascend:not(.os-embed) #luna-fab{bottom:80px!important}
+body.look-ascend:not(.os-embed) .hero{border-radius:14px;margin:12px 10px 0;border:1px solid var(--line2);overflow:hidden;min-height:0}
+body.look-ascend:not(.os-embed) .hero-strip{display:grid;grid-template-columns:1fr 1fr;gap:10px;border:none;background:none;backdrop-filter:none;clip-path:none;padding:0;margin-top:22px;max-width:none}
+body.look-ascend:not(.os-embed) .hero-strip .hstat{background:rgba(5,22,19,.9);border:1px solid var(--line2);border-radius:10px;padding:14px;position:relative}
+body.look-ascend:not(.os-embed) .hero-strip .hstat::before{content:"";position:absolute;top:8px;left:8px;width:6px;height:6px;border-radius:50%;background:#19e3c2;box-shadow:0 0 8px #19e3c2}
+body.look-ascend:not(.os-embed) .hero-strip .hstat b{color:#4ef0d3}
+.asc-clock{display:block;top:10px;bottom:auto;right:10px;padding:5px 12px;font-size:12px;z-index:69}
+.asc-clock small{display:none}
+}

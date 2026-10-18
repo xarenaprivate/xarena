@@ -1,0 +1,62 @@
+/* XARENA chat "nova" skin - matches the owner's World Chat mockup.
+   Default look; add body.chat-classic to fall back to the previous skin. */
+body.chat-nova-page{background:
+ radial-gradient(ellipse 900px 700px at 85% -10%,rgba(123,47,247,.35) 0%,transparent 60%),
+ radial-gradient(ellipse 800px 600px at -10% 110%,rgba(255,45,85,.18) 0%,transparent 55%),
+ linear-gradient(165deg,#0d0618 0%,#16092b 55%,#0a0512 100%) !important}
+body.chat-nova-page .page-hero,body.chat-nova-page .chat-classic-only{display:none}
+body.chat-classic .chat-nova-only{display:none !important}
+.chat-nova-only .cn-card{background:rgba(30,17,54,.72);border:1px solid rgba(255,210,63,.16);border-radius:22px;padding:20px 18px 14px;backdrop-filter:blur(6px)}
+.cn-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.cn-title{font-family:'Orbitron';font-size:30px;font-weight:800;color:#fff;letter-spacing:.5px}
+.cn-right{display:flex;align-items:center;gap:10px}
+.cn-online{display:inline-flex;align-items:center;gap:7px;border:1.5px solid rgba(255,210,63,.55);color:#ffd23f;font-size:12.5px;letter-spacing:2px;font-weight:700;padding:7px 14px;border-radius:999px}
+.cn-online i{width:8px;height:8px;border-radius:50%;background:#3ddc84;display:inline-block;box-shadow:0 0 8px #3ddc84}
+.cn-luna{display:inline-flex;align-items:center;gap:7px;border:1.5px solid rgba(255,210,63,.55);color:#ffd23f;font-size:13.5px;font-weight:700;padding:8px 16px;border-radius:999px;text-decoration:none}
+.cn-strip{margin-top:16px;background:rgba(43,25,77,.85);border:1px solid rgba(139,61,255,.25);border-radius:16px;padding:14px 16px 12px;text-align:center}
+.cn-strip-t{font-size:14.5px;font-weight:700;color:#e9defc;letter-spacing:.4px}
+.cn-strip-t b{color:#ffd23f}
+.cn-avas{display:flex;justify-content:center;gap:14px;margin-top:12px;flex-wrap:wrap}
+.cn-ava{display:flex;flex-direction:column;align-items:center;gap:5px;width:64px}
+.cn-ava .av{position:relative;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron';font-weight:800;font-size:20px;color:#fff;border:2px solid rgba(255,210,63,.5);overflow:hidden;background:#3b2a63}
+.cn-ava .av img{width:100%;height:100%;object-fit:cover}
+.cn-ava .av .dot{position:absolute;right:1px;bottom:1px;width:12px;height:12px;border-radius:50%;background:#3ddc84;border:2px solid #1e1136}
+.cn-ava .nm{font-size:11.5px;color:#cfc2ee;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cn-ava .nm .ai{background:#ffd23f;color:#14092b;font-size:9px;font-weight:800;border-radius:4px;padding:1px 5px;margin-left:3px}
+.cn-ava.more .av{background:#5a45a0;font-size:15px}
+/* bubbles */
+body.chat-nova-page .chat-log{background:transparent;border:none;padding:18px 2px 8px}
+body.chat-nova-page .cmsg{display:flex;gap:10px;margin:0 0 16px;align-items:flex-start}
+body.chat-nova-page .cmsg .cavatar{flex:none;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:17px;overflow:hidden;border:2px solid rgba(255,255,255,.15)}
+body.chat-nova-page .cmsg .cavatar img{width:100%;height:100%;object-fit:cover}
+body.chat-nova-page .cmsg.luna .cavatar{background:linear-gradient(135deg,#2a1a52,#4b2f8f);border-color:rgba(255,210,63,.55)}
+body.chat-nova-page .cbody{max-width:82%}
+body.chat-nova-page .cmeta{font-size:12.5px;color:#cfc2ee;margin-bottom:5px;display:flex;gap:6px;align-items:center}
+body.chat-nova-page .cmeta b{color:#fff}
+body.chat-nova-page .cmeta .ctime{color:#8f7fb0}
+body.chat-nova-page .luna-tag{background:#ffd23f;color:#14092b;font-size:9.5px;font-weight:800;border-radius:4px;padding:1px 6px}
+body.chat-nova-page .ctext{display:block;font-size:15.5px;line-height:1.45;padding:13px 16px;border-radius:4px 18px 18px 18px;background:rgba(43,25,77,.9);border:1px solid rgba(139,61,255,.25);color:#f0e9ff}
+body.chat-nova-page .cmsg.luna .ctext{background:rgba(30,17,54,.92);border:1.5px solid rgba(255,210,63,.65);box-shadow:0 0 18px rgba(255,210,63,.10)}
+body.chat-nova-page .cmsg.mine{flex-direction:row-reverse}
+body.chat-nova-page .cmsg.mine .cbody{display:flex;flex-direction:column;align-items:flex-end}
+body.chat-nova-page .cmsg.mine .ctext{background:linear-gradient(135deg,#ffd23f,#f5b301);color:#231303;font-weight:600;border:none;border-radius:18px 4px 18px 18px}
+body.chat-nova-page .cmsg.mine .cavatar{border-color:rgba(255,210,63,.6)}
+body.chat-nova-page .cmsg .cacts{margin-top:4px}
+body.chat-nova-page .cmsg .cacts button{background:none;border:none;color:#8f7fb0;font-size:11px;cursor:pointer;margin-right:8px;text-decoration:underline}
+body.chat-nova-page .chat-sys{text-align:center;font-size:12.5px;color:#9a86c2;margin:10px 0}
+/* chips */
+.cn-chips{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 12px}
+.cn-chip{display:inline-flex;align-items:center;gap:7px;border:1.5px solid rgba(255,210,63,.5);color:#ffd23f;font-size:13px;font-weight:700;padding:9px 16px;border-radius:999px;text-decoration:none;background:rgba(30,17,54,.6)}
+.cn-chip svg{width:15px;height:15px}
+/* input */
+body.chat-nova-page .chat-input{display:flex;gap:10px;align-items:center;background:rgba(30,17,54,.85);border:1.5px solid rgba(255,210,63,.45);border-radius:999px;padding:7px 8px 7px 10px}
+body.chat-nova-page .chat-input input{flex:1;background:transparent;border:none;outline:none;color:#fff;font-size:15px;font-family:'Rajdhani',sans-serif;font-weight:600;padding:8px 4px}
+body.chat-nova-page .chat-input input::placeholder{color:#8f7fb0}
+body.chat-nova-page .emoji-btn{background:rgba(255,210,63,.12);border:1.5px solid rgba(255,210,63,.45);color:#ffd23f;width:38px;height:38px;border-radius:50%;font-size:16px;cursor:pointer;flex:none}
+body.chat-nova-page .send-btn{background:linear-gradient(135deg,#ffd23f,#f5b301);border:none;color:#231303;width:44px;height:44px;border-radius:50%;font-size:17px;cursor:pointer;flex:none;font-weight:800}
+body.chat-nova-page .chat-typing{font-size:12.5px;color:#c9a7ff;min-height:18px;padding:2px 6px}
+body.chat-nova-page .emoji-panel{background:rgba(30,17,54,.95);border:1px solid rgba(255,210,63,.25);border-radius:14px}
+.cn-foot{text-align:center;font-size:12px;letter-spacing:2px;color:#8f7fb0;margin-top:14px}
+.cn-foot b{color:#ffd23f;font-weight:700}
+.cn-look{background:none;border:1px solid rgba(143,127,176,.5);color:#9a86c2;font-size:11.5px;border-radius:999px;padding:5px 12px;cursor:pointer}
+body.chat-nova-page .section{padding-top:22px}

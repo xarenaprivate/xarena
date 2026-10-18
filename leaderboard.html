@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://xarena.surge.sh/leaderboard.html">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaderboard · XARENA ESPORTS</title>
+<meta name="description" content="XARENA ESPORTS leaderboards — player XP ranks, weekly board, squad battles and official match results.">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="%230b0b14" stroke="%23e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="%23f5b301" stroke-width="3.2"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="XARENA ESPORTS">
+<meta property="og:title" content="XARENA ESPORTS - Free Fire tournaments, feed, stories, Luna">
+<meta property="og:description" content="India's Free Fire esports platform - tournaments, scrims, highlights feed, stories, encrypted messages and the Luna assistant. Free forever.">
+<meta property="og:url" content="https://xarena.surge.sh/">
+<meta property="og:image" content="https://xarena.surge.sh/assets/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0104">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="XARENA">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/app-shell.css">
+</head>
+<body>
+<style>
+#xr-splash{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;transition:opacity .3s ease;overflow:hidden}
+#xr-splash::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none}
+#xr-splash .xs-stage{position:relative;width:118px;height:118px;display:flex;align-items:center;justify-content:center}
+#xr-splash .xs-ring{position:absolute;inset:0;animation:xsSpin 2.6s linear infinite}
+#xr-splash .xs-ring circle{fill:none;stroke:var(--xs-acc,#e10600);stroke-width:2.5;stroke-dasharray:44 22;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--xs-acc,#e10600))}
+#xr-splash .xs-ring.r2{animation:xsSpinR 3.8s linear infinite;inset:9px}
+#xr-splash .xs-ring.r2 circle{stroke-dasharray:10 30;opacity:.55;stroke-width:1.5}
+#xr-splash .xs-logo{width:62px;height:62px;animation:xsPulse 1.2s ease-in-out infinite}
+#xr-splash .xs-logo path{stroke:var(--xs-acc,#e10600)}
+#xr-splash .xs-logo .xs-x{stroke:#f5b301}
+#xr-splash .xs-name{font:900 24px Orbitron,system-ui,sans-serif;color:#fff;letter-spacing:7px;margin-left:7px;animation:xsGlitch 2.4s steps(1) infinite}
+#xr-splash .xs-tag{font:800 10px Orbitron,system-ui,sans-serif;letter-spacing:5px;color:var(--xs-acc,#e10600);margin-left:5px;text-shadow:0 0 10px var(--xs-acc,#e10600)}
+#xr-splash .xs-tip{font:600 12.5px Rajdhani,system-ui,sans-serif;color:#9aa0b8;letter-spacing:1px;min-height:16px;text-align:center;padding:0 24px;transition:opacity .25s}
+#xr-splash .xs-bar{width:170px;height:3px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+#xr-splash .xs-bar i{display:block;height:100%;width:0;border-radius:3px;background:var(--xs-acc,#e10600);box-shadow:0 0 12px var(--xs-acc,#e10600);animation:xsFill 1.5s ease forwards}
+#xr-splash.xs-done{opacity:0;pointer-events:none}
+@keyframes xsSpin{to{transform:rotate(360deg)}}
+@keyframes xsSpinR{to{transform:rotate(-360deg)}}
+@keyframes xsPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes xsFill{to{width:88%}}
+@keyframes xsGlitch{0%,93%,100%{text-shadow:none}94%{text-shadow:-2px 0 var(--xs-acc,#e10600),2px 0 #22d3ee}96%{text-shadow:2px 0 var(--xs-acc,#e10600),-2px 0 #22d3ee}98%{text-shadow:none}}
+@media (prefers-reduced-motion:reduce){#xr-splash .xs-ring,#xr-splash .xs-logo,#xr-splash .xs-name,#xr-splash .xs-bar i{animation:none!important}#xr-splash{transition:none!important}}
+</style>
+<div id="xr-splash" role="status" aria-label="Loading XARENA">
+<div class="xs-stage">
+<svg class="xs-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-ring r2" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-logo" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke-width="2.5"/><path class="xs-x" d="M13 13l14 14M27 13L13 27" stroke-width="3.2" fill="none"/></svg>
+</div>
+<div class="xs-name">XARENA</div>
+<div class="xs-tag">ENTERING THE ARENA</div>
+<div class="xs-tip" id="xs-tip"></div>
+<div class="xs-bar"><i></i></div>
+<script>(function(){try{var m={liquid:"#0a84ff",classic:"#e10600","3d":"#8b3dff",nexus:"#7c5cff",arena:"#ff7a1a","void":"#a970ff",ascend:"#19e3c2",hybrid:"#22d3ee",pulse:"#ff2e88",aura:"#8b5cf6",social:"#0095f6"};var t=localStorage.getItem("xr_theme")||"liquid";var s=document.getElementById("xr-splash");if(s&&m[t])s.style.setProperty("--xs-acc",m[t]);var tips=["Season 1 - 48 squad slots - registrations open","Real tournaments - tracked rankings - live World Chat","Tip: mention @luna in World Chat - she answers","Tip: finish tasks to earn points, badges and titles","48 squads. One crown. Season 1 is loading"];var tip=document.getElementById("xs-tip");if(tip&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){var i=Math.floor(Math.random()*tips.length);tip.textContent=tips[i];var iv=setInterval(function(){if(!document.getElementById("xr-splash")){clearInterval(iv);return;}i=(i+1)%tips.length;tip.style.opacity=0;setTimeout(function(){tip.textContent=tips[i];tip.style.opacity=1;},240);},1600);}}catch(e){}})();</script>
+</div>
+<header class="nav"><div class="wrap nav-in">
+<a class="brand" href="index.html" aria-label="XARENA ESPORTS home">
+<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="xg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3131"/><stop offset=".55" stop-color="#e10600"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="url(#xg)" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="url(#xg)" stroke-width="3.2" stroke-linecap="square"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<button class="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+<ul class="nav-links">
+<li><a href="index.html">Home</a></li>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="tasks.html">Tasks</a></li>
+<li><a href="play.html">Play</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="feed.html">Feed</a></li>
+<li><a href="leaderboard.html" class="active">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+<li><a href="rules.html">RRs</a></li>
+<li><a href="contact.html">Contact</a></li>
+<li><a href="account.html">Account</a></li>
+<li><a class="nav-chat" href="chat.html"><span class="pulse"></span>World Chat<span class="chat-badge" id="xr-chat-badge"></span></a></li>
+<li class="nav-cta" style="display:flex;align-items:center;gap:8px"><a href="messages.html" aria-label="Messages" title="Messages" style="color:inherit;display:flex;padding:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></a><button class="xr-theme-btn" id="xr-theme-btn" type="button">Look</button><a class="btn btn-red btn-sm" href="tournaments.html#register">Register</a></li>
+</ul>
+</div></header>
+<link rel="stylesheet" href="assets/css/lb-nova.css">
+<script>try{document.body.classList.add(localStorage.getItem("xr_lb_look")==="classic"?"lb-classic":"lb-nova-page");}catch(e){document.body.classList.add("lb-nova-page");}</script>
+<main>
+<div class="lb-nova-only"><div class="wrap"><div class="lbn-head">
+  <div class="lbn-title"><span class="cup">🏆</span>LEADERBOARD</div>
+  <div class="lbn-sub">XP RANKS · SEASON 1</div>
+  <div class="lbn-rule"></div>
+  <button class="lbn-look" id="lbn-look" type="button">Classic view</button>
+</div>
+<div class="lbn-list" id="lbn-list"><p style="text-align:center;color:#9a86c2">Loading live ranks…</p></div>
+<div id="lbn-mine"></div>
+<div class="lbn-cta">
+  <a href="tournaments.html#register">CONFIRM REGISTRATION</a>
+  <div class="under" id="lbn-under">Loading season status...</div>
+</div>
+</div></div>
+<div class="lb-classic-only">
+<section class="page-hero"><div class="wrap">
+  <div class="overline">Rankings</div>
+  <h1>Leader<em>board</em></h1>
+  <p>Live player ranks from earned XP, the weekly race, squad battles, and official match results — everything computed from real activity, updated as it happens.</p>
+  <button class="lbn-look" id="lbn-look2" type="button" style="margin-top:10px">Nova view</button>
+</div></section>
+<section class="section"><div class="wrap">
+  <div class="lb-tabs" id="lb-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+    <button class="lb-tab active" data-lb="players">Players</button>
+    <button class="lb-tab" data-lb="week">This Week</button>
+    <button class="lb-tab" data-lb="squads">Squad Battles</button>
+    <button class="lb-tab" data-lb="areas">By Area</button>
+    <button class="lb-tab" data-lb="match">Match Results</button>
+  </div>
+  <div id="lb-panel-players" class="lb-panel"></div>
+  <div id="lb-panel-week" class="lb-panel" style="display:none"></div>
+  <div id="lb-panel-squads" class="lb-panel" style="display:none"></div>
+  <div id="lb-panel-areas" class="lb-panel" style="display:none"></div>
+  <div id="lb-panel-match" class="lb-panel" style="display:none"><div id="leaderboard"></div></div>
+</div></section>
+</div>
+</main>
+<script>
+window.addEventListener("load", function () {
+  var escG = (window.xrGame && xrGame.esc) || function (x) { return String(x); };
+  function tierOf(xp) {
+    xp = xp || 0;
+    return xp >= 5000 ? "Grandmaster" : xp >= 2500 ? "Heroic" : xp >= 1200 ? "Diamond" : xp >= 600 ? "Platinum" : xp >= 250 ? "Gold" : xp >= 80 ? "Silver" : "Bronze";
+  }
+  var TIER_COLORS = { Bronze: "#cd7f32", Silver: "#c0c0c0", Gold: "#ffd700", Platinum: "#7dd3fc", Diamond: "#60a5fa", Heroic: "#c084fc", Grandmaster: "#f5b301" };
+  function tierChip(xp) {
+    var t = tierOf(xp);
+    return '<span style="color:' + TIER_COLORS[t] + ';font-weight:700;font-size:12.5px">' + t + "</span>";
+  }
+  function medal(i) {
+    if (i === 0) return '<span class="xg-rank-medal" style="color:#ffd700">1</span>';
+    if (i === 1) return '<span class="xg-rank-medal" style="color:#c0c0c0">2</span>';
+    if (i === 2) return '<span class="xg-rank-medal" style="color:#cd7f32">3</span>';
+    return '<span class="xg-rank-medal">' + (i + 1) + '</span>';
+  }
+  function table(head, rows) {
+    return '<div class="lb-table" style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px">' +
+      '<thead><tr>' + head.map(function (h) { return '<th style="text-align:left;padding:10px 12px;color:var(--muted);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid var(--line,rgba(255,255,255,.1))">' + h + '</th>'; }).join("") + '</tr></thead>' +
+      '<tbody>' + rows + '</tbody></table></div>';
+  }
+  function empty(msg, cta) {
+    return '<div class="empty"><div class="big">' + msg + '</div><p>' + (cta || "") + '</p></div>';
+  }
+  function row(cells, style) {
+    return '<tr' + (style || "") + '>' + cells.map(function (c) { return '<td style="padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.05)">' + c + '</td>'; }).join("") + '</tr>';
+  }
+  function lbRpc(name, args) {
+    return fetch(xrApi.url + "/rest/v1/rpc/" + name, {
+      method: "POST",
+      headers: { "apikey": xrApi.key, "Content-Type": "application/json" },
+      body: JSON.stringify(args || {})
+    }).then(function (r) { return r.json(); });
+  }
+  function wireAdd(box) {
+    box.querySelectorAll(".lb-add").forEach(function (btn) {
+      if (btn.dataset.wired) return;
+      btn.dataset.wired = "1";
+      btn.addEventListener("click", function () {
+        if (!window.xrApi) { location.href = "account.html"; return; }
+        xrApi.user().then(function (u) {
+          if (!u) { location.href = "account.html"; return; }
+          btn.disabled = true;
+          xrApi.uRpc("friend_request_by_name", { p_name: btn.getAttribute("data-name") }).then(function (r2) {
+            if (r2 && r2.ok) { btn.textContent = r2.already ? "Friends ✓" : (r2.accepted ? "Friends ✓" : "Sent ✓"); if (window.xrSfx) xrSfx.play("pop"); }
+            else { btn.disabled = false; xrToast((r2 && r2.error) || "Could not send the request."); }
+          });
+        });
+      });
+    });
+  }
+  function renderPlayers(scope, mount) {
+    var box = document.getElementById(mount);
+    box.innerHTML = '<p style="color:var(--muted)">Loading live ranks…</p>';
+    lbRpc("game_leaderboard", { p_scope: scope }).then(function (r) {
+      var rows = (r && r.rows) || [];
+      if (!rows.length) {
+        box.innerHTML = empty("No XP earned yet", 'The board lights up the moment a player checks in, spins or answers a quiz on the <a href="play.html" style="color:var(--gold2)">Play page</a>.');
+        return;
+      }
+      var chips = '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">' +
+        ["All", "Bronze", "Silver", "Gold", "Platinum", "Diamond", "Heroic", "Grandmaster"].map(function (t) {
+          return '<button class="lb-tab' + (t === "All" ? " active" : "") + '" style="font-size:11px;padding:5px 10px" data-tier-filter="' + t + '">' + t + "</button>";
+        }).join("") + "</div>" +
+        '<div style="margin-bottom:12px"><input class="lb-search" type="search" placeholder="Search a player by name" style="width:100%;max-width:340px;background:var(--card);border:1px solid var(--line2);border-radius:10px;color:var(--text);padding:9px 12px;font-size:14px;font-family:inherit" /></div>';
+      var activeTier = "All", query = "";
+      function drawRows(filter) {
+        var q = query.trim().toLowerCase();
+        var shown = rows.filter(function (t) {
+          if (filter !== "All" && tierOf(t.xp) !== filter) return false;
+          if (q && String(t.name || "").toLowerCase().indexOf(q) < 0) return false;
+          return true;
+        });
+        return shown.length ? table(
+          scope === "week" ? ["#", "Player", "XP this week", "Badges", "Friend"] : ["#", "Player", "Level", "XP", "Tier", "Badges", "Friend"],
+          shown.map(function (t, i) {
+            return row([
+              medal(i), '<a href="player.html?u=' + encodeURIComponent(t.name) + '" style="color:inherit;text-decoration:none"><b>' + escG(t.name) + "</b></a>",
+              scope === "week" ? '<b style="color:var(--gold2)">' + t.xp + '</b>' : "LV " + (t.level || 1),
+              scope === "week" ? (t.badges || 0) : '<b style="color:var(--gold2)">' + t.xp + "</b>",
+              scope === "week" ? "" : tierChip(t.xp),
+              scope === "week" ? "" : (t.badges || 0),
+              '<button class="btn btn-ghost btn-sm lb-add" data-name="' + escG(t.name) + '" style="padding:4px 10px;font-size:11.5px">＋ Add</button>'
+            ].filter(function (c) { return c !== ""; }));
+          }).join("")
+        ) : empty(query.trim() ? "No player matches " + query.trim() : "Nobody in " + filter + " yet", "Players climb tiers by earning Arena Points on the Play page.");
+      }
+      box.innerHTML = chips + '<div class="tier-rows">' + drawRows("All") + "</div>";
+      box.querySelectorAll("[data-tier-filter]").forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          box.querySelectorAll("[data-tier-filter]").forEach(function (c) { c.classList.remove("active"); });
+          chip.classList.add("active");
+          activeTier = chip.getAttribute("data-tier-filter");
+          box.querySelector(".tier-rows").innerHTML = drawRows(activeTier);
+          wireAdd(box);
+        });
+      });
+      var searchBox = box.querySelector(".lb-search");
+      if (searchBox) {
+        searchBox.addEventListener("input", function () {
+          query = searchBox.value || "";
+          box.querySelector(".tier-rows").innerHTML = drawRows(activeTier);
+          wireAdd(box);
+        });
+      }
+      wireMyRank(box, scope);
+      wireAdd(box);
+    }).catch(function () { box.innerHTML = empty("Offline", "Could not load the ranks. Try again shortly."); });
+  }
+  function renderSquads() {
+    var box = document.getElementById("lb-panel-squads");
+    box.innerHTML = '<p style="color:var(--muted)">Loading squad battle board…</p>';
+    lbRpc("squad_battle_board", {}).then(function (r) {
+      var rows = (r && r.rows) || [];
+      if (!rows.length) {
+        box.innerHTML = empty("No squad battle data yet", "Squads score battle points from official match results plus their members' earned XP. The race starts with Season 1.");
+        return;
+      }
+      box.innerHTML = table(
+        ["#", "Squad", "Match Pts", "Wins", "Kills", "Squad XP", "Total"],
+        rows.map(function (t, i) {
+          return row([medal(i), "<b>" + escG(t.squad) + "</b>", t.match_points || 0, t.wins || 0, t.kills || 0, t.squad_xp || 0, '<b style="color:var(--gold2)">' + (t.total || 0) + "</b>"]);
+        }).join("")
+      ) + '<p style="color:var(--muted);font-size:12.5px;margin-top:10px">Total = official match points + XP earned by squad members. Match points come from real results entered by match control.</p>';
+    }).catch(function () { box.innerHTML = empty("Offline", "Could not load the squad board. Try again shortly."); });
+  }
+  /* share my rank card (uses the global sharecard generator) */
+  function wireMyRank(box, scope) {
+    if (!window.xrApi || !window.xshare || scope !== "all") return;
+    xrApi.user().then(function (u) {
+      if (!u) return;
+      var w = document.createElement("div");
+      w.style.cssText = "margin-top:14px;text-align:center";
+      w.innerHTML = '<button class="btn btn-gold btn-sm" id="lb-share">Share my rank card</button>';
+      box.appendChild(w);
+      document.getElementById("lb-share").addEventListener("click", function () {
+        var b2 = this; b2.disabled = true; b2.textContent = "Making your card…";
+        xrApi.uRpc("my_game_rank", {}).then(function (r) {
+          b2.disabled = false; b2.textContent = "Share my rank card";
+          if (!(r && r.ok)) { xrToast((r && r.error) || "No rank yet - earn XP on the Play page first."); return; }
+          var cv = xshare.draw({
+            kicker: "Leaderboard rank #" + r.rank,
+            title: r.name || "Player",
+            lines: [r.xp + " XP earned - Level " + (r.level || 1)],
+            sub: "Climb the board on XARENA ESPORTS"
+          });
+          xshare.share(cv, "XARENA leaderboard", "Rank #" + r.rank + " on XARENA ESPORTS").then(function (s) {
+            if (!s) xshare.download(cv, "xarena-rank-" + r.rank + ".png");
+          });
+        });
+      });
+    });
+  }
+  function renderAreas() {
+    var box = document.getElementById("lb-panel-areas");
+    box.innerHTML = '<p style="color:var(--muted)">Loading area board…</p>';
+    lbRpc("mohalla_leaderboard", {}).then(function (r) {
+      var rows = (r && r.rows) || [];
+      if (!rows.length) {
+        box.innerHTML = empty("No areas on the board yet", 'Set your mohalla / area on your <a href="account.html" style="color:var(--gold2)">account page</a> - your area appears here as soon as players from it earn XP.');
+        return;
+      }
+      box.innerHTML = table(
+        ["#", "Area", "Players", "Total XP"],
+        rows.map(function (t, i) {
+          return row([medal(i), "<b>" + escG(t.mohalla) + "</b>", t.players || 0, '<b style="color:var(--gold2)">' + (t.xp || 0) + "</b>"]);
+        }).join("")
+      ) + '<p style="color:var(--muted);font-size:12.5px;margin-top:10px">Areas rank by the combined XP of players who set that mohalla on their account. Set yours on the Account page.</p>';
+    }).catch(function () { box.innerHTML = empty("Offline", "Could not load the area board. Try again shortly."); });
+  }
+  /* ---------- nova skin renderers (real data only) ---------- */
+  function fmtXp(x) { try { return Number(x || 0).toLocaleString("en-IN"); } catch (e) { return String(x); } }
+  function novaCard(t, i) {
+    var cls = i === 0 ? "r1" : i === 1 ? "r2" : i === 2 ? "r3" : "rx";
+    var chip = i < 3 ? '<div class="lbn-chip">TOP PLAYER</div>' : "";
+    var ava = t.avatar
+      ? '<div class="lbn-ava"><img src="' + escG(t.avatar) + '" alt="" loading="lazy"></div>'
+      : '<div class="lbn-ava">' + escG(String(t.name || "P").charAt(0).toUpperCase()) + "</div>";
+    var meta = (t.mohalla ? escG(t.mohalla) + " · " : "") + '<span class="tier" style="color:' + TIER_COLORS[tierOf(t.xp)] + '">' + tierOf(t.xp).toUpperCase() + "</span>";
+    return '<div class="lbn-card ' + cls + '">' + chip +
+      '<div class="lbn-rank">#' + (i + 1) + "</div>" + ava +
+      '<div class="lbn-mid"><div class="lbn-name">' + escG(t.name) + '</div><div class="lbn-meta">' + meta + "</div></div>" +
+      '<div class="lbn-xp">' + fmtXp(t.xp) + " XP<small>EARNED</small></div></div>";
+  }
+  function renderNova() {
+    var list = document.getElementById("lbn-list");
+    if (!list) return;
+    lbRpc("leaderboard_nova", {}).then(function (r) {
+      var rows = (r && r.rows) || [];
+      list.innerHTML = rows.length
+        ? rows.map(function (t, i) { return novaCard(t, i); }).join("")
+        : '<div class="lbn-empty"><div class="big">No XP earned yet</div><p>The board lights up the moment a player earns XP on the Play page.</p></div>';
+    }).catch(function () {
+      list.innerHTML = '<div class="lbn-empty"><div class="big">Offline</div><p>Could not load the ranks. Try again shortly.</p></div>';
+    });
+    /* pinned YOUR RANK card - only with a real rank */
+    if (window.xrApi && xrApi.user) {
+      xrApi.user().then(function (u) {
+        if (!u) return;
+        xrApi.uRpc("my_rank_nova", {}).then(function (r) {
+          if (!(r && r.ok)) return;
+          var box = document.getElementById("lbn-mine");
+          if (!box) return;
+          var ava = r.avatar
+            ? '<div class="lbn-ava"><img src="' + escG(r.avatar) + '" alt=""></div>'
+            : '<div class="lbn-ava">' + escG(String(r.name || "Y").charAt(0).toUpperCase()) + "</div>";
+          var right = (r.week_xp && r.week_xp > 0)
+            ? '<div class="lbn-week">▲ +' + fmtXp(r.week_xp) + " XP<small>this week</small></div>"
+            : '<div class="lbn-xp">' + fmtXp(r.xp) + " XP<small>EARNED</small></div>";
+          box.innerHTML = '<div class="lbn-card lbn-mine" style="margin-top:18px"><div class="lbn-chip">YOUR RANK</div>' +
+            '<div class="lbn-rank">#' + r.rank + "</div>" + ava +
+            '<div class="lbn-mid"><div class="lbn-name">You (' + escG(r.name) + ')</div><div class="lbn-meta"><span class="tier" style="color:' + TIER_COLORS[tierOf(r.xp)] + '">' + tierOf(r.xp).toUpperCase() + "</span>" + (r.week_xp > 0 ? " · " + fmtXp(r.xp) + " XP" : "") + "</div></div>" + right + "</div>";
+        });
+      });
+    }
+    /* real registration state from the tournaments table */
+    fetch(xrApi.url + "/rest/v1/tournaments?select=name,slots,reg_open,status&order=sort.asc&limit=1", { headers: { apikey: xrApi.key } })
+      .then(function (x) { return x.json(); }).then(function (rows) {
+        var el = document.getElementById("lbn-under");
+        var t = rows && rows[0];
+        if (!el || !t) return;
+        el.textContent = t.reg_open
+          ? t.name + " registration is open - " + t.slots + " squad slots."
+          : t.name + " registration is closed.";
+      }).catch(function () {});
+    /* countdown to the next real match */
+    fetch(xrApi.url + "/rest/v1/matches_public?select=title,starts_at,status&order=starts_at.asc&limit=10", { headers: { apikey: xrApi.key } })
+      .then(function (x) { return x.json(); }).then(function (rows) {
+        var now = Date.now();
+        var next = (rows || []).filter(function (m) { return m.starts_at && new Date(m.starts_at).getTime() > now && m.status !== "done" && m.status !== "cancelled"; })[0];
+        var el = document.getElementById("lbn-under");
+        if (!el) return;
+        if (next) {
+          function tick() {
+            var ms = new Date(next.starts_at).getTime() - Date.now();
+            if (ms <= 0) { el.textContent = next.title + " is starting now - check the match center."; return; }
+            var d = Math.floor(ms / 86400000), h = Math.floor(ms % 86400000 / 3600000), m = Math.floor(ms % 3600000 / 60000);
+            el.textContent = "Next match: " + next.title + " - starts in " + (d > 0 ? d + "d " : "") + h + "h " + m + "m";
+            setTimeout(tick, 30000);
+          }
+          tick();
+        }
+      }).catch(function () {});
+  }
+  function wireLbLook() {
+    function setLook(v) {
+      try { localStorage.setItem("xr_lb_look", v); } catch (e) {}
+      document.body.classList.toggle("lb-classic", v === "classic");
+      document.body.classList.toggle("lb-nova-page", v !== "classic");
+      if (v === "classic") activate("players"); else renderNova();
+    }
+    var b1 = document.getElementById("lbn-look"), b2 = document.getElementById("lbn-look2");
+    if (b1) b1.addEventListener("click", function () { setLook("classic"); });
+    if (b2) b2.addEventListener("click", function () { setLook("nova"); });
+  }
+  var loaded = {};
+  function activate(key) {
+    document.querySelectorAll("#lb-tabs .lb-tab").forEach(function (b) { b.classList.toggle("active", b.dataset.lb === key); });
+    document.querySelectorAll(".lb-panel").forEach(function (p) { p.style.display = "none"; });
+    document.getElementById("lb-panel-" + key).style.display = "block";
+    if (loaded[key]) return;
+    loaded[key] = true;
+    if (key === "players") renderPlayers("all", "lb-panel-players");
+    if (key === "week") renderPlayers("week", "lb-panel-week");
+    if (key === "squads") renderSquads();
+    if (key === "areas") renderAreas();
+    /* match tab renders itself from app.js (existing official-results renderer) */
+  }
+  document.getElementById("lb-tabs").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-lb]");
+    if (b) { activate(b.dataset.lb); if (window.xrSfx) xrSfx.play("open"); }
+  });
+  wireLbLook();
+  function bootView() {
+    if (document.body.classList.contains("lb-classic")) activate("players");
+    else if (window.xrApi) renderNova();
+  }
+  if (window.xrApi) bootView();
+  else {
+    document.addEventListener("xr-backend-live", bootView, { once: true });
+    setTimeout(function () { if (!loaded.players) bootView(); }, 2500);
+  }
+});
+</script>
+<footer><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand">
+<a class="brand" href="index.html">
+<svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="#e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="#f5b301" stroke-width="3.2"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<p>XARENA ESPORTS is a professional Free Fire esports organisation — tournaments, scrims, rankings and a competitive roster, run from India for the community.</p>
+</div>
+<div><h4>Arena</h4><ul>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="how-to-play.html">How to Play</a></li>
+<li><a href="verify.html">Photo Verify</a></li>
+<li><a href="play.html">Play &amp; Earn</a></li>
+<li><a href="feed.html">Highlights Feed</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="rules.html">Rules &amp; Regulations</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+</ul></div>
+<div><h4>Organisation</h4><ul>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="cup.html">Sponsor a Cup</a></li>
+<li><a href="contact.html">Contact & Support</a></li>
+<li><a href="download.html">Get the App</a></li>
+</ul></div>
+</div>
+<div class="foot-bottom">
+<span>© <b id="yr">2026</b> XARENA ESPORTS · All rights reserved</span>
+<span id="foot-credit">Founded &amp; owned by <b>Shivhari Rajput</b></span>
+<span id="app-update" style="display:none;cursor:pointer">App update check</span>
+</div>
+</div></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/vendor/supabase.min.js"></script>
+<script src="assets/js/vendor/qrcode.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/luna.js"></script>
+<script src="assets/js/reco.js"></script>
+<script src="assets/js/game.js"></script>
+<script src="assets/js/sfx.js"></script>
+<script src="assets/js/sharecard.js"></script>
+<script src="assets/js/funline.js"></script>
+<script src="assets/js/dm.js"></script>
+<script src="assets/js/chat-style.js"></script>
+<script src="assets/js/app-shell.js"></script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script>
+</body></html>

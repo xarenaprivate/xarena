@@ -1,0 +1,58 @@
+/* XARENA "ULTIMATE 3D" look - layered on top of the classic theme. Only loaded when body.theme-3d */
+body.theme-3d{background:#050103}
+.theme-3d .nav{backdrop-filter:blur(14px);background:rgba(8,1,4,.72);border-bottom:1px solid rgba(245,179,1,.18)}
+.theme-3d .card,.theme-3d .news-item,.theme-3d .lb-row,.theme-3d .form-card{
+  background:linear-gradient(160deg,rgba(30,6,18,.62),rgba(10,1,6,.55));
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(191,106,255,.22);
+  box-shadow:0 10px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);
+  transform-style:preserve-3d;transition:transform .25s ease, box-shadow .25s ease}
+.theme-3d .card:hover{box-shadow:0 18px 60px rgba(160,32,240,.25), inset 0 1px 0 rgba(255,255,255,.07)}
+/* animated gradient border on tournament cards */
+.theme-3d .tcard{position:relative;overflow:hidden}
+.theme-3d .tcard::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;
+  background:linear-gradient(120deg,#ff1e3c,#a020f0,#f5b301,#ff1e3c);background-size:300% 300%;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+  animation:tborder 5s linear infinite;pointer-events:none}
+@keyframes tborder{to{background-position:300% 0}}
+/* hero */
+.theme-3d #hero3d{position:absolute;inset:0;z-index:0}
+.theme-3d .hero .hero-bg,.theme-3d .hero .hero-veil{display:none}
+.theme-3d .hero{position:relative}
+.theme-3d .page-hero{position:relative}
+.theme-3d .hero>.wrap,.theme-3d .hero .hero-inner{position:relative;z-index:2}
+.theme-3d .hero-title,.theme-3d h1.hero-h{text-shadow:0 0 34px rgba(255,30,60,.45),0 0 90px rgba(160,32,240,.3);
+  animation:titlein 1.1s cubic-bezier(.2,.7,.2,1) both}
+@keyframes titlein{from{opacity:0;transform:translateY(34px) scale(.96);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+.theme-3d .btn{position:relative;overflow:hidden}
+.theme-3d .btn::after{content:"";position:absolute;top:0;left:-80%;width:50%;height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);transition:left .6s ease}
+.theme-3d .btn:hover::after{left:130%}
+.theme-3d .btn:active{transform:scale(.96)}
+/* scroll reveals */
+.theme-3d .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.theme-3d .reveal.in{opacity:1;transform:none}
+/* theme switch */
+.xr-theme-btn{background:rgba(160,32,240,.14);border:1px solid rgba(245,179,1,.45);color:#f5b301;
+  border-radius:999px;padding:6px 14px;font-size:11.5px;font-weight:800;letter-spacing:1.5px;cursor:pointer;font-family:inherit}
+.xr-theme-btn:hover{background:rgba(245,179,1,.15)}
+/* prize pool shine */
+.theme-3d .prize,.theme-3d .tcard-prize{background:linear-gradient(90deg,#f5b301,#ffe9a8,#f5b301);background-size:200% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 3.2s linear infinite}
+@keyframes shine{to{background-position:200% 0}}
+/* Luna panel glass lift */
+.theme-3d #luna-panel{background:rgba(12,2,8,.9);border-color:rgba(245,179,1,.35);box-shadow:0 16px 60px rgba(160,32,240,.35)}
+.theme-3d #luna-fab{border-color:rgba(245,179,1,.6);animation:fabpulse 2.6s ease-in-out infinite}
+@keyframes fabpulse{0%,100%{box-shadow:0 6px 24px rgba(160,32,240,.45)}50%{box-shadow:0 6px 34px rgba(245,179,1,.55)}}
+/* mobile + reduced motion: kill heavy animation, keep the look */
+@media (prefers-reduced-motion: reduce){
+  .theme-3d *{animation:none!important;transition:none!important}
+  .theme-3d .reveal{opacity:1;transform:none}
+}
+@media (max-width:700px){
+  .theme-3d .card,.theme-3d .news-item{backdrop-filter:none;-webkit-backdrop-filter:none}
+}
+@media (max-width:700px){
+  .theme-3d #trophy3d{width:44vw!important;height:180px!important;top:auto!important;bottom:-30px;opacity:.85;z-index:0}
+  .theme-3d .page-hero .wrap{position:relative;z-index:1}
+}

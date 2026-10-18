@@ -1,0 +1,44 @@
+/* XARENA leaderboard "nova" skin - matches the owner's Leaderboard mockup.
+   Default look; add body.lb-classic to fall back to the previous tabbed board. */
+body.lb-nova-page{background:
+ radial-gradient(ellipse 900px 700px at 85% -10%,rgba(123,47,247,.38) 0%,transparent 60%),
+ radial-gradient(ellipse 800px 620px at -10% 110%,rgba(255,45,85,.16) 0%,transparent 55%),
+ linear-gradient(165deg,#0d0618 0%,#16092b 55%,#0a0512 100%) !important}
+body.lb-nova-page .lb-classic-only{display:none}
+body.lb-classic .lb-nova-only{display:none !important}
+.lb-nova-only{max-width:760px;margin:0 auto;padding:8px 4px 30px}
+.lbn-head{text-align:center;margin:26px 0 8px}
+.lbn-title{font-family:'Orbitron';font-weight:900;font-size:clamp(26px,8.5vw,42px);letter-spacing:2px;color:#ffd23f;text-shadow:0 0 30px rgba(255,210,63,.35)}
+.lbn-title .cup{font-size:36px;margin-right:6px}
+.lbn-sub{font-size:16px;letter-spacing:6px;color:#c9a7ff;margin-top:10px;font-weight:700}
+.lbn-rule{width:220px;height:1px;margin:18px auto 0;background:linear-gradient(90deg,transparent,rgba(255,210,63,.7),transparent)}
+.lbn-look{background:none;border:1px solid rgba(143,127,176,.5);color:#9a86c2;font-size:11.5px;border-radius:999px;padding:5px 12px;cursor:pointer;margin-top:14px}
+.lbn-list{margin-top:22px;display:flex;flex-direction:column;gap:16px}
+.lbn-card{position:relative;display:flex;align-items:center;gap:16px;background:rgba(43,25,77,.75);border:1.5px solid rgba(139,61,255,.28);border-radius:18px;padding:18px 20px}
+.lbn-card.r1{border-color:rgba(255,210,63,.8);box-shadow:0 0 26px rgba(255,210,63,.18),inset 0 0 30px rgba(255,210,63,.05);background:linear-gradient(120deg,rgba(66,45,20,.55),rgba(43,25,77,.8))}
+.lbn-card.r2{border-color:rgba(192,192,192,.55)}
+.lbn-card.r3{border-color:rgba(205,127,50,.6)}
+.lbn-rank{flex:none;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron';font-weight:900;font-size:17px;color:#231303;background:linear-gradient(135deg,#ffd23f,#f5b301);box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.lbn-card.r2 .lbn-rank{background:linear-gradient(135deg,#e8e8e8,#b5b5b5);color:#222}
+.lbn-card.r3 .lbn-rank{background:linear-gradient(135deg,#e39a5b,#b96a2a);color:#2b1400}
+.lbn-card.rx .lbn-rank{background:rgba(139,61,255,.35);color:#e9defc}
+.lbn-ava{flex:none;width:58px;height:58px;border-radius:14px;overflow:hidden;background:#3b2a63;display:flex;align-items:center;justify-content:center;font-family:'Orbitron';font-weight:800;font-size:22px;color:#fff;border:1.5px solid rgba(255,255,255,.18)}
+.lbn-ava img{width:100%;height:100%;object-fit:cover}
+.lbn-mid{flex:1;min-width:0}
+.lbn-name{font-size:21px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbn-meta{font-size:13.5px;color:#cfc2ee;margin-top:4px;display:flex;align-items:center;gap:7px}
+.lbn-meta .tier{font-weight:800;letter-spacing:1.5px}
+.lbn-xp{font-family:'Orbitron';font-weight:900;font-size:24px;color:#ffd23f;text-align:right;flex:none}
+.lbn-xp small{display:block;font-family:'Rajdhani';font-size:12px;color:#9a86c2;letter-spacing:2px;font-weight:600}
+.lbn-chip{position:absolute;top:-11px;right:18px;background:linear-gradient(135deg,#ffd23f,#f5b301);color:#231303;font-size:11px;font-weight:800;letter-spacing:1.5px;border-radius:999px;padding:5px 14px;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+.lbn-card.r2 .lbn-chip,.lbn-card.r3 .lbn-chip{background:rgba(192,192,192,.9)}
+.lbn-card.r3 .lbn-chip{background:rgba(205,127,50,.9);color:#2b1400}
+.lbn-mine{border-color:rgba(255,210,63,.7);background:linear-gradient(120deg,rgba(66,45,20,.5),rgba(43,25,77,.85));box-shadow:0 0 22px rgba(255,210,63,.12)}
+.lbn-mine .lbn-chip{left:18px;right:auto}
+.lbn-week{font-family:'Orbitron';font-weight:800;font-size:19px;color:#3ddc84;text-align:right;flex:none}
+.lbn-week small{display:block;font-family:'Rajdhani';font-size:12px;color:#9a86c2;font-weight:600}
+.lbn-cta{margin-top:30px}
+.lbn-cta a{display:block;text-align:center;font-family:'Orbitron';font-weight:900;font-size:21px;letter-spacing:1px;color:#231303;background:linear-gradient(135deg,#ffd23f,#f5b301);border-radius:16px;padding:20px;text-decoration:none;box-shadow:0 14px 40px rgba(245,179,1,.35)}
+.lbn-cta .under{text-align:center;font-size:14.5px;color:#cfc2ee;margin-top:14px;font-weight:600}
+.lbn-empty{text-align:center;color:#9a86c2;padding:40px 10px}
+.lbn-empty .big{font-family:'Orbitron';font-size:20px;color:#e9defc;margin-bottom:8px}

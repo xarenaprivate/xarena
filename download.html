@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://xarena.surge.sh/download.html">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Get the App · XARENA ESPORTS</title>
+<meta name="description" content="Download XARENA ESPORTS - Android APK, PC installable app, iPhone home-screen app. Free.">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="%230b0b14" stroke="%23e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="%23f5b301" stroke-width="3.2"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="XARENA ESPORTS">
+<meta property="og:title" content="XARENA ESPORTS - Free Fire tournaments, feed, stories, Luna">
+<meta property="og:description" content="India's Free Fire esports platform - tournaments, scrims, highlights feed, stories, encrypted messages and the Luna assistant. Free forever.">
+<meta property="og:url" content="https://xarena.surge.sh/">
+<meta property="og:image" content="https://xarena.surge.sh/assets/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0104">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="XARENA">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/app-shell.css">
+</head>
+<body>
+<style>
+#xr-splash{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;transition:opacity .3s ease;overflow:hidden}
+#xr-splash::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none}
+#xr-splash .xs-stage{position:relative;width:118px;height:118px;display:flex;align-items:center;justify-content:center}
+#xr-splash .xs-ring{position:absolute;inset:0;animation:xsSpin 2.6s linear infinite}
+#xr-splash .xs-ring circle{fill:none;stroke:var(--xs-acc,#e10600);stroke-width:2.5;stroke-dasharray:44 22;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--xs-acc,#e10600))}
+#xr-splash .xs-ring.r2{animation:xsSpinR 3.8s linear infinite;inset:9px}
+#xr-splash .xs-ring.r2 circle{stroke-dasharray:10 30;opacity:.55;stroke-width:1.5}
+#xr-splash .xs-logo{width:62px;height:62px;animation:xsPulse 1.2s ease-in-out infinite}
+#xr-splash .xs-logo path{stroke:var(--xs-acc,#e10600)}
+#xr-splash .xs-logo .xs-x{stroke:#f5b301}
+#xr-splash .xs-name{font:900 24px Orbitron,system-ui,sans-serif;color:#fff;letter-spacing:7px;margin-left:7px;animation:xsGlitch 2.4s steps(1) infinite}
+#xr-splash .xs-tag{font:800 10px Orbitron,system-ui,sans-serif;letter-spacing:5px;color:var(--xs-acc,#e10600);margin-left:5px;text-shadow:0 0 10px var(--xs-acc,#e10600)}
+#xr-splash .xs-tip{font:600 12.5px Rajdhani,system-ui,sans-serif;color:#9aa0b8;letter-spacing:1px;min-height:16px;text-align:center;padding:0 24px;transition:opacity .25s}
+#xr-splash .xs-bar{width:170px;height:3px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+#xr-splash .xs-bar i{display:block;height:100%;width:0;border-radius:3px;background:var(--xs-acc,#e10600);box-shadow:0 0 12px var(--xs-acc,#e10600);animation:xsFill 1.5s ease forwards}
+#xr-splash.xs-done{opacity:0;pointer-events:none}
+@keyframes xsSpin{to{transform:rotate(360deg)}}
+@keyframes xsSpinR{to{transform:rotate(-360deg)}}
+@keyframes xsPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes xsFill{to{width:88%}}
+@keyframes xsGlitch{0%,93%,100%{text-shadow:none}94%{text-shadow:-2px 0 var(--xs-acc,#e10600),2px 0 #22d3ee}96%{text-shadow:2px 0 var(--xs-acc,#e10600),-2px 0 #22d3ee}98%{text-shadow:none}}
+@media (prefers-reduced-motion:reduce){#xr-splash .xs-ring,#xr-splash .xs-logo,#xr-splash .xs-name,#xr-splash .xs-bar i{animation:none!important}#xr-splash{transition:none!important}}
+</style>
+<div id="xr-splash" role="status" aria-label="Loading XARENA">
+<div class="xs-stage">
+<svg class="xs-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-ring r2" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-logo" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke-width="2.5"/><path class="xs-x" d="M13 13l14 14M27 13L13 27" stroke-width="3.2" fill="none"/></svg>
+</div>
+<div class="xs-name">XARENA</div>
+<div class="xs-tag">ENTERING THE ARENA</div>
+<div class="xs-tip" id="xs-tip"></div>
+<div class="xs-bar"><i></i></div>
+<script>(function(){try{var m={liquid:"#0a84ff",classic:"#e10600","3d":"#8b3dff",nexus:"#7c5cff",arena:"#ff7a1a","void":"#a970ff",ascend:"#19e3c2",hybrid:"#22d3ee",pulse:"#ff2e88",aura:"#8b5cf6",social:"#0095f6"};var t=localStorage.getItem("xr_theme")||"liquid";var s=document.getElementById("xr-splash");if(s&&m[t])s.style.setProperty("--xs-acc",m[t]);var tips=["Season 1 - 48 squad slots - registrations open","Real tournaments - tracked rankings - live World Chat","Tip: mention @luna in World Chat - she answers","Tip: finish tasks to earn points, badges and titles","48 squads. One crown. Season 1 is loading"];var tip=document.getElementById("xs-tip");if(tip&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){var i=Math.floor(Math.random()*tips.length);tip.textContent=tips[i];var iv=setInterval(function(){if(!document.getElementById("xr-splash")){clearInterval(iv);return;}i=(i+1)%tips.length;tip.style.opacity=0;setTimeout(function(){tip.textContent=tips[i];tip.style.opacity=1;},240);},1600);}}catch(e){}})();</script>
+</div>
+<header class="nav"><div class="wrap nav-in">
+<a class="brand" href="index.html" aria-label="XARENA ESPORTS home">
+<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="xg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3131"/><stop offset=".55" stop-color="#e10600"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="url(#xg)" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="url(#xg)" stroke-width="3.2" stroke-linecap="square"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<button class="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+<ul class="nav-links">
+<li><a href="index.html">Home</a></li>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="tasks.html">Tasks</a></li>
+<li><a href="play.html">Play</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="feed.html">Feed</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+<li><a href="rules.html">RRs</a></li>
+<li><a href="contact.html">Contact</a></li>
+<li><a href="account.html">Account</a></li>
+<li><a class="nav-chat" href="chat.html"><span class="pulse"></span>World Chat<span class="chat-badge" id="xr-chat-badge"></span></a></li>
+<li class="nav-cta" style="display:flex;align-items:center;gap:8px"><a href="messages.html" aria-label="Messages" title="Messages" style="color:inherit;display:flex;padding:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></a><button class="xr-theme-btn" id="xr-theme-btn" type="button">Look</button><a class="btn btn-red btn-sm" href="tournaments.html#register">Register</a></li>
+</ul>
+</div></header>
+<main>
+<section class="page-hero"><div class="wrap">
+  <div class="overline">Get the app</div>
+  <h1>One link. <em>Every device.</em></h1>
+  <p>XARENA ESPORTS runs everywhere - a native Android app, an installable PC app, and a home-screen app on iPhone. Free forever, no ads, no payments.</p>
+  <p id="dl-detect" style="font-weight:700;color:var(--gold2);margin-top:10px"></p>
+</div></section>
+<section class="section"><div class="wrap" style="max-width:640px">
+
+  <div class="card dl-card" id="dl-android" style="margin-bottom:16px">
+    <h3 style="margin-bottom:2px">Android <span class="dl-rec" hidden>Recommended for you</span></h3>
+    <p style="color:var(--muted);font-size:14px;margin:6px 0 14px">The native app - built-in update checker, splash screen, everything bundled.</p>
+    <a class="btn btn-red" id="dl-apk-btn" href="https://xarena-esports-app.netlify.app/xarena.apk">Download the Android app</a>
+    <p id="dl-apk-ver" style="font-size:12.5px;color:var(--muted);margin-top:8px"></p>
+    <ol style="color:var(--muted);font-size:13.5px;line-height:1.9;margin:10px 0 0;padding-left:20px">
+      <li>Tap download, then open the file</li>
+      <li>Allow <b>install from unknown sources</b> once (standard for direct APKs)</li>
+      <li>Install - future updates are offered inside the app itself</li>
+    </ol>
+  </div>
+
+  <div class="card dl-card" id="dl-pc" style="margin-bottom:16px">
+    <h3 style="margin-bottom:2px">PC / Laptop <span class="dl-rec" hidden>Recommended for you</span></h3>
+    <p style="color:var(--muted);font-size:14px;margin:6px 0 14px">Installs as a real desktop app from Chrome or Edge - own window, taskbar icon, works offline for saved pages.</p>
+    <button class="btn btn-red" id="dl-pc-btn">Install on this computer</button>
+    <p id="dl-pc-note" style="font-size:13px;color:var(--muted);margin-top:10px;line-height:1.7">No install button? In Chrome or Edge, click the <b>install icon</b> in the address bar (right side), or Menu &rarr; <b>Install XARENA ESPORTS</b>. Firefox and desktop Safari cannot install web apps - the site works fully in them, just without the app window.</p>
+  </div>
+
+  <div class="card dl-card" id="dl-ios" style="margin-bottom:16px">
+    <h3 style="margin-bottom:2px">iPhone / iPad <span class="dl-rec" hidden>Recommended for you</span></h3>
+    <p style="color:var(--muted);font-size:14px;margin:6px 0 14px">Full app with its own home-screen icon - no App Store needed. Honest note: iPhones cannot run Android APK files, and there is no App Store version (yet) - this is the real, complete XARENA app delivered through Safari.</p>
+    <a class="btn btn-red" href="index.html">Open the web app</a>
+    <ol style="color:var(--muted);font-size:13.5px;line-height:1.9;margin:12px 0 0;padding-left:20px">
+      <li>Open <b>xarena.surge.sh</b> in <b>Safari</b> (must be Safari)</li>
+      <li>Tap the <b>Share</b> button (square with arrow, bottom bar)</li>
+      <li>Scroll and tap <b>Add to Home Screen</b> &rarr; Add</li>
+      <li>The XARENA icon opens full-screen, just like a store app</li>
+    </ol>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;text-align:center">
+    <h3 style="margin-bottom:2px">Share XARENA</h3>
+    <p style="color:var(--muted);font-size:13.5px;margin:6px 0 12px">Send friends this one link. Copy it WITH the https:// - apps like Instagram only make full https links tappable.</p>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-red btn-sm" id="dl-copy">Copy the link</button>
+      <a class="btn btn-ghost btn-sm" href="https://xarena.surge.sh/download.html" id="dl-plain" style="user-select:all">https://xarena.surge.sh/download.html</a>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px;text-align:center">
+    <h3 style="margin-bottom:2px">QR poster</h3>
+    <p style="color:var(--muted);font-size:13.5px;margin:6px 0 12px">One scan opens this page. Save the poster and post it in your WhatsApp group or story.</p>
+    <div id="qr-mount" style="display:flex;justify-content:center"></div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px">
+      <button class="btn btn-red btn-sm" id="qr-dl">Download poster</button>
+      <button class="btn btn-ghost btn-sm" id="qr-share" style="display:none">Share…</button>
+    </div>
+  </div>
+  <p style="text-align:center;color:var(--muted);font-size:13px;margin-top:6px">Every version is the same full platform - tournaments, feed, stories, messages, Luna. Free forever.</p>
+</div></section>
+</main>
+<style>
+.dl-card{border:2px solid var(--line);transition:border-color .2s}
+.dl-card.rec{border-color:var(--gold2,#f5b301);box-shadow:0 8px 32px rgba(245,179,1,.12)}
+.dl-rec{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;background:var(--gold2,#f5b301);color:#111;border-radius:6px;padding:2px 8px;margin-left:8px;vertical-align:middle;font-weight:800}
+</style>
+<script src="assets/js/vendor/qrcode.min.js"></script>
+<script>
+window.addEventListener("load", function () {
+  /* QR poster - generated client-side with the vendored MIT qrcode-generator lib */
+  (function () {
+    if (typeof qrcode === "undefined") return;
+    var Q = qrcode(0, "M");
+    Q.addData("https://xarena.surge.sh/download.html");
+    Q.make();
+    var W = 1080, H = 1350;
+    var cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    var c = cv.getContext("2d");
+    var bg = c.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0, "#12020a"); bg.addColorStop(1, "#05010c");
+    c.fillStyle = bg; c.fillRect(0, 0, W, H);
+    var g = c.createRadialGradient(W / 2, 520, 40, W / 2, 520, 660);
+    g.addColorStop(0, "rgba(255,45,85,.28)"); g.addColorStop(1, "rgba(255,45,85,0)");
+    c.fillStyle = g; c.fillRect(0, 0, W, H);
+    c.strokeStyle = "rgba(255,255,255,.16)"; c.lineWidth = 3; c.strokeRect(28, 28, W - 56, H - 56);
+    c.textAlign = "center";
+    c.fillStyle = "#fff"; c.font = "800 72px Rajdhani, Arial, sans-serif";
+    c.fillText("XARENA ESPORTS", W / 2, 170);
+    c.fillStyle = "rgba(255,255,255,.6)"; c.font = "600 30px Rajdhani, Arial, sans-serif";
+    c.fillText("FREE FIRE TOURNAMENTS - INDIA", W / 2, 218);
+    var ps = 640, px = (W - ps) / 2, py = 300;
+    c.fillStyle = "#fff"; c.fillRect(px, py, ps, ps);
+    var n = Q.getModuleCount(), cell = Math.floor((ps - 70) / n), off = Math.floor((ps - cell * n) / 2);
+    c.fillStyle = "#0d0208";
+    for (var r = 0; r < n; r++) for (var col = 0; col < n; col++) if (Q.isDark(r, col)) c.fillRect(px + off + col * cell, py + off + r * cell, cell + 0.6, cell + 0.6);
+    c.fillStyle = "#ff2d55"; c.font = "800 54px Rajdhani, Arial, sans-serif";
+    c.fillText("SCAN TO GET THE APP", W / 2, py + ps + 110);
+    c.fillStyle = "rgba(255,255,255,.9)"; c.font = "700 38px Rajdhani, Arial, sans-serif";
+    c.fillText("xarena.surge.sh", W / 2, py + ps + 168);
+    c.fillStyle = "rgba(255,255,255,.5)"; c.font = "500 27px Rajdhani, Arial, sans-serif";
+    c.fillText("Android - PC - iPhone - free forever", W / 2, py + ps + 214);
+    c.fillStyle = "rgba(255,255,255,.35)"; c.font = "500 22px Rajdhani, Arial, sans-serif";
+    c.fillText("Founded & owned by Shivhari Rajput", W / 2, H - 64);
+    cv.style.width = "min(320px,80vw)"; cv.style.height = "auto"; cv.style.borderRadius = "12px";
+    document.getElementById("qr-mount").appendChild(cv);
+    var name = "xarena-qr-poster.png";
+    document.getElementById("qr-dl").addEventListener("click", function () {
+      cv.toBlob(function (b) {
+        var a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      }, "image/png");
+    });
+    cv.toBlob(function (b) {
+      var f = new File([b], name, { type: "image/png" });
+      if (navigator.canShare && navigator.canShare({ files: [f] })) {
+        var sb = document.getElementById("qr-share");
+        sb.style.display = "";
+        sb.addEventListener("click", function () {
+          navigator.share({ files: [f], title: "XARENA ESPORTS", text: "Scan to get the app - free Free Fire tournaments" }).catch(function () {});
+        });
+      }
+    }, "image/png");
+  })();
+  /* device detect (with ?os= override for support/testing) */
+  var ua = navigator.userAgent || "";
+  var q = /[?&]os=(android|ios|pc)/.exec(location.search);
+  var os = q ? q[1] : (/android/i.test(ua) ? "android" : (/iphone|ipad|ipod/i.test(ua) ? "ios" : "pc"));
+  var card = document.getElementById("dl-" + os);
+  if (card) {
+    card.classList.add("rec");
+    card.querySelector(".dl-rec").hidden = false;
+    document.getElementById("dl-detect").textContent =
+      os === "android" ? "You are on Android - the APK below is your app." :
+      os === "ios" ? "You are on an iPhone - the Safari steps below give you the app." :
+      "You are on a computer - install the PC app below.";
+    card.scrollIntoView({ block: "center" });
+  }
+  /* live version + size for the APK button */
+  fetch("xarena-version.json").then(function (r) { return r.json(); }).then(function (v) {
+    if (v && v.version) document.getElementById("dl-apk-ver").textContent =
+      "Version " + v.version + " - " + (v.size ? (v.size / 1048576).toFixed(1) + " MB" : "") + " - free, no ads";
+  }).catch(function () {});
+  /* real PWA install prompt (fires on this origin) */
+  var deferred = null;
+  window.addEventListener("beforeinstallprompt", function (e) { e.preventDefault(); deferred = e; });
+  var btn = document.getElementById("dl-pc-btn");
+  var note = document.getElementById("dl-pc-note");
+  if (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) {
+    btn.textContent = "Already installed - you are using it";
+    btn.disabled = true;
+    note.style.display = "none";
+  }
+  var copyBtn = document.getElementById("dl-copy");
+  if (copyBtn) copyBtn.addEventListener("click", function () {
+    var link = "https://xarena.surge.sh/download.html";
+    function done() { copyBtn.textContent = "Copied - paste it anywhere"; setTimeout(function () { copyBtn.textContent = "Copy the link"; }, 2000); }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(done, done);
+    else { var t = document.createElement("textarea"); t.value = link; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); } catch (e) {} t.remove(); done(); }
+  });
+  btn.addEventListener("click", function () {
+    if (deferred) {
+      deferred.prompt();
+      deferred.userChoice.then(function (c) {
+        if (c && c.outcome === "accepted") { btn.textContent = "Installed"; btn.disabled = true; note.style.display = "none"; }
+        deferred = null;
+      });
+    } else {
+      note.style.display = "";
+      note.scrollIntoView({ block: "center" });
+    }
+  });
+});
+</script>
+<footer><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand">
+<a class="brand" href="index.html">
+<svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="#e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="#f5b301" stroke-width="3.2"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<p>XARENA ESPORTS is a professional Free Fire esports organisation — tournaments, scrims, rankings and a competitive roster, run from India for the community.</p>
+</div>
+<div><h4>Arena</h4><ul>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="how-to-play.html">How to Play</a></li>
+<li><a href="verify.html">Photo Verify</a></li>
+<li><a href="play.html">Play &amp; Earn</a></li>
+<li><a href="feed.html">Highlights Feed</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="rules.html">Rules &amp; Regulations</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+</ul></div>
+<div><h4>Organisation</h4><ul>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="cup.html">Sponsor a Cup</a></li>
+<li><a href="contact.html">Contact & Support</a></li>
+<li><a href="download.html">Get the App</a></li>
+</ul></div>
+</div>
+<div class="foot-bottom">
+<span>© <b id="yr">2026</b> XARENA ESPORTS · All rights reserved</span>
+<span id="foot-credit">Founded &amp; owned by <b>Shivhari Rajput</b></span>
+<span id="app-update" style="display:none;cursor:pointer">App update check</span>
+</div>
+</div></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/vendor/supabase.min.js"></script>
+<script src="assets/js/vendor/qrcode.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/luna.js"></script>
+<script src="assets/js/reco.js"></script>
+<script src="assets/js/game.js"></script>
+<script src="assets/js/sfx.js"></script>
+<script src="assets/js/sharecard.js"></script>
+<script src="assets/js/funline.js"></script>
+<script src="assets/js/dm.js"></script>
+<script src="assets/js/chat-style.js"></script>
+<script src="assets/js/app-shell.js"></script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script>
+</body></html>

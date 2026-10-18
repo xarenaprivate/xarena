@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://xarena.surge.sh/tournaments.html">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tournaments · XARENA ESPORTS</title>
+<meta name="description" content="XARENA ESPORTS tournaments — Season 1 Free Fire championship, registration, schedules, prize pools and results.">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="%230b0b14" stroke="%23e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="%23f5b301" stroke-width="3.2"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="XARENA ESPORTS">
+<meta property="og:title" content="XARENA ESPORTS - Free Fire tournaments, feed, stories, Luna">
+<meta property="og:description" content="India's Free Fire esports platform - tournaments, scrims, highlights feed, stories, encrypted messages and the Luna assistant. Free forever.">
+<meta property="og:url" content="https://xarena.surge.sh/">
+<meta property="og:image" content="https://xarena.surge.sh/assets/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0104">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="XARENA">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/app-shell.css">
+</head>
+<body>
+<style>
+#xr-splash{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;transition:opacity .3s ease;overflow:hidden}
+#xr-splash::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none}
+#xr-splash .xs-stage{position:relative;width:118px;height:118px;display:flex;align-items:center;justify-content:center}
+#xr-splash .xs-ring{position:absolute;inset:0;animation:xsSpin 2.6s linear infinite}
+#xr-splash .xs-ring circle{fill:none;stroke:var(--xs-acc,#e10600);stroke-width:2.5;stroke-dasharray:44 22;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--xs-acc,#e10600))}
+#xr-splash .xs-ring.r2{animation:xsSpinR 3.8s linear infinite;inset:9px}
+#xr-splash .xs-ring.r2 circle{stroke-dasharray:10 30;opacity:.55;stroke-width:1.5}
+#xr-splash .xs-logo{width:62px;height:62px;animation:xsPulse 1.2s ease-in-out infinite}
+#xr-splash .xs-logo path{stroke:var(--xs-acc,#e10600)}
+#xr-splash .xs-logo .xs-x{stroke:#f5b301}
+#xr-splash .xs-name{font:900 24px Orbitron,system-ui,sans-serif;color:#fff;letter-spacing:7px;margin-left:7px;animation:xsGlitch 2.4s steps(1) infinite}
+#xr-splash .xs-tag{font:800 10px Orbitron,system-ui,sans-serif;letter-spacing:5px;color:var(--xs-acc,#e10600);margin-left:5px;text-shadow:0 0 10px var(--xs-acc,#e10600)}
+#xr-splash .xs-tip{font:600 12.5px Rajdhani,system-ui,sans-serif;color:#9aa0b8;letter-spacing:1px;min-height:16px;text-align:center;padding:0 24px;transition:opacity .25s}
+#xr-splash .xs-bar{width:170px;height:3px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+#xr-splash .xs-bar i{display:block;height:100%;width:0;border-radius:3px;background:var(--xs-acc,#e10600);box-shadow:0 0 12px var(--xs-acc,#e10600);animation:xsFill 1.5s ease forwards}
+#xr-splash.xs-done{opacity:0;pointer-events:none}
+@keyframes xsSpin{to{transform:rotate(360deg)}}
+@keyframes xsSpinR{to{transform:rotate(-360deg)}}
+@keyframes xsPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes xsFill{to{width:88%}}
+@keyframes xsGlitch{0%,93%,100%{text-shadow:none}94%{text-shadow:-2px 0 var(--xs-acc,#e10600),2px 0 #22d3ee}96%{text-shadow:2px 0 var(--xs-acc,#e10600),-2px 0 #22d3ee}98%{text-shadow:none}}
+@media (prefers-reduced-motion:reduce){#xr-splash .xs-ring,#xr-splash .xs-logo,#xr-splash .xs-name,#xr-splash .xs-bar i{animation:none!important}#xr-splash{transition:none!important}}
+</style>
+<div id="xr-splash" role="status" aria-label="Loading XARENA">
+<div class="xs-stage">
+<svg class="xs-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-ring r2" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-logo" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke-width="2.5"/><path class="xs-x" d="M13 13l14 14M27 13L13 27" stroke-width="3.2" fill="none"/></svg>
+</div>
+<div class="xs-name">XARENA</div>
+<div class="xs-tag">ENTERING THE ARENA</div>
+<div class="xs-tip" id="xs-tip"></div>
+<div class="xs-bar"><i></i></div>
+<script>(function(){try{var m={liquid:"#0a84ff",classic:"#e10600","3d":"#8b3dff",nexus:"#7c5cff",arena:"#ff7a1a","void":"#a970ff",ascend:"#19e3c2",hybrid:"#22d3ee",pulse:"#ff2e88",aura:"#8b5cf6",social:"#0095f6"};var t=localStorage.getItem("xr_theme")||"liquid";var s=document.getElementById("xr-splash");if(s&&m[t])s.style.setProperty("--xs-acc",m[t]);var tips=["Season 1 - 48 squad slots - registrations open","Real tournaments - tracked rankings - live World Chat","Tip: mention @luna in World Chat - she answers","Tip: finish tasks to earn points, badges and titles","48 squads. One crown. Season 1 is loading"];var tip=document.getElementById("xs-tip");if(tip&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){var i=Math.floor(Math.random()*tips.length);tip.textContent=tips[i];var iv=setInterval(function(){if(!document.getElementById("xr-splash")){clearInterval(iv);return;}i=(i+1)%tips.length;tip.style.opacity=0;setTimeout(function(){tip.textContent=tips[i];tip.style.opacity=1;},240);},1600);}}catch(e){}})();</script>
+</div>
+<header class="nav"><div class="wrap nav-in">
+<a class="brand" href="index.html" aria-label="XARENA ESPORTS home">
+<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="xg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3131"/><stop offset=".55" stop-color="#e10600"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="url(#xg)" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="url(#xg)" stroke-width="3.2" stroke-linecap="square"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<button class="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+<ul class="nav-links">
+<li><a href="index.html">Home</a></li>
+<li><a href="tournaments.html" class="active">Tournaments</a></li>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="tasks.html">Tasks</a></li>
+<li><a href="play.html">Play</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="feed.html">Feed</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+<li><a href="rules.html">RRs</a></li>
+<li><a href="contact.html">Contact</a></li>
+<li><a href="account.html">Account</a></li>
+<li><a class="nav-chat" href="chat.html"><span class="pulse"></span>World Chat<span class="chat-badge" id="xr-chat-badge"></span></a></li>
+<li class="nav-cta" style="display:flex;align-items:center;gap:8px"><a href="messages.html" aria-label="Messages" title="Messages" style="color:inherit;display:flex;padding:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></a><button class="xr-theme-btn" id="xr-theme-btn" type="button">Look</button><a class="btn btn-red btn-sm" href="tournaments.html#register">Register</a></li>
+</ul>
+</div></header>
+<main>
+<section class="page-hero"><div id="trophy3d"></div><div class="wrap">
+  <div class="overline">Competition</div>
+  <h1>Tourna<em>ments</em></h1>
+  <p>Official XARENA championships. Registration formats, schedules, prize pools and results — all published here, straight from match control.</p>
+</div></section>
+
+<section class="section"><div class="wrap">
+  <div class="section-head reveal"><div class="overline">Current</div><h2>Season <em>1</em></h2></div>
+  <div class="grid c1" id="tournament-list"></div>
+
+  <div class="card reveal" style="margin-top:20px" id="xr-s1">
+    <h3>Format &amp; Rules</h3>
+    <ul class="feature-list">
+      <li><b>Mode:</b> Squad Battle Royale (4 players per squad, up to 2 substitutes).</li>
+      <li><b>Structure:</b> 48 squads split into 3 qualifier groups. Top 16 overall advance to the Grand Finals.</li>
+      <li><b>Points:</b> placement points + 1 point per kill. Full points table published before match day.</li>
+      <li><b>Fair play:</b> no hacks, no teaming, no emulators unless the lobby is marked emulator-allowed. Violations = instant disqualification.</li>
+      <li><b>Schedule &amp; prize pool:</b> revealed on this page as soon as registrations close — announced by the management, never guessed.</li>
+    </ul>
+  </div>
+  <div class="section-head reveal" style="margin-top:34px"><div class="overline">Match day</div><h2>Rooms, results &amp; <em>reports</em></h2>
+  <p>Room ID and password unlock here shortly before each match - for registered players only. Upload your result screenshot after the match; the owner reviews it and awards points.</p></div>
+  <div id="match-list"><p style="color:var(--muted)">Loading matches…</p></div>
+  <div class="grid c2" style="margin-top:18px">
+    <div class="card"><h3 style="margin-bottom:4px">Submit result proof</h3>
+      <p style="font-size:13px;color:var(--muted);margin:2px 0 12px">Screenshot of the final scoreboard. The owner reviews every proof - approved ones pay Arena Points.</p>
+      <div id="proof-form"><p style="color:var(--muted);font-size:13px">Log in on the <a href="account.html" style="color:var(--gold2)">Account page</a> to submit proof.</p></div>
+      <div id="my-proofs" style="margin-top:12px"></div>
+    </div>
+    <div class="card"><h3 style="margin-bottom:4px">Report a player</h3>
+      <p style="font-size:13px;color:var(--muted);margin:2px 0 12px">Hacks, teaming or match-fixing. Reports go straight to the owner; false reports cost your own standing.</p>
+      <div id="report-form"><p style="color:var(--muted);font-size:13px">Log in on the <a href="account.html" style="color:var(--gold2)">Account page</a> to report.</p></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="section alt" id="register"><div class="wrap" style="max-width:860px">
+  <div class="section-head reveal"><div class="overline">Registration</div><h2>Register your <em>Squad</em></h2>
+  <p>Season 1 registration is open. 48 slots, first come first served. One registration per squad captain.</p></div>
+  <div class="form-panel reveal">
+    <h3>Season 1 · Squad Registration</h3>
+    <p class="fp-sub">Takes under a minute. Your Registration ID is your proof of entry — screenshot it.</p>
+    <form id="reg-form" novalidate>
+      <div class="frow">
+        <div class="field"><label for="squad">Squad name</label><input id="squad" name="squad" data-req maxlength="30" placeholder="e.g. Night Hunters"><div class="err">Squad name is required.</div></div>
+        <div class="field"><label for="captain">Captain in-game name</label><input id="captain" name="captain" data-req maxlength="24" placeholder="Your Free Fire IGN"><div class="err">Captain IGN is required.</div></div>
+      </div>
+      <div class="frow">
+        <div class="field"><label for="uid">Captain Free Fire UID</label><input id="uid" name="uid" data-req data-pattern="^[0-9]{8,12}$" inputmode="numeric" placeholder="8–12 digit UID"><div class="err">Enter a valid 8–12 digit Free Fire UID.</div></div>
+        <div class="field"><label for="phone">WhatsApp number</label><input id="phone" name="phone" data-req data-pattern="^[0-9]{10}$" inputmode="numeric" placeholder="10-digit mobile"><div class="err">Enter a valid 10-digit number.</div></div>
+      </div>
+      <label class="check"><input type="checkbox" data-agree> <span>We accept the <a href="rules.html" style="color:var(--gold2)">XARENA Rules and Regulations</a> — no hacks, no teaming, no match-fixing. Violations mean instant disqualification.</span></label>
+      <div class="field" style="margin-top:14px"><label for="proof">UID screenshot proof (required)</label><input id="proof" name="proof" type="file" accept="image/*" data-req style="padding:12px"><div class="err">Attach a screenshot of your Free Fire profile showing the UID.</div>
+      <p style="color:var(--muted);font-size:12px;margin-top:6px">Take a screenshot of your Free Fire lobby profile with your UID visible. The owner personally verifies it — that is the only way to get the VERIFIED badge. Fake proof = rejected + reported.</p></div>
+      <div class="server-err" style="display:none;background:rgba(225,6,0,.12);border:1px solid var(--red);color:#ffb4ae;padding:10px 14px;margin:12px 0;font-size:14px;border-radius:6px"></div>
+      <button class="btn btn-red" type="submit">Register Squad</button>
+      <div class="success-card" id="reg-success">
+        <p style="color:var(--gold2);font-weight:700;letter-spacing:2px;text-transform:uppercase;font-size:13px">Registration confirmed</p>
+        <div class="sid"></div>
+        <p>Screenshot this ID — it is your proof of entry for Season 1.</p>
+        <p class="hold-note" style="display:none;color:var(--gold2);margin-top:8px">Note: your entry is under a quick security review (routine). It shows in the management panel and gets verified there.</p>
+      </div>
+      <p class="form-note"><b>Security:</b> one UID and one phone number get exactly one registration — enforced server-side. The owner verifies the screenshot proof; the squad gets its VERIFIED badge only after that. Suspicious entries are put on hold automatically.</p>
+    </form>
+  </div>
+  <div id="my-regs" style="margin-top:26px"></div>
+</div></section>
+
+<section class="section" id="squads"><div class="wrap" style="max-width:860px">
+  <div class="section-head reveal"><div class="overline">Season 1</div><h2>Registered <em>Squads</em></h2>
+  <p>Live list from the server. The VERIFIED badge is granted only after the owner personally checks the screenshot proof.</p></div>
+  <div id="squad-list" class="reveal"><p style="color:var(--muted)">Loading squads…</p></div>
+</div></section>
+
+<section class="section alt" id="liveboard"><div class="wrap" style="max-width:860px">
+  <div class="section-head reveal"><div class="overline">Match center</div><h2>Live <em>Scoreboard</em></h2>
+  <p>Points table of the match being played right now (or the last completed one), straight from match control.</p></div>
+  <div id="live-board" class="reveal"><p style="color:var(--muted)">Loading…</p></div>
+</div></section>
+
+<link rel="stylesheet" href="assets/css/bracket-nova.css">
+<script src="assets/js/bracket-nova.js" defer></script>
+<link rel="stylesheet" href="assets/css/rooms-nova.css">
+<script src="assets/js/rooms-nova.js" defer></script>
+<section class="section" id="bracket"><div class="wrap" style="max-width:860px">
+  <div class="section-head reveal"><div class="overline">Road to the crown</div><h2>Season <em>Bracket</em></h2>
+  <p>Who plays who, and who advances. Updated by match control as results come in.</p></div>
+  <div id="bracket-view" class="reveal"><p style="color:var(--muted)">Loading…</p></div>
+</div></section>
+</main>
+<script>
+window.addEventListener("load", function () {
+  var esc = (window.xrGame && xrGame.esc) || function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var me = null, matches = [];
+  function fmtWhen(m) {
+    if (!m.starts_at) return "time TBA";
+    return new Date(m.starts_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " IST";
+  }
+  function loadMatches() {
+    return fetch(xrApi.url + "/rest/v1/matches_public?select=*&order=starts_at.asc.nullslast", { headers: { apikey: xrApi.key } })
+      .then(function (r) { return r.json(); }).then(function (rows) {
+        matches = rows || [];
+        var box = document.getElementById("match-list");
+        if (!matches.length) {
+          box.innerHTML = '<div class="empty"><div class="big">No matches scheduled yet</div><p>Match rooms appear here as match control schedules them. Registered players see the room unlock 15 minutes before start.</p></div>';
+          return;
+        }
+        box.innerHTML = matches.map(function (m) {
+          var col = m.status === "live" ? "#4ade80" : (m.status === "done" ? "var(--muted)" : "var(--gold2)");
+          return '<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">' +
+            '<h3 style="margin:0;font-size:17px">' + esc(m.title) + "</h3>" +
+            '<span style="font-size:12.5px;color:' + col + '">' + esc(m.tournament_id) + " · " + fmtWhen(m) + " · " + esc(m.status.toUpperCase()) + "</span></div>" +
+            '<div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn btn-gold btn-sm" data-room="' + m.id + '">Room ID &amp; password</button>' +
+            '<button class="btn btn-ghost btn-sm" data-checkin="' + m.id + '">Check in</button>' +
+            '<button class="btn btn-ghost btn-sm" data-caster="' + m.id + '">🎙 Bhojpuri caster</button>' +
+            '<button class="btn btn-ghost btn-sm" data-aproof="' + m.id + '">📷 Attendance proof</button>' +
+            '<span id="checkin-' + m.id + '" style="font-size:13px"></span>' +
+            '<span id="room-' + m.id + '" style="font-size:13px"></span></div>' +
+            '<div id="caster-' + m.id + '" style="font-size:13.5px;margin-top:6px;color:var(--gold2)"></div></div>';
+        }).join("");
+        Array.prototype.forEach.call(box.querySelectorAll("[data-room]"), function (b) {
+          b.addEventListener("click", function () {
+            var out = document.getElementById("room-" + b.getAttribute("data-room"));
+            if (!me) { out.innerHTML = '<a href="account.html" style="color:var(--gold2)">Log in</a> first - rooms are for registered players.'; return; }
+            b.disabled = true;
+            xrApi.uRpc("match_room", { p_match: b.getAttribute("data-room") }).then(function (r) {
+              b.disabled = false;
+              if (r && r.ok) {
+                out.innerHTML = 'Room ID: <b style="user-select:all;color:var(--gold2)">' + esc(r.room_id) + '</b> · Password: <b style="user-select:all;color:var(--gold2)">' + esc(r.room_pass || "(none)") + "</b>" +
+                  ' <button class="btn btn-ghost btn-sm" id="slip-' + m.id + '" style="margin-left:6px">Room slip image</button>';
+                var mt = m;
+                document.getElementById("slip-" + m.id).addEventListener("click", function () {
+                  if (!window.xshare) { xrToast("Image maker not loaded - refresh once"); return; }
+                  var sb = this; sb.disabled = true;
+                  fetch(xrApi.url + "/rest/v1/sponsors?select=name&active=eq.true&order=id.asc&limit=1", { headers: { apikey: xrApi.key } })
+                    .then(function (x) { return x.json(); }).catch(function () { return []; }).then(function (sp) {
+                      sb.disabled = false;
+                      var cv = xshare.draw({
+                        kicker: mt.title,
+                        title: "Match Room",
+                        lines: ["Room ID: " + r.room_id, "Password: " + (r.room_pass || "(none)"), "For your squad only - sharing room details breaks Rule 3.3"],
+                        sub: (sp && sp[0] ? "Presented by " + sp[0].name + " · " : "") + "Check in on XARENA before the match",
+                        qrText: "https://xarena.surge.sh/tournaments.html",
+                        qrCaption: "Live scoreboard and results"
+                      });
+                      xshare.share(cv, mt.title + " - room slip", "XARENA match room (squad only): ID " + r.room_id + " / pass " + (r.room_pass || "-")).then(function (ok) { if (!ok) xshare.download(cv, "xarena-room-slip.png"); });
+                    });
+                });
+              } else out.textContent = (r && r.error) || "Room not available yet.";
+            });
+          });
+        });
+        Array.prototype.forEach.call(box.querySelectorAll("[data-caster]"), function (b) {
+          var mcid = b.getAttribute("data-caster");
+          var mt = null;
+          matches.forEach(function (x) { if (String(x.id) === String(mcid)) mt = x; });
+          var out = document.getElementById("caster-" + mcid);
+          if (window.xrFunline && out) xrFunline.wire(b, "caster", mt ? (mt.title || "this match") : "this match", out, { voice: true });
+        });
+        Array.prototype.forEach.call(box.querySelectorAll("[data-aproof]"), function (b) {
+          b.addEventListener("click", function () {
+            var mid = b.getAttribute("data-aproof");
+            var sp = document.getElementById("checkin-" + mid);
+            if (!me) { sp.innerHTML = '<a href="account.html" style="color:var(--gold2)">Log in</a> first - proof is for checked-in players.'; return; }
+            var inp = document.createElement("input");
+            inp.type = "file"; inp.accept = "image/*";
+            inp.addEventListener("change", function () {
+              var f = inp.files && inp.files[0];
+              if (!f) return;
+              if (f.size > 8 * 1024 * 1024) { sp.textContent = "Image too large (max 8 MB)."; return; }
+              b.disabled = true; sp.textContent = "Uploading proof…";
+              xrApi.userToken().then(function (tok) {
+                return uploadImage(f, tok);
+              }).then(function (url) {
+                return xrApi.uRpc("match_checkin_proof", { p_match: mid, p_proof: url });
+              }).then(function (r) {
+                b.disabled = false;
+                sp.textContent = r && r.ok ? "Attendance proof saved - match control can see it." : ((r && r.error) || "Could not save the proof.");
+              }).catch(function (e) {
+                b.disabled = false;
+                sp.textContent = (e && e.message) || "Upload failed - try again.";
+              });
+            });
+            inp.click();
+          });
+        });
+        matches.forEach(function (m) {
+          xrApi.uRpc("match_checkin_status", { p_match: m.id }).then(function (st) {
+            var sp = document.getElementById("checkin-" + m.id);
+            var btn = document.querySelector('[data-checkin="' + m.id + '"]');
+            if (!sp || !st || !st.ok) return;
+            sp.textContent = st.me ? "You are checked in (" + st.count + " in)" : (st.count ? st.count + " checked in" : "");
+            if (st.me && btn) { btn.disabled = true; btn.textContent = "Checked in"; }
+          }).catch(function () {});
+        });
+        Array.prototype.forEach.call(box.querySelectorAll("[data-checkin]"), function (b) {
+          b.addEventListener("click", function () {
+            var sp = document.getElementById("checkin-" + b.getAttribute("data-checkin"));
+            if (!me) { sp.innerHTML = '<a href="account.html" style="color:var(--gold2)">Log in</a> first - check-in is for registered players.'; return; }
+            b.disabled = true;
+            xrApi.uRpc("match_checkin", { p_match: b.getAttribute("data-checkin") }).then(function (r) {
+              b.disabled = false;
+              if (r && r.ok) { b.disabled = true; b.textContent = "Checked in"; sp.textContent = "You are checked in (" + r.count + " in)"; }
+              else sp.textContent = (r && r.error) || "Check-in not open yet.";
+            });
+          });
+        });
+      });
+  }
+  function loadLiveBoard() {
+    return fetch(xrApi.url + "/rest/v1/rpc/live_board", { method: "POST", headers: { apikey: xrApi.key, "Content-Type": "application/json" }, body: "{}" })
+      .then(function (r) { return r.json(); }).then(function (d) {
+        var box = document.getElementById("live-board");
+        if (!d || !d.ok || !d.match) { box.innerHTML = '<div class="empty"><div class="big">No match board yet</div><p>The points table appears here when the first match is played.</p></div>'; return; }
+        var rows = d.rows || [];
+        var head = '<p style="margin-bottom:10px"><span class="badge ' + (d.match.status === "live" ? "live" : "done") + '">' + esc(d.match.status.toUpperCase()) + '</span> <b>' + esc(d.match.title) + "</b></p>";
+        box.innerHTML = head + (rows.length
+          ? '<table style="width:100%;border-collapse:collapse;font-size:14px"><tr style="text-align:left;color:var(--muted);font-size:12px"><th style="padding:6px">#</th><th>PLAYER</th><th>SQUAD</th><th style="text-align:right">KILLS</th><th style="text-align:right">PLACE</th><th style="text-align:right;padding-right:6px">POINTS</th></tr>' +
+            rows.map(function (r, i) {
+              return '<tr style="border-top:1px solid rgba(255,255,255,.07)"><td style="padding:6px">' + (i + 1) + "</td><td><b>" + esc(r.player) + "</b></td><td>" + esc(r.squad || "-") + '</td><td style="text-align:right">' + (r.kills || 0) + '</td><td style="text-align:right">' + (r.placement || "-") + '</td><td style="text-align:right;padding-right:6px;color:var(--gold2);font-weight:700">' + (r.points || 0) + "</td></tr>";
+            }).join("") + "</table>"
+          : '<p style="color:var(--muted)">No results entered for this match yet - match control is on it.</p>');
+      }).catch(function () {});
+  }
+  function loadBracket() {
+    return fetch(xrApi.url + "/rest/v1/bracket_matches?select=*&order=round.asc,position.asc", { headers: { apikey: xrApi.key } })
+      .then(function (r) { return r.json(); }).then(function (rows) {
+        var box = document.getElementById("bracket-view");
+        if (!rows || !rows.length) { box.innerHTML = '<div class="empty"><div class="big">Bracket not drawn yet</div><p>The Season 1 bracket appears here once match control seeds the squads.</p></div>'; return; }
+        var rounds = {};
+        rows.forEach(function (r) { (rounds[r.round] = rounds[r.round] || []).push(r); });
+        box.innerHTML = '<div style="display:flex;gap:14px;overflow-x:auto;padding-bottom:8px">' + Object.keys(rounds).map(function (rd) {
+          var names = { 1: "Round 1", 2: "Semi finals", 3: "Final" };
+          var cells = rounds[rd].map(function (c) {
+            function cell(name, score, won) {
+              return '<div style="display:flex;justify-content:space-between;gap:8px;padding:7px 10px;' + (won ? "color:var(--gold2);font-weight:700" : "color:var(--fg)") + '"><span>' + esc(name || "TBD") + "</span><span>" + (score == null ? "" : score) + "</span></div>";
+            }
+            var wo = (c.winner && c.winner !== "") ? "" :
+              '<div style="padding:6px 10px;border-top:1px solid rgba(255,255,255,.09)"><button class="btn btn-ghost btn-sm" data-wo="' + c.id + '" style="font-size:11.5px;padding:4px 10px">Claim walkover</button> <span id="wo-' + c.id + '" style="font-size:12px"></span></div>';
+            return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:10px;margin-bottom:10px;min-width:190px">' +
+              cell(c.squad_a, c.score_a, c.winner && c.winner === c.squad_a) +
+              '<div style="border-top:1px solid rgba(255,255,255,.09)">' + cell(c.squad_b, c.score_b, c.winner && c.winner === c.squad_b) + "</div>" + wo + "</div>";
+          }).join("");
+          return '<div style="flex:0 0 auto"><p style="font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">' + (names[rd] || "Round " + rd) + "</p>" + cells + "</div>";
+        }).join("") + "</div>";
+        Array.prototype.forEach.call(box.querySelectorAll("[data-wo]"), function (b) {
+          b.addEventListener("click", function () {
+            var wid = b.getAttribute("data-wo");
+            var sp = document.getElementById("wo-" + wid);
+            if (!me) { sp.innerHTML = '<a href="account.html" style="color:var(--gold2)">Log in</a> first.'; return; }
+            if (!confirm("Claim a walkover? Only do this if the opponent squad did not show up. You must attach a screenshot as proof, and match control verifies it before the result counts. A false claim can disqualify your squad.")) return;
+            var inp = document.createElement("input");
+            inp.type = "file"; inp.accept = "image/*";
+            inp.addEventListener("change", function () {
+              var f = inp.files && inp.files[0];
+              if (!f) return;
+              if (f.size > 8 * 1024 * 1024) { sp.textContent = "Image too large (max 8 MB)."; return; }
+              b.disabled = true; sp.textContent = "Uploading proof…";
+              xrApi.userToken().then(function (tok) { return uploadImage(f, tok); })
+                .then(function (url) { return xrApi.uRpc("claim_walkover", { p_match: parseInt(wid, 10), p_proof: url }); })
+                .then(function (r) {
+                  b.disabled = false;
+                  sp.textContent = r && r.ok ? "Claim sent - match control will verify it." : ((r && r.error) || "Could not send the claim.");
+                })
+                .catch(function (e) { b.disabled = false; sp.textContent = (e && e.message) || "Upload failed - try again."; });
+            });
+            inp.click();
+          });
+        });
+      }).catch(function () {});
+  }
+  function uploadImage(file, tok) {
+    return fetch(xrApi.url + "/functions/v1/cloudinary-sign", {
+      method: "POST", headers: { apikey: xrApi.key, Authorization: "Bearer " + tok, "Content-Type": "application/json" }, body: "{}"
+    }).then(function (r) { return r.json(); }).then(function (sig) {
+      if (!sig || !sig.cloud) throw new Error("Upload unavailable.");
+      var fd = new FormData();
+      fd.append("file", file); fd.append("api_key", sig.key); fd.append("timestamp", sig.timestamp);
+      fd.append("folder", sig.folder); fd.append("signature", sig.signature);
+      return fetch("https://api.cloudinary.com/v1_1/" + sig.cloud + "/image/upload", { method: "POST", body: fd })
+        .then(function (r) { return r.json(); })
+        .then(function (up) { if (!up || !up.secure_url) throw new Error("Upload failed."); return up.secure_url; });
+    });
+  }
+  function renderProofForm() {
+    if (!me) return;
+    var f = document.getElementById("proof-form");
+    f.innerHTML =
+      '<div class="field"><label>Match (optional)</label><select id="pf-match" style="width:100%;padding:10px"><option value="">General / other</option>' +
+      matches.map(function (m) { return '<option value="' + m.id + '">' + esc(m.title) + "</option>"; }).join("") + "</select></div>" +
+      '<div class="field"><label>Screenshot (required)</label><input type="file" id="pf-file" accept="image/*" style="padding:10px"></div>' +
+      '<div class="field"><label>Note (optional)</label><input id="pf-note" maxlength="200" placeholder="e.g. 8 kills, #2 finish"></div>' +
+      '<button class="btn btn-red btn-sm" id="pf-submit">Submit proof</button> <span id="pf-msg" style="font-size:13px"></span>';
+    document.getElementById("pf-submit").addEventListener("click", function () {
+      var file = document.getElementById("pf-file").files[0];
+      var msg = document.getElementById("pf-msg");
+      if (!file) { msg.textContent = "Attach the screenshot first."; return; }
+      if (file.size > 8 * 1024 * 1024) { msg.textContent = "Image too large (max 8 MB)."; return; }
+      var b = this; b.disabled = true; msg.textContent = "Uploading…";
+      xrApi.userToken().then(function (tok) {
+        return uploadImage(file, tok).then(function (url) {
+          return xrApi.uRpc("proof_submit", { p_match: document.getElementById("pf-match").value || null, p_image: url, p_note: document.getElementById("pf-note").value });
+        });
+      }).then(function (r) {
+        b.disabled = false;
+        msg.textContent = r && r.ok ? "Submitted - the owner reviews it soon." : ((r && r.error) || "Could not submit.");
+        if (r && r.ok) { document.getElementById("pf-file").value = ""; document.getElementById("pf-note").value = ""; loadMyProofs(); }
+      }).catch(function (e) { b.disabled = false; msg.textContent = e.message || "Upload failed."; });
+    });
+  }
+  function loadMyProofs() {
+    if (!me) return;
+    xrApi.uRpc("my_proofs", {}).then(function (r) {
+      var ps = (r && r.proofs) || [];
+      var box = document.getElementById("my-proofs");
+      if (!ps.length) { box.innerHTML = ""; return; }
+      var colMap = { pending: "var(--gold2)", approved: "#4ade80", rejected: "#ff6b6b" };
+      box.innerHTML = '<p style="font-size:12.5px;color:var(--muted);margin-bottom:6px">My proofs:</p>' + ps.map(function (p) {
+        return '<p style="font-size:13px;margin:3px 0"><b style="color:' + (colMap[p.status] || "#fff") + '">' + p.status.toUpperCase() + "</b> · " +
+          esc(p.match || "general") + (p.points ? " · +" + p.points + " pts" : "") + (p.admin_note ? " · " + esc(p.admin_note) : "") + "</p>";
+      }).join("");
+    });
+  }
+  function renderReportForm() {
+    if (!me) return;
+    var f = document.getElementById("report-form");
+    f.innerHTML =
+      '<div class="field"><label>Player name / IGN</label><input id="rp-name" maxlength="40" placeholder="Who are you reporting?"></div>' +
+      '<div class="field"><label>Match (optional)</label><select id="rp-match" style="width:100%;padding:10px"><option value="">Not match-specific</option>' +
+      matches.map(function (m) { return '<option value="' + m.id + '">' + esc(m.title) + "</option>"; }).join("") + "</select></div>" +
+      '<div class="field"><label>What happened (10+ chars)</label><textarea id="rp-reason" maxlength="500" rows="3" placeholder="Describe it plainly - what, when, which room"></textarea></div>' +
+      '<div class="field"><label>Proof screenshot (optional)</label><input type="file" id="rp-file" accept="image/*" style="padding:10px"></div>' +
+      '<button class="btn btn-red btn-sm" id="rp-submit">Send report</button> <span id="rp-msg" style="font-size:13px"></span>';
+    document.getElementById("rp-submit").addEventListener("click", function () {
+      var msg = document.getElementById("rp-msg");
+      var name = document.getElementById("rp-name").value.trim(), reason = document.getElementById("rp-reason").value.trim();
+      if (name.length < 2 || reason.length < 10) { msg.textContent = "Name and a short description are required."; return; }
+      var b = this; b.disabled = true; msg.textContent = "Sending…";
+      var file = document.getElementById("rp-file").files[0];
+      var up = file
+        ? (file.size > 8 * 1024 * 1024 ? Promise.reject(new Error("Image too large (max 8 MB).")) : xrApi.userToken().then(function (tok) { return uploadImage(file, tok); }))
+        : Promise.resolve("");
+      up.then(function (url) {
+        return xrApi.uRpc("cheat_report", { p_name: name, p_reason: reason, p_match: document.getElementById("rp-match").value || null, p_proof: url });
+      }).then(function (r) {
+        b.disabled = false;
+        msg.textContent = r && r.ok ? "Report sent - the owner reviews every report." : ((r && r.error) || "Could not send.");
+        if (r && r.ok) { document.getElementById("rp-name").value = ""; document.getElementById("rp-reason").value = ""; document.getElementById("rp-file").value = ""; }
+      }).catch(function (e) { b.disabled = false; msg.textContent = e.message || "Could not send."; });
+    });
+  }
+  if (!window.xrApi) { document.getElementById("match-list").innerHTML = '<p style="color:var(--muted)">Server offline - try again shortly.</p>'; return; }
+  loadLiveBoard(); loadBracket();
+  xrApi.user().then(function (u) { me = u; return loadMatches(); }).then(function () {
+    renderProofForm(); renderReportForm(); loadMyProofs();
+  }).catch(function () { loadMatches(); });
+});
+</script>
+<footer><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand">
+<a class="brand" href="index.html">
+<svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="#e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="#f5b301" stroke-width="3.2"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<p>XARENA ESPORTS is a professional Free Fire esports organisation — tournaments, scrims, rankings and a competitive roster, run from India for the community.</p>
+</div>
+<div><h4>Arena</h4><ul>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="how-to-play.html">How to Play</a></li>
+<li><a href="verify.html">Photo Verify</a></li>
+<li><a href="play.html">Play &amp; Earn</a></li>
+<li><a href="feed.html">Highlights Feed</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="rules.html">Rules &amp; Regulations</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+</ul></div>
+<div><h4>Organisation</h4><ul>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="cup.html">Sponsor a Cup</a></li>
+<li><a href="contact.html">Contact & Support</a></li>
+<li><a href="download.html">Get the App</a></li>
+</ul></div>
+</div>
+<div class="foot-bottom">
+<span>© <b id="yr">2026</b> XARENA ESPORTS · All rights reserved</span>
+<span id="foot-credit">Founded &amp; owned by <b>Shivhari Rajput</b></span>
+<span id="app-update" style="display:none;cursor:pointer">App update check</span>
+</div>
+</div></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/vendor/supabase.min.js"></script>
+<script src="assets/js/vendor/qrcode.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/luna.js"></script>
+<script src="assets/js/reco.js"></script>
+<script src="assets/js/game.js"></script>
+<script src="assets/js/sfx.js"></script>
+<script src="assets/js/sharecard.js"></script>
+<script src="assets/js/funline.js"></script>
+<script src="assets/js/dm.js"></script>
+<script src="assets/js/chat-style.js"></script>
+<script src="assets/js/app-shell.js"></script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script>
+</body></html>

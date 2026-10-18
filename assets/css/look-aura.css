@@ -1,0 +1,127 @@
+/* XARENA look: AURA - clean light UI, soft gradient purple/pink accents (mobile-first kit style) */
+body.look-aura{
+  --bg0:#f6f5fb; --bg1:#ffffff; --bg2:#efeef7; --card:#ffffff;
+  --line:rgba(24,22,58,.08); --line2:rgba(124,92,255,.28);
+  --red:#8b5cf6; --red2:#a78bfa; --redglow:rgba(139,92,246,.35);
+  --purple:#8b5cf6; --purple2:#a78bfa; --purpleglow:rgba(139,92,246,.3);
+  --gold:#ec4899; --gold2:#f472b6;
+  --text:#1b1c31; --muted:#6d7086; --dim:#9a9cb4;
+  --cut:none;
+}
+body.look-aura{background:linear-gradient(160deg,#f8f7fd 0%,#f3effb 45%,#fdf0f6 100%)}
+body.look-aura::before{background:
+  radial-gradient(700px 420px at 92% -6%,rgba(139,92,246,.14),transparent 62%),
+  radial-gradient(620px 420px at 0% 10%,rgba(236,72,153,.1),transparent 60%),
+  radial-gradient(680px 500px at 50% 112%,rgba(139,92,246,.1),transparent 65%)}
+/* surfaces */
+body.look-aura .card,body.look-aura .form-panel,body.look-aura .news-item,body.look-aura .lb-table,body.look-aura .empty,body.look-aura .xg-quiz{
+  background:#fff;border:1px solid rgba(24,22,58,.07);border-radius:18px;
+  box-shadow:0 6px 24px rgba(24,22,58,.06)}
+body.look-aura .card:hover{border-color:rgba(139,92,246,.35);box-shadow:0 10px 30px rgba(24,22,58,.09)}
+body.look-aura .news-item{border-left:3px solid #8b5cf6;background:#fff}
+body.look-aura .hero-strip,body.look-aura .badge,body.look-aura .hero-tag{border-radius:999px}
+/* buttons + inputs */
+body.look-aura .btn,body.look-aura .field input,body.look-aura .field select,body.look-aura .field textarea{clip-path:none;border-radius:12px}
+body.look-aura .btn-red{background:linear-gradient(135deg,#8b5cf6,#ec4899);box-shadow:0 6px 18px rgba(139,92,246,.35);border:none}
+body.look-aura .btn-red:hover{box-shadow:0 8px 24px rgba(139,92,246,.45)}
+body.look-aura .btn-gold{background:#fff;color:#8b5cf6;border:1.5px solid #8b5cf6;box-shadow:none}
+body.look-aura .btn-ghost{border:1.5px solid rgba(24,22,58,.14);color:var(--text)}
+body.look-aura .field input,body.look-aura .field select,body.look-aura .field textarea{background:#f4f4fa;border:1px solid rgba(24,22,58,.06);color:var(--text)}
+body.look-aura .field input:focus,body.look-aura .field textarea:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.14)}
+/* top bar (kit style: white glass) */
+body.look-aura header.nav{background:rgba(255,255,255,.86);backdrop-filter:blur(14px);border-bottom:1px solid rgba(24,22,58,.07);box-shadow:0 2px 14px rgba(24,22,58,.05)}
+body.look-aura header.nav .brand{display:none}
+body.look-aura .xa-title{font:800 19px Orbitron,system-ui,sans-serif;color:#1b1c31;letter-spacing:.5px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.look-aura .xa-topbtn{position:relative;display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:#f4f4fa;color:#4a4d6b;flex:none;margin-left:8px}
+body.look-aura .xa-topbtn svg{width:19px;height:19px;stroke:currentColor}
+body.look-aura .xa-ava{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#ec4899);color:#fff;display:flex;align-items:center;justify-content:center;font:800 14px Orbitron,system-ui,sans-serif;border:none;margin-left:8px;flex:none}
+body.look-aura .burger i{background:#4a4d6b}
+body.look-aura .nav-links{background:rgba(255,255,255,.97)}
+body.look-aura .nav-links a{color:#3c3f5e}
+body.look-aura .nav-links a.active{color:#8b5cf6}
+body.look-aura .xr-theme-btn{background:#f4f4fa;color:#4a4d6b;border:none;border-radius:999px}
+/* bottom nav */
+body.look-aura{padding-bottom:76px}
+.xa-bnav{position:fixed;left:0;right:0;bottom:0;z-index:80;display:flex;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-top:1px solid rgba(24,22,58,.07);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
+.xa-bnav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0 4px;color:#8a8ca6;text-decoration:none;font-size:10.5px;font-weight:700;letter-spacing:.3px;border-radius:12px}
+.xa-bnav a svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.xa-bnav a.on{color:#8b5cf6}
+.xa-bnav a.on svg{filter:drop-shadow(0 0 6px rgba(139,92,246,.5))}
+body.look-aura.os-embed .xa-bnav{display:none}
+/* heroes */
+body.look-aura .page-hero h1,body.look-aura .hero h1{color:#1b1c31}
+body.look-aura .page-hero p,body.look-aura .hero p{color:#6d7086}
+body.look-aura .overline{color:#8b5cf6}
+body.look-aura .page-hero em,body.look-aura .hero em{color:#ec4899}
+/* feed cards (kit home) */
+body.look-aura .xf-post{background:#fff;border:1px solid rgba(24,22,58,.07);border-radius:18px;box-shadow:0 6px 22px rgba(24,22,58,.06)}
+body.look-aura .xf-ava{background:linear-gradient(135deg,#8b5cf6,#ec4899);border:none;color:#fff}
+body.look-aura .xf-head b{color:#1b1c31}
+body.look-aura .xf-cap{color:#2c2e48}
+body.look-aura .xf-like{color:#6d7086}
+body.look-aura .xf-cbtn{background:none;border:none;color:#6d7086;font-size:15px;cursor:pointer;display:flex;align-items:center;gap:6px;padding:4px 6px}
+body.look-aura .xf-cbtn .cnt{font-size:13px;font-weight:700}
+/* game widgets on light */
+body.look-aura .xg-lv-badge{background:linear-gradient(135deg,#8b5cf6,#ec4899);box-shadow:0 6px 18px rgba(139,92,246,.4)}
+body.look-aura .xg-bar{background:rgba(24,22,58,.08)}
+body.look-aura .xg-bar i{background:linear-gradient(90deg,#8b5cf6,#ec4899)}
+body.look-aura .xg-stat{background:#f8f8fd;border-color:rgba(24,22,58,.06)}
+body.look-aura .xg-stat b{color:#8b5cf6}
+body.look-aura .xg-badge{background:#f8f8fd;border-color:rgba(139,92,246,.25);color:#3c3f5e}
+body.look-aura .xg-opt{background:#f8f8fd;border-color:rgba(24,22,58,.1);color:#2c2e48}
+body.look-aura .xg-opt.right{border-color:#22c55e;background:rgba(34,197,94,.1)}
+body.look-aura .xg-opt.wrong{border-color:#ef4444;background:rgba(239,68,68,.08)}
+body.look-aura .xg-wheel{border-color:rgba(24,22,58,.12)}
+body.look-aura .xg-hub{background:#fff;border-color:#ec4899}
+body.look-aura .lb-tab{border-radius:999px;color:#6d7086;border:1.5px solid rgba(24,22,58,.12);background:#fff}
+body.look-aura .lb-tab.active{background:linear-gradient(135deg,rgba(139,92,246,.14),rgba(236,72,153,.12));border-color:#8b5cf6;color:#8b5cf6}
+body.look-aura .lb-table table th{color:#9a9cb4!important;border-bottom-color:rgba(24,22,58,.08)!important}
+body.look-aura .lb-table table td{border-bottom-color:rgba(24,22,58,.05)!important;color:#2c2e48}
+/* footer */
+body.look-aura footer{background:#fff;border-top:1px solid rgba(24,22,58,.07);color:#6d7086}
+body.look-aura footer a{color:#4a4d6b}
+body.look-aura .foot-brand p{color:#6d7086}
+/* splash handled by --xs-acc */
+/* profile kit row */
+.xa-pstats{display:flex;justify-content:center;gap:34px;margin:14px 0 4px;text-align:center}
+.xa-pstats b{display:block;font:800 19px Orbitron,system-ui,sans-serif;color:#1b1c31}
+.xa-pstats span{font-size:12px;color:#6d7086}
+.xa-quick{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.xa-quick button{background:linear-gradient(160deg,#f5f3ff,#fdf2f8);border:1px solid rgba(139,92,246,.2);border-radius:14px;padding:14px 8px;font-size:12.5px;font-weight:700;color:#6d28d9;cursor:pointer;line-height:1.35}
+.xa-quick button:hover{border-color:#8b5cf6;box-shadow:0 4px 14px rgba(139,92,246,.18)}
+.xa-quick .ic{display:block;font-size:20px;margin-bottom:6px}
+.xa-luna-row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid rgba(139,92,246,.22);border-radius:16px;padding:12px 14px;margin-bottom:14px;text-decoration:none;box-shadow:0 4px 16px rgba(139,92,246,.08)}
+.xa-luna-row .ic{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#ec4899);display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex:none}
+.xa-luna-row b{color:#1b1c31;font-size:14.5px}
+.xa-luna-row span{display:block;font-size:12px;color:#6d7086}
+.xa-luna-row .ai{margin-left:auto;background:linear-gradient(135deg,#8b5cf6,#ec4899);color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px;letter-spacing:.5px}
+.xf-share{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 6px}
+.xf-comments{padding:0 14px 12px;display:none}
+.xf-comments.open{display:block}
+.xf-comment{padding:7px 0;border-top:1px solid rgba(128,128,160,.12);font-size:13px}
+.xf-comment b{margin-right:6px}
+.xf-cform{display:flex;gap:8px;margin-top:8px}
+.xf-cform input{flex:1;padding:8px 12px;border:1px solid var(--line,rgba(128,128,160,.25));border-radius:999px;background:var(--bg2,#12101c);color:var(--text);font-size:13px}
+.xf-cform button{border:none;border-radius:999px;padding:8px 14px;background:linear-gradient(135deg,var(--red,#e10600),var(--gold,#f5b301));color:#fff;font-weight:700;cursor:pointer}
+
+html:has(body.look-aura),body.look-aura{overflow-x:hidden}
+body.look-aura:not(.os-embed) .nav-links{visibility:hidden}
+body.look-aura:not(.os-embed) .nav-links.open{visibility:visible}
+body.look-aura:not(.os-embed) #xr-install-pill{bottom:154px!important;left:auto!important;right:14px}
+body.look-aura:not(.os-embed) #luna-fab{bottom:84px!important}
+body.look-aura:not(.os-embed) main{padding-bottom:86px}
+/* Luna assistant in Aura light */
+body.look-aura #luna-panel{background:#ffffff;border:1px solid #e6dff5;box-shadow:0 12px 40px rgba(139,92,246,.18)}
+body.look-aura.luna-full:not(.app-mode) #luna-panel{inset:64px 0 64px 0;border:none}
+body.look-aura #luna-head{background:linear-gradient(90deg,#f3edff,#ffeef6);border-bottom:1px solid #eee6fb}
+body.look-aura #luna-head b{color:#1b1c31}
+body.look-aura #luna-head span{color:#8a7fb8}
+body.look-aura #luna-close{color:#8a7fb8}
+body.look-aura .luna-msg.luna{background:#f4efff;border:1px solid #e4d9fb;color:#3b3355}
+body.look-aura .luna-msg.me{background:linear-gradient(135deg,#8b5cf6,#ec4899);border:none;color:#fff}
+body.look-aura .luna-typing{color:#8a7fb8}
+body.look-aura #luna-chips button{background:#fff;border:1px solid #e4d9fb;color:#5b21b6;border-radius:14px;padding:10px 12px;font-size:13px;font-weight:600;text-align:left;box-shadow:0 4px 14px rgba(139,92,246,.08)}
+body.look-aura.luna-full #luna-chips{display:grid;grid-template-columns:1fr;gap:8px;padding:0 14px 10px}
+body.look-aura #luna-form{border-top:1px solid #eee6fb;background:#fbf9ff}
+body.look-aura #luna-input{background:#fff;border:1px solid #e4d9fb;color:#1b1c31}
+body.look-aura #luna-input::placeholder{color:#a49ac7}

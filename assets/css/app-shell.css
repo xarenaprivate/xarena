@@ -1,0 +1,33 @@
+/* XARENA app shell — active only in the installed app (html.app-mode) */
+html.app-mode body{padding-bottom:70px}
+html.app-mode .nav-links,html.app-mode .burger{display:none!important}
+html.app-mode .nav-in{justify-content:space-between}
+#xr-tabs{position:fixed;left:0;right:0;bottom:0;z-index:950;display:none;background:rgba(8,1,4,.97);border-top:1px solid rgba(191,106,255,.3);backdrop-filter:blur(10px);padding:6px 2px calc(6px + env(safe-area-inset-bottom))}
+html.app-mode #xr-tabs{display:flex}
+#xr-tabs a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;color:var(--muted);text-decoration:none;font-size:10px;letter-spacing:1.2px;font-weight:700}
+#xr-tabs a .ti{font-size:19px;line-height:1}
+#xr-tabs a.on{color:var(--gold2)}
+#xr-tabs a.big .ti{background:linear-gradient(135deg,#e10600,#8b3dff);border-radius:50%;width:46px;height:46px;display:flex;align-items:center;justify-content:center;margin-top:-18px;box-shadow:0 4px 16px rgba(225,6,0,.5);border:2px solid rgba(245,179,1,.5)}
+#xr-bell{display:none;font-size:19px;text-decoration:none;margin-right:12px;filter:drop-shadow(0 0 4px rgba(245,179,1,.4))}
+html.app-mode #xr-bell{display:block}
+#xr-tabs a.on .ti{filter:drop-shadow(0 0 6px rgba(245,179,1,.6))}
+#xr-avatar{display:none;width:38px;height:38px;border-radius:50%;border:2px solid var(--gold2);background:radial-gradient(circle at 30% 30%,#3a1150,#14010b 80%);color:#f5b301;font-weight:900;font-size:16px;align-items:center;justify-content:center;cursor:pointer;font-family:var(--font-d)}
+html.app-mode #xr-avatar{display:flex}
+#xr-mini-theme{display:none;background:none;border:1px solid var(--line2);border-radius:6px;color:var(--gold2);font-size:13px;padding:6px 9px;cursor:pointer;margin-right:8px}
+html.app-mode #xr-mini-theme{display:block}
+#xr-sheet{position:fixed;inset:0;z-index:960;display:none;background:rgba(0,0,0,.55)}
+#xr-sheet.open{display:block}
+#xr-sheet .card{position:absolute;left:0;right:0;bottom:0;background:rgba(12,2,6,.98);border-top:1px solid rgba(191,106,255,.35);border-radius:18px 18px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));max-height:80vh;overflow:auto}
+#xr-sheet h3{font-family:var(--font-d);letter-spacing:2px;font-size:17px;margin-bottom:4px}
+#xr-sheet .row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px}
+#xr-sheet .row b{color:var(--gold2)}
+#xr-sheet .muted{color:var(--muted);font-size:12.5px;margin-top:10px}
+#xr-sheet button{width:100%;margin-top:12px}
+/* Luna full-screen page */
+body.luna-full #luna-fab{display:none}
+body.luna-full #luna-panel{display:flex;position:fixed;inset:64px 0 70px 0;width:auto;height:auto;max-height:none;border:none;border-radius:0;z-index:900}
+body.luna-full:not(.app-mode) #luna-panel{inset:64px 0 0 0}
+html:not(.app-mode) body.luna-full main{display:none}
+html.app-mode body.luna-full main{display:none}
+html.app-mode body.luna-full footer,html:not(.app-mode) body.luna-full footer{display:none}
+body.luna-full #luna-close{display:none}

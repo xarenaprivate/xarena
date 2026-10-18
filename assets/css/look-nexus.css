@@ -1,0 +1,127 @@
+/* XARENA look: NEXUS PURPLE (Nexus Frontier mockup) - deep indigo, violet neon, rounded dashboard cards */
+body.look-nexus{
+  --bg0:#080a16; --bg1:#0c1024; --bg2:#131838; --card:#10142e;
+  --line:rgba(124,92,255,.16); --line2:rgba(124,92,255,.3);
+  --red:#7c5cff; --red2:#a08cff; --redglow:rgba(124,92,255,.5);
+  --purple:#b678ff; --purple2:#d2aaff; --purpleglow:rgba(182,120,255,.45);
+  --gold:#ffc24b; --gold2:#ffd67d;
+  --text:#f1f2fc; --muted:#a3a8cf; --dim:#767ba3;
+  --cut:none;
+}
+body.look-nexus::before{background:
+  radial-gradient(900px 520px at 88% -6%,rgba(124,92,255,.2),transparent 62%),
+  radial-gradient(760px 500px at 4% 8%,rgba(182,120,255,.12),transparent 60%),
+  radial-gradient(700px 500px at 50% 110%,rgba(76,60,180,.16),transparent 65%),
+  repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0 1px,transparent 1px 44px),
+  repeating-linear-gradient(90deg,rgba(255,255,255,.015) 0 1px,transparent 1px 44px)}
+body.look-nexus .btn,body.look-nexus .card,body.look-nexus .badge,body.look-nexus .lb-tab,body.look-nexus .lb-table,body.look-nexus .empty,body.look-nexus .form-panel,body.look-nexus .hero-tag,body.look-nexus .hero-strip,body.look-nexus .card .icon{border-radius:16px}
+body.look-nexus .field input,body.look-nexus .field select,body.look-nexus .field textarea{clip-path:none;border-radius:12px}
+body.look-nexus .btn-red{background:linear-gradient(135deg,#9d8cff,#6246e8);box-shadow:0 0 24px rgba(124,92,255,.5)}
+body.look-nexus .btn-red:hover{box-shadow:0 0 36px rgba(124,92,255,.65)}
+body.look-nexus .card{border-color:rgba(124,92,255,.18);box-shadow:0 10px 34px rgba(4,6,20,.5)}
+body.look-nexus .card:hover{border-color:rgba(182,120,255,.55);box-shadow:0 14px 44px rgba(4,6,20,.6),0 0 26px rgba(124,92,255,.22)}
+body.look-nexus .card .icon{background:rgba(124,92,255,.12);border-color:rgba(124,92,255,.4)}
+body.look-nexus .card .icon svg{stroke:var(--red2)}
+body.look-nexus .form-panel{border-color:rgba(182,120,255,.4);box-shadow:0 0 44px rgba(124,92,255,.12);border-radius:18px}
+body.look-nexus .hero-tag{border-radius:999px}
+body.look-nexus .lb-tab{border-radius:999px}
+body.look-nexus .lb-tab.active{background:linear-gradient(135deg,rgba(124,92,255,.4),rgba(182,120,255,.32));border-color:#7c5cff;box-shadow:0 0 18px rgba(124,92,255,.3)}
+body.look-nexus .badge{border-radius:999px}
+body.look-nexus .badge.live{color:#c9b8ff;background:rgba(124,92,255,.14);box-shadow:inset 0 0 0 1px rgba(124,92,255,.55)}
+body.look-nexus .tmeta div{border-left-color:#b678ff;border-radius:2px}
+body.look-nexus .news-item{border-left-color:#7c5cff;background:linear-gradient(90deg,rgba(124,92,255,.09),transparent 55%);border-radius:0 12px 12px 0}
+body.look-nexus .nav-chat{border-color:rgba(124,92,255,.55);clip-path:none;border-radius:999px;background:linear-gradient(120deg,rgba(124,92,255,.18),rgba(182,120,255,.14))}
+body.look-nexus .nav-chat:hover{box-shadow:0 0 18px rgba(124,92,255,.4)}
+
+/* ===== NEXUS LAYOUT: Nexus-FFrontier-style sidebar dashboard (desktop, not in OS windows) ===== */
+@media (min-width:1000px){
+body.look-nexus:not(.os-embed){padding-left:218px}
+body.look-nexus:not(.os-embed) header.nav{position:fixed;left:0;top:0;bottom:0;width:218px;background:linear-gradient(180deg,#0b0e22,#080a18);border-right:1px solid var(--line2);z-index:70;box-shadow:8px 0 40px rgba(4,6,20,.5)}
+body.look-nexus:not(.os-embed) header.nav .nav-in{flex-direction:column;align-items:stretch;justify-content:flex-start;height:100%;width:100%;max-width:none;margin:0;padding:18px 12px;gap:10px}
+body.look-nexus:not(.os-embed) header.nav .brand{justify-content:center;padding:6px 0 12px;border-bottom:1px solid var(--line)}
+body.look-nexus:not(.os-embed) .nav-links{flex-direction:column;align-items:stretch;gap:2px;flex:1;overflow-y:auto;display:flex;position:static;background:none;border:none;padding:0;box-shadow:none}
+body.look-nexus:not(.os-embed) .nav-links li{width:100%}
+body.look-nexus:not(.os-embed) .nav-links a{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;border-radius:12px;font-size:13.5px;color:var(--muted);letter-spacing:.3px;border:1px solid transparent}
+body.look-nexus:not(.os-embed) .nav-links a:hover{background:rgba(124,92,255,.1);color:var(--text)}
+body.look-nexus:not(.os-embed) .nav-links a.active{background:linear-gradient(135deg,rgba(124,92,255,.35),rgba(124,92,255,.14));color:#fff;border-color:rgba(124,92,255,.45);box-shadow:0 0 18px rgba(124,92,255,.25)}
+body.look-nexus:not(.os-embed) .nav-links a::before{font-size:15px;width:20px;text-align:center;filter:saturate(.9)}
+body.look-nexus:not(.os-embed) .nav-links a[href="index.html"]::before{content:"🏠"}
+body.look-nexus:not(.os-embed) .nav-links a[href="tournaments.html"]::before{content:"🏆"}
+body.look-nexus:not(.os-embed) .nav-links a[href="teams.html"]::before{content:"🛡️"}
+body.look-nexus:not(.os-embed) .nav-links a[href="players.html"]::before{content:"👥"}
+body.look-nexus:not(.os-embed) .nav-links a[href="squads.html"]::before{content:"⚔️"}
+body.look-nexus:not(.os-embed) .nav-links a[href="tasks.html"]::before{content:"✅"}
+body.look-nexus:not(.os-embed) .nav-links a[href="leaderboard.html"]::before{content:"📊"}
+body.look-nexus:not(.os-embed) .nav-links a[href="winners.html"]::before{content:"🥇"}
+body.look-nexus:not(.os-embed) .nav-links a[href="scrims.html"]::before{content:"🎯"}
+body.look-nexus:not(.os-embed) .nav-links a[href="news.html"]::before{content:"📰"}
+body.look-nexus:not(.os-embed) .nav-links a[href="rules.html"]::before{content:"📜"}
+body.look-nexus:not(.os-embed) .nav-links a[href="contact.html"]::before{content:"✉️"}
+body.look-nexus:not(.os-embed) .nav-links a[href="account.html"]::before{content:"👤"}
+body.look-nexus:not(.os-embed) .nav-links a.nav-chat::before{content:"💬"}
+body.look-nexus:not(.os-embed) .nav-links li.nav-cta{flex-direction:column;align-items:stretch;gap:8px;margin-top:auto;padding-top:10px;border-top:1px solid var(--line)}
+body.look-nexus:not(.os-embed) .nav-cta .xr-theme-btn{width:100%;border-radius:12px;border:1px solid rgba(124,92,255,.4);background:rgba(124,92,255,.1);color:#d8ccff;padding:8px;cursor:pointer}
+body.look-nexus:not(.os-embed) .nav-cta .btn-red{width:100%;text-align:center;border-radius:14px;background:linear-gradient(135deg,#9d8cff,#6246e8);box-shadow:0 0 22px rgba(124,92,255,.5);padding:11px 14px;font-weight:800;letter-spacing:1px}
+/* dashboard hero card */
+body.look-nexus:not(.os-embed) .hero{min-height:0;border-radius:24px;margin:20px 20px 0;border:1px solid var(--line2);overflow:hidden;box-shadow:0 24px 70px rgba(4,6,20,.55)}
+body.look-nexus:not(.os-embed) .hero-veil{background:linear-gradient(135deg,rgba(16,10,46,.88),rgba(8,10,26,.55) 55%,rgba(98,70,232,.28))}
+body.look-nexus:not(.os-embed) .hero-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;background:none;border:none;padding:0;margin-top:26px}
+body.look-nexus:not(.os-embed) .hero-strip .hstat{background:rgba(16,20,46,.85);border:1px solid var(--line2);border-radius:14px;padding:14px 16px;backdrop-filter:none}
+body.look-nexus:not(.os-embed) .hero-strip .hstat b{color:#c9b8ff;font-size:20px}
+body.look-nexus:not(.os-embed) .hero-ctas .btn{border-radius:14px}
+}
+/* dashboard tile feel on all sizes */
+body.look-nexus .card{position:relative}
+body.look-nexus .section-head .overline{color:#b678ff;letter-spacing:2.5px}
+body.look-nexus .section-head .overline::before{content:"";display:inline-block;width:18px;height:2px;background:linear-gradient(90deg,#7c5cff,#b678ff);margin-right:8px;vertical-align:middle;border-radius:2px}
+@media (min-width:1000px){
+body.look-nexus:not(.os-embed) .nav-links{scrollbar-width:thin;scrollbar-color:rgba(124,92,255,.45) transparent}
+body.look-nexus:not(.os-embed) .nav-links::-webkit-scrollbar{width:5px}
+body.look-nexus:not(.os-embed) .nav-links::-webkit-scrollbar-thumb{background:rgba(124,92,255,.45);border-radius:3px}
+body.look-nexus:not(.os-embed) #xr-install-pill{left:236px!important}
+}
+
+
+/* ===== NEXUS LAYOUT — portrait phone: bottom icon tab bar + stacked dashboard ===== */
+@media (max-width:999px){
+body.look-nexus:not(.os-embed){padding-bottom:72px}
+body.look-nexus:not(.os-embed) header.nav{position:fixed;left:0;right:0;bottom:0;top:auto;height:64px;background:linear-gradient(180deg,#0e1228,#090b1a);border-top:1px solid var(--line2);z-index:70;box-shadow:0 -8px 30px rgba(4,6,20,.55)}
+body.look-nexus:not(.os-embed) header.nav .nav-in{width:100%;max-width:none;margin:0;padding:6px 8px;height:100%;align-items:center}
+body.look-nexus:not(.os-embed) header.nav .brand{display:none}
+body.look-nexus:not(.os-embed) .burger{display:none!important}
+body.look-nexus:not(.os-embed) .nav-links{position:static;transform:none;display:flex;flex-direction:row;overflow-x:auto;width:100%;align-items:center;gap:4px;background:none;border:none;box-shadow:none;padding:0}
+body.look-nexus:not(.os-embed) .nav-links li{flex:0 0 auto;display:flex}
+body.look-nexus:not(.os-embed) .nav-links a{font-size:0;width:52px;height:52px;display:flex;align-items:center;justify-content:center;border-radius:14px;border-bottom:none;background:none;color:var(--muted)}
+body.look-nexus:not(.os-embed) .nav-links a::before{font-size:19px;width:auto}
+body.look-nexus:not(.os-embed) .nav-links a[href="index.html"]::before{content:"🏠"}
+body.look-nexus:not(.os-embed) .nav-links a[href="tournaments.html"]::before{content:"🏆"}
+body.look-nexus:not(.os-embed) .nav-links a[href="teams.html"]::before{content:"🛡️"}
+body.look-nexus:not(.os-embed) .nav-links a[href="players.html"]::before{content:"👥"}
+body.look-nexus:not(.os-embed) .nav-links a[href="squads.html"]::before{content:"⚔️"}
+body.look-nexus:not(.os-embed) .nav-links a[href="tasks.html"]::before{content:"✅"}
+body.look-nexus:not(.os-embed) .nav-links a[href="leaderboard.html"]::before{content:"📊"}
+body.look-nexus:not(.os-embed) .nav-links a[href="winners.html"]::before{content:"🥇"}
+body.look-nexus:not(.os-embed) .nav-links a[href="scrims.html"]::before{content:"🎯"}
+body.look-nexus:not(.os-embed) .nav-links a[href="news.html"]::before{content:"📰"}
+body.look-nexus:not(.os-embed) .nav-links a[href="rules.html"]::before{content:"📜"}
+body.look-nexus:not(.os-embed) .nav-links a[href="contact.html"]::before{content:"✉️"}
+body.look-nexus:not(.os-embed) .nav-links a[href="account.html"]::before{content:"👤"}
+body.look-nexus:not(.os-embed) .nav-links a.nav-chat::before{content:"💬"}
+body.look-nexus:not(.os-embed) .nav-links a.active{background:linear-gradient(135deg,rgba(124,92,255,.5),rgba(124,92,255,.2));box-shadow:0 0 16px rgba(124,92,255,.4)}
+body.look-nexus:not(.os-embed) .nav-links a.active::after{display:none}
+body.look-nexus:not(.os-embed) .nav-links .pulse,body.look-nexus:not(.os-embed) .nav-links .chat-badge{display:none}
+body.look-nexus:not(.os-embed) .nav-links li.nav-cta{flex-direction:row;gap:6px;align-items:center;margin-left:auto}
+body.look-nexus:not(.os-embed) .nav-cta .xr-theme-btn{font-size:0;width:52px;height:52px;border-radius:14px;border:1px solid rgba(124,92,255,.4);background:rgba(124,92,255,.12)}
+body.look-nexus:not(.os-embed) .nav-cta .xr-theme-btn::before{content:"🎨";font-size:19px}
+body.look-nexus:not(.os-embed) .nav-cta .btn-red{font-size:0;width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#9d8cff,#6246e8);box-shadow:0 0 16px rgba(124,92,255,.45)}
+body.look-nexus:not(.os-embed) .nav-cta .btn-red::before{content:"📝";font-size:17px}
+body.look-nexus:not(.os-embed) #xr-install-pill{bottom:76px!important}
+body.look-nexus:not(.os-embed) #luna-fab{bottom:80px!important}
+/* portrait stacked dashboard */
+body.look-nexus:not(.os-embed) .hero{border-radius:20px;margin:12px 10px 0;border:1px solid var(--line2);overflow:hidden;min-height:0}
+body.look-nexus:not(.os-embed) .hero-veil{background:linear-gradient(135deg,rgba(16,10,46,.88),rgba(8,10,26,.6) 55%,rgba(98,70,232,.3))}
+body.look-nexus:not(.os-embed) .hero-strip{display:grid;grid-template-columns:1fr 1fr;gap:10px;border:none;background:none;backdrop-filter:none;clip-path:none;padding:0;margin-top:22px;max-width:none}
+body.look-nexus:not(.os-embed) .hero-strip .hstat{background:rgba(16,20,46,.85);border:1px solid var(--line2);border-radius:14px;padding:12px 14px}
+body.look-nexus:not(.os-embed) .hero-strip .hstat b{color:#c9b8ff}
+body.look-nexus:not(.os-embed) footer{padding-bottom:14px}
+}

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://xarena.surge.sh/squads.html">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Squads · XARENA ESPORTS</title>
+<meta name="description" content="XARENA squads — approved creators start squads, players join them. One squad per player.">
+<link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="%230b0b14" stroke="%23e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="%23f5b301" stroke-width="3.2"/></svg>'>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="XARENA ESPORTS">
+<meta property="og:title" content="XARENA ESPORTS - Free Fire tournaments, feed, stories, Luna">
+<meta property="og:description" content="India's Free Fire esports platform - tournaments, scrims, highlights feed, stories, encrypted messages and the Luna assistant. Free forever.">
+<meta property="og:url" content="https://xarena.surge.sh/">
+<meta property="og:image" content="https://xarena.surge.sh/assets/icon-512.png">
+<meta name="twitter:card" content="summary">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0104">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="XARENA">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/app-shell.css">
+</head>
+<body>
+<style>
+#xr-splash{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;transition:opacity .3s ease;overflow:hidden}
+#xr-splash::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none}
+#xr-splash .xs-stage{position:relative;width:118px;height:118px;display:flex;align-items:center;justify-content:center}
+#xr-splash .xs-ring{position:absolute;inset:0;animation:xsSpin 2.6s linear infinite}
+#xr-splash .xs-ring circle{fill:none;stroke:var(--xs-acc,#e10600);stroke-width:2.5;stroke-dasharray:44 22;stroke-linecap:round;filter:drop-shadow(0 0 6px var(--xs-acc,#e10600))}
+#xr-splash .xs-ring.r2{animation:xsSpinR 3.8s linear infinite;inset:9px}
+#xr-splash .xs-ring.r2 circle{stroke-dasharray:10 30;opacity:.55;stroke-width:1.5}
+#xr-splash .xs-logo{width:62px;height:62px;animation:xsPulse 1.2s ease-in-out infinite}
+#xr-splash .xs-logo path{stroke:var(--xs-acc,#e10600)}
+#xr-splash .xs-logo .xs-x{stroke:#f5b301}
+#xr-splash .xs-name{font:900 24px Orbitron,system-ui,sans-serif;color:#fff;letter-spacing:7px;margin-left:7px;animation:xsGlitch 2.4s steps(1) infinite}
+#xr-splash .xs-tag{font:800 10px Orbitron,system-ui,sans-serif;letter-spacing:5px;color:var(--xs-acc,#e10600);margin-left:5px;text-shadow:0 0 10px var(--xs-acc,#e10600)}
+#xr-splash .xs-tip{font:600 12.5px Rajdhani,system-ui,sans-serif;color:#9aa0b8;letter-spacing:1px;min-height:16px;text-align:center;padding:0 24px;transition:opacity .25s}
+#xr-splash .xs-bar{width:170px;height:3px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+#xr-splash .xs-bar i{display:block;height:100%;width:0;border-radius:3px;background:var(--xs-acc,#e10600);box-shadow:0 0 12px var(--xs-acc,#e10600);animation:xsFill 1.5s ease forwards}
+#xr-splash.xs-done{opacity:0;pointer-events:none}
+@keyframes xsSpin{to{transform:rotate(360deg)}}
+@keyframes xsSpinR{to{transform:rotate(-360deg)}}
+@keyframes xsPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes xsFill{to{width:88%}}
+@keyframes xsGlitch{0%,93%,100%{text-shadow:none}94%{text-shadow:-2px 0 var(--xs-acc,#e10600),2px 0 #22d3ee}96%{text-shadow:2px 0 var(--xs-acc,#e10600),-2px 0 #22d3ee}98%{text-shadow:none}}
+@media (prefers-reduced-motion:reduce){#xr-splash .xs-ring,#xr-splash .xs-logo,#xr-splash .xs-name,#xr-splash .xs-bar i{animation:none!important}#xr-splash{transition:none!important}}
+</style>
+<div id="xr-splash" role="status" aria-label="Loading XARENA">
+<div class="xs-stage">
+<svg class="xs-ring" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-ring r2" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47"/></svg>
+<svg class="xs-logo" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke-width="2.5"/><path class="xs-x" d="M13 13l14 14M27 13L13 27" stroke-width="3.2" fill="none"/></svg>
+</div>
+<div class="xs-name">XARENA</div>
+<div class="xs-tag">ENTERING THE ARENA</div>
+<div class="xs-tip" id="xs-tip"></div>
+<div class="xs-bar"><i></i></div>
+<script>(function(){try{var m={liquid:"#0a84ff",classic:"#e10600","3d":"#8b3dff",nexus:"#7c5cff",arena:"#ff7a1a","void":"#a970ff",ascend:"#19e3c2",hybrid:"#22d3ee",pulse:"#ff2e88",aura:"#8b5cf6",social:"#0095f6"};var t=localStorage.getItem("xr_theme")||"liquid";var s=document.getElementById("xr-splash");if(s&&m[t])s.style.setProperty("--xs-acc",m[t]);var tips=["Season 1 - 48 squad slots - registrations open","Real tournaments - tracked rankings - live World Chat","Tip: mention @luna in World Chat - she answers","Tip: finish tasks to earn points, badges and titles","48 squads. One crown. Season 1 is loading"];var tip=document.getElementById("xs-tip");if(tip&&!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)){var i=Math.floor(Math.random()*tips.length);tip.textContent=tips[i];var iv=setInterval(function(){if(!document.getElementById("xr-splash")){clearInterval(iv);return;}i=(i+1)%tips.length;tip.style.opacity=0;setTimeout(function(){tip.textContent=tips[i];tip.style.opacity=1;},240);},1600);}}catch(e){}})();</script>
+</div>
+<header class="nav"><div class="wrap nav-in">
+<a class="brand" href="index.html" aria-label="XARENA ESPORTS home">
+<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="xg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3131"/><stop offset=".55" stop-color="#e10600"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="url(#xg)" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="url(#xg)" stroke-width="3.2" stroke-linecap="square"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<button class="burger" aria-label="Menu"><i></i><i></i><i></i></button>
+<ul class="nav-links">
+<li><a href="index.html">Home</a></li>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="squads.html" class="active">Squads</a></li>
+<li><a href="tasks.html">Tasks</a></li>
+<li><a href="play.html">Play</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="feed.html">Feed</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+<li><a href="rules.html">RRs</a></li>
+<li><a href="contact.html">Contact</a></li>
+<li><a href="account.html">Account</a></li>
+<li><a class="nav-chat" href="chat.html"><span class="pulse"></span>World Chat<span class="chat-badge" id="xr-chat-badge"></span></a></li>
+<li class="nav-cta" style="display:flex;align-items:center;gap:8px"><a href="messages.html" aria-label="Messages" title="Messages" style="color:inherit;display:flex;padding:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></a><button class="xr-theme-btn" id="xr-theme-btn" type="button">Look</button><a class="btn btn-red btn-sm" href="tournaments.html#register">Register</a></li>
+</ul>
+</div></header>
+<main><section class="section"><div class="wrap" style="max-width:960px">
+  <div class="section-head reveal"><div class="overline">Squads</div><h2>XARENA <em>Squads</em></h2>
+  <p>Approved creators can start a squad; every player can join one. One squad per player, 6 players max. Creator access is granted by the owner.</p></div>
+  <div id="sq-invites" style="margin-bottom:20px"></div>
+  <div id="sq-me" style="margin-bottom:20px"></div>
+  <h3 style="margin:10px 0">All squads</h3>
+  <div id="sq-list"><p style="color:var(--muted)">Loading…</p></div>
+  <h3 style="margin:22px 0 10px">Squad wars</h3>
+  <p style="color:var(--muted);font-size:13px;margin-bottom:10px">Captains challenge other squads to a war. The owner schedules it and posts the result - the winning squad's players each earn +25 Arena Points.</p>
+  <div id="sq-wars"><p style="color:var(--muted)">Loading…</p></div>
+</div></section></main>
+<script>
+window.addEventListener("load", function () {
+  var meBox = document.getElementById("sq-me");
+  var listBox = document.getElementById("sq-list");
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function msg(el, t, ok) { el.style.color = ok ? "var(--gold2)" : "#ffb4ae"; el.textContent = t; }
+  var session = null, myMembership = null, creator = false, pending = false, squads = [];
+
+  function loadSquads() {
+    return fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/squads_public?select=*", { headers: { apikey: "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7" } })
+      .then(function (r) { return r.json(); }).then(function (rows) { squads = rows || []; });
+  }
+  function loadMe() {
+    if (!window.xrSb) return Promise.resolve();
+    return window.xrSb.auth.getSession().then(function (r) {
+      session = (r && r.data && r.data.session) || null;
+      if (!session) return;
+      return Promise.all([
+        xrApi.uRpc("squad_creator_status", {}).then(function (st) { if (st && st.ok) { creator = !!st.creator; pending = !!st.pending; } }),
+        fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/squad_members?user_id=eq." + session.user.id + "&select=squad_id,role", { headers: { apikey: "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7", "Authorization": "Bearer " + session.access_token } })
+          .then(function (r) { return r.json(); }).then(function (rows) { myMembership = rows && rows[0] || null; }),
+        xrApi.uRpc("my_squad_invites", {}).then(function (r) { if (r && r.ok) renderInvites(r.invites || []); })
+      ]);
+    });
+  }
+  function squadById(id) { return squads.filter(function (s) { return s.id === id; })[0]; }
+  function memberList(s) {
+    return (s.members || []).map(function (m) {
+      return '<span style="display:inline-block;background:rgba(139,61,255,.12);border:1px solid rgba(139,61,255,.35);border-radius:6px;padding:3px 10px;margin:2px 4px 2px 0;font-size:12.5px">' + esc(m.ign || m.username) + (m.role === "captain" ? ' <span style="color:var(--gold2)">★ captain</span>' : "") + "</span>";
+    }).join("");
+  }
+  function render() {
+    /* my panel */
+    var h = "";
+    if (!session) {
+      h = '<div class="card"><p style="font-size:14px">Log in on the <a href="account.html" style="color:var(--gold2)">Account page</a> to join a squad or request creator access.</p></div>';
+    } else if (myMembership) {
+      var s = squadById(myMembership.squad_id);
+      var mine = s && s.captain_username && session.user.id && myMembership.role === "captain";
+      h = '<div class="card"><h3>My squad: ' + esc(s ? s.name : "…") + (s && s.tag ? ' <span style="color:var(--gold2)">[' + esc(s.tag) + "]</span>" : "") + "</h3>" +
+        (s && s.bio ? '<p style="color:var(--muted);font-size:13.5px">' + esc(s.bio) + "</p>" : "") +
+        '<div style="margin:8px 0">' + (s ? memberList(s) : "") + "</div>" +
+        '<p id="sq-rank" style="font-size:13px;color:var(--muted);margin:4px 0 8px"></p>' +
+        (myMembership.role === "captain"
+          ? '<div style="margin:8px 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><input id="sq-inv" maxlength="24" placeholder="Invite player by name / IGN" style="flex:1;min-width:160px"><button class="btn btn-gold btn-sm" id="sq-inv-btn">Invite</button></div>' +
+            '<div style="margin:8px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap">' +
+            (s && s.logo_url ? '<img src="' + esc(s.logo_url) + '" alt="Team logo" style="width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid rgba(255,255,255,.15)">' : '') +
+            '<label class="btn btn-ghost btn-sm" style="cursor:pointer">' + (s && s.logo_url ? "Change team logo" : "Add team logo") + '<input type="file" accept="image/*" id="sq-logo-file" style="display:none"></label><span id="sq-logo-msg" style="font-size:12.5px;color:var(--muted)"></span></div>' +
+            '<button class="btn btn-ghost btn-sm" id="sq-disband" style="color:#ff6b6b">Disband squad</button>'
+          : '<button class="btn btn-ghost btn-sm" id="sq-leave">Leave squad</button>') +
+        '<p id="sq-me-msg" style="font-size:13px;margin-top:8px"></p></div>';
+    } else if (creator) {
+      h = '<div class="card"><h3>Create your squad</h3><p style="font-size:13px;color:var(--gold2)">You are an approved creator.</p>' +
+        '<div class="field"><label>Squad name</label><input id="sq-name" maxlength="30" placeholder="3-30 characters"></div>' +
+        '<div class="frow"><div class="field"><label>Tag (2-6 chars, optional)</label><input id="sq-tag" maxlength="6" placeholder="e.g. NH"></div>' +
+        '<div class="field"><label>Bio (optional)</label><input id="sq-bio" maxlength="200" placeholder="One line about your squad"></div></div>' +
+        '<button class="btn btn-red btn-sm" id="sq-create">Create squad</button><p id="sq-me-msg" style="font-size:13px;margin-top:8px"></p></div>';
+    } else if (pending) {
+      h = '<div class="card"><h3>Creator access</h3><p style="font-size:14px">Your creator request is <b style="color:var(--gold2)">pending review</b> by the owner. You can still join any squad below.</p></div>';
+    } else {
+      h = '<div class="card"><h3>Want to create a squad?</h3><p style="font-size:13.5px">Only approved creators can start squads (keeps squads real). Request access — the owner reviews every request.</p>' +
+        '<div class="field"><label>Why should you host a squad? (optional)</label><input id="sq-note" maxlength="280" placeholder="One line for the owner"></div>' +
+        '<button class="btn btn-gold btn-sm" id="sq-request">Request creator access</button><p id="sq-me-msg" style="font-size:13px;margin-top:8px"></p></div>';
+    }
+    meBox.innerHTML = h;
+    /* list */
+    if (!squads.length) {
+      listBox.innerHTML = '<div class="empty"><div class="big">No squads yet</div><p>The first approved creator squad will appear here. Join requests open as soon as squads exist.</p></div>';
+    } else {
+      listBox.innerHTML = squads.map(function (s) {
+        return '<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h3 style="margin:0;display:flex;align-items:center;flex-wrap:wrap">' + (s.logo_url ? '<img src="' + esc(s.logo_url) + '" alt="" loading="lazy" style="width:40px;height:40px;border-radius:8px;object-fit:cover;margin-right:10px;flex:none;border:1px solid rgba(0,0,0,.08)">' : '') + '<span>' + esc(s.name) + (s.tag ? ' <span style="color:var(--gold2);font-size:14px">[' + esc(s.tag) + "]</span>" : "") + "</span></h3>" +
+          '<span style="font-size:12.5px;color:var(--muted)">' + s.member_count + "/6 players</span></div>" +
+          (s.bio ? '<p style="color:var(--muted);font-size:13.5px;margin:6px 0">' + esc(s.bio) + "</p>" : "") +
+          '<div style="margin:6px 0">' + memberList(s) + "</div>" +
+          (session && !myMembership && s.member_count < 6 ? '<button class="btn btn-red btn-sm" data-join="' + s.id + '">Join this squad</button>' : "") +
+          (session && myMembership && myMembership.role === "captain" && myMembership.squad_id !== s.id ? ' <button class="btn btn-gold btn-sm" data-war="' + s.id + '">Challenge to war</button>' : "") +
+          '<p class="sq-join-msg" id="sq-msg-' + s.id + '" style="font-size:13px;margin-top:6px"></p></div>';
+      }).join("");
+    }
+    wire();
+  }
+  function renderInvites(invites) {
+    var box = document.getElementById("sq-invites");
+    if (!invites.length) { box.innerHTML = ""; return; }
+    box.innerHTML = '<div class="card"><h3>Squad invites</h3>' + invites.map(function (i) {
+      return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px">' +
+        '<span><b>' + esc(i.squad) + (i.tag ? " [" + esc(i.tag) + "]" : "") + "</b> invited you (by " + esc(i.by || "the captain") + ")</span>" +
+        '<span style="display:flex;gap:6px"><button class="btn btn-red btn-sm" data-acc="' + i.id + '">Accept</button>' +
+        '<button class="btn btn-ghost btn-sm" data-dec="' + i.id + '">Decline</button></span></div>';
+    }).join("") + "</div>";
+    Array.prototype.forEach.call(box.querySelectorAll("[data-acc],[data-dec]"), function (b) {
+      b.addEventListener("click", function () {
+        b.disabled = true;
+        xrApi.uRpc("squad_invite_respond", { p_id: parseInt(b.getAttribute("data-acc") || b.getAttribute("data-dec"), 10), p_accept: !!b.getAttribute("data-acc") }).then(function (r) {
+          if (r && r.ok) { setTimeout(refresh, 400); } else { b.disabled = false; xrToast((r && r.error) || "Could not answer the invite."); }
+        });
+      });
+    });
+  }
+  function loadRank() {
+    var el = document.getElementById("sq-rank");
+    if (!el || !myMembership) return;
+    xrApi.uRpc("my_squad_rank", {}).then(function (r) {
+      if (r && r.ok && r.rank) el.innerHTML = "Battle board: <b style='color:var(--gold2)'>#" + r.rank + "</b> of " + r.total + " squads - " + (r.row ? (r.row.total || 0) + " pts (" + (r.row.match_points || 0) + " match + " + (r.row.squad_xp || 0) + " squad XP)" : "");
+      else if (r && r.ok) el.textContent = "Battle board rank appears once squads earn points - see the Leaderboard Squad Battles tab.";
+    }).catch(function () {});
+  }
+  function loadWars() {
+    var box = document.getElementById("sq-wars");
+    if (!box) return;
+    xrApi.uRpc("wars_board", {}).then(function (r) {
+      if (!r || !r.ok) { box.innerHTML = ""; return; }
+      var wars = r.wars || [];
+      if (!wars.length) { box.innerHTML = '<div class="empty"><div class="big">No wars yet</div><p>The first squad challenge will show here.</p></div>'; return; }
+      box.innerHTML = wars.map(function (w) {
+        var col = w.status === "done" ? "var(--muted)" : w.status === "scheduled" ? "#4ade80" : "var(--gold2)";
+        var mine = myMembership && (w.opponent_id === myMembership.squad_id || w.challenger_id === myMembership.squad_id);
+        var canAnswer = mine && w.status === "pending" && myMembership.role === "captain" && w.opponent_id === myMembership.squad_id;
+        return '<div class="card" style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">' +
+          '<b>' + esc(w.challenger) + " vs " + esc(w.opponent) + "</b>" +
+          '<span style="font-size:12.5px;color:' + col + '">' + esc(w.status.toUpperCase()) + (w.scheduled_at ? " · " + new Date(w.scheduled_at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "") + "</span></div>" +
+          (w.status === "done" ? '<p style="font-size:13.5px;margin-top:6px">' + (w.winner ? "Winner: <b style='color:var(--gold2)'>" + esc(w.winner) + "</b>" : "Draw") + (w.result ? " · " + esc(w.result) : "") + "</p>" : "") +
+          (canAnswer ? '<div style="margin-top:8px;display:flex;gap:8px"><button class="btn btn-red btn-sm" data-war-acc="' + w.id + '">Accept war</button><button class="btn btn-ghost btn-sm" data-war-dec="' + w.id + '">Decline</button></div>' : "") +
+          "</div>";
+      }).join("");
+      Array.prototype.forEach.call(box.querySelectorAll("[data-war-acc],[data-war-dec]"), function (b) {
+        b.addEventListener("click", function () {
+          b.disabled = true;
+          xrApi.uRpc("squad_war_respond", { p_war: parseInt(b.getAttribute("data-war-acc") || b.getAttribute("data-war-dec"), 10), p_accept: !!b.getAttribute("data-war-acc") }).then(function (r) {
+            if (r && r.ok) loadWars(); else { b.disabled = false; xrToast((r && r.error) || "Could not answer."); }
+          });
+        });
+      });
+    }).catch(function () { box.innerHTML = ""; });
+  }
+  function wire() {
+    var mEl = document.getElementById("sq-me-msg");
+    var lf = document.getElementById("sq-logo-file");
+    if (lf) lf.addEventListener("change", function () {
+      var f = lf.files && lf.files[0];
+      if (!f) return;
+      var lmsg = document.getElementById("sq-logo-msg");
+      lmsg.textContent = "Uploading…";
+      xrUploadTeamLogo(f).then(function (url) {
+        return xrApi.uRpc("set_squad_logo", { p_squad: myMembership.squad_id, p_logo: url });
+      }).then(function () { lmsg.textContent = "Logo saved."; setTimeout(refresh, 500); })
+        .catch(function (e) { lmsg.textContent = (e && e.message) || "Could not save the logo."; });
+    });
+    var ib = document.getElementById("sq-inv-btn");
+    if (ib) ib.addEventListener("click", function () {
+      var nm = document.getElementById("sq-inv").value.trim();
+      if (!nm) return;
+      ib.disabled = true;
+      xrApi.uRpc("squad_invite", { p_name: nm }).then(function (r) {
+        ib.disabled = false;
+        if (r && r.ok) { msg(mEl, "Invite sent to " + nm + ".", true); document.getElementById("sq-inv").value = ""; }
+        else msg(mEl, (r && r.error) || "Could not send the invite.", false);
+      });
+    });
+    loadRank();
+    var b;
+    if ((b = document.getElementById("sq-create"))) b.addEventListener("click", function () {
+      b.disabled = true;
+      xrApi.uRpc("create_squad", { p_name: document.getElementById("sq-name").value, p_tag: document.getElementById("sq-tag").value, p_bio: document.getElementById("sq-bio").value }).then(function (r) {
+        if (r && r.ok) { msg(mEl, "Squad created!", true); setTimeout(refresh, 700); } else { b.disabled = false; msg(mEl, (r && r.error) || "Could not create squad.", false); }
+      });
+    });
+    if ((b = document.getElementById("sq-request"))) b.addEventListener("click", function () {
+      b.disabled = true;
+      xrApi.uRpc("request_squad_creator", { p_note: document.getElementById("sq-note").value }).then(function (r) {
+        if (r && r.ok) { msg(mEl, "Request sent — the owner will review it.", true); setTimeout(refresh, 900); } else { b.disabled = false; msg(mEl, (r && r.error) || "Could not send request.", false); }
+      });
+    });
+    if ((b = document.getElementById("sq-leave"))) b.addEventListener("click", function () {
+      b.disabled = true;
+      xrApi.uRpc("leave_squad", {}).then(function (r) {
+        if (r && r.ok) { msg(mEl, "You left the squad.", true); setTimeout(refresh, 700); } else { b.disabled = false; msg(mEl, (r && r.error) || "Could not leave.", false); }
+      });
+    });
+    if ((b = document.getElementById("sq-disband"))) b.addEventListener("click", function () {
+      if (!confirm("Disband this squad for everyone?")) { return; }
+      b.disabled = true;
+      xrApi.uRpc("disband_squad", { p_squad: myMembership.squad_id }).then(function (r) {
+        if (r && r.ok) { msg(mEl, "Squad disbanded.", true); setTimeout(refresh, 700); } else { b.disabled = false; msg(mEl, (r && r.error) || "Could not disband.", false); }
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-war]"), function (b) {
+      b.addEventListener("click", function () {
+        if (!confirm("Challenge this squad to a war? Their captain will be asked to accept.")) return;
+        b.disabled = true;
+        xrApi.uRpc("squad_war_challenge", { p_opponent: b.getAttribute("data-war") }).then(function (r) {
+          b.disabled = false;
+          if (r && r.ok) { xrToast("War challenge sent."); loadWars(); }
+          else xrToast((r && r.error) || "Could not challenge.");
+        });
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-join]"), function (jb) {
+      jb.addEventListener("click", function () {
+        jb.disabled = true;
+        var jm = document.getElementById("sq-msg-" + jb.getAttribute("data-join"));
+        xrApi.uRpc("join_squad", { p_squad: jb.getAttribute("data-join") }).then(function (r) {
+          if (r && r.ok) { msg(jm, "You joined the squad!", true); setTimeout(refresh, 700); } else { jb.disabled = false; msg(jm, (r && r.error) || "Could not join.", false); }
+        });
+      });
+    });
+  }
+  function refresh() { return loadSquads().then(loadMe).then(render).then(loadWars); }
+  refresh().catch(function () { listBox.innerHTML = '<p style="color:#ffb4ae">Could not load squads — check your connection.</p>'; });
+});
+</script>
+<footer><div class="wrap">
+<div class="foot-grid">
+<div class="foot-brand">
+<a class="brand" href="index.html">
+<svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="#0b0b14" stroke="#e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="#f5b301" stroke-width="3.2"/></svg>
+<span class="brand-name">X<span>ARENA</span></span></a>
+<p>XARENA ESPORTS is a professional Free Fire esports organisation — tournaments, scrims, rankings and a competitive roster, run from India for the community.</p>
+</div>
+<div><h4>Arena</h4><ul>
+<li><a href="tournaments.html">Tournaments</a></li>
+<li><a href="leaderboard.html">Leaderboard</a></li>
+<li><a href="winners.html">Winners</a></li>
+<li><a href="squads.html">Squads</a></li>
+<li><a href="vote.html">Vote</a></li>
+<li><a href="sensitivity.html">Sensitivity</a></li>
+<li><a href="calendar.html">Calendar</a></li>
+<li><a href="room.html">Clan Room</a></li>
+<li><a href="coaches.html">Coaches</a></li>
+<li><a href="stats.html">Stats</a></li>
+<li><a href="sponsors.html">Sponsors</a></li>
+<li><a href="how-to-play.html">How to Play</a></li>
+<li><a href="verify.html">Photo Verify</a></li>
+<li><a href="play.html">Play &amp; Earn</a></li>
+<li><a href="feed.html">Highlights Feed</a></li>
+<li><a href="messages.html">Messages</a></li>
+<li><a href="rules.html">Rules &amp; Regulations</a></li>
+<li><a href="scrims.html">Scrims</a></li>
+<li><a href="news.html">News</a></li>
+</ul></div>
+<div><h4>Organisation</h4><ul>
+<li><a href="teams.html">Teams</a></li>
+<li><a href="players.html">Players</a></li>
+<li><a href="cup.html">Sponsor a Cup</a></li>
+<li><a href="contact.html">Contact & Support</a></li>
+<li><a href="download.html">Get the App</a></li>
+</ul></div>
+</div>
+<div class="foot-bottom">
+<span>© <b id="yr">2026</b> XARENA ESPORTS · All rights reserved</span>
+<span id="foot-credit">Founded &amp; owned by <b>Shivhari Rajput</b></span>
+<span id="app-update" style="display:none;cursor:pointer">App update check</span>
+</div>
+</div></footer>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/vendor/supabase.min.js"></script>
+<script src="assets/js/vendor/qrcode.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/luna.js"></script>
+<script src="assets/js/reco.js"></script>
+<script src="assets/js/game.js"></script>
+<script src="assets/js/sfx.js"></script>
+<script src="assets/js/sharecard.js"></script>
+<script src="assets/js/funline.js"></script>
+<script src="assets/js/dm.js"></script>
+<script src="assets/js/chat-style.js"></script>
+<script src="assets/js/app-shell.js"></script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script>
+</body></html>
