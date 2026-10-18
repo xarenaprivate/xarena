@@ -220,10 +220,10 @@ fun CompleteProfileScreen(onDone: () -> Unit) {
 @Composable
 fun HomeShell(onLogout: () -> Unit) {
     var tab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Tournaments", "Leaderboard", "Chat", "Profile")
+    val tabs = listOf("Tournaments", "Leaderboard", "Chat", "Luna", "Profile")
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(1f)) {
-            when (tab) { 0 -> TournamentsScreen(); 1 -> LeaderboardScreen(); 2 -> ChatScreen(); else -> ProfileScreen(onLogout) }
+            when (tab) { 0 -> TournamentsScreen(); 1 -> LeaderboardScreen(); 2 -> ChatScreen(); 3 -> LunaScreen(); else -> ProfileScreen(onLogout) }
         }
         Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(vertical = 6.dp)) {
             tabs.forEachIndexed { i, label ->

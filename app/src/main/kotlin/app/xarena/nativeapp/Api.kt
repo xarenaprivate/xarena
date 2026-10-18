@@ -135,6 +135,33 @@ object Api {
     }
 
 
+
+    /* ---- Luna (same luna-chat Edge Function the site uses) ---- */
+
+    class LunaOffline(msg: String) : Exception(msg)
+
+    suspend fun lunaSend(message: String, history: JSONArray): String = withContext(Dispatchers.IO) {
+        val sid = "native-" + (uid ?: "anon")
+        val body = JSONObject().put("session_id", sid).put("message", message).put("history", history)
+        val (code, text) = call("POST", "/functions/v1/luna-chat", body, null)
+        if (code == 404 || code == 503) throw LunaOffline("Luna is offline right now. The team is bringing her back - try again later.")
+        if (code !in 200..299) throw ApiError("Luna could not reply just now ($code). Try again in a bit.")
+        val r = JSONObject(text).optString("reply")
+        if (r.isBlank()) throw ApiError("Luna could not reply just now. Try again in a bit.")
+        r
+    }
+
+    suspend fun lunaAlive(): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val sid = "native-" + (uid ?: "anon")
+            val (code, _) = call("POST", "/functions/v1/luna-chat", JSONObject().put("session_id", sid).put("ping", true), null)
+            code != 404 && code != 503
+        } catch (e: Exception) { false }
+    }
+
+    fun lunaHistoryLoad(): JSONArray = try { JSONArray(prefs.getString("luna_hist", "[]")) } catch (e: Exception) { JSONArray() }
+    fun lunaHistorySave(h: JSONArray) { prefs.edit().putString("luna_hist", h.toString()).apply() }
+
     /* ---- World chat (same RPCs/table the website uses) ---- */
 
     var chatHandle: String? = null; private set
