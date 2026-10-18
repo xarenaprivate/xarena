@@ -287,4 +287,61 @@ object Api {
     suspend fun myStats(): JSONObject? = withContext(Dispatchers.IO) {
         try { JSONObject(authed("POST", "/rest/v1/rpc/my_game_stats", JSONObject())) } catch (e: Exception) { null }
     }
+
+    /* ---------- Feed & Stories ---------- */
+    suspend fun feedList(before: Long?): JSONArray = withContext(Dispatchers.IO) {
+        val args = JSONObject()
+        if (before != null) args.put("p_before", before)
+        authedRpc("feed_list", args).optJSONArray("posts") ?: JSONArray()
+    }
+    suspend fun feedSaved(): JSONArray = withContext(Dispatchers.IO) {
+        authedRpc("feed_saved", JSONObject()).optJSONArray("posts") ?: JSONArray()
+    }
+    suspend fun feedCreate(kind: String, mediaPath: String?, caption: String?): JSONObject = withContext(Dispatchers.IO) {
+        val a = JSONObject().put("p_kind", kind)
+        if (mediaPath != null) a.put("p_media_path", mediaPath)
+        if (!caption.isNullOrBlank()) a.put("p_caption", caption.trim())
+        authedRpc("feed_create", a)
+    }
+    suspend fun feedToggleLike(post: Long): JSONObject = withContext(Dispatchers.IO) { authedRpc("feed_toggle_like", JSONObject().put("p_post", post)) }
+    suspend fun feedToggleSave(post: Long): JSONObject = withContext(Dispatchers.IO) { authedRpc("feed_toggle_save", JSONObject().put("p_post", post)) }
+    suspend fun feedComments(post: Long): JSONArray = withContext(Dispatchers.IO) {
+        val r = authedRpc("feed_comments_list", JSONObject().put("p_post", post))
+        r.optJSONArray("comments") ?: r.optJSONArray("items") ?: JSONArray()
+    }
+    suspend fun feedComment(post: Long, body: String): JSONObject = withContext(Dispatchers.IO) {
+        authedRpc("feed_comment", JSONObject().put("p_post", post).put("p_body", body.trim()))
+    }
+    suspend fun feedMediaUpload(bytes: ByteArray, ext: String, mime: String): String = withContext(Dispatchers.IO) {
+        val clean = ext.lowercase().replace(Regex("[^a-z0-9]"), "").ifBlank { "jpg" }
+        val path = (uid ?: "anon") + "/" + System.currentTimeMillis() + "." + clean
+        val tok = access ?: throw ApiError("Log in to post media.")
+        val c = java.net.URL(BASE + "/storage/v1/object/feed-media/" + path).openConnection() as java.net.HttpURLConnection
+        c.requestMethod = "POST"
+        c.connectTimeout = 15000; c.readTimeout = 60000
+        c.setRequestProperty("apikey", KEY)
+        c.setRequestProperty("Authorization", "Bearer " + tok)
+        c.setRequestProperty("Content-Type", mime)
+        c.setRequestProperty("x-upsert", "false")
+        c.doOutput = true
+        c.outputStream.use { it.write(bytes) }
+        val code = c.responseCode
+        if (code !in 200..299) throw ApiError("Upload failed (" + code + "). Check your connection and try again.")
+        path
+    }
+    suspend fun storyTrays(): JSONArray = withContext(Dispatchers.IO) {
+        authedRpc("story_trays", JSONObject()).optJSONArray("trays") ?: JSONArray()
+    }
+    suspend fun storyList(author: String): JSONObject = withContext(Dispatchers.IO) {
+        authedRpc("story_list", JSONObject().put("p_author", author))
+    }
+    suspend fun storyCreate(kind: String, mediaPath: String?, caption: String?): JSONObject = withContext(Dispatchers.IO) {
+        val a = JSONObject().put("p_kind", kind)
+        if (mediaPath != null) a.put("p_media_path", mediaPath)
+        if (!caption.isNullOrBlank()) a.put("p_caption", caption.trim())
+        authedRpc("story_create", a)
+    }
+    suspend fun storyMarkSeen(story: Long) = withContext(Dispatchers.IO) { runCatching { authedRpc("story_mark_seen", JSONObject().put("p_story", story)) } }
+    suspend fun storyDelete(story: Long): JSONObject = withContext(Dispatchers.IO) { authedRpc("story_delete", JSONObject().put("p_story", story)) }
+
 }
