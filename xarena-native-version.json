@@ -1,6 +1,6 @@
 {
-  "versionCode": 11,
-  "versionName": "0.11.0",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/native-v0.11.0/xarena-native.apk",
-  "notes": "Feed: highlights with likes, comments, saves. Certificates now include the scan-to-check QR. Story delete and viewers list."
+  "versionCode": 12,
+  "versionName": "0.12.0",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/native-v0.12.0/xarena-native.apk",
+  "notes": "Clips, Live, Winners, Stats, Tasks, Scrims, Calendar. Liquid look is now the default; Nova in Settings > Look."
 }
