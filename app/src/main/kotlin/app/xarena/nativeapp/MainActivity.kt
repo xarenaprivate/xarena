@@ -7,6 +7,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -220,16 +221,16 @@ fun CompleteProfileScreen(onDone: () -> Unit) {
 @Composable
 fun HomeShell(onLogout: () -> Unit) {
     var tab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Tournaments", "Leaderboard", "Chat", "Luna", "Profile")
+    val tabs = listOf("Tournaments", "Board", "Chat", "Luna", "Squads", "Store", "Profile")
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(1f)) {
-            when (tab) { 0 -> TournamentsScreen(); 1 -> LeaderboardScreen(); 2 -> ChatScreen(); 3 -> LunaScreen(); else -> ProfileScreen(onLogout) }
+            when (tab) { 0 -> TournamentsScreen(); 1 -> LeaderboardScreen(); 2 -> ChatScreen(); 3 -> LunaScreen(); 4 -> SquadsScreen(); 5 -> StoreScreen(); else -> ProfileScreen(onLogout) }
         }
-        Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(vertical = 6.dp)) {
+        Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(vertical = 6.dp)) {
             tabs.forEachIndexed { i, label ->
-                Column(Modifier.weight(1f).clickable { tab = i }.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(Modifier.width(92.dp).clickable { tab = i }.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Box(Modifier.size(6.dp).clip(CircleShape).background(if (tab == i) Gold else Color.Transparent))
-                    Text(label, color = if (tab == i) Gold else Muted, fontSize = 13.sp, fontWeight = if (tab == i) FontWeight.Bold else FontWeight.Medium)
+                    Text(label, color = if (tab == i) Gold else Muted, fontSize = 11.sp, maxLines = 1, fontWeight = if (tab == i) FontWeight.Bold else FontWeight.Medium)
                 }
             }
         }

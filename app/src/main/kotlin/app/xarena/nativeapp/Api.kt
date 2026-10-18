@@ -136,6 +136,21 @@ object Api {
 
 
 
+
+    /* ---- Squads (same RPCs/views the site uses) ---- */
+
+    suspend fun authedGetArray(path: String): JSONArray = withContext(Dispatchers.IO) {
+        JSONArray(authed("GET", path, null))
+    }
+
+    suspend fun authedRpc(name: String, args: JSONObject): JSONObject = withContext(Dispatchers.IO) {
+        JSONObject(authed("POST", "/rest/v1/rpc/$name", args))
+    }
+
+    suspend fun squadsPublic(): JSONArray = withContext(Dispatchers.IO) {
+        publicGet("/rest/v1/squads_public?select=*")
+    }
+
     /* ---- Luna (same luna-chat Edge Function the site uses) ---- */
 
     class LunaOffline(msg: String) : Exception(msg)

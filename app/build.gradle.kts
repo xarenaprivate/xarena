@@ -9,8 +9,8 @@ android {
         applicationId = "app.xarena.esports.native"
         minSdk = 24
         targetSdk = 34
-        versionCode = 3
-        versionName = "0.3.0-native"
+        versionCode = 5
+        versionName = "0.5.0-native"
     }
     buildTypes {
         release {
