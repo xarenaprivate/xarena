@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -169,18 +170,25 @@ fun CertsScreen(onBack: () -> Unit) {
                     Text("No certificates yet. They appear here after a verified registration or a title.", color = Muted, fontSize = 14.sp, modifier = Modifier.padding(24.dp))
                 }
                 items((0 until badges.length()).map { badges.getJSONObject(it) }.filter { it.optString("badge").startsWith("Champion: ") }) { b ->
-                    CertCard("CHAMPION", b.getString("badge").removePrefix("Champion: "), me.value, b.optString("earned_at").take(10))
+                    CertCard("CHAMPION", "champion", b.getString("badge").removePrefix("Champion: "), me.value, b.optString("earned_at").take(10))
                 }
                 items((0 until regs.length()).map { regs.getJSONObject(it) }) { r ->
-                    CertCard("PARTICIPATION", names[r.optString("tournament_id")] ?: "XARENA Tournament", r.optString("squad").ifBlank { me.value }, r.optString("created_at").take(10))
+                    CertCard("PARTICIPATION", "participation", names[r.optString("tournament_id")] ?: "XARENA Tournament", r.optString("squad").ifBlank { me.value }, r.optString("created_at").take(10))
                 }
             }
         }
     }
 }
 
+private fun qrBitmap(text: String, size: Int): android.graphics.Bitmap {
+    val bits = com.google.zxing.qrcode.QRCodeWriter().encode(text, com.google.zxing.BarcodeFormat.QR_CODE, size, size)
+    val bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888)
+    for (x in 0 until size) for (y in 0 until size) bmp.setPixel(x, y, if (bits.get(x, y)) 0xFF12082A.toInt() else 0xFFF5C451.toInt())
+    return bmp
+}
+
 @Composable
-private fun CertCard(kind: String, tournament: String, who: String, date: String) {
+private fun CertCard(kind: String, kindRaw: String, tournament: String, who: String, date: String) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).clip(RoundedCornerShape(8.dp)).background(Color(0xFF221338))
         .border(2.dp, Gold, RoundedCornerShape(8.dp)).padding(4.dp)
         .border(1.dp, Gold.copy(alpha = .35f), RoundedCornerShape(6.dp)).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -192,6 +200,11 @@ private fun CertCard(kind: String, tournament: String, who: String, date: String
         Spacer(Modifier.height(6.dp))
         Text("Awarded to " + who.ifBlank { "Player" }, color = Color.White, fontSize = 13.sp)
         Text(date, color = Muted, fontSize = 12.sp)
+        Spacer(Modifier.height(10.dp))
+        val payload = "XARENA-CERT|" + kindRaw + "|" + who.ifBlank { "Player" } + "|" + tournament + "|" + date
+        val qr = remember(payload) { qrBitmap(payload, 240) }
+        androidx.compose.foundation.Image(qr.asImageBitmap(), contentDescription = "QR - scan to check details", modifier = Modifier.size(80.dp).clip(RoundedCornerShape(6.dp)))
+        Text("SCAN TO CHECK DETAILS", color = Muted, fontSize = 9.sp, modifier = Modifier.padding(top = 3.dp))
     }
 }
 

@@ -118,6 +118,15 @@ private fun StoryViewer(authorId: String, authorName: String, onClose: () -> Uni
     var stories by remember { mutableStateOf<JSONArray?>(null) }
     var idx by remember { mutableIntStateOf(0) }
     var err by remember { mutableStateOf<String?>(null) }
+    var deleting by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(deleting) {
+        if (!deleting) return@LaunchedEffect
+        val st = stories?.getJSONObject(idx) ?: return@LaunchedEffect
+        runCatching { Api.storyDelete(st.getLong("id")) }
+        deleting = false
+        onClose()
+    }
     LaunchedEffect(authorId) {
         val r = runCatching { Api.storyList(authorId) }.getOrElse { err = it.message; null }
         val arr = r?.optJSONArray("stories")
@@ -152,6 +161,34 @@ private fun StoryViewer(authorId: String, authorName: String, onClose: () -> Uni
             Column(Modifier.align(Alignment.TopStart).padding(top = 20.dp, start = 14.dp)) {
                 Text(authorName, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                 Text(st.optString("caption"), color = Color.White.copy(alpha = .85f), fontSize = 13.sp)
+            }
+            if (authorId == Api.uid) Column(Modifier.align(Alignment.BottomStart).padding(14.dp)) {
+                var viewers by remember { mutableStateOf<JSONArray?>(null) }
+                var showViewers by remember { mutableStateOf(false) }
+                Text("Viewers", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha = .5f)).clickable {
+                    showViewers = !showViewers
+                    if (showViewers && viewers == null) {
+                        runCatching { }
+                        viewers = null
+                    }
+                }.padding(8.dp))
+                LaunchedEffect(showViewers, idx) {
+                    if (showViewers) viewers = runCatching {
+                        Api.authedRpc("story_viewers", JSONObject().put("p_story", st.getLong("id"))).optJSONArray("viewers")
+                    }.getOrNull()
+                }
+                if (showViewers) {
+                    if (viewers == null) Text("Loading...", color = Color.White, fontSize = 12.sp)
+                    else if (viewers!!.length() == 0) Text("No views yet.", color = Color.White, fontSize = 12.sp)
+                    else for (i in 0 until viewers!!.length()) {
+                        val v = viewers!!.getJSONObject(i)
+                        Text(v.optString("name").ifBlank { v.optString("viewer").ifBlank { "Player" } }, color = Color.White, fontSize = 12.sp)
+                    }
+                }
+                Text("Delete story", color = ErrRed, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha = .5f)).clickable {
+                    runCatching { }
+                    deleting = true
+                }.padding(8.dp))
             }
         }
         err?.let { Text(it, color = ErrRed, fontSize = 14.sp, modifier = Modifier.align(Alignment.Center).padding(24.dp)) }

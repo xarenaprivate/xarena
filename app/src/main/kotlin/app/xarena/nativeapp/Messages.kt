@@ -37,7 +37,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-private fun dmTime(iso: String): String { return try {
+fun dmTime(iso: String): String { return try {
     val p = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") }
     val d = p.parse(iso.substring(0, 19)) ?: return ""
     val now = System.currentTimeMillis()

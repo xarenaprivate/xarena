@@ -101,7 +101,7 @@ object Api {
     fun logout() { access = null; uid = null; prefs.edit().clear().apply() }
 
     /** Authenticated GET/RPC with one automatic token refresh. */
-    private fun authed(method: String, path: String, body: JSONObject?): String {
+    fun authed(method: String, path: String, body: JSONObject?): String {
         var (code, text) = call(method, path, body, access)
         if (code == 401 && refresh()) { val r = call(method, path, body, access); code = r.first; text = r.second }
         if (code !in 200..299) throw ApiError("Request failed ($code).")

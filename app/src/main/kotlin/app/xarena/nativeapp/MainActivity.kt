@@ -254,6 +254,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "rules" -> { RulesScreen(onBack = { feature = null }); return }
         "notifications" -> { NotificationsScreen(onBack = { feature = null }); return }
         "stories" -> { StoriesScreen(onBack = { feature = null }); return }
+        "feed" -> { FeedScreen(onBack = { feature = null }); return }
     }
     var msgBadge by remember { mutableIntStateOf(0) }
     LaunchedEffect(feature, conv) {
@@ -300,6 +301,7 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         Triple("rules", "Rules", "Tournament and squad rules"),
         Triple("notifications", "Notifications", "Your alerts"),
         Triple("stories", "Stories", "24-hour highlights from players"),
+        Triple("feed", "Feed", "Player highlights - post, like, comment, save"),
         Triple("settings", "Settings", "App version, activity status, logout"),
     )
     Column(Modifier.fillMaxSize()) {
