@@ -1,18 +1,17 @@
 {
-  "version": "7.16.0",
-  "versionName": "7.16.0",
-  "versionCode": 79,
-  "code": 79,
-  "size": 2277277,
-  "sha256": "daf9531e3c002d0a7dea25273c07803c2fd685524a177b934b67c6aa576824b8",
+  "version": "7.17.0",
+  "versionName": "7.17.0",
+  "versionCode": 80,
+  "code": 80,
+  "size": 2285611,
+  "sha256": "7cee7fce9841219e09825fbc329506391f37170d1f33ec5879c85adfbec9cdfd",
   "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
-  "updated": "2026-10-18T10:24:52.050915+00:00",
+  "updated": "2026-10-18T10:58:08.559842+00:00",
   "released": "October 18, 2026",
-  "notes": "Fan Voting MVP, Ping & Device Check, Daily Streak Badges and Team Roles - all rebuilt to the mockups with real data only.",
+  "notes": "Clip Highlights - real community clips, published after review. Watch, share and download.",
   "changes": [
-    "Fan Voting MVP page rebuilt to the mockup - real poll, live countdown, changeable vote",
-    "Ping & Device Check - real measured latency and jitter, real device facts",
-    "Daily Streak Badges - real streak, real check-in XP, real milestone badges",
-    "Team Roles - set your real role; squad formation shows when squads form"
+    "Clip Highlights page - real approved clips from the Feed with Share and Download",
+    "Honest by design: no auto-detection claims, no fake stats - caption, uploader and date are real",
+    "Empty state points players to upload on the Feed until the first clips are approved"
   ]
 }
