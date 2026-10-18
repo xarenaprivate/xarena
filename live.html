@@ -101,14 +101,20 @@
 </ul>
 </div></header>
 <main>
-<section class="page-hero"><div class="wrap">
-  <div class="overline">Real streams only</div>
-  <h1>XARENA <em>Live.</em></h1>
-  <p>Tournament streams go up here when the owner goes live - plus the real match schedule. No reruns pretending to be live.</p>
-</div></section>
-<section class="section"><div class="wrap">
+<link rel="stylesheet" href="assets/css/nova-pages.css">
+<link rel="stylesheet" href="assets/css/nova-live.css">
+<section class="section xnp xnlv"><div class="wrap" style="max-width:560px">
+  <div class="xnp-brand">
+    <svg class="xnp-logo" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="xgold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a3"/><stop offset=".55" stop-color="#ffd23f"/><stop offset="1" stop-color="#f5b301"/></linearGradient></defs><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="rgba(30,17,54,.6)" stroke="url(#xgold)" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="url(#xgold)" stroke-width="3.2" stroke-linecap="square"/></svg>
+    <div class="xnp-word">XARENA</div><div class="xnp-word2">ESPORTS</div>
+  </div>
+  <div style="text-align:center"><span class="xnlv-pill"><span class="dot"></span>LIVE</span></div>
+  <h1 class="xnp-title" style="text-align:center">Watch Live</h1>
+  <p class="xnp-sub" style="text-align:center">Real tournament streams and the real match schedule - no reruns pretending to be live.</p>
   <div id="live-now"><div class="card"><h3>Live now</h3><p style="color:var(--muted)">Checking…</p></div></div>
-  <div class="card" style="margin-top:16px"><h3>Upcoming matches</h3><div id="live-upcoming"><p style="color:var(--muted)">Checking…</p></div></div>
+  <div id="luna-cast-anchor"></div>
+  <h2 class="xnlv-h2">MATCH CENTER</h2>
+  <div id="live-upcoming"><p style="color:var(--muted)">Checking…</p></div>
 </div></section>
 </main>
 <script src="assets/js/vendor/supabase.min.js"></script>
@@ -136,7 +142,7 @@ window.addEventListener("load", function () {
     box.innerHTML = rows.map(function (m) {
       var d = m.starts_at ? new Date(m.starts_at) : null;
       var when = d ? d.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "TBD";
-      return '<div class="news-item"><h3 style="font-size:15.5px">' + esc(m.title || "Match") + '</h3><p>' + esc(when) + (m.status ? ' · <b style="color:var(--gold2)">' + esc(String(m.status).toUpperCase()) + "</b>" : "") + '</p></div>';
+      return '<div class="xnlv-match"><div class="mi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffd23f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8m-4-4v4M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4v2a3 3 0 0 0 3 3m10-5h3v2a3 3 0 0 1-3 3"/></svg></div><div><h3>' + esc(m.title || "Match") + '</h3><p>' + esc(when) + '</p></div>' + (m.status ? '<span class="xnlv-status">' + esc(String(m.status).toUpperCase()) + "</span>" : "") + '</div>';
     }).join("");
   }).catch(function () { document.getElementById("live-upcoming").innerHTML = '<p style="color:var(--muted)">Could not load the schedule.</p>'; });
 });

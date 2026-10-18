@@ -1,0 +1,50 @@
+/* Nova rebuild: Live + Luna Cast + Academy (mockups 4a5ef03d, 5e14ddab, 5bae0845, b859c2f2). Real data only. */
+.xnlv .xnp-sub,.xnac .xnp-sub{margin-bottom:22px}
+.xnlv-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(225,29,46,.16);border:1px solid rgba(255,80,90,.6);color:#ff5a5a;font-weight:800;font-size:12.5px;letter-spacing:1.5px;border-radius:20px;padding:6px 16px}
+.xnlv-pill .dot{width:8px;height:8px;border-radius:50%;background:#ff3b3b;box-shadow:0 0 10px #ff3b3b;animation:xnlvblink 1.4s infinite}
+@keyframes xnlvblink{50%{opacity:.35}}
+.xnlv-h2{font-family:'Orbitron';font-weight:800;font-size:19px;color:#ffd23f;letter-spacing:2px;margin:30px 0 14px;text-align:center}
+body .xnp .card,body .xnp .empty,.xnlv-match,.xnac-drill,#luna-cast{background:rgba(24,11,46,.82);border:1px solid rgba(255,210,63,.30);border-radius:18px;color:#e9defc}
+.xnp .card h3{color:#ffd23f;font-family:'Orbitron';font-size:16px}
+.xnp .card p,.xnlv-match p{color:#c9b8e6}
+.xnp .badge.live{background:#e11d2e;color:#fff;border-radius:6px;padding:3px 10px;font-weight:800;letter-spacing:1px}
+.xnp .empty .big{color:#ffe9a8;font-weight:700}
+.xnlv-match{padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.xnlv-match .mi{flex:none;width:40px;height:40px;border-radius:12px;background:radial-gradient(circle at 35% 30%,rgba(255,210,63,.28),rgba(245,179,1,.08) 70%);border:1.5px solid rgba(255,210,63,.55);display:flex;align-items:center;justify-content:center}
+.xnlv-match h3{margin:0;font-size:15.5px;color:#fff;font-family:'Rajdhani';font-weight:700}
+.xnlv-match p{margin:2px 0 0;font-size:13px}
+.xnlv-status{margin-left:auto;font-size:11px;font-weight:800;letter-spacing:1px;color:#ffd23f;border:1px solid rgba(255,210,63,.5);border-radius:12px;padding:3px 10px;white-space:nowrap}
+/* Luna Cast (mockup 5bae0845) */
+#luna-cast{padding:20px;margin-top:22px}
+.xlc-head{display:flex;align-items:center;gap:12px}
+.xlc-moon{flex:none;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,210,63,.30),rgba(245,179,1,.08) 70%);border:2px solid #ffd23f;display:flex;align-items:center;justify-content:center;box-shadow:0 0 18px rgba(255,210,63,.25)}
+.xlc-name{font-family:'Orbitron';font-weight:900;font-size:24px;color:#ffd23f;letter-spacing:.5px}
+.xlc-chip{font-size:10.5px;font-weight:800;letter-spacing:1.2px;color:#1d0b38;background:linear-gradient(180deg,#ffe9a3,#f5b301);border-radius:11px;padding:3px 10px;margin-left:auto;white-space:nowrap}
+.xlc-sub{font-size:12px;color:#c9b8e6;letter-spacing:1.5px;margin-top:2px}
+.xlc-insight{margin-top:14px;border:1px solid rgba(255,210,63,.45);border-radius:14px;padding:14px 16px;background:rgba(34,17,60,.7)}
+.xlc-insight .who{font-size:10.5px;font-weight:800;letter-spacing:1.5px;color:#ffd23f;margin-bottom:5px}
+.xlc-insight p{margin:0;font-size:14.5px;line-height:1.55;color:#f2e9ff}
+.xlc-note{font-size:12px;color:#9d8cc2;margin-top:10px}
+/* Academy (mockup b859c2f2) */
+.xnac-head{display:flex;align-items:center;gap:16px;justify-content:center}
+.xnac-crown{flex:none;width:62px;height:62px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,210,63,.30),rgba(245,179,1,.08) 70%);border:2.5px solid #ffd23f;display:flex;align-items:center;justify-content:center;box-shadow:0 0 22px rgba(255,210,63,.3)}
+.xnac-title{font-family:'Orbitron';font-weight:900;font-size:clamp(22px,6vw,30px);color:#ffd23f;letter-spacing:1px;margin:0}
+.xnac-sub{color:#c9b8e6;font-size:13.5px;margin:3px 0 0}
+.xnac-hero{margin-top:20px;border:1px solid rgba(255,210,63,.35);border-radius:18px;padding:20px;background:rgba(24,11,46,.82)}
+.xnac-hero h2{font-family:'Orbitron';font-weight:800;font-size:21px;color:#fff;margin:0 0 6px}
+.xnac-hero p{color:#c9b8e6;font-size:14px;margin:0 0 14px}
+.xnac-search{width:100%;box-sizing:border-box;background:rgba(13,5,24,.85);border:1px solid rgba(255,210,63,.35);border-radius:12px;color:#ffe9a8;font-size:15px;padding:12px 16px;outline:none}
+.xnac-search::placeholder{color:#7d6ba3}
+.xnac-chips{display:flex;gap:9px;flex-wrap:wrap;margin:16px 0 6px}
+.xnac-chip{border:1.5px solid rgba(255,210,63,.55);background:transparent;color:#ffd23f;font-family:'Orbitron';font-weight:700;font-size:12px;letter-spacing:1px;border-radius:10px;padding:8px 15px;cursor:pointer}
+.xnac-chip.on{background:linear-gradient(180deg,#ffe9a3,#f5b301);color:#231303;border-color:#f5b301}
+.xnac-progress{font-size:12.5px;color:#9d8cc2;margin:10px 0 14px;text-align:center}
+.xnac-drill{padding:16px 18px;margin-bottom:12px}
+.xnac-drill .top{display:flex;align-items:center;gap:12px}
+.xnac-ico{flex:none;width:44px;height:44px;border-radius:12px;background:radial-gradient(circle at 35% 30%,rgba(255,210,63,.28),rgba(245,179,1,.08) 70%);border:1.5px solid rgba(255,210,63,.55);display:flex;align-items:center;justify-content:center}
+.xnac-drill h3{margin:0;font-size:16px;color:#fff;font-family:'Rajdhani';font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.xnac-drill .mins{font-size:12.5px;color:#9d8cc2}
+.xnac-done{margin-left:auto;flex:none;border:1.5px solid #7c5cff;background:transparent;color:#c9b8e6;font-weight:800;font-size:11.5px;letter-spacing:1px;border-radius:18px;padding:8px 16px;cursor:pointer;font-family:'Orbitron'}
+.xnac-done.yes{background:linear-gradient(180deg,#ffe9a3,#f5b301);border-color:#f5b301;color:#231303}
+.xnac-drill ol{margin:12px 0 0;padding-left:20px;font-size:14px;line-height:1.6;color:#d9ccf0}
+.xnac-cat{font-family:'Orbitron';font-weight:800;font-size:14px;color:#ffd23f;letter-spacing:2px;margin:20px 0 10px}
