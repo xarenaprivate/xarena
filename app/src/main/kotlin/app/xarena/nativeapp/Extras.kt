@@ -1,0 +1,248 @@
+package app.xarena.nativeapp
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONObject
+
+@Composable
+private fun ExtrasHeader(title: String, sub: String, onBack: () -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text("< Back", color = Gold, fontSize = 14.sp, modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { onBack() }.padding(8.dp))
+        Spacer(Modifier.width(8.dp))
+        Column {
+            Text(title, color = Gold2, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(sub, color = Muted, fontSize = 11.sp)
+        }
+    }
+}
+
+/* ============ Settings ============ */
+@Composable
+fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var activityOn by remember { mutableStateOf<Boolean?>(null) }
+    var msg by remember { mutableStateOf<String?>(null) }
+    var updateInfo by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        activityOn = runCatching {
+            val r = Api.authedRpc("presence_of", JSONObject().put("p_ids", org.json.JSONArray().put(Api.uid)))
+            val arr = r.optJSONArray("presence")
+            if (arr != null && arr.length() > 0) arr.getJSONObject(0).optBoolean("show", true) else true
+        }.getOrDefault(true)
+    }
+    Column(Modifier.fillMaxSize().background(Ink)) {
+        ExtrasHeader("Settings", "App and account options", onBack)
+        Column(Modifier.padding(16.dp).clip(RoundedCornerShape(16.dp)).background(Card.copy(alpha = .85f)).border(1.dp, Gold.copy(alpha = .3f), RoundedCornerShape(16.dp)).padding(16.dp)) {
+            Text("App", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Spacer(Modifier.height(6.dp))
+            Text("Version: " + BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", color = Color.White, fontSize = 14.sp)
+            Spacer(Modifier.height(4.dp))
+            Text("Updates: checked automatically on start", color = Muted, fontSize = 12.sp)
+            Spacer(Modifier.height(4.dp))
+            Text("Check now", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable {
+                scope.launch {
+                    updateInfo = "Checking..."
+                    val latest = UpdateChecker.latest()
+                    updateInfo = when {
+                        latest == null -> "Could not check right now."
+                        latest.code > BuildConfig.VERSION_CODE -> "Update available: " + latest.name + " - reopen the app to use the update popup."
+                        else -> "You are on the latest version."
+                    }
+                }
+            }.padding(vertical = 4.dp))
+            updateInfo?.let { Text(it, color = Muted, fontSize = 12.sp) }
+        }
+        Column(Modifier.padding(16.dp).clip(RoundedCornerShape(16.dp)).background(Card.copy(alpha = .85f)).border(1.dp, Gold.copy(alpha = .3f), RoundedCornerShape(16.dp)).padding(16.dp)) {
+            Text("Privacy", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Spacer(Modifier.height(8.dp))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("Show my activity status", color = Color.White, fontSize = 14.sp)
+                    Text("Green dot and last-seen for other players", color = Muted, fontSize = 12.sp)
+                }
+                Switch(checked = activityOn ?: true, onCheckedChange = { v ->
+                    activityOn = v
+                    scope.launch {
+                        try { Api.authedRpc("presence_set", JSONObject().put("p_show", v)); msg = null }
+                        catch (e: Exception) { msg = e.message; activityOn = !v }
+                    }
+                }, colors = SwitchDefaults.colors(checkedTrackColor = Gold))
+            }
+            msg?.let { Text(it, color = ErrRed, fontSize = 12.sp) }
+        }
+        Column(Modifier.padding(16.dp).clip(RoundedCornerShape(16.dp)).background(Card.copy(alpha = .85f)).border(1.dp, Gold.copy(alpha = .3f), RoundedCornerShape(16.dp)).padding(16.dp)) {
+            Text("Account", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Spacer(Modifier.height(8.dp))
+            Text("Log out", color = ErrRed, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { onLogout() }.padding(vertical = 6.dp))
+        }
+    }
+}
+
+/* ============ Player Card ============ */
+@Composable
+fun PlayerCardScreen(onBack: () -> Unit, onOpenConv: (String?, String, String) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var search by remember { mutableStateOf("") }
+    var card by remember { mutableStateOf<JSONObject?>(null) }
+    var counts by remember { mutableStateOf<JSONObject?>(null) }
+    var listKind by remember { mutableStateOf<String?>(null) }
+    var people by remember { mutableStateOf<JSONArray?>(null) }
+    var err by remember { mutableStateOf<String?>(null) }
+    var notFound by remember { mutableStateOf(false) }
+    var busy by remember { mutableStateOf(false) }
+    var myName by remember { mutableStateOf("") }
+
+    fun loadCard(name: String) {
+        busy = true; err = null; notFound = false; card = null; counts = null; listKind = null; people = null
+        scope.launch {
+            try {
+                var arr = Api.publicGet("/rest/v1/player_cards?username=eq." + java.net.URLEncoder.encode(name, "UTF-8") + "&select=*")
+                if (arr.length() == 0) arr = Api.publicGet("/rest/v1/player_cards?ign=eq." + java.net.URLEncoder.encode(name, "UTF-8") + "&select=*")
+                if (arr.length() == 0) { notFound = true; busy = false; return@launch }
+                val p = arr.getJSONObject(0)
+                card = p
+                val c = Api.authedRpc("follow_counts", JSONObject().put("p_name", p.getString("username")))
+                if (c.optBoolean("ok")) counts = c
+            } catch (e: Exception) { err = e.message }
+            busy = false
+        }
+    }
+    LaunchedEffect(Unit) {
+        val me = runCatching { Api.myProfile() }.getOrNull()
+        myName = me?.optString("username") ?: ""
+        if (myName.isNotBlank()) loadCard(myName)
+    }
+
+    Column(Modifier.fillMaxSize().background(Ink)) {
+        ExtrasHeader("Player Card", "Public card, followers and following", onBack)
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            BasicTextField(search, { search = it }, modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).background(Card).padding(12.dp),
+                textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
+                decorationBox = { inner -> if (search.isEmpty()) Text("Open any player by name or IGN", color = Muted, fontSize = 14.sp); inner() })
+            Spacer(Modifier.width(8.dp))
+            Text("Open", color = Ink, fontWeight = FontWeight.Bold, fontSize = 13.sp,
+                modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Gold).clickable { if (search.isNotBlank()) loadCard(search.trim()) }.padding(horizontal = 14.dp, vertical = 10.dp))
+        }
+        err?.let { Text(it, color = ErrRed, fontSize = 13.sp, modifier = Modifier.padding(16.dp)) }
+        if (notFound) Text("Player not found. Check the name and try again.", color = Muted, fontSize = 14.sp, modifier = Modifier.padding(24.dp))
+        if (busy) Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Gold) }
+        card?.let { p ->
+            val uname = p.getString("username")
+            val isMe = uname == myName
+            LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+                item {
+                    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Card.copy(alpha = .85f)).border(1.dp, Gold.copy(alpha = .35f), RoundedCornerShape(18.dp)).padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(Modifier.size(84.dp).clip(CircleShape).background(Ink).border(2.dp, Gold2, CircleShape), contentAlignment = Alignment.Center) {
+                            Text((p.optString("ign").ifBlank { uname }).firstOrNull()?.uppercase() ?: "?", color = Gold, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.height(10.dp))
+                        Text(p.optString("ign").ifBlank { uname } + if (p.optBoolean("verified")) " ✓" else "", color = Gold2, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text("@" + uname + if (!p.optString("squad").isBlank()) " - Squad: " + p.optString("squad") else "", color = Muted, fontSize = 13.sp)
+                        Spacer(Modifier.height(12.dp))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text((counts?.optInt("posts") ?: 0).toString(), color = Gold2, fontWeight = FontWeight.Bold, fontSize = 16.sp); Text("Posts", color = Muted, fontSize = 11.sp)
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable {
+                                listKind = if (listKind == "followers") null else "followers"; people = null
+                                if (listKind != null) scope.launch {
+                                    people = runCatching { Api.authedRpc("follow_list", JSONObject().put("p_name", uname).put("p_kind", "followers")).optJSONArray("people") }.getOrNull()
+                                }
+                            }) {
+                                Text((counts?.optInt("followers") ?: 0).toString(), color = Gold2, fontWeight = FontWeight.Bold, fontSize = 16.sp); Text("Followers", color = Muted, fontSize = 11.sp)
+                            }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable {
+                                listKind = if (listKind == "following") null else "following"; people = null
+                                if (listKind != null) scope.launch {
+                                    people = runCatching { Api.authedRpc("follow_list", JSONObject().put("p_name", uname).put("p_kind", "following")).optJSONArray("people") }.getOrNull()
+                                }
+                            }) {
+                                Text((counts?.optInt("following") ?: 0).toString(), color = Gold2, fontWeight = FontWeight.Bold, fontSize = 16.sp); Text("Following", color = Muted, fontSize = 11.sp)
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        if (!isMe) Row {
+                            Text(if (counts?.optBoolean("i_follow") == true) "Following ✓" else "Follow", color = Ink, fontWeight = FontWeight.Bold, fontSize = 13.sp,
+                                modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Gold).clickable {
+                                    scope.launch {
+                                        try {
+                                            val r = Api.authedRpc("follow_toggle", JSONObject().put("p_name", uname))
+                                            val c = Api.authedRpc("follow_counts", JSONObject().put("p_name", uname))
+                                            if (c.optBoolean("ok")) counts = c
+                                            if (!r.optBoolean("ok", true)) err = r.optString("error")
+                                        } catch (e: Exception) { err = e.message }
+                                    }
+                                }.padding(horizontal = 16.dp, vertical = 9.dp))
+                            Spacer(Modifier.width(10.dp))
+                            Text("Message", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp)).clickable {
+                                    scope.launch {
+                                        try {
+                                            val r = Api.authedRpc("dm_open_by_name", JSONObject().put("p_name", uname))
+                                            when {
+                                                r.optBoolean("requested") -> err = "Message request sent - they can accept it in Messages > Requests."
+                                                r.optBoolean("ok") -> {
+                                                    val tid = r.optString("thread").ifBlank { r.optString("thread_id") }
+                                                    onOpenConv(tid.ifBlank { null }, "", p.optString("ign").ifBlank { uname })
+                                                }
+                                                else -> err = r.optString("error").ifBlank { "Could not open chat." }
+                                            }
+                                        } catch (e: Exception) { err = e.message }
+                                    }
+                                }.padding(horizontal = 16.dp, vertical = 9.dp))
+                        } else Text("This is your card", color = Muted, fontSize = 12.sp)
+                    }
+                }
+                listKind?.let { kind ->
+                    item { Text(kind.uppercase(), color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 8.dp)) }
+                    if (people == null) item { CircularProgressIndicator(color = Gold) }
+                    else if (people!!.length() == 0) item { Text("Nobody here yet.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(bottom = 12.dp)) }
+                    else items((0 until people!!.length()).map { people!!.getJSONObject(it) }) { x ->
+                        Text(x.optString("name").ifBlank { x.optString("ign") }, color = Color.White, fontSize = 14.sp,
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp).clip(RoundedCornerShape(8.dp)).background(Card.copy(alpha = .6f))
+                                .clickable { loadCard(x.optString("name")) }.padding(10.dp))
+                    }
+                }
+                item {
+                    Spacer(Modifier.height(12.dp))
+                    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Card.copy(alpha = .85f)).padding(16.dp)) {
+                        Text("Free Fire identity", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Spacer(Modifier.height(6.dp))
+                        listOf("Role" to p.optString("role"), "Free Fire rank" to p.optString("ff_rank"), "K/D" to (if (p.isNull("kd")) "" else p.optDouble("kd").toString()), "Device" to p.optString("device")).forEach { (k, v) ->
+                            if (v.isNotBlank() && v != "null") Row(Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
+                                Text(k, color = Muted, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                                Text(v, color = Color.White, fontSize = 13.sp)
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(12.dp))
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Card.copy(alpha = .85f)).padding(16.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) { Text(p.optInt("matches").toString(), color = Gold2, fontWeight = FontWeight.Bold, fontSize = 18.sp); Text("Matches", color = Muted, fontSize = 11.sp) }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) { Text(p.optInt("wins").toString(), color = Gold2, fontWeight = FontWeight.Bold, fontSize = 18.sp); Text("Wins", color = Muted, fontSize = 11.sp) }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) { Text(if (p.optBoolean("verified")) "✓" else "-", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 18.sp); Text("Verified", color = Muted, fontSize = 11.sp) }
+                    }
+                    Spacer(Modifier.height(24.dp))
+                }
+            }
+        }
+    }
+}

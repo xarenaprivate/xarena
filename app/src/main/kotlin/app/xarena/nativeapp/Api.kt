@@ -12,7 +12,7 @@ import java.net.URL
 object Api {
     const val BASE = "https://oskccuajgbyabogbvedj.supabase.co"
     const val KEY = "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7"
-    private lateinit var ctx: Context
+    lateinit var ctx: Context
     fun init(c: Context) { ctx = c.applicationContext }
     private val prefs get() = ctx.getSharedPreferences("xr_native_session", Context.MODE_PRIVATE)
 
@@ -343,5 +343,101 @@ object Api {
     }
     suspend fun storyMarkSeen(story: Long) = withContext(Dispatchers.IO) { runCatching { authedRpc("story_mark_seen", JSONObject().put("p_story", story)) } }
     suspend fun storyDelete(story: Long): JSONObject = withContext(Dispatchers.IO) { authedRpc("story_delete", JSONObject().put("p_story", story)) }
+
+
+    /* ---------- Private Messages (E2E: DmCrypto) ---------- */
+    suspend fun dmPublishKey(jwk: JSONObject) = withContext(Dispatchers.IO) {
+        val tok = access ?: return@withContext
+        val c = java.net.URL(BASE + "/rest/v1/dm_public_keys").openConnection() as java.net.HttpURLConnection
+        c.requestMethod = "POST"
+        c.connectTimeout = 15000; c.readTimeout = 15000
+        c.setRequestProperty("apikey", KEY)
+        c.setRequestProperty("Authorization", "Bearer " + tok)
+        c.setRequestProperty("Content-Type", "application/json")
+        c.setRequestProperty("Prefer", "return=minimal,resolution=merge-duplicates")
+        c.doOutput = true
+        val body = JSONObject().put("user_id", uid).put("public_key", jwk).toString()
+        c.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+        c.responseCode
+        c.disconnect()
+    }
+    suspend fun dmPeerKey(peerId: String): JSONObject? = withContext(Dispatchers.IO) {
+        val rows = authedGetArray("/rest/v1/dm_public_keys?user_id=eq." + peerId + "&select=public_key")
+        if (rows.length() == 0) null else rows.getJSONObject(0).optJSONObject("public_key")
+    }
+    suspend fun dmThreads(): JSONArray = withContext(Dispatchers.IO) {
+        authedGetArray("/rest/v1/dm_threads?or=(user_a.eq." + uid + ",user_b.eq." + uid + ")&select=*&order=created_at.desc")
+    }
+    suspend fun dmMessageRequests(): JSONArray = withContext(Dispatchers.IO) {
+        authedGetArray("/rest/v1/dm_threads?or=(user_a.eq." + uid + ",user_b.eq." + uid + ")&status=eq.requested&requested_by=neq." + uid + "&select=*")
+    }
+    suspend fun dmMessages(threadId: String): JSONArray = withContext(Dispatchers.IO) {
+        authedGetArray("/rest/v1/dm_messages?thread_id=eq." + threadId + "&select=*&order=created_at.asc&limit=100")
+    }
+    suspend fun dmFriends(): JSONArray = withContext(Dispatchers.IO) {
+        authedGetArray("/rest/v1/friends?user_id=eq." + uid + "&select=friend_id")
+    }
+    suspend fun dmRequestsIncoming(): JSONArray = withContext(Dispatchers.IO) {
+        authedGetArray("/rest/v1/friend_requests?to_user=eq." + uid + "&status=eq.pending&select=*")
+    }
+    suspend fun dmRequestsOutgoing(): JSONArray = withContext(Dispatchers.IO) {
+        authedGetArray("/rest/v1/friend_requests?from_user=eq." + uid + "&status=eq.pending&select=*")
+    }
+    suspend fun dmSearchPlayers(q: String): JSONArray = withContext(Dispatchers.IO) {
+        val e = java.net.URLEncoder.encode(q, "UTF-8")
+        authedGetArray("/rest/v1/dm_player_search?or=(username.ilike.*" + e + "*,ign.ilike.*" + e + "*)&select=id,username,ign,verified&limit=20")
+    }
+    suspend fun dmNames(ids: List<String>): Map<String, String> = withContext(Dispatchers.IO) {
+        if (ids.isEmpty()) return@withContext emptyMap()
+        val rows = authedGetArray("/rest/v1/dm_player_search?id=in.(" + ids.joinToString(",") + ")&select=id,username,ign,verified")
+        val out = HashMap<String, String>()
+        for (i in 0 until rows.length()) {
+            val r = rows.getJSONObject(i)
+            out[r.getString("id")] = r.optString("ign").ifBlank { r.optString("username") }.ifBlank { "Player" }
+        }
+        out
+    }
+    suspend fun dmOpen(friendId: String): JSONObject = withContext(Dispatchers.IO) { authedRpc("dm_open", JSONObject().put("p_friend", friendId)) }
+    suspend fun dmSend(threadId: String, kind: String, ciphertext: String, iv: String, meta: JSONObject): JSONObject = withContext(Dispatchers.IO) {
+        authedRpc("dm_send", JSONObject().put("p_thread", threadId).put("p_kind", kind).put("p_ciphertext", ciphertext).put("p_iv", iv).put("p_meta", meta))
+    }
+    suspend fun dmRespondRequest(threadId: String, accept: Boolean): JSONObject = withContext(Dispatchers.IO) {
+        authedRpc("dm_respond_request", JSONObject().put("p_thread", threadId).put("p_accept", accept))
+    }
+    suspend fun dmFriendRequest(toId: String): JSONObject = withContext(Dispatchers.IO) { authedRpc("friend_request", JSONObject().put("p_to", toId)) }
+    suspend fun dmFriendRespond(requestId: String, accept: Boolean): JSONObject = withContext(Dispatchers.IO) {
+        authedRpc("friend_respond", JSONObject().put("p_request", requestId).put("p_accept", accept))
+    }
+    suspend fun dmFriendRemove(friendId: String): JSONObject = withContext(Dispatchers.IO) { authedRpc("friend_remove", JSONObject().put("p_friend", friendId)) }
+    suspend fun dmBlock(userId: String): JSONObject = withContext(Dispatchers.IO) { authedRpc("block_user", JSONObject().put("p_user", userId)) }
+    suspend fun dmReport(threadId: String, reported: String, reason: String, note: String, messages: JSONArray): JSONObject = withContext(Dispatchers.IO) {
+        authedRpc("dm_report", JSONObject().put("p_thread", threadId).put("p_reported", reported).put("p_reason", reason).put("p_note", note).put("p_messages", messages))
+    }
+    suspend fun dmMediaUpload(threadId: String, encrypted: ByteArray): String = withContext(Dispatchers.IO) {
+        val tok = access ?: throw ApiError("Log in to send media.")
+        val path = threadId + "/" + java.util.UUID.randomUUID().toString()
+        val c = java.net.URL(BASE + "/storage/v1/object/dm-media/" + path).openConnection() as java.net.HttpURLConnection
+        c.requestMethod = "POST"
+        c.connectTimeout = 15000; c.readTimeout = 120000
+        c.setRequestProperty("apikey", KEY)
+        c.setRequestProperty("Authorization", "Bearer " + tok)
+        c.setRequestProperty("Content-Type", "application/octet-stream")
+        c.setRequestProperty("x-upsert", "false")
+        c.doOutput = true
+        c.outputStream.use { it.write(encrypted) }
+        val code = c.responseCode
+        if (code !in 200..299) throw ApiError("Upload failed (" + code + "). Check your connection and try again.")
+        path
+    }
+    suspend fun dmMediaSign(path: String): String = withContext(Dispatchers.IO) {
+        val r = JSONObject(authed("POST", "/storage/v1/object/sign/dm-media/" + path, JSONObject().put("expiresIn", 300)))
+        r.getString("signedURL")
+    }
+    suspend fun dmMediaDownload(signedUrl: String): ByteArray = withContext(Dispatchers.IO) {
+        val c = java.net.URL(BASE + "/storage/v1" + signedUrl).openConnection() as java.net.HttpURLConnection
+        c.connectTimeout = 15000; c.readTimeout = 120000
+        if (c.responseCode !in 200..299) throw ApiError("Media download failed (" + c.responseCode + ").")
+        c.inputStream.use { it.readBytes() }
+    }
 
 }

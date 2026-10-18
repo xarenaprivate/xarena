@@ -10,6 +10,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.ui.unit.offset
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -119,7 +124,7 @@ fun GoldButton(text: String, enabled: Boolean = true, onClick: () -> Unit) {
     Box(Modifier.fillMaxWidth().height(52.dp).clip(RoundedCornerShape(14.dp)).alpha(if (enabled) 1f else .5f)
         .background(Brush.horizontalGradient(listOf(Gold2, Gold)))
         .clickable(enabled = enabled, onClick = onClick), contentAlignment = Alignment.Center) {
-        Text(text, color = Color(0xFF2A1400), fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text(text, color = Color(0xFF2A1400), fontWeight = FontWeight.Bold, fontSize = 15.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.padding(horizontal = 12.dp))
     }
 }
 
@@ -226,19 +231,70 @@ fun CompleteProfileScreen(onDone: () -> Unit) {
     }
 }
 
+private data class DmConv(val threadId: String, val peerId: String, val peerName: String, val status: String, val reqByMe: Boolean)
+
 @Composable
 fun HomeShell(onLogout: () -> Unit) {
     var tab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Tournaments", "Board", "Chat", "Luna", "Squads", "Store", "Profile")
+    var feature by remember { mutableStateOf<String?>(null) }
+    var conv by remember { mutableStateOf<DmConv?>(null) }
+    val tabs = listOf("Tournaments", "Board", "Chat", "Luna", "Squads", "Store", "Profile", "More")
+    val c = conv
+    if (c != null) { ConversationScreen(c.threadId, c.peerId, c.peerName, c.status, c.reqByMe) { conv = null }; return }
+    when (feature) {
+        "messages" -> { MessagesScreen(onBack = { feature = null }, onOpenConv = { t, p, n, st, r -> conv = DmConv(t, p, n, st, r) }); return }
+        "match" -> { MatchCenterScreen(onBack = { feature = null }); return }
+        "settings" -> { SettingsScreen(onBack = { feature = null }, onLogout = onLogout); return }
+        "playercard" -> { PlayerCardScreen(onBack = { feature = null }, onOpenConv = { t, p, n -> if (t != null) conv = DmConv(t, p, n, "open", false) else feature = "messages" }); return }
+    }
+    var msgBadge by remember { mutableIntStateOf(0) }
+    LaunchedEffect(feature, conv) {
+        msgBadge = runCatching {
+            Api.dmRequestsIncoming().length() + Api.dmMessageRequests().length()
+        }.getOrDefault(0)
+    }
     Column(Modifier.fillMaxSize()) {
+        Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("XARENA", color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { feature = "messages" }.padding(8.dp)) {
+                Text("✉", color = Gold, fontSize = 18.sp)
+                if (msgBadge > 0) Text(msgBadge.toString(), color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.TopEnd).offset(x = 8.dp, y = (-4).dp).clip(CircleShape).background(Color(0xFFE10600)).padding(horizontal = 4.dp, vertical = 1.dp))
+            }
+            Text("⚙", color = Gold, fontSize = 18.sp, modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { feature = "settings" }.padding(8.dp))
+        }
         Box(Modifier.weight(1f)) {
-            when (tab) { 0 -> TournamentsScreen(); 1 -> LeaderboardScreen(); 2 -> ChatScreen(); 3 -> LunaScreen(); 4 -> SquadsScreen(); 5 -> StoreScreen(); else -> ProfileScreen(onLogout) }
+            when (tab) { 0 -> TournamentsScreen(); 1 -> LeaderboardScreen(); 2 -> ChatScreen(); 3 -> LunaScreen(); 4 -> SquadsScreen(); 5 -> StoreScreen(); 6 -> ProfileScreen(onLogout); else -> MoreGrid { feature = it } }
         }
         Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(vertical = 6.dp)) {
             tabs.forEachIndexed { i, label ->
-                Column(Modifier.width(92.dp).clickable { tab = i }.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(Modifier.width(78.dp).clickable { tab = i }.padding(vertical = 8.dp, horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Box(Modifier.size(6.dp).clip(CircleShape).background(if (tab == i) Gold else Color.Transparent))
                     Text(label, color = if (tab == i) Gold else Muted, fontSize = 11.sp, maxLines = 1, fontWeight = if (tab == i) FontWeight.Bold else FontWeight.Medium)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MoreGrid(onOpen: (String) -> Unit) {
+    // One button per feature, each opening its own full screen. Only real, working features are listed.
+    val items = listOf(
+        Triple("messages", "Messages", "Private end-to-end encrypted chats"),
+        Triple("match", "Match Center", "Rooms, check-in, result proofs, reports"),
+        Triple("playercard", "Player Card", "Your card, followers, following"),
+        Triple("settings", "Settings", "App version, activity status, logout"),
+    )
+    Column(Modifier.fillMaxSize()) {
+        Brand()
+        LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
+            items(items) { (key, name, sub) ->
+                Column(Modifier.padding(6.dp).clip(RoundedCornerShape(16.dp)).background(Card.copy(alpha = .85f))
+                    .border(1.dp, Gold.copy(alpha = .35f), RoundedCornerShape(16.dp)).clickable { onOpen(key) }.padding(16.dp)) {
+                    Text(name, color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(4.dp))
+                    Text(sub, color = Muted, fontSize = 12.sp)
                 }
             }
         }
