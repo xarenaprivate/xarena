@@ -1,17 +1,16 @@
 {
-  "version": "7.8.0",
-  "versionName": "7.8.0",
-  "versionCode": 71,
-  "code": 71,
-  "size": 2209985,
-  "sha256": "4f1aa307593dba20a5ce6a2dfc64aa7e168e089a01f8b5dd854805fd4928ed32",
+  "version": "7.9.0",
+  "versionName": "7.9.0",
+  "versionCode": 72,
+  "code": 72,
+  "size": 2214247,
+  "sha256": "feda3c9d3688e3c7a76cb1999ee08d086e3ebf869930349e67379d98e742a3b8",
   "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
-  "updated": "2026-10-18T09:09:40.933085+00:00",
+  "updated": "2026-10-18T09:23:11.118586+00:00",
   "released": "October 18, 2026",
-  "notes": "Refer & Earn - invite friends, you both get 50 Store Points.",
+  "notes": "Welcome screen for first-time players.",
   "changes": [
-    "Refer & Earn - new look, 50 Store Points each when a friend joins",
-    "Update checks now run on free hosting (no interruptions)",
-    "XP Store polish"
+    "Welcome screen - a proper first hello for new players",
+    "Refer & Earn (from v7.8)"
   ]
 }

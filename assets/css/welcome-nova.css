@@ -1,0 +1,24 @@
+/* Welcome splash - Nova (mockup 75b137cb). First visit only. */
+.xwl{position:fixed;inset:0;z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:34px 22px 26px;background:linear-gradient(170deg,#1c0f36 0%,#12082a 45%,#1e0f3a 100%);overflow:hidden;font-family:'Rajdhani',sans-serif}
+.xwl::before{content:"";position:absolute;inset:0;background:radial-gradient(500px 320px at 75% 8%,rgba(139,61,255,.32),transparent 62%),radial-gradient(380px 260px at 8% 88%,rgba(255,215,131,.14),transparent 60%);pointer-events:none}
+.xwl-hex{position:absolute;inset:0;opacity:.16;background-image:linear-gradient(30deg,rgba(255,215,131,.35) 1px,transparent 1px),linear-gradient(150deg,rgba(255,215,131,.35) 1px,transparent 1px);background-size:64px 110px;pointer-events:none;mask-image:linear-gradient(180deg,#000,transparent 30%,transparent 70%,#000);-webkit-mask-image:linear-gradient(180deg,#000,transparent 30%,transparent 70%,#000)}
+.xwl>*{position:relative}
+.xwl-logo{text-align:center;margin-top:6px}
+.xwl-logo .mark{display:inline-flex;align-items:center;gap:10px}
+.xwl-logo b{display:block;font-family:'Orbitron',sans-serif;font-size:26px;letter-spacing:3px;background:linear-gradient(180deg,#ffe9a8,#f5b301);-webkit-background-clip:text;background-clip:text;color:transparent}
+.xwl-logo span{display:block;font-size:12px;letter-spacing:6px;color:#c9b8e6;font-weight:600;margin-top:2px}
+.xwl-art{flex:1;display:flex;align-items:center;justify-content:center;width:100%;position:relative;min-height:120px}
+.xwl-art .ring{width:min(62vw,260px);height:min(62vw,260px);border-radius:50%;background:radial-gradient(circle at 50% 38%,rgba(139,61,255,.5),rgba(30,15,58,.9) 68%);border:1px solid rgba(255,215,131,.35);box-shadow:0 0 60px rgba(139,61,255,.45),inset 0 0 44px rgba(255,215,131,.12);display:flex;align-items:center;justify-content:center;animation:xwlGlow 3.2s ease-in-out infinite}
+.xwl-art .fl{position:absolute;animation:xwlFloat 4.5s ease-in-out infinite;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
+.xwl-art .f1{top:12%;left:12%}.xwl-art .f2{bottom:16%;right:10%;animation-delay:.8s}.xwl-art .f3{top:22%;right:16%;animation-delay:1.6s}.xwl-art .f4{bottom:24%;left:8%;animation-delay:2.3s}
+@keyframes xwlGlow{0%,100%{box-shadow:0 0 46px rgba(139,61,255,.4),inset 0 0 40px rgba(255,215,131,.1)}50%{box-shadow:0 0 80px rgba(139,61,255,.6),inset 0 0 52px rgba(255,215,131,.18)}}
+@keyframes xwlFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.xwl-copy{text-align:center;width:100%}
+.xwl-copy h1{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:34px;line-height:1.12;margin:0;color:#f5b301}
+.xwl-copy h1 b{display:block;font-family:'Orbitron',sans-serif;font-weight:900;font-size:40px;letter-spacing:2px;background:linear-gradient(180deg,#fff,#ffd783);-webkit-background-clip:text;background-clip:text;color:transparent}
+.xwl-copy p{color:#b39ae0;font-size:16.5px;margin:10px 0 22px;font-weight:600}
+.xwl-go{display:block;width:100%;max-width:340px;margin:0 auto;background:linear-gradient(180deg,#ffe9a8,#f5b301);color:#3a2404;border:none;border-radius:14px;padding:16px;font-family:'Orbitron',sans-serif;font-size:16px;font-weight:800;letter-spacing:1.5px;cursor:pointer;box-shadow:0 8px 26px rgba(245,179,1,.35);text-align:center;text-decoration:none}
+.xwl-dots{display:flex;gap:8px;justify-content:center;margin-top:20px}
+.xwl-dots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.28)}
+.xwl-dots i.on{background:#f5b301}
+@media (prefers-reduced-motion:reduce){.xwl-art .ring,.xwl-art .fl{animation:none}}
