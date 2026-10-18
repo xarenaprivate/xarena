@@ -239,7 +239,7 @@ window.addEventListener("load", function () {
   html += '<div class="card" id="prof-game"><h3>My game card</h3><div id="prof-game-body"><p style="color:var(--muted)">Checking…</p></div></div>';
   html += '<div class="card"><h3>My registrations</h3><div id="prof-regs"><p style="color:var(--muted)">Checking…</p></div></div>';
   html += '<div class="card" style="margin-top:16px"><h3>My task rewards</h3><div id="prof-rewards"><p style="color:var(--muted)">Checking…</p></div></div>';
-  html += '<div class="card" style="margin-top:16px"><h3>App &amp; settings</h3><p>Version: <b>v' + esc(ver) + '</b></p>' +
+  html += '<div class="card" style="margin-top:16px" id="xr-settings-anchor"><h3>App &amp; settings</h3><p>Version: <b>v' + esc(ver) + '</b></p>' +
     (window.XarenaApp ? '<button class="btn btn-gold btn-sm" onclick="window.XarenaApp.checkUpdate()">Check for update</button>' : "") +
     '<div style="margin-top:12px;border-top:1px solid rgba(255,255,255,.08);padding-top:12px">' +
     '<label class="check" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;cursor:pointer"><input type="checkbox" id="set-sfx"> <span>Sound effects</span></label>' +
@@ -342,6 +342,8 @@ window.addEventListener("load", function () {
   });
 });
 </script>
+<link rel="stylesheet" href="assets/css/settings-nova.css">
+<script src="assets/js/settings-nova.js" defer></script>
 <footer><div class="wrap">
 <div class="foot-grid">
 <div class="foot-brand">

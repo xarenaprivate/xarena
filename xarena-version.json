@@ -1,16 +1,17 @@
 {
-  "version": "7.10.0",
-  "versionName": "7.10.0",
-  "versionCode": 73,
-  "code": 73,
-  "size": 2218507,
-  "sha256": "1f8075ec180157fa9e73552fa9fe1d89f4dede210bd8845cdcb1b933af3e457f",
+  "version": "7.11.0",
+  "versionName": "7.11.0",
+  "versionCode": 74,
+  "code": 74,
+  "size": 2227027,
+  "sha256": "3297c9ca7cbeff3a18f5072ab45946fdbe6c1e2db8a94d00a1a70722f5bdf265",
   "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
-  "updated": "2026-10-18T09:36:19.503476+00:00",
+  "updated": "2026-10-18T09:50:58.817612+00:00",
   "released": "October 18, 2026",
-  "notes": "Winner Celebration - champions get their moment, and a real title on their profile.",
+  "notes": "Settings & Security page + Fan Voting - vote in real polls.",
   "changes": [
-    "Winner Celebration - confetti, champions screen and Claim Title",
-    "Welcome screen (from v7.9)"
+    "Settings & Security - privacy, alerts, password reset, all real",
+    "Fan Voting - vote on live polls, results counted honestly",
+    "Winner Celebration (from v7.10)"
   ]
 }
