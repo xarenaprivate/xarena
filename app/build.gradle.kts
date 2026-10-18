@@ -10,8 +10,8 @@ android {
         applicationId = "app.xarena.esports.native"
         minSdk = 24
         targetSdk = 34
-        versionCode = 11
-        versionName = "0.11.0-native"
+        versionCode = 12
+        versionName = "0.12.0-native"
     }
     val keyInfo = rootProject.file("keystore/KEY_INFO.txt")
     if (keyInfo.exists()) {

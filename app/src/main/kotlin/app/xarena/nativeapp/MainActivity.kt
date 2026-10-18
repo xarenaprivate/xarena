@@ -41,6 +41,19 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
+/* Look: Liquid (default, iOS-like glass) or Nova (classic dark purple/gold). Never named "iphone" in UI. */
+object Look {
+    private const val PREF = "xr_look"
+    var liquid: Boolean = true
+        private set
+    fun init(c: android.content.Context) { liquid = c.getSharedPreferences(PREF, 0).getBoolean("liquid", true) }
+    fun set(c: android.content.Context, v: Boolean) { liquid = v; c.getSharedPreferences(PREF, 0).edit().putBoolean("liquid", v).apply() }
+    val accent: Color get() = if (liquid) Color(0xFF0A84FF) else Gold
+    val cardBg: Color get() = if (liquid) Card.copy(alpha = .5f) else Card.copy(alpha = .85f)
+    val cardBorder: Color get() = if (liquid) Color.White.copy(alpha = .16f) else Gold.copy(alpha = .3f)
+    val cardRadius get() = if (liquid) 22.dp else 16.dp
+}
+
 val Gold = Color(0xFFF5C451)
 val Gold2 = Color(0xFFFFE9A3)
 val Ink = Color(0xFF120A24)
@@ -60,6 +73,7 @@ enum class Screen { Login, Signup, CompleteProfile, Home }
 
 @Composable
 fun XarenaApp() {
+    androidx.compose.runtime.LaunchedEffect(Unit) { Look.init(Api.ctx) }
     var screen by remember { mutableStateOf(if (Api.loggedIn) Screen.Home else Screen.Login) }
     var setupChecked by remember { mutableStateOf(false) }
     var update by remember { mutableStateOf<UpdateChecker.Info?>(null) }
@@ -255,6 +269,13 @@ fun HomeShell(onLogout: () -> Unit) {
         "notifications" -> { NotificationsScreen(onBack = { feature = null }); return }
         "stories" -> { StoriesScreen(onBack = { feature = null }); return }
         "feed" -> { FeedScreen(onBack = { feature = null }); return }
+        "clips" -> { ClipsScreen(onBack = { feature = null }); return }
+        "winners" -> { WinnersScreen(onBack = { feature = null }); return }
+        "stats" -> { StatsScreen(onBack = { feature = null }); return }
+        "tasks" -> { TasksScreen(onBack = { feature = null }); return }
+        "live" -> { LiveScreen(onBack = { feature = null }); return }
+        "scrims" -> { ScrimsScreen(onBack = { feature = null }); return }
+        "calendar" -> { CalendarScreen(onBack = { feature = null }); return }
     }
     var msgBadge by remember { mutableIntStateOf(0) }
     LaunchedEffect(feature, conv) {
@@ -302,14 +323,21 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         Triple("notifications", "Notifications", "Your alerts"),
         Triple("stories", "Stories", "24-hour highlights from players"),
         Triple("feed", "Feed", "Player highlights - post, like, comment, save"),
+        Triple("clips", "Clips", "Approved community clips"),
+        Triple("live", "Live", "Streams and match schedule"),
+        Triple("winners", "Winners", "Hall of fame and awards"),
+        Triple("stats", "Stats", "Your numbers and platform numbers"),
+        Triple("tasks", "Tasks", "Finish tasks, earn points"),
+        Triple("scrims", "Scrims", "Looking-for-game board"),
+        Triple("calendar", "Calendar", "Tournament and event dates"),
         Triple("settings", "Settings", "App version, activity status, logout"),
     )
     Column(Modifier.fillMaxSize()) {
         Brand()
         LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
             items(items) { (key, name, sub) ->
-                Column(Modifier.padding(6.dp).clip(RoundedCornerShape(16.dp)).background(Card.copy(alpha = .85f))
-                    .border(1.dp, Gold.copy(alpha = .35f), RoundedCornerShape(16.dp)).clickable { onOpen(key) }.padding(16.dp)) {
+                Column(Modifier.padding(6.dp).clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg)
+                    .border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).clickable { onOpen(key) }.padding(16.dp)) {
                     Text(name, color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(4.dp))
                     Text(sub, color = Muted, fontSize = 12.sp)
@@ -337,8 +365,8 @@ fun <T> LoadState(load: suspend () -> T, content: @Composable (T) -> Unit) {
 
 @Composable
 fun PanelCard(content: @Composable ColumnScope.() -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(16.dp))
-        .background(Card.copy(alpha = .85f)).border(1.dp, Gold.copy(alpha = .3f), RoundedCornerShape(16.dp)).padding(14.dp), content = content)
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(Look.cardRadius))
+        .background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).padding(14.dp), content = content)
 }
 
 @Composable

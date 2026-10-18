@@ -35,8 +35,8 @@ fun PageHeader(title: String, sub: String, onBack: () -> Unit) {
 
 @Composable
 fun SmallCard(content: @Composable ColumnScope.() -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(16.dp))
-        .background(Card.copy(alpha = .85f)).border(1.dp, Gold.copy(alpha = .3f), RoundedCornerShape(16.dp)).padding(14.dp), content = content)
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(Look.cardRadius))
+        .background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).padding(14.dp), content = content)
 }
 
 private fun staticPages(): JSONObject {

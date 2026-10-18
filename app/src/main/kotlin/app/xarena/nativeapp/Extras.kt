@@ -51,7 +51,7 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
     }
     Column(Modifier.fillMaxSize().background(Ink)) {
         ExtrasHeader("Settings", "App and account options", onBack)
-        Column(Modifier.padding(16.dp).clip(RoundedCornerShape(16.dp)).background(Card.copy(alpha = .85f)).border(1.dp, Gold.copy(alpha = .3f), RoundedCornerShape(16.dp)).padding(16.dp)) {
+        Column(Modifier.padding(16.dp).clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).padding(16.dp)) {
             Text("App", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             Spacer(Modifier.height(6.dp))
             Text("Version: " + BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", color = Color.White, fontSize = 14.sp)
@@ -71,7 +71,21 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
             }.padding(vertical = 4.dp))
             updateInfo?.let { Text(it, color = Muted, fontSize = 12.sp) }
         }
-        Column(Modifier.padding(16.dp).clip(RoundedCornerShape(16.dp)).background(Card.copy(alpha = .85f)).border(1.dp, Gold.copy(alpha = .3f), RoundedCornerShape(16.dp)).padding(16.dp)) {
+        Column(Modifier.padding(16.dp).clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).padding(16.dp)) {
+            Text("Look", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Spacer(Modifier.height(8.dp))
+            var lookTick by remember { mutableIntStateOf(0) }
+            Row {
+                listOf(true to "Liquid", false to "Nova").forEach { (isLiquid, label) ->
+                    val on = Look.liquid == isLiquid; lookTick.let { }
+                    Text(label, color = if (on) Ink else Muted, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(end = 8.dp).clip(RoundedCornerShape(10.dp)).background(if (on) (if (isLiquid) Look.accent else Gold) else Card)
+                            .clickable { Look.set(Api.ctx, isLiquid); lookTick++ }.padding(horizontal = 16.dp, vertical = 9.dp))
+                }
+            }
+            Text("Liquid is the default glass look. Nova is the classic dark purple.", color = Muted, fontSize = 11.sp, modifier = Modifier.padding(top = 6.dp))
+        }
+        Column(Modifier.padding(16.dp).clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).padding(16.dp)) {
             Text("Privacy", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             Spacer(Modifier.height(8.dp))
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -85,11 +99,11 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
                         try { Api.authedRpc("presence_set", JSONObject().put("p_show", v)); msg = null }
                         catch (e: Exception) { msg = e.message; activityOn = !v }
                     }
-                }, colors = SwitchDefaults.colors(checkedTrackColor = Gold))
+                }, colors = SwitchDefaults.colors(checkedTrackColor = Look.accent))
             }
             msg?.let { Text(it, color = ErrRed, fontSize = 12.sp) }
         }
-        Column(Modifier.padding(16.dp).clip(RoundedCornerShape(16.dp)).background(Card.copy(alpha = .85f)).border(1.dp, Gold.copy(alpha = .3f), RoundedCornerShape(16.dp)).padding(16.dp)) {
+        Column(Modifier.padding(16.dp).clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).padding(16.dp)) {
             Text("Account", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             Spacer(Modifier.height(8.dp))
             Text("Log out", color = ErrRed, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { onLogout() }.padding(vertical = 6.dp))
