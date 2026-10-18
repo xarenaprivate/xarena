@@ -1,6 +1,6 @@
 {
-  "versionCode": 7,
-  "versionName": "0.7.0",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/native-v0.7.0/xarena-native.apk",
-  "notes": "Match Center: room IDs and passwords, check-in, result proof upload, player reports. Adds in-app update checker."
+  "versionCode": 8,
+  "versionName": "0.8.0",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/native-v0.8.0/xarena-native.apk",
+  "notes": "Private Messages with end-to-end encryption, top header with Messages and Settings, More grid, Settings screen, Player Card with followers."
 }
