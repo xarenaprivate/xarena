@@ -141,12 +141,14 @@ object Api {
 
     /* ---- Cloudinary signed upload (match proofs), same as the site's uploadImage() ---- */
 
-    suspend fun cloudinaryUpload(jpeg: ByteArray): String = withContext(Dispatchers.IO) {
+    suspend fun cloudinaryUploadVideo(bytes: ByteArray, mime: String): String = cloudinaryUploadRaw(bytes, mime, "video")
+    suspend fun cloudinaryUpload(jpeg: ByteArray): String = cloudinaryUploadRaw(jpeg, "image/jpeg", "image")
+    private suspend fun cloudinaryUploadRaw(bytes: ByteArray, mime: String, resource: String): String = withContext(Dispatchers.IO) {
         val sig = JSONObject(authed("POST", "/functions/v1/cloudinary-sign", JSONObject()))
         val cloud = sig.optString("cloud")
         if (cloud.isBlank()) throw ApiError("Upload unavailable right now - try again shortly.")
         val boundary = "----xr" + System.currentTimeMillis()
-        val c = java.net.URL("https://api.cloudinary.com/v1_1/$cloud/image/upload").openConnection() as java.net.HttpURLConnection
+        val c = java.net.URL("https://api.cloudinary.com/v1_1/$cloud/$resource/upload").openConnection() as java.net.HttpURLConnection
         c.requestMethod = "POST"; c.connectTimeout = 15000; c.readTimeout = 30000
         c.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
         c.doOutput = true
@@ -159,8 +161,9 @@ object Api {
         field("timestamp", sig.optString("timestamp"))
         field("folder", sig.optString("folder"))
         field("signature", sig.optString("signature"))
-        w.writeBytes("--$boundary" + crlf + "Content-Disposition: form-data; name=\"file\"; filename=\"proof.jpg\"" + crlf + "Content-Type: image/jpeg" + crlf + crlf)
-        w.write(jpeg)
+        val ext = if (mime.startsWith("video/")) ".mp4" else ".jpg"
+        w.writeBytes("--$boundary" + crlf + "Content-Disposition: form-data; name=\"file\"; filename=\"upload" + ext + "\"" + crlf + "Content-Type: " + mime + crlf + crlf)
+        w.write(bytes)
         w.writeBytes(crlf + "--$boundary--" + crlf)
         w.flush()
         val code = c.responseCode
