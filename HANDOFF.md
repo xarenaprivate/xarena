@@ -1,0 +1,9 @@
+# XARENA native handoff
+- Project: this folder (/home/sandbox/xarena-native on the shared box; also branch `native` of github.com/xarenaprivate/xarena). Gradle 8.7 at /home/sandbox/gradle-dist/gradle-8.7, JDK17 /home/sandbox/android/jdk17, SDK /home/sandbox/android/sdk.
+- Build: JAVA_HOME=/home/sandbox/android/jdk17 ANDROID_HOME=/home/sandbox/android/sdk gradle --no-daemon -q :app:assembleDebug
+- 2GB box: gradle.properties caps heap (-Xmx900m, in-process Kotlin, no daemon, 1 worker). First build ~1.5 min, no OOM so far.
+- App id app.xarena.esports.native (WebView app is app.xarena.esports). versionCode independent from WebView updater (latest 87); never upload native as xarena.apk or touch xarena-version.json.
+- Backend: https://oskccuajgbyabogbvedj.supabase.co ; anon key is public (Api.kt). Login = POST /auth/v1/token?grant_type=password, phone -> email p<10digits>@phone.xarena. Signup: RPC phone_available{p_phone} then /auth/v1/signup (see site/account.html loginEmail/normPhone). Tournaments: GET /rest/v1/tournaments (public). Leaderboard: rpc game_leaderboard{p_scope:"all"} -> {ok,rows:[{xp,name,level,badges}]}. Profiles: GET profiles?id=eq.<uid>. Chat: table chat_messages + Realtime channel "world-chat" (site/assets/js/chat.js). Luna: POST /functions/v1/luna-chat. User RPCs use user JWT. No phone numbers shown. Never write/seed prod data while testing.
+- Keystore: /home/sandbox/xarena-app/keystore/xarena.keystore alias xarena, passwords in keystore/KEY_INFO.txt (same box). Release build currently debug-signed; wire release signing from that file.
+- GitHub token: vault item github-xarenaprivate-7cb78a (/home/sandbox/.vault/.../password). Never print it, never bash -x.
+- Rules: dark purple+gold nova, REAL data only, honest empty states, English UI, XP only, no payments/3D claims, admin stays web-only. Netlify FROZEN.
