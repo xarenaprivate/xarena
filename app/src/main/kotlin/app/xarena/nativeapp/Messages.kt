@@ -334,7 +334,7 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
         val k = key ?: return@LaunchedEffect
         while (isActive) {
             try {
-                msgs = decode(Api.dmMessages(threadId), k)
+                msgs = withContext(Dispatchers.Default) { decode(Api.dmMessages(threadId), k) }
                 if (listState.layoutInfo.totalItemsCount > 0) listState.scrollToItem(listState.layoutInfo.totalItemsCount - 1)
             } catch (e: Exception) { }
             delay(4000)
@@ -467,7 +467,7 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
                             val enc = DmCrypto.encrypt(k, v.toByteArray(Charsets.UTF_8))
                             val r = Api.dmSend(threadId, "text", enc.ciphertext, enc.iv, JSONObject())
                             if (!r.optBoolean("ok")) throw Exception(r.optString("error").ifBlank { "Could not send." })
-                            msgs = decode(Api.dmMessages(threadId), k)
+                            msgs = withContext(Dispatchers.Default) { decode(Api.dmMessages(threadId), k) }
                             if (msgs.isNotEmpty()) listState.scrollToItem(msgs.size - 1)
                         } catch (e: Exception) { err = e.message }
                         busy = false

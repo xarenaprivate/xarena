@@ -39,10 +39,13 @@ fun ClipsScreen(onBack: () -> Unit) {
                         val path = c.optString("media_path")
                         val url = if (path.startsWith("https://res.cloudinary.com/")) path.replace("/upload/", "/upload/q_auto/") else null
                         if (url != null) {
+                            var playing by remember { mutableStateOf(false) }
                             Box(Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp)).background(Color.Black), contentAlignment = Alignment.Center) {
-                                androidx.compose.ui.viewinterop.AndroidView(factory = { ctx ->
+                                if (playing) androidx.compose.ui.viewinterop.AndroidView(factory = { ctx ->
                                     android.widget.VideoView(ctx).apply { setVideoPath(url); setOnPreparedListener { it.start() } }
                                 }, modifier = Modifier.fillMaxSize())
+                                else Text("▶ Play", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Gold.copy(alpha = .35f)).clickable { playing = true }.padding(horizontal = 18.dp, vertical = 10.dp))
                             }
                         } else Text("Video opens in the feed.", color = Muted, fontSize = 12.sp)
                     }

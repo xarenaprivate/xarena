@@ -25,7 +25,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -56,7 +58,7 @@ fun StoriesScreen(onBack: () -> Unit) {
             try {
                 val cr = Api.ctx.contentResolver
                 val mime = cr.getType(uri) ?: "image/jpeg"
-                var bytes = cr.openInputStream(uri)!!.use { it.readBytes() }
+                var bytes = withContext(Dispatchers.IO) { cr.openInputStream(uri)!!.use { it.readBytes() } }
                 val kind: String
                 val url: String
                 if (mime.startsWith("video/")) {

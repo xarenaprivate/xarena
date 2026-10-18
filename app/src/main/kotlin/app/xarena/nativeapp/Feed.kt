@@ -24,7 +24,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -112,10 +114,13 @@ private fun PostCard(p: JSONObject, onChanged: () -> Unit) {
         feedMediaUrl(p)?.let { url ->
             Spacer(Modifier.height(8.dp))
             if (p.optString("kind") == "clip") {
+                var playing by remember { mutableStateOf(false) }
                 Box(Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp)).background(Color.Black), contentAlignment = Alignment.Center) {
-                    androidx.compose.ui.viewinterop.AndroidView(factory = { ctx ->
+                    if (playing) androidx.compose.ui.viewinterop.AndroidView(factory = { ctx ->
                         android.widget.VideoView(ctx).apply { setVideoPath(url); setOnPreparedListener { it.start() } }
                     }, modifier = Modifier.fillMaxSize())
+                    else Text("▶ Play clip", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Gold.copy(alpha = .35f)).clickable { playing = true }.padding(horizontal = 18.dp, vertical = 10.dp))
                 }
             } else {
                 AsyncImage(model = url, contentDescription = p.optString("caption"), modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp).clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.Crop)
@@ -214,7 +219,7 @@ private fun ComposePostDialog(onDone: (Boolean) -> Unit) {
                                 picked?.let { uri ->
                                     val cr = Api.ctx.contentResolver
                                     val mime = cr.getType(uri) ?: "image/jpeg"
-                                    var bytes = cr.openInputStream(uri)!!.use { it.readBytes() }
+                                    var bytes = withContext(Dispatchers.IO) { cr.openInputStream(uri)!!.use { it.readBytes() } }
                                     if (mime.startsWith("video/")) {
                                         if (bytes.size > 8 * 1024 * 1024) throw Exception("Video too large - keep it under 8 MB.")
                                         kind = "clip"
