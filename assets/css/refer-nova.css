@@ -1,0 +1,43 @@
+/* Refer & Earn - Nova look (mockup 242fcdee) */
+.xrf{background:linear-gradient(165deg,#221338 0%,#160b28 55%,#1d0f33 100%);border:1px solid #3d2a5e;border-radius:22px;padding:20px 16px 22px;position:relative;overflow:hidden;font-family:'Rajdhani',sans-serif}
+.xrf::before{content:"";position:absolute;inset:0;background:radial-gradient(420px 200px at 85% -10%,rgba(139,61,255,.25),transparent 60%),radial-gradient(300px 160px at 0% 110%,rgba(255,215,131,.12),transparent 60%);pointer-events:none}
+.xrf>*{position:relative}
+.xrf-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.xrf-back{color:#ffd783;text-decoration:none;font-size:20px;line-height:1;padding:4px 8px;border:1px solid #4a3572;border-radius:10px;background:rgba(255,255,255,.04)}
+.xrf-head h2{flex:1;text-align:center;font-family:'Orbitron',sans-serif;font-size:20px;letter-spacing:.5px;color:#ffd783;margin:0;text-shadow:0 2px 12px rgba(255,183,60,.35)}
+.xrf-help{width:30px;height:30px;border-radius:50%;border:1.5px solid #ffd783;color:#ffd783;background:none;font-weight:800;cursor:pointer}
+.xrf-brand{text-align:center;padding:14px 10px 16px;border-top:1px solid #3d2a5e;border-bottom:1px solid #3d2a5e;margin-bottom:16px}
+.xrf-brand b{display:block;font-family:'Orbitron',sans-serif;font-size:22px;letter-spacing:1px;background:linear-gradient(180deg,#ffe9a8,#f5b301);-webkit-background-clip:text;background-clip:text;color:transparent}
+.xrf-brand span{display:block;margin-top:6px;font-size:12.5px;letter-spacing:3px;color:#c9b8e6;font-weight:600}
+.xrf-bal{background:linear-gradient(160deg,#2c1a4a,#1d1136);border:1px solid #6b4bb0;border-radius:16px;padding:18px 14px;text-align:center;margin-bottom:16px;box-shadow:0 8px 28px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06)}
+.xrf-bal .lbl{font-size:14px;letter-spacing:1.5px;color:#e6d8ff;font-weight:700}
+.xrf-bal .amt{font-family:'Orbitron',sans-serif;font-size:34px;font-weight:900;color:#ffd783;margin:6px 0 4px;text-shadow:0 3px 16px rgba(255,183,60,.4)}
+.xrf-bal .sub{font-size:13px;color:#b7a6d8}
+.xrf-sect{background:rgba(255,255,255,.03);border:1px solid #3d2a5e;border-radius:16px;padding:16px 14px;margin-bottom:16px;text-align:center}
+.xrf-sect h3{font-family:'Orbitron',sans-serif;font-size:16px;color:#ffd783;margin:0 0 8px;letter-spacing:.5px}
+.xrf-sect p{font-size:14px;color:#d9ccf0;margin:0 0 12px;line-height:1.45}
+.xrf-chip{display:inline-block;background:rgba(255,215,131,.12);border:1px solid #6b4bb0;color:#ffd783;font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:20px}
+.xrf-steps{display:flex;gap:8px;justify-content:space-between;margin-top:6px}
+.xrf-step{flex:1;text-align:center}
+.xrf-step .n{display:block;font-family:'Orbitron',sans-serif;color:#ffd783;font-size:13px;margin-bottom:6px}
+.xrf-step .ic{width:56px;height:56px;margin:0 auto 8px;border-radius:50%;background:rgba(255,215,131,.1);border:1px solid #6b4bb0;display:flex;align-items:center;justify-content:center}
+.xrf-step .t{font-size:12.5px;color:#d9ccf0;font-weight:600;line-height:1.3}
+.xrf-codelbl{text-align:center;font-family:'Orbitron',sans-serif;font-size:15px;color:#ffd783;margin:2px 0 10px;letter-spacing:.5px}
+.xrf-code{display:flex;gap:10px;align-items:center;background:#120a22;border:1.5px solid #f5b301;border-radius:14px;padding:14px 14px;margin-bottom:12px;box-shadow:0 0 24px rgba(245,179,1,.18)}
+.xrf-code b{flex:1;font-family:'Orbitron',sans-serif;font-size:20px;color:#ffd783;letter-spacing:1px;user-select:all;word-break:break-all}
+.xrf-copy{background:rgba(255,215,131,.14);border:1px solid #f5b301;color:#ffd783;font-weight:800;font-size:13px;padding:9px 16px;border-radius:10px;cursor:pointer;font-family:'Rajdhani',sans-serif}
+.xrf-share{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;background:linear-gradient(180deg,#ffe9a8,#f5b301);color:#3a2404;border:none;border-radius:14px;padding:15px;font-family:'Orbitron',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:14px;box-shadow:0 6px 20px rgba(245,179,1,.3)}
+.xrf-stats{display:flex;gap:10px;margin-bottom:14px}
+.xrf-stat{flex:1;background:rgba(255,255,255,.04);border:1px solid #3d2a5e;border-radius:12px;padding:12px 8px;display:flex;align-items:center;gap:9px}
+.xrf-stat b{display:block;font-size:15px;color:#ffd783;font-family:'Orbitron',sans-serif}
+.xrf-stat span{font-size:11.5px;color:#b7a6d8;font-weight:600}
+.xrf-disc{text-align:center;font-size:12px;color:#9d8cc2;font-style:italic;line-height:1.5;margin:0 4px}
+.xrf-apply{margin-top:16px;border-top:1px solid #3d2a5e;padding-top:14px;text-align:center}
+.xrf-apply p{font-size:13px;color:#b7a6d8;margin:0 0 10px}
+.xrf-applyrow{display:flex;gap:8px}
+.xrf-applyrow input{flex:1;min-width:0;background:#120a22;border:1px solid #4a3572;border-radius:10px;color:#ffe9a8;padding:11px 12px;font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:1px;text-transform:uppercase}
+.xrf-applyrow button{background:#7c5cff;border:none;color:#fff;font-weight:800;padding:11px 18px;border-radius:10px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:14px}
+.xrf-note{font-size:12.5px;color:#b7a6d8;margin-top:8px;text-align:center}
+.xrf-login{text-align:center;padding:26px 10px}
+.xrf-login p{color:#d9ccf0;font-size:14.5px;margin-bottom:12px}
+.xrf-login a{display:inline-block;background:linear-gradient(180deg,#ffe9a8,#f5b301);color:#3a2404;font-weight:800;padding:11px 22px;border-radius:12px;text-decoration:none}

@@ -139,7 +139,7 @@ window.addEventListener("load", function () {
     xrApi.user().then(function (u) {
       if (!u) return;
       xrApi.uRpc("referral_apply", { p_code: pending }).then(function (a) {
-        if (a && a.ok) { localStorage.removeItem("xr_ref_code"); xrToast("Invite applied: +" + a.you_got + " Arena Points for you"); }
+        if (a && a.ok) { localStorage.removeItem("xr_ref_code"); xrToast("Invite applied: +" + a.you_got + " Store Points for you"); }
         else if (a && a.error && /already applied/i.test(a.error)) localStorage.removeItem("xr_ref_code");
       }).catch(function () {});
     });

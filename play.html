@@ -143,6 +143,8 @@
     </div>
     <link rel="stylesheet" href="assets/css/store-nova.css">
     <script src="assets/js/store-nova.js" defer></script>
+    <link rel="stylesheet" href="assets/css/refer-nova.css">
+    <script src="assets/js/refer-nova.js" defer></script>
     <div class="card" style="margin-top:16px" id="rw-card">
       <h3 style="margin-bottom:4px">Rewards</h3>
       <p style="font-size:13px;color:var(--muted);margin:2px 0 14px">Every check-in, spin and quiz win also adds <b>Arena Points</b> to your wallet. Spend them on rewards here — the owner reviews each request and fulfils it himself. Points are never cash and never expire.</p>
@@ -152,7 +154,7 @@
     </div>
     <div class="card" style="margin-top:16px" id="ref-card">
       <h3 style="margin-bottom:4px">Invite friends</h3>
-      <p style="font-size:13px;color:var(--muted);margin:2px 0 14px">Share your code. When a friend creates their account with it, <b>you get 25 Arena Points and they get 10</b>. Codes work on new accounts (first 48 hours), one reward per new account, and points are never cash.</p>
+      <p style="font-size:13px;color:var(--muted);margin:2px 0 14px">Share your code. When a friend creates their account with it, <b>you both get 50 Store Points</b>. Codes work on new accounts (first 48 hours), one reward per new account, and points are never cash.</p>
       <div id="ref-box"></div>
     </div>
     <div class="card" style="margin-top:16px" id="mission-card">
@@ -453,8 +455,8 @@ window.addEventListener("load", function () {
     if (!me) { box.innerHTML = '<p style="color:var(--muted);font-size:13px">Log in to get your invite code and rewards.</p>'; return; }
     xrApi.uRpc("my_referral", {}).then(function (r) {
       if (!(r && r.ok)) { box.innerHTML = '<p style="color:var(--muted);font-size:13px">Could not load invites. Try refreshing.</p>'; return; }
-      var link = "https://xarena.surge.sh/account.html?ref=" + r.code;
-      var msg = "Join me on XARENA ESPORTS - free Free Fire tournaments. Sign up with my code " + r.code + " and we both get Arena Points: " + link;
+      var link = "https://xarenaprivate.github.io/xarena/account.html?ref=" + r.code;
+      var msg = "Join me on XARENA ESPORTS - free Free Fire tournaments. Sign up with my code " + r.code + " and we both get 50 Store Points (XP only, never cash): " + link;
       box.innerHTML =
         '<div class="xg-stat-row">' +
         '<div class="xg-stat"><b>' + escG(r.code) + '</b><span>YOUR CODE</span></div>' +
@@ -482,7 +484,7 @@ window.addEventListener("load", function () {
         var cv = xshare.draw({
           kicker: "Join me on XARENA",
           title: "Free Fire MAX",
-          lines: ["Real tournaments - entry always free", "My invite code: " + r.code, "Sign up with my code - we both get Arena Points"],
+          lines: ["Real tournaments - entry always free", "My invite code: " + r.code, "Sign up with my code - we both get 50 Store Points"],
           sub: "Points and glory, never cash - free to play, always",
           qrText: link,
           qrCaption: "Scan to join with my invite code"
@@ -501,7 +503,7 @@ window.addEventListener("load", function () {
         xrApi.uRpc("referral_apply", { p_code: code }).then(function (a) {
           var note = document.getElementById("ref-note");
           if (a && a.ok) {
-            note.innerHTML = '<b style="color:#8ff0b8">Applied - you got ' + a.you_got + " Arena Points, your friend got " + a.friend_got + ".</b>";
+            note.innerHTML = '<b style="color:#8ff0b8">Applied - you got ' + a.you_got + " Store Points, your friend got " + a.friend_got + ".</b>";
             document.getElementById("ref-in").style.display = "none"; ap.style.display = "none";
             refreshStats();
           } else { note.textContent = (a && a.error) || "Could not apply the code."; ap.disabled = false; }
@@ -521,7 +523,7 @@ window.addEventListener("load", function () {
     try { pendingRef = localStorage.getItem("xr_ref_code"); } catch (e) {}
     if (pendingRef) {
       xrApi.uRpc("referral_apply", { p_code: pendingRef }).then(function (a) {
-        if (a && a.ok) { localStorage.removeItem("xr_ref_code"); xrToast("Invite applied: +" + a.you_got + " Arena Points for you"); }
+        if (a && a.ok) { localStorage.removeItem("xr_ref_code"); xrToast("Invite applied: +" + a.you_got + " Store Points for you"); }
         else if (a && a.error && /already applied/i.test(a.error)) localStorage.removeItem("xr_ref_code");
       }).catch(function () {});
     }
