@@ -1,6 +1,6 @@
 {
-  "versionCode": 10,
-  "versionName": "0.10.0",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/native-v0.10.0/xarena-native.apk",
-  "notes": "Stories: 24-hour highlights, full-screen viewer, add your own photo or short video."
+  "versionCode": 11,
+  "versionName": "0.11.0",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/native-v0.11.0/xarena-native.apk",
+  "notes": "Feed: highlights with likes, comments, saves. Certificates now include the scan-to-check QR. Story delete and viewers list."
 }
