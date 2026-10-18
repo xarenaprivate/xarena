@@ -1,6 +1,6 @@
 {
-  "versionCode": 8,
-  "versionName": "0.8.0",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/native-v0.8.0/xarena-native.apk",
-  "notes": "Private Messages with end-to-end encryption, top header with Messages and Settings, More grid, Settings screen, Player Card with followers."
+  "versionCode": 9,
+  "versionName": "0.9.0",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/native-v0.9.0/xarena-native.apk",
+  "notes": "Fan Vote, Daily Streak, Certificates, Academy, News, Rules, Notifications."
 }
