@@ -20,7 +20,7 @@ object Api {
     var uid: String? = null; private set
     val loggedIn get() = access != null
 
-    fun restore() { access = prefs.getString("access", null); uid = prefs.getString("uid", null) }
+    fun restore() { access = prefs.getString("access", null); uid = prefs.getString("uid", null); restoreChat() }
 
     class ApiError(msg: String) : Exception(msg)
 
@@ -132,6 +132,37 @@ object Api {
         val u = uid ?: return@withContext null
         val arr = JSONArray(authed("GET", "/rest/v1/profiles?id=eq.$u&select=username,ign,ff_uid,verified,role,ff_rank,matches,wins,phone,phone_verified,phone_code", null))
         if (arr.length() > 0) arr.getJSONObject(0) else null
+    }
+
+
+    /* ---- World chat (same RPCs/table the website uses) ---- */
+
+    var chatHandle: String? = null; private set
+    var chatToken: String? = null; private set
+    fun restoreChat() { chatHandle = prefs.getString("chat_handle", null); chatToken = prefs.getString("chat_token", null) }
+
+    suspend fun chatClaim(handle: String): JSONObject = withContext(Dispatchers.IO) {
+        val j = JSONObject(authed("POST", "/rest/v1/rpc/chat_claim_handle_account", JSONObject().put("p_handle", handle)))
+        if (j.optBoolean("ok")) {
+            chatHandle = j.optString("handle").ifBlank { handle }
+            chatToken = j.optString("token")
+            prefs.edit().putString("chat_handle", chatHandle).putString("chat_token", chatToken).apply()
+        }
+        j
+    }
+
+    fun clearChat() { chatHandle = null; chatToken = null; prefs.edit().remove("chat_handle").remove("chat_token").apply() }
+
+    suspend fun chatSend(body: String): JSONObject = withContext(Dispatchers.IO) {
+        publicRpc("chat_send", JSONObject().put("p_handle", chatHandle).put("p_token", chatToken).put("p_body", body))
+    }
+
+    suspend fun chatHistory(): JSONArray = withContext(Dispatchers.IO) {
+        publicGet("/rest/v1/chat_messages?select=id,handle,body,created_at&order=id.desc&limit=80")
+    }
+
+    suspend fun chatSince(lastId: Long): JSONArray = withContext(Dispatchers.IO) {
+        publicGet("/rest/v1/chat_messages?select=id,handle,body,created_at&order=id.asc&limit=80&id=gt." + lastId)
     }
 
     suspend fun myStats(): JSONObject? = withContext(Dispatchers.IO) {

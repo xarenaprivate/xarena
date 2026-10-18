@@ -96,9 +96,12 @@ fun NovaBackground(content: @Composable () -> Unit) {
 
 @Composable
 fun Brand() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(top = 18.dp, bottom = 10.dp)) {
-        Text("XARENA", color = Gold, fontSize = 34.sp, fontWeight = FontWeight.Black, letterSpacing = 6.sp)
-        Text("ESPORTS", color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 8.sp)
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 8.dp)) {
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(R.drawable.xarena_logo),
+            contentDescription = "XARENA",
+            modifier = Modifier.size(76.dp).clip(RoundedCornerShape(18.dp))
+        )
     }
 }
 
@@ -217,10 +220,10 @@ fun CompleteProfileScreen(onDone: () -> Unit) {
 @Composable
 fun HomeShell(onLogout: () -> Unit) {
     var tab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Tournaments", "Leaderboard", "Profile")
+    val tabs = listOf("Tournaments", "Leaderboard", "Chat", "Profile")
     Column(Modifier.fillMaxSize()) {
         Box(Modifier.weight(1f)) {
-            when (tab) { 0 -> TournamentsScreen(); 1 -> LeaderboardScreen(); else -> ProfileScreen(onLogout) }
+            when (tab) { 0 -> TournamentsScreen(); 1 -> LeaderboardScreen(); 2 -> ChatScreen(); else -> ProfileScreen(onLogout) }
         }
         Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(vertical = 6.dp)) {
             tabs.forEachIndexed { i, label ->
