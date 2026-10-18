@@ -1,17 +1,18 @@
 {
-  "version": "7.15.0",
-  "versionName": "7.15.0",
-  "versionCode": 78,
-  "code": 78,
-  "size": 2252196,
-  "sha256": "faed99cb382ccf0c4272721574fc065d5a523e3ed08cbcbc4b07cfaf13c78012",
+  "version": "7.16.0",
+  "versionName": "7.16.0",
+  "versionCode": 79,
+  "code": 79,
+  "size": 2277277,
+  "sha256": "daf9531e3c002d0a7dea25273c07803c2fd685524a177b934b67c6aa576824b8",
   "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
-  "updated": "2026-10-18T10:17:28.378673+00:00",
+  "updated": "2026-10-18T10:24:52.050915+00:00",
   "released": "October 18, 2026",
-  "notes": "Certificate Generator rebuilt pixel-faithful to the mockup - real certificates from your verified record, QR detail check, share and download.",
+  "notes": "Fan Voting MVP, Ping & Device Check, Daily Streak Badges and Team Roles - all rebuilt to the mockups with real data only.",
   "changes": [
-    "Certificate Generator page rebuilt to the mockup look (certs.html)",
-    "Certificates come only from real verified registrations and real champion badges",
-    "QR encodes the real certificate details; Share + Download PNG"
+    "Fan Voting MVP page rebuilt to the mockup - real poll, live countdown, changeable vote",
+    "Ping & Device Check - real measured latency and jitter, real device facts",
+    "Daily Streak Badges - real streak, real check-in XP, real milestone badges",
+    "Team Roles - set your real role; squad formation shows when squads form"
   ]
 }

@@ -4,8 +4,8 @@
 <link rel="canonical" href="https://xarena.surge.sh/vote.html">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vote · XARENA ESPORTS</title>
-<meta name="description" content="XARENA community votes - MVP, best squad and community picks. One vote per player, real counts.">
+<title>Fan Voting MVP · XARENA ESPORTS</title>
+<meta name="description" content="XARENA Fan Voting MVP - vote the best player with real counts. One vote per account, changeable until voting closes.">
 <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="%230b0b14" stroke="%23e10600" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="%23f5b301" stroke-width="3.2"/></svg>'>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -100,70 +100,22 @@
 <li class="nav-cta" style="display:flex;align-items:center;gap:8px"><a href="messages.html" aria-label="Messages" title="Messages" style="color:inherit;display:flex;padding:4px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></a><button class="xr-theme-btn" id="xr-theme-btn" type="button">Look</button><a class="btn btn-red btn-sm" href="tournaments.html#register">Register</a></li>
 </ul>
 </div></header>
-<main><section class="section"><div class="wrap" style="max-width:860px">
-  <div class="section-head reveal"><div class="overline">Community Vote</div><h2>Your <em>Vote</em> Counts</h2>
-  <p>Real votes from real players - one vote per account. The owner opens and closes each poll.</p></div>
-  <div id="vote-list"><p style="color:var(--muted)">Loading polls…</p></div>
-</div></section></main>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  var list = document.getElementById("vote-list");
-  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
-  function msg(t, ok) { return '<p style="color:' + (ok ? "#4ade80" : "#ffb4ae") + ';font-size:13px;margin-top:6px">' + esc(t) + "</p>"; }
-  function renderPoll(d, loggedIn) {
-    var p = d.poll;
-    var closed = p.status === "closed";
-    var total = d.total || 0;
-    var hideCounts = d.total === null;
-    var html = '<div class="card" style="margin-bottom:16px">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">';
-    html += '<h3 style="color:var(--gold2);margin:0">' + esc(p.title) + "</h3>";
-    html += '<span style="font-size:12px;color:' + (closed ? "var(--muted)" : "#4ade80") + '">' + (closed ? "CLOSED" : "VOTING OPEN") + "</span></div>";
-    if (p.description) html += '<p style="color:var(--muted)">' + esc(p.description) + "</p>";
-    html += '<div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">';
-    d.options.forEach(function (o) {
-      var mine = d.my_vote === o.id;
-      var pct = (!hideCounts && total) ? Math.round(100 * o.votes / total) : 0;
-      html += '<button type="button" data-vote="' + o.id + '" data-poll="' + p.id + '"' + (closed ? " disabled" : "") +
-        ' style="position:relative;text-align:left;padding:12px 14px;border-radius:10px;border:1px solid ' + (mine ? "var(--gold)" : "var(--line2)") + ';background:var(--card);color:var(--text);cursor:' + (closed ? "default" : "pointer") + ';overflow:hidden">';
-      if (!hideCounts) html += '<span style="position:absolute;inset:0;width:' + pct + '%;background:linear-gradient(90deg,rgba(225,6,0,.25),rgba(245,179,1,.12));pointer-events:none"></span>';
-      html += '<span style="position:relative;display:flex;justify-content:space-between;gap:10px"><span>' + esc(o.label) + (mine ? ' <b style="color:var(--gold2)">· your vote</b>' : "") + "</span>" +
-        (hideCounts ? "" : '<b style="color:var(--gold2)">' + o.votes + " · " + pct + "%</b>") + "</span></button>";
-    });
-    html += "</div>";
-    if (hideCounts) html += '<p style="color:var(--muted);font-size:13px;margin-top:8px">Results are hidden until the poll closes.</p>';
-    else html += '<p style="color:var(--muted);font-size:13px;margin-top:8px">' + total + " vote" + (total === 1 ? "" : "s") + "</p>";
-    if (!loggedIn && !closed) html += '<p style="font-size:13px;margin-top:8px"><a href="account.html" style="color:var(--gold2)">Log in</a> to cast your vote.</p>';
-    html += '<div class="vote-msg"></div></div>';
-    return html;
-  }
-  var loggedIn = false;
-  function load() {
-    if (!window.xrApi) { list.innerHTML = '<p style="color:#ffb4ae">Backend not connected - check your connection.</p>'; return; }
-    window.xrApi.user().then(function (u) {
-      loggedIn = !!u;
-      return window.xrApi.get("polls", "?select=id&status=in.(open,closed)&order=created_at.desc&limit=20");
-    }).then(function (polls) {
-      if (!polls || !polls.length) { list.innerHTML = '<div class="empty"><div class="big">No votes open right now</div><p>New community votes are announced on the News page and in World Chat.</p></div>'; return; }
-      return Promise.all(polls.map(function (p) { return window.xrApi.uRpc("poll_results", { p_poll: p.id }); })).then(function (rs) {
-        list.innerHTML = rs.filter(function (d) { return d && d.ok; }).map(function (d) { return renderPoll(d, loggedIn); }).join("");
-        Array.prototype.forEach.call(list.querySelectorAll("[data-vote]"), function (b) {
-          b.addEventListener("click", function () {
-            var box = b.closest(".card").querySelector(".vote-msg");
-            if (!loggedIn) { box.innerHTML = msg("Log in first - one vote per player account.", false); return; }
-            b.disabled = true;
-            window.xrApi.uRpc("cast_vote", { p_poll: b.getAttribute("data-poll"), p_option: b.getAttribute("data-vote") }).then(function (r) {
-              if (r && r.ok) { box.innerHTML = msg("Vote counted! You can change it while voting is open.", true); setTimeout(load, 800); }
-              else { b.disabled = false; box.innerHTML = msg((r && r.error) || "Vote failed.", false); }
-            });
-          });
-        });
-      });
-    }).catch(function () { list.innerHTML = '<p style="color:#ffb4ae">Could not load polls - check your connection.</p>'; });
-  }
-  load();
-});
-</script>
+<main>
+<link rel="stylesheet" href="assets/css/nova-pages.css">
+<link rel="stylesheet" href="assets/css/nova-live.css">
+<section class="section xnp xnlv"><div class="wrap" style="max-width:560px">
+  <div class="xnp-brand">
+    <svg class="xnp-logo" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="xgold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a3"/><stop offset=".55" stop-color="#ffd23f"/><stop offset="1" stop-color="#f5b301"/></linearGradient></defs><path d="M20 2 36 10v14c0 8-7 12.7-16 14C11 36.7 4 32 4 24V10Z" fill="rgba(30,17,54,.6)" stroke="url(#xgold)" stroke-width="2.5"/><path d="M13 13l14 14M27 13L13 27" stroke="url(#xgold)" stroke-width="3.2" stroke-linecap="square"/></svg>
+    <div class="xnp-word">XARENA</div><div class="xnp-word2">ESPORTS</div>
+  </div>
+  <h1 class="xnp-title" style="text-align:center;font-size:clamp(28px,8vw,40px)">FAN VOTING MVP</h1>
+  <p class="xnp-sub" style="text-align:center">Real votes from real players - one vote per account.</p>
+  <div id="vote-app"><p style="text-align:center;color:#c9b8e6">Loading the vote…</p></div>
+</div></section>
+</main>
+<script src="assets/js/vendor/supabase.min.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/vote-page.js"></script>
 <footer><div class="wrap">
 <div class="foot-grid">
 <div class="foot-brand">
@@ -186,6 +138,9 @@ document.addEventListener("DOMContentLoaded", function () {
 <li><a href="sponsors.html">Sponsors</a></li>
 <li><a href="how-to-play.html">How to Play</a></li>
 <li><a href="certs.html">Certificates</a></li>
+<li><a href="ping.html">Ping Check</a></li>
+<li><a href="streak.html">Streak Badges</a></li>
+<li><a href="roles.html">Team Roles</a></li>
 <li><a href="verify.html">Photo Verify</a></li>
 <li><a href="play.html">Play &amp; Earn</a></li>
 <li><a href="feed.html">Highlights Feed</a></li>
