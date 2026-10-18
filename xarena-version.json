@@ -1,17 +1,17 @@
 {
-  "version": "7.14.0",
-  "versionName": "7.14.0",
-  "versionCode": 77,
-  "code": 77,
-  "size": 2243862,
-  "sha256": "02c4d3ca40bebe1ab928762a24a4c8772eea6e28da245332b90808efb8b50d3f",
+  "version": "7.15.0",
+  "versionName": "7.15.0",
+  "versionCode": 78,
+  "code": 78,
+  "size": 2252196,
+  "sha256": "faed99cb382ccf0c4272721574fc065d5a523e3ed08cbcbc4b07cfaf13c78012",
   "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
-  "updated": "2026-10-18T10:10:15.545039+00:00",
+  "updated": "2026-10-18T10:17:28.378673+00:00",
   "released": "October 18, 2026",
-  "notes": "Live page, Luna Cast and Training Academy rebuilt pixel-faithful to the owner's mockups (dark nova look).",
+  "notes": "Certificate Generator rebuilt pixel-faithful to the mockup - real certificates from your verified record, QR detail check, share and download.",
   "changes": [
-    "Watch Live rebuilt to the mockup look - real streams and real match schedule only",
-    "Luna Cast restyled to the Luna AI caster mockup - real commentary when the backend answers",
-    "Training Academy rebuilt to the mockup look with real drill search and category chips"
+    "Certificate Generator page rebuilt to the mockup look (certs.html)",
+    "Certificates come only from real verified registrations and real champion badges",
+    "QR encodes the real certificate details; Share + Download PNG"
   ]
 }
