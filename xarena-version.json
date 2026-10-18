@@ -1,16 +1,16 @@
 {
-  "version": "7.9.0",
-  "versionName": "7.9.0",
-  "versionCode": 72,
-  "code": 72,
-  "size": 2214247,
-  "sha256": "feda3c9d3688e3c7a76cb1999ee08d086e3ebf869930349e67379d98e742a3b8",
+  "version": "7.10.0",
+  "versionName": "7.10.0",
+  "versionCode": 73,
+  "code": 73,
+  "size": 2218507,
+  "sha256": "1f8075ec180157fa9e73552fa9fe1d89f4dede210bd8845cdcb1b933af3e457f",
   "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
-  "updated": "2026-10-18T09:23:11.118586+00:00",
+  "updated": "2026-10-18T09:36:19.503476+00:00",
   "released": "October 18, 2026",
-  "notes": "Welcome screen for first-time players.",
+  "notes": "Winner Celebration - champions get their moment, and a real title on their profile.",
   "changes": [
-    "Welcome screen - a proper first hello for new players",
-    "Refer & Earn (from v7.8)"
+    "Winner Celebration - confetti, champions screen and Claim Title",
+    "Welcome screen (from v7.9)"
   ]
 }
