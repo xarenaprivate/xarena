@@ -1,6 +1,6 @@
 {
-  "versionCode": 13,
-  "versionName": "0.12.1",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.12.1-native/xarena-native.apk",
-  "notes": "Stability pass for low-RAM phones: no video autoplay in Feed/Clips (tap to play), DM decrypt and image reads off the UI thread."
+  "versionCode": 14,
+  "versionName": "0.12.2",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.12.2-native/xarena-native.apk",
+  "notes": "Rotation no longer wipes the screen you are on. Stability pass: no video autoplay in Feed/Clips, smoother messages and media picking."
 }
