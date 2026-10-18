@@ -137,6 +137,50 @@ object Api {
 
 
 
+
+    /* ---- Tournament registration (same flow as the site's reg-form) ---- */
+
+    fun deviceId(): String {
+        var d = prefs.getString("device_id", null)
+        if (d == null) {
+            d = "dev-" + java.util.UUID.randomUUID().toString().replace("-", "").take(16)
+            prefs.edit().putString("device_id", d).apply()
+        }
+        return d
+    }
+
+    /** Upload the UID proof image to the public proofs bucket, exactly like the site's uploadProof(). Returns the stored path. */
+    suspend fun uploadProof(regId: String, jpeg: ByteArray): String = withContext(Dispatchers.IO) {
+        val path = "$regId.jpg"
+        val c = java.net.URL(BASE + "/storage/v1/object/proofs/" + path).openConnection() as java.net.HttpURLConnection
+        c.requestMethod = "POST"
+        c.connectTimeout = 15000; c.readTimeout = 30000
+        c.setRequestProperty("apikey", KEY)
+        c.setRequestProperty("Authorization", "Bearer $KEY")
+        c.setRequestProperty("Content-Type", "image/jpeg")
+        c.doOutput = true
+        c.outputStream.use { it.write(jpeg) }
+        val code = c.responseCode
+        if (code !in 200..299) throw ApiError("Proof upload failed ($code). Check your connection and try again.")
+        path
+    }
+
+    suspend fun registerSquad(id: String, squad: String, captain: String, uid: String, phone: String, proofPath: String?): JSONObject =
+        withContext(Dispatchers.IO) {
+            authedRpc("register_squad", JSONObject()
+                .put("p_id", id).put("p_tournament", "xr-s1").put("p_squad", squad)
+                .put("p_captain", captain).put("p_uid", uid).put("p_ign", captain)
+                .put("p_phone", phone).put("p_proof", proofPath ?: JSONObject.NULL)
+                .put("p_client", deviceId()).put("p_ip", JSONObject.NULL))
+        }
+
+    fun myRegsLoad(): JSONArray = try { JSONArray(prefs.getString("my_regs", "[]")) } catch (e: Exception) { JSONArray() }
+    fun myRegsAdd(id: String, squad: String) {
+        val a = myRegsLoad()
+        a.put(JSONObject().put("id", id).put("squad", squad).put("at", System.currentTimeMillis()))
+        prefs.edit().putString("my_regs", a.toString()).apply()
+    }
+
     /* ---- Squads (same RPCs/views the site uses) ---- */
 
     suspend fun authedGetArray(path: String): JSONArray = withContext(Dispatchers.IO) {

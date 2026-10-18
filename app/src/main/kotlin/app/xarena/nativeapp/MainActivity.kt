@@ -261,8 +261,11 @@ fun PanelCard(content: @Composable ColumnScope.() -> Unit) {
 
 @Composable
 fun TournamentsScreen() {
+    var showRegister by remember { mutableStateOf(false) }
+    if (showRegister) { RegisterScreen(onBack = { showRegister = false }); return }
     Column(Modifier.fillMaxSize()) {
         Brand()
+        Box(Modifier.padding(horizontal = 16.dp, vertical = 2.dp)) { GoldButton("REGISTER YOUR SQUAD - SEASON 1") { showRegister = true } }
         LoadState({ Api.publicGet("/rest/v1/tournaments?select=id,name,status,slots,prize,date_text,reg_open,mode&order=sort.asc") }) { arr ->
             if (arr.length() == 0) EmptyNote("No tournaments yet", "Tournaments appear here as soon as the admin creates them.")
             else LazyColumn { items((0 until arr.length()).map { arr.getJSONObject(it) }) { t ->
