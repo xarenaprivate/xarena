@@ -338,6 +338,10 @@ fun HomeShell(onLogout: () -> Unit) {
         "sensitivity" -> { SensitivityScreen(onBack = { feature = null }); return }
         "coaches" -> { CoachesScreen(onBack = { feature = null }); return }
         "cup" -> { CupScreen(onBack = { feature = null }); return }
+        "search" -> { SearchScreen(onBack = { feature = null }); return }
+        "teams" -> { SearchScreen(onBack = { feature = null }, initialTab = 0, title = "Teams & Roster"); return }
+        "players" -> { SearchScreen(onBack = { feature = null }, initialTab = 1, title = "Players"); return }
+        "howto" -> { HowToPlayScreen(onBack = { feature = null }); return }
     }
     var msgBadge by remember { mutableIntStateOf(0) }
     LaunchedEffect(feature, conv) {
@@ -407,6 +411,10 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("sensitivity", "Sensitivity", "Share your aim setup", Icons.Default.Settings),
         GridItem("coaches", "Coaches", "Learn from verified players", Icons.Default.Star),
         GridItem("cup", "Sponsor a Cup", "Your brand on a real tournament", Icons.Default.ShoppingCart),
+        GridItem("search", "Search", "Squads, players, tournaments", Icons.Default.Search),
+        GridItem("teams", "Teams", "Registered squads", Icons.Default.AccountBox),
+        GridItem("players", "Players", "Verified player profiles", Icons.Default.Person),
+        GridItem("howto", "How to Play", "3 steps to your first match", Icons.Default.Info),
         GridItem("settings", "Settings", "App version, activity status, logout", Icons.Default.Settings),
     )
     Column(Modifier.fillMaxSize()) {
