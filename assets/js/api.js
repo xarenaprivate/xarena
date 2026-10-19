@@ -56,6 +56,7 @@
     /* admin */
     aGet: function (table, query) { return req("GET", "/rest/v1/" + table + (query || ""), null, true); },
     aPost: function (table, row) { return req("POST", "/rest/v1/" + table, row, true, { "Prefer": "return=representation" }); },
+    aUpsert: function (table, row, conflict) { return req("POST", "/rest/v1/" + table + "?on_conflict=" + (conflict || "key"), row, true, { "Prefer": "resolution=merge-duplicates,return=minimal" }); },
     aPatch: function (table, match, row) { return req("PATCH", "/rest/v1/" + table + "?" + match, row, true, { "Prefer": "return=minimal" }); },
     aDel: function (table, match) { return req("DELETE", "/rest/v1/" + table + "?" + match, null, true, { "Prefer": "return=minimal" }); },
     audit: function (action, details) {

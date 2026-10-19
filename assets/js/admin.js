@@ -1754,11 +1754,7 @@
         '<button class="btn btn-red btn-sm" id="lv-save">Save</button> <span id="lv-msg" style="font-size:13px"></span></div>';
       el("#lv-save", body).addEventListener("click", function () {
         var rawId = el("#lv-id", body).value.trim(); var vid = rawId ? xrYtId(rawId) : ""; if (rawId && !vid) { el("#lv-msg", body).textContent = "Could not find a YouTube video ID in that link."; return; } var data = { video_id: vid, title: el("#lv-title", body).value.trim(), active: el("#lv-active", body).checked };
-        call(function () { return api.aPatch("site_settings", "key=eq.youtube_live", { value: data, updated_at: new Date().toISOString() }); })
-          .then(function (r) {
-            if (Array.isArray(r) && r.length) return;
-            return api.aPost("site_settings", { key: "youtube_live", value: data });
-          })
+        call(function () { return api.aUpsert("site_settings", { key: "youtube_live", value: data, updated_at: new Date().toISOString() }, "key"); })
           .then(function () { return api.audit("livestream_set", { active: data.active }); })
           .then(function () { el("#lv-msg", body).textContent = "Saved - home page updated."; })
           .catch(function (e) { el("#lv-msg", body).textContent = "Save failed: " + e.message; });
