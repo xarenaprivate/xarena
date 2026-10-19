@@ -163,11 +163,12 @@ window.addEventListener("load", function () {
       var btn = e.target.querySelector("button"); btn.disabled = true; btn.textContent = "CHECKING…";
       xrApi.rpc("signup_precheck", { p_phone: ph, p_device_id: (xrApi.deviceInfo().id || ""), p_fp: xrApi.deviceInfo().fp }).then(function (chk) {
         if (!chk || !chk.ok) { btn.disabled = false; btn.textContent = "SIGN UP"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = (chk && chk.error) || "Could not check right now. Try again."; return; }
-        if (!chk.available) { btn.disabled = false; btn.textContent = "SIGN UP"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = "An account already exists with this number. Please log in."; return; }
+        /* generic: no yes/no answer about whether a number is registered */
         btn.textContent = "CREATING…";
         xrSb.auth.signUp({ email: "p" + ph + "@phone.xarena", password: document.getElementById("s-pass").value, options: { data: { phone: ph } } })
           .then(function (r) {
-            if (r.error) { btn.disabled = false; btn.textContent = "SIGN UP"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = r.error.message; return; }
+            var dupe = r.error || !r.data || !r.data.user || (r.data.user.identities && r.data.user.identities.length === 0);
+            if (dupe) { btn.disabled = false; btn.textContent = "SIGN UP"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = (r.error && /password|weak|least/i.test(r.error.message || "")) ? r.error.message : "We could not create an account with these details. If you already signed up, please log in instead."; return; }
             clearAcctState(); try { sessionStorage.removeItem("xr_bound"); } catch (e2) {} setTimeout(function () { if (xrApi.bindDevice) xrApi.bindDevice(); }, 300); routeAfterLogin();
           });
       });

@@ -53,7 +53,7 @@ begin
       return jsonb_build_object('ok',false,'error','This device already has 2 accounts. Please log in to one of them.'); end if;
   end if;
   insert into signup_attempts(ip_hash,device_hash,phone_hash,result) values (ip,dv,ph,'ok');
-  return jsonb_build_object('ok',true,'available', not exists (select 1 from profiles where phone = v_p),'phone',v_p);
+  return jsonb_build_object('ok',true,'available',true,'phone',v_p);
 end $$;
 grant execute on function public.signup_precheck(text,text,text) to anon, authenticated;
 

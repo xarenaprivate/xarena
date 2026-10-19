@@ -1773,9 +1773,19 @@
         if (!r || !r.ok) { body.innerHTML = '<div class="card">' + esc((r && r.error) || "Could not load.") + "</div>"; return; }
         body.innerHTML = '<div class="card"><h3>Suspicious accounts</h3><p style="font-size:13px">Groups of accounts that share a device, device profile or network. Nothing is banned automatically. Shared family phones and campus Wi-Fi can look the same, so check before acting. Phone numbers are never shown here.</p>' + (r.rows.length ? r.rows.map(function (g) {
           return '<div style="padding:10px 0;border-top:1px solid rgba(255,255,255,.08)"><b>' + esc(labels[g.kind] || g.kind) + "</b> \u00b7 " + String(g.created_at).slice(0, 16).replace("T", " ") + " \u00b7 " + esc(g.status) + (g.note ? " \u00b7 " + esc(g.note) : "") +
-            "<ul style='margin:6px 0 6px 18px'>" + (g.accounts || []).map(function (a) { return "<li>" + esc(a.username) + (a.ign ? " (" + esc(a.ign) + ")" : "") + " \u00b7 joined " + String(a.created_at).slice(0, 10) + (a.verified ? " \u00b7 verified" : "") + (a.banned ? " \u00b7 BANNED" : "") + "</li>"; }).join("") + "</ul>" +
+            "<ul style='margin:6px 0 6px 18px'>" + (g.accounts || []).map(function (a) { return "<li>" + esc(a.username) + (a.ign ? " (" + esc(a.ign) + ")" : "") + " \u00b7 joined " + String(a.created_at).slice(0, 10) + (a.verified ? " \u00b7 verified" : "") + (a.banned ? " \u00b7 BANNED" : ' <button class="btn btn-red btn-sm" style="padding:2px 8px" data-ban="' + a.id + '" data-un="' + esc(a.username) + '">Suspend</button>') + "</li>"; }).join("") + "</ul>" +
             (g.status === "open" ? '<button class="btn btn-ghost btn-sm" data-af="' + g.id + '" data-st="dismissed">Looks fine</button> <button class="btn btn-red btn-sm" data-af="' + g.id + '" data-st="actioned">Mark handled</button>' : "") + "</div>";
         }).join("") : "<p>No suspicious groups right now.</p>") + "</div>";
+        body.querySelectorAll("[data-ban]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            var un = b.getAttribute("data-un");
+            if (!confirm("Suspend " + un + "? They will be banned from XARENA until you lift it. This does not touch other accounts in the group.")) return;
+            var why = prompt("Reason (shown to the player)", "Suspicious duplicate account") || "Suspicious duplicate account";
+            call(function () { return api.aPatch("profiles", "id=eq." + b.getAttribute("data-ban"), { banned: true, banned_reason: why }); })
+              .then(function () { return api.audit("abuse_suspend", { user: un }); }).then(load)
+              .catch(function (e) { alert("Failed: " + e.message); });
+          });
+        });
         body.querySelectorAll("[data-af]").forEach(function (b) {
           b.addEventListener("click", function () {
             var note = prompt("Note (optional)", "") || "";
