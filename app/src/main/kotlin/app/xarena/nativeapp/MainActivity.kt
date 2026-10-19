@@ -468,24 +468,74 @@ fun TournamentsScreen() {
 
 @Composable
 fun LeaderboardScreen() {
-    Column(Modifier.fillMaxSize()) {
-        Brand()
-        LoadState({ Api.publicRpc("game_leaderboard", JSONObject().put("p_scope", "all")).optJSONArray("rows") ?: JSONArray() }) { rows ->
-            if (rows.length() == 0) EmptyNote("No XP earned yet", "The board lights up when players check in and play.")
-            else LazyColumn { items((0 until rows.length()).map { it to rows.getJSONObject(it) }) { (i, r) ->
-                PanelCard {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("#" + (i + 1), color = Gold, fontSize = 20.sp, fontWeight = FontWeight.Black, modifier = Modifier.width(54.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text(r.optString("name"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            Text("Level " + r.optInt("level") + " - " + r.optInt("badges") + " badges", color = Muted, fontSize = 12.sp)
+    var tick by remember { mutableIntStateOf(0) }
+    var query by remember { mutableStateOf("") }
+    LoadState2(tick, {
+        val rows = Api.publicRpc("leaderboard_nova", JSONObject()).optJSONArray("rows") ?: JSONArray()
+        val mine = runCatching { Api.authedRpc("my_rank_nova", JSONObject()) }.getOrNull()
+        rows to mine
+    }) { (rows, mine) ->
+        Column(Modifier.fillMaxSize()) {
+            Brand()
+            OutlinedTextField(query, { query = it }, placeholder = { Text("Search a player by name") },
+                singleLine = true, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp))
+            LazyColumn(Modifier.weight(1f)) {
+                val all = (0 until rows.length()).map { rows.getJSONObject(it) }
+                val shown = all.filter { query.isBlank() || it.optString("name").contains(query.trim(), true) }
+                if (shown.isEmpty()) item { EmptyNote(if (all.isEmpty()) "No XP earned yet" else "No player matches " + query.trim(),
+                    if (all.isEmpty()) "The board lights up when players earn XP." else "Try a different name.") }
+                items(shown.size) { i ->
+                    val r = shown[i]; val rank = all.indexOf(r) + 1
+                    val medal = when (rank) { 1 -> Color(0xFFFFD700); 2 -> Color(0xFFC0C0C0); 3 -> Color(0xFFCD7F32); else -> Gold }
+                    PanelCard {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("#" + rank, color = medal, fontSize = if (rank <= 3) 22.sp else 18.sp, fontWeight = FontWeight.Black,
+                                modifier = Modifier.width(48.dp))
+                            Box(Modifier.size(38.dp).clip(CircleShape).background(Look.cardBorder),
+                                contentAlignment = Alignment.Center) {
+                                Text(r.optString("name").firstOrNull()?.uppercase() ?: "P", color = Gold2, fontWeight = FontWeight.Bold)
+                            }
+                            Spacer(Modifier.width(10.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(r.optString("name"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                val moh = r.optString("mohalla").takeIf { it.isNotBlank() && it != "null" }
+                                if (moh != null) Text(moh, color = Muted, fontSize = 12.sp)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(r.optInt("xp").toString() + " XP", color = Gold2, fontWeight = FontWeight.Bold)
+                                Text(tierOf(r.optInt("xp")), color = tierColor(tierOf(r.optInt("xp"))), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
-                        Text(r.optInt("xp").toString() + " XP", color = Gold2, fontWeight = FontWeight.Bold)
                     }
                 }
-            } }
+            }
+            if (mine != null && mine.optBoolean("ok")) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).clip(RoundedCornerShape(Look.cardRadius))
+                    .background(Look.cardBg).border(1.dp, Gold, RoundedCornerShape(Look.cardRadius)).padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("YOUR RANK", color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text("You (" + mine.optString("name") + ")", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text(tierOf(mine.optInt("xp")), color = tierColor(tierOf(mine.optInt("xp"))), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Text("#" + mine.optInt("rank"), color = Gold, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.width(14.dp))
+                    Column(horizontalAlignment = Alignment.End) {
+                        val wx = mine.optInt("week_xp", 0)
+                        Text((if (wx > 0) "+" + wx else mine.optInt("xp")).toString() + " XP", color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text(if (wx > 0) "this week" else "earned", color = Muted, fontSize = 10.sp)
+                    }
+                }
+            }
         }
     }
+}
+
+fun tierOf(xp: Int) = if (xp >= 5000) "Grandmaster" else if (xp >= 2500) "Heroic" else if (xp >= 1200) "Diamond" else if (xp >= 600) "Platinum" else if (xp >= 250) "Gold" else if (xp >= 80) "Silver" else "Bronze"
+fun tierColor(t: String) = when (t) {
+    "Bronze" -> Color(0xFFCD7F32); "Silver" -> Color(0xFFC0C0C0); "Gold" -> Color(0xFFFFD700)
+    "Platinum" -> Color(0xFF7DD3FC); "Diamond" -> Color(0xFF60A5FA); "Heroic" -> Color(0xFFC084FC)
+    else -> Color(0xFFF0ABFC)
 }
 
 @Composable
