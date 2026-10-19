@@ -1,12 +1,12 @@
 {
-  "versionCode": 35,
-  "versionName": "0.16.0-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.0-native/xarena-native.apk",
-  "sha256": "f75ec6a9d8f01c3371ecea24132e90d0929cc423c6099e68031bc78f4f7793f1",
-  "notes": "Smaller delta updates, AP tournament entry, Play (spin + quizzes).",
+  "versionCode": 36,
+  "versionName": "0.16.1-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.1-native/xarena-native.apk",
+  "sha256": "bd6af62c0e12b5c60e60f7640cb7d14a48d2e20f8ea9439d0d6bad36c6cbe3c0",
+  "notes": "Fixes: role save, squads list, null text, Fan Vote crash, Live video playback. New: in-app gallery picker for feed posts.",
   "patch": {
-    "from": 34,
-    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.0-native/xarena-native-34to35.patch",
-    "sha256": "5bf3500e176a8dc6f783847f45477ab6768153ddc3e3bb0565247e09ffe254cc"
+    "from": 35,
+    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.1-native/xarena-native-35to36.patch",
+    "sha256": "e487553ce2a1a1e1765bb6d7474c119c00a81464ab3379c5a77bc384e1cc6d63"
   }
 }
