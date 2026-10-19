@@ -547,6 +547,21 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
     var copied by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize()) {
         if (onBack != null) PageHeader("Profile", "Your account", onBack) else Brand()
+        var shareBusy by remember { mutableStateOf(false) }
+        var shareMsg by remember { mutableStateOf<String?>(null) }
+        val profScope = rememberCoroutineScope()
+        Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
+            .clickable(enabled = !shareBusy) {
+                shareBusy = true; shareMsg = null
+                profScope.launch {
+                    val f = ShareCard.build(Api.ctx)
+                    if (f != null) ShareCard.share(Api.ctx, f) else shareMsg = "Could not build the card - try again."
+                    shareBusy = false
+                }
+            }.padding(vertical = 12.dp), contentAlignment = Alignment.Center) {
+            Text(if (shareBusy) "Drawing your card..." else "Share my stats card", color = Gold, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        }
+        shareMsg?.let { Text(it, color = ErrRed, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp)) }
         LoadState({ Api.myProfile() to Api.myStats() }) { (p, s) ->
             LazyColumn {
                 item {
