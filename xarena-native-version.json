@@ -1,6 +1,6 @@
 {
-  "versionCode": 22,
-  "versionName": "0.13.6",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.13.6-native/xarena-native.apk",
-  "notes": "Daily Streak gets the 7-day strip and next-badge progress bar; Academy drills are searchable."
+  "versionCode": 23,
+  "versionName": "0.13.7",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.13.7-native/xarena-native.apk",
+  "notes": "Certificates can be shared or saved as a PNG - same design as the website certificate."
 }
