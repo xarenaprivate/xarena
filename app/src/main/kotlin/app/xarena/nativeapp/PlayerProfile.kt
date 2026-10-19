@@ -150,6 +150,19 @@ fun PlayerProfileScreen(playerId: String, onBack: () -> Unit, onOpenConv: (Strin
                         }
                     }
                     actionErr?.let { Text(it, color = ErrRed, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp)) }
+                    var reportMsg by remember { mutableStateOf<String?>(null) }
+                    Text("Report player", color = Muted, fontSize = 12.sp,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp).clickable(enabled = !actionBusy) {
+                            scope.launch {
+                                actionBusy = true; reportMsg = null
+                                try {
+                                    val r = Api.authedRpc("cheat_report", JSONObject().put("p_name", name).put("p_reason", "Player report from profile"))
+                                    reportMsg = if (r.optBoolean("ok")) "Report sent - the team reviews every report." else r.s("error").ifBlank { "Could not send report." }
+                                } catch (e: Exception) { reportMsg = e.message }
+                                actionBusy = false
+                            }
+                        })
+                    reportMsg?.let { Text(it, color = if (it.startsWith("Report sent")) Color(0xFF4ADE80) else ErrRed, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 20.dp)) }
                 }
                 item {
                     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(16.dp)).background(Card).border(1.dp, Gold.copy(alpha = .25f), RoundedCornerShape(16.dp)).padding(16.dp)) {
