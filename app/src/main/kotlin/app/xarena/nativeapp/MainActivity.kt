@@ -303,11 +303,18 @@ fun HomeShell(onLogout: () -> Unit) {
     var tab by remember { mutableIntStateOf(0) }
     var feature by remember { mutableStateOf<String?>(null) }
     var conv by remember { mutableStateOf<DmConv?>(null) }
+    var playerId by remember { mutableStateOf<String?>(null) }
     val tabs = listOf(
         "Home" to Icons.Default.Home, "Feed" to Icons.Default.FavoriteBorder, "Live" to Icons.Default.PlayArrow, "Voice" to Icons.Default.Call, "Tournaments" to Icons.Default.Star, "Board" to Icons.Default.List,
         "More" to Icons.Default.Menu)
     val c = conv
     if (c != null) { BackHandler { conv = null }; ConversationScreen(c.threadId, c.peerId, c.peerName, c.status, c.reqByMe) { conv = null }; return }
+    val pid = playerId
+    if (pid != null) {
+        BackHandler { playerId = null }
+        PlayerProfileScreen(pid, onBack = { playerId = null }, onOpenConv = { t, p, n, st, r -> playerId = null; conv = DmConv(t, p, n, st, r) })
+        return
+    }
     if (feature != null) BackHandler { feature = null }
     when (feature) {
         "messages" -> { MessagesScreen(onBack = { feature = null }, onOpenConv = { t, p, n, st, r -> conv = DmConv(t, p, n, st, r) }); return }
@@ -342,9 +349,9 @@ fun HomeShell(onLogout: () -> Unit) {
         "sensitivity" -> { SensitivityScreen(onBack = { feature = null }); return }
         "coaches" -> { CoachesScreen(onBack = { feature = null }); return }
         "cup" -> { CupScreen(onBack = { feature = null }); return }
-        "search" -> { SearchScreen(onBack = { feature = null }); return }
-        "teams" -> { SearchScreen(onBack = { feature = null }, initialTab = 0, title = "Teams & Roster"); return }
-        "players" -> { SearchScreen(onBack = { feature = null }, initialTab = 1, title = "Players"); return }
+        "search" -> { SearchScreen(onBack = { feature = null }, onOpenPlayer = { playerId = it }); return }
+        "teams" -> { SearchScreen(onBack = { feature = null }, initialTab = 0, title = "Teams & Roster", onOpenPlayer = { playerId = it }); return }
+        "players" -> { SearchScreen(onBack = { feature = null }, initialTab = 1, title = "Players", onOpenPlayer = { playerId = it }); return }
         "howto" -> { HowToPlayScreen(onBack = { feature = null }); return }
         "voice" -> { VoiceScreen(onBack = { feature = null }); return }
         "chat" -> { ChatScreen(onGoTab = { i -> when (i) { 1 -> { feature = null; tab = 4 }; 2 -> { feature = null; tab = 5 }; else -> feature = "squads" } }, onBack = { feature = null }); return }
@@ -353,6 +360,9 @@ fun HomeShell(onLogout: () -> Unit) {
         "store" -> { StoreScreen(onBack = { feature = null }); return }
         "profile" -> { ProfileScreen(onLogout, onBack = { feature = null }); return }
         "play" -> { PlayScreen(onBack = { feature = null }); return }
+    }
+    LaunchedEffect(Unit) { // presence: keeps own last_seen_at fresh (server throttles to 40s) so profile "Online now" is real
+        while (true) { runCatching { Api.presencePing() }; kotlinx.coroutines.delay(60_000) }
     }
     var msgBadge by remember { mutableIntStateOf(0) }
     LaunchedEffect(feature, conv) {

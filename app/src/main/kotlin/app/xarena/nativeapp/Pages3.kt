@@ -21,7 +21,7 @@ import org.json.JSONObject
 
 /* ============ Search / Teams / Players - one real 3-tab screen (same endpoints as the site's search page) ============ */
 @Composable
-fun SearchScreen(onBack: () -> Unit, initialTab: Int = 0, title: String = "Search") {
+fun SearchScreen(onBack: () -> Unit, initialTab: Int = 0, title: String = "Search", onOpenPlayer: (String) -> Unit = {}) {
     var tab by remember { mutableIntStateOf(initialTab) }
     var q by remember { mutableStateOf("") }
     Column(Modifier.fillMaxSize().background(Ink)) {
@@ -30,7 +30,7 @@ fun SearchScreen(onBack: () -> Unit, initialTab: Int = 0, title: String = "Searc
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp))
         LoadState2(0, {
             val squads = runCatching { Api.publicGet("/rest/v1/public_squads?select=squad,ign,verified&order=created_at.asc") }.getOrElse { JSONArray() }
-            val players = runCatching { Api.publicGet("/rest/v1/public_players_search?select=ign,role,kd") }.getOrElse { JSONArray() }
+            val players = runCatching { Api.playerProfiles() }.getOrElse { JSONArray() }
             val ts = runCatching { Api.publicGet("/rest/v1/tournaments?select=name,mode,status,prize,date_text&order=sort.asc") }.getOrElse { JSONArray() }
             Triple(squads, players, ts)
         }) { (squads, players, ts) ->
@@ -66,13 +66,35 @@ fun SearchScreen(onBack: () -> Unit, initialTab: Int = 0, title: String = "Searc
                     }
                     1 -> {
                         val rows = (0 until players.length()).map { players.getJSONObject(it) }
-                            .filter { needle.isBlank() || it.s("ign").contains(needle, true) }
+                            .filter { needle.isBlank() || it.s("ign").contains(needle, true) || it.s("username").contains(needle, true) }
                         if (rows.isEmpty()) item { Text("No players found.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(16.dp)) }
                         items(rows) { r ->
-                            SmallCard {
-                                Text(r.s("ign"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                                Text(listOf(r.s("role"), if (r.s("kd").isNotBlank()) "K/D " + r.s("kd") else "")
-                                    .filter { it.isNotBlank() }.joinToString(" - "), color = Muted, fontSize = 12.sp)
+                            val nm = r.s("ign").ifBlank { r.s("username") }.ifBlank { "Player" }
+                            val online = runCatching { java.time.Instant.parse(r.s("last_seen_at")).toEpochMilli() > System.currentTimeMillis() - 120000 }.getOrDefault(false)
+                            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).clip(RoundedCornerShape(12.dp)).background(Card).border(1.dp, Gold.copy(alpha = .2f), RoundedCornerShape(12.dp))
+                                .clickable { onOpenPlayer(r.s("id")) }.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Box(Modifier.size(44.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(0x33FFFFFF)), contentAlignment = Alignment.Center) {
+                                    val av = r.s("avatar_url")
+                                    if (av.isNotBlank()) coil.compose.AsyncImage(model = av, contentDescription = nm, modifier = Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+                                    else Text(nm.first().uppercase(), color = Gold, fontSize = 17.sp, fontWeight = FontWeight.Black)
+                                }
+                                Spacer(Modifier.width(12.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(nm, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                        if (r.optBoolean("verified")) {
+                                            Spacer(Modifier.width(6.dp))
+                                            Text("VERIFIED", color = Gold2, fontSize = 8.sp, fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.clip(RoundedCornerShape(4.dp)).border(1.dp, Gold2, RoundedCornerShape(4.dp)).padding(horizontal = 4.dp, vertical = 1.dp))
+                                        }
+                                    }
+                                    Text(buildList {
+                                        if (r.s("username").isNotBlank()) add("@" + r.s("username"))
+                                        if (r.s("role").isNotBlank()) add(r.s("role"))
+                                        if (!r.isNull("kd")) add("K/D " + r.s("kd"))
+                                    }.joinToString(" - ").ifBlank { "XARENA player" }, color = Muted, fontSize = 12.sp, maxLines = 1)
+                                }
+                                if (online) Box(Modifier.size(9.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(0xFF4ADE80)))
                             }
                         }
                     }

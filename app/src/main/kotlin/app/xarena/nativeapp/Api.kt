@@ -542,6 +542,30 @@ object Api {
         c.inputStream.use { it.readBytes() }
     }
 
+    /* Players directory + public player profiles (player_profiles_public view: safe columns only). */
+    suspend fun playerProfiles(): JSONArray = withContext(Dispatchers.IO) {
+        publicGet("/rest/v1/player_profiles_public?select=id,username,ign,verified,role,kd,matches,wins,avatar_url,last_seen_at,xp&order=username.asc&limit=500")
+    }
+    suspend fun playerBadges(userId: String): JSONArray = withContext(Dispatchers.IO) {
+        publicGet("/rest/v1/badges?select=badge,earned_at&user_id=eq." + userId + "&order=earned_at.desc&limit=50")
+    }
+    suspend fun playerHighlights(userId: String): JSONArray = withContext(Dispatchers.IO) {
+        publicGet("/rest/v1/feed_posts?select=id,kind,media_path,caption,created_at&user_id=eq." + userId + "&status=eq.approved&kind=eq.video&order=created_at.desc&limit=20")
+    }
+    suspend fun friendStateWith(userId: String): JSONObject = withContext(Dispatchers.IO) {
+        val me = uid
+        val out = JSONObject().put("state", "none")
+        if (me.isNullOrBlank() || me == userId) return@withContext out.put("state", "self")
+        val fr = authedGetArray("/rest/v1/friends?or=(and(user_id.eq." + me + ",friend_id.eq." + userId + "),and(user_id.eq." + userId + ",friend_id.eq." + me + "))&select=user_id&limit=1")
+        if (fr.length() > 0) return@withContext out.put("state", "friends")
+        val outReq = authedGetArray("/rest/v1/friend_requests?from_user=eq." + me + "&to_user=eq." + userId + "&status=eq.pending&select=id&limit=1")
+        if (outReq.length() > 0) return@withContext out.put("state", "requested")
+        val inReq = authedGetArray("/rest/v1/friend_requests?from_user=eq." + userId + "&to_user=eq." + me + "&status=eq.pending&select=id&limit=1")
+        if (inReq.length() > 0) return@withContext out.put("state", "incoming").put("request_id", inReq.getJSONObject(0).getString("id"))
+        out
+    }
+    suspend fun presencePing(): JSONObject = withContext(Dispatchers.IO) { authedRpc("presence_ping", JSONObject()) }
+
 }
 
 // Display helper: my_stats values can be arrays/objects (e.g. xp_days) - never print raw JSON.
