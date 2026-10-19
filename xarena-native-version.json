@@ -1,6 +1,6 @@
 {
-  "versionCode": 27,
-  "versionName": "0.14.1",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.14.1-native/xarena-native.apk",
-  "notes": "Search across squads, players and tournaments. Teams, Players and How to Play pages."
+  "versionCode": 28,
+  "versionName": "0.14.2-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.14.2-native/xarena-native.apk",
+  "notes": "Stability release: review pass clean, packaging fix."
 }
