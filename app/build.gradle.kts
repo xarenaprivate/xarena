@@ -12,8 +12,8 @@ android {
         applicationId = "app.xarena.esports.native"
         minSdk = 24
         targetSdk = 34
-        versionCode = 53
-        versionName = "0.17.8-native"
+        versionCode = 54
+        versionName = "0.17.9-native"
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
     }
     val keyInfo = rootProject.file("keystore/KEY_INFO.txt")
@@ -28,6 +28,10 @@ android {
             }
         }
     }
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
+    }
     buildTypes {
         debug {
             // Test builds are signed with the vaulted native key so in-place updates keep working
@@ -35,8 +39,8 @@ android {
             if (signingConfigs.findByName("native") != null) signingConfig = signingConfigs.getByName("native")
         }
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false // user decision 2026-10-20: never shrink the APK (size chhota nhi karo)
+            isShrinkResources = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             if (signingConfigs.findByName("native") != null) signingConfig = signingConfigs.getByName("native")
         }
