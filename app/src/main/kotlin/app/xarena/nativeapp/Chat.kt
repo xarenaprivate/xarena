@@ -39,12 +39,49 @@ private fun colorFor(h: String): Color {
 
 /** World Chat - real messages from the shared chat_messages table, polling every 10s (Realtime channel comes later). */
 @Composable
-fun ChatScreen() {
+fun ChatScreen(onGoTab: (Int) -> Unit = {}) {
     var handleReady by remember { mutableStateOf(Api.chatHandle != null && Api.chatToken != null) }
     Column(Modifier.fillMaxSize()) {
         Brand()
+        ChatChips(onGoTab)
         if (!handleReady) ChatGate(onReady = { handleReady = true })
         else ChatRoom()
+    }
+}
+
+/* Lobby chips like the web: next real match + quick links. */
+@Composable
+private fun ChatChips(onGoTab: (Int) -> Unit) {
+    var next by remember { mutableStateOf<JSONObject?>(null) }
+    LaunchedEffect(Unit) {
+        next = runCatching {
+            val arr = Api.publicGet("/rest/v1/matches_public?select=title,starts_at,status&order=starts_at.asc&limit=10")
+            val now = System.currentTimeMillis()
+            (0 until arr.length()).map { arr.getJSONObject(it) }.firstOrNull {
+                val st = it.optString("starts_at")
+                st.isNotBlank() && runCatching { java.time.Instant.parse(st).toEpochMilli() }.getOrDefault(0L) > now - 15 * 60000 &&
+                    it.optString("status") != "done"
+            }
+        }.getOrNull()
+    }
+    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp)) {
+        val m = next
+        if (m != null) {
+            val whenStr = runCatching {
+                val t = java.time.Instant.parse(m.optString("starts_at")).atZone(java.time.ZoneId.systemDefault())
+                t.dayOfMonth.toString() + " " + t.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() } + " " +
+                    String.format("%d:%02d %s", (t.hour % 12).let { if (it == 0) 12 else it }, t.minute, if (t.hour < 12) "AM" else "PM")
+            }.getOrDefault("")
+            Text("🎮 " + m.optString("title") + " · " + whenStr, color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(end = 6.dp).clip(RoundedCornerShape(8.dp)).background(Gold)
+                    .clickable { onGoTab(1) }.padding(horizontal = 10.dp, vertical = 6.dp))
+        }
+        Text("🏆 Leaderboard", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(end = 6.dp).clip(RoundedCornerShape(8.dp)).background(Color(0x22FFFFFF))
+                .clickable { onGoTab(2) }.padding(horizontal = 10.dp, vertical = 6.dp))
+        Text("👥 Squads", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Color(0x22FFFFFF))
+                .clickable { onGoTab(5) }.padding(horizontal = 10.dp, vertical = 6.dp))
     }
 }
 

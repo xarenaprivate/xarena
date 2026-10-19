@@ -352,7 +352,7 @@ fun HomeShell(onLogout: () -> Unit) {
         }
         BackHandler(enabled = tab != 0) { tab = 0 }
         Box(Modifier.weight(1f)) {
-            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> TournamentsScreen(); 2 -> LeaderboardScreen(); 3 -> ChatScreen(); 4 -> LunaScreen(); 5 -> SquadsScreen(); 6 -> StoreScreen(); 7 -> ProfileScreen(onLogout); else -> MoreGrid { feature = it } }
+            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> TournamentsScreen(); 2 -> LeaderboardScreen(); 3 -> ChatScreen(onGoTab = { tab = it }); 4 -> LunaScreen(); 5 -> SquadsScreen(); 6 -> StoreScreen(); 7 -> ProfileScreen(onLogout); else -> MoreGrid { feature = it } }
         }
         Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(vertical = 6.dp)) {
             tabs.forEachIndexed { i, (label, icon) ->
