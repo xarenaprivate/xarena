@@ -22,18 +22,18 @@ import org.json.JSONObject
  */
 object PushRegistrar {
     const val CHANNEL = "xarena_general"
-    fun sync(ctx: Context) {
+    @JvmStatic fun sync(ctx: Context) {
         ensureChannel(ctx)
         FirebaseMessaging.getInstance().token.addOnSuccessListener { t -> if (!t.isNullOrBlank()) upload(ctx, t) }
     }
-    fun ensureChannel(ctx: Context) {
+    @JvmStatic fun ensureChannel(ctx: Context) {
         if (Build.VERSION.SDK_INT >= 26) {
             val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             if (nm.getNotificationChannel(CHANNEL) == null)
                 nm.createNotificationChannel(NotificationChannel(CHANNEL, "XARENA alerts", NotificationManager.IMPORTANCE_HIGH))
         }
     }
-    fun upload(ctx: Context, token: String) {
+    @JvmStatic fun upload(ctx: Context, token: String) {
         Api.prefs.edit().putString("fcm_token", token).apply()
         Thread {
             try {
