@@ -1,12 +1,12 @@
 {
-  "versionCode": 40,
-  "versionName": "0.16.5-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.5-native/xarena-native.apk",
-  "sha256": "d73ed0e60d9096a0c3e962c3dfb7457ef68f2245648e222fd1fc12bddc1e8482",
-  "notes": "Voice Lobby fixed: presence list works, talking connects over relay when needed, speakerphone while in the lobby, live connection status per person.",
+  "versionCode": 41,
+  "versionName": "0.16.6-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.6-native/xarena-native.apk",
+  "sha256": "87568d7903c7bae42497f99f1239534017f30f5791b79ff1dabfa0fe868e7b11",
+  "notes": "Push notifications now register: log in once on this version and your device can receive XARENA alerts.",
   "patch": {
-    "from": 39,
-    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.5-native/xarena-native-39to40.patch",
-    "sha256": "41d27280470feb24cd84ce9de4d74e77aaf788a5bf5641340804a6d1ec6128d7"
+    "from": 40,
+    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.6-native/xarena-native-40to41.patch",
+    "sha256": "3aaaf7cdae8c4ad0c863c0433a6f6aa798c78e4da6cdb5d75a0c9b961a8a73b9"
   }
 }
