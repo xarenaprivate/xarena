@@ -1,52 +1,52 @@
 {
- "versionCode": 52,
- "versionName": "0.17.7-native",
- "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.7-native/xarena-native.apk",
- "sha256": "ac0c4fef1a3977ec981c8cc473ab692e65d420a1337f417722c186e3fd72a362",
- "apkBytes": 31703495,
- "notes": "Fix: Anti-fake-account: signup precheck gate + device binding.",
+ "versionCode": 54,
+ "versionName": "0.17.9-native",
+ "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.9-native/xarena-native.apk",
+ "sha256": "e1e9dc8f88af3e3f56c32b00a9a5f660179feadefd45e64efd5b2caa94714bc8",
+ "apkBytes": 28561056,
+ "notes": "New: X-Panel floating overlay (clan room chat, match room copy, EXP/AP, DMs, honest XBoost), screen recorder saved on phone only, paper-plane icon, safer login. Same size class as before - not shrunk.",
  "patches": [
   {
-   "from": 46,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.7-native/p46to52.patch",
-   "sha256": "3b40edaa6eb43993120cac5dd8d1e714afb58f5cf218e8d1db362a5b39a242fd",
-   "bytes": 1078763
-  },
-  {
    "from": 47,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.7-native/p47to52.patch",
-   "sha256": "e81717b6964c379b3e5de3678c397acc16350798a3bff736a24bd54dd059e813",
-   "bytes": 1077967
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.9-native/patch-47-to-54.bs",
+   "sha256": "6beabee055782efa3f58f0c24dc12442f40fa821f4195a73fc305614592f530d",
+   "bytes": 8813272
   },
   {
    "from": 48,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.7-native/p48to52.patch",
-   "sha256": "8804c3e2a23520187b1563104170f7aeb3dfd2d3bb376f072593f5a415fdbb8d",
-   "bytes": 1077800
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.9-native/patch-48-to-54.bs",
+   "sha256": "093a543f63a3f40d92a28f36a5f4cc37c1695c904b3cce748698d05c03b4ac64",
+   "bytes": 8813803
   },
   {
    "from": 49,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.7-native/p49to52.patch",
-   "sha256": "729dd8e180c950e48bf92888732e25c528cc47002033ef0c7c718e56ae1a11a2",
-   "bytes": 1078835
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.9-native/patch-49-to-54.bs",
+   "sha256": "2f4b3709182c0e9f2993cbcf9713292f0b5b0ac190d5d582fb5896ac91478cd6",
+   "bytes": 8813756
   },
   {
    "from": 50,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.7-native/p50to52.patch",
-   "sha256": "3e3eb8e7042874b5b76b703a1464badb5a23de33f8d7bc63b20ae7982227c765",
-   "bytes": 1077366
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.9-native/patch-50-to-54.bs",
+   "sha256": "92583829be4ebeed9b1870f56522c527d14544a3630e062880d985a4c810ce2b",
+   "bytes": 8813330
   },
   {
    "from": 51,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.7-native/p51to52.patch",
-   "sha256": "b067a4ffabc866f6a4123e7e329f1247ae1cd4f5c0b773cfc3d777249e2780b9",
-   "bytes": 1074267
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.9-native/patch-51-to-54.bs",
+   "sha256": "0e524c6da759f5090e3c1906575003d23e580a90a601408cba36d5e69cf195d3",
+   "bytes": 8813015
+  },
+  {
+   "from": 52,
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.9-native/patch-52-to-54.bs",
+   "sha256": "e7b2992d5b35b8c60bce7ff217711f879d4af46efdad0baf21fc601b2a7f467b",
+   "bytes": 8812887
   }
  ],
  "patch": {
-  "from": 51,
-  "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.7-native/p51to52.patch",
-  "sha256": "b067a4ffabc866f6a4123e7e329f1247ae1cd4f5c0b773cfc3d777249e2780b9",
-  "bytes": 1074267
+  "from": 52,
+  "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.9-native/patch-52-to-54.bs",
+  "sha256": "e7b2992d5b35b8c60bce7ff217711f879d4af46efdad0baf21fc601b2a7f467b",
+  "bytes": 8812887
  }
 }
