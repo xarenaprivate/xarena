@@ -1765,18 +1765,45 @@
     load();
   }
 
+  function renderPhoneCheck(host) {
+    call(function () { return api.rpc("admin_phone_check", {}, true); }).then(function (r) {
+      if (!r || !r.ok) { host.innerHTML = '<div class="card">' + esc((r && r.error) || "Phone check could not load.") + "</div>"; return; }
+      var col = function (n) { return n >= 50 ? "#ff5d5d" : n >= 25 ? "#f5b301" : "#46d17f"; };
+      var lab = function (n) { return n >= 50 ? "HIGH" : n >= 25 ? "MEDIUM" : "LOW"; };
+      host.innerHTML = '<div class="card"><h3>Phone Check</h3><p style="font-size:13px">A free rule-based estimate of whether each number looks real: format, fake or patterned digits, similar numbers, shared devices or networks and sign-up bursts. <b>It estimates only. It cannot prove who owns a number.</b> Numbers are masked.</p>' + (r.rows.length ? r.rows.map(function (a) {
+        return '<div style="padding:10px 0;border-top:1px solid rgba(255,255,255,.08)"><b>' + esc(a.username) + "</b>" + (a.ign ? " (" + esc(a.ign) + ")" : "") + " \u00b7 " + esc(a.masked || "-") + ' \u00b7 <b style="color:' + col(a.score) + '">' + lab(a.score) + " " + a.score + "/100</b>" + (a.banned ? " \u00b7 BANNED" : "") + (a.phone_verified ? " \u00b7 code confirmed" : "") +
+          (a.reasons && a.reasons.length ? "<ul style='margin:6px 0 6px 18px;font-size:13px'>" + a.reasons.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : "<div style='font-size:13px;margin:4px 0'>No warning signs found.</div>") +
+          (a.score >= 25 && !a.banned ? '<button class="btn btn-ghost btn-sm" data-pcflag="' + a.id + '">Flag for review</button> <button class="btn btn-red btn-sm" data-pcban="' + a.id + '" data-un="' + esc(a.username) + '">Suspend</button>' : "") + "</div>";
+      }).join("") : "<p>No accounts with a phone number yet.</p>") + "</div>";
+      host.querySelectorAll("[data-pcflag]").forEach(function (b) { b.addEventListener("click", function () {
+        var note = prompt("Note (optional)", "") || "";
+        call(function () { return api.rpc("admin_flag_account", { p_user: b.getAttribute("data-pcflag"), p_note: note }, true); }).then(function () { b.textContent = "Flagged"; b.disabled = true; });
+      }); });
+      host.querySelectorAll("[data-pcban]").forEach(function (b) { b.addEventListener("click", function () {
+        var un = b.getAttribute("data-un");
+        if (!confirm("Suspend " + un + "? They will be banned from XARENA until you lift it. The phone check is only an estimate, so be sure.")) return;
+        var why = prompt("Reason (shown to the player)", "Suspicious phone number") || "Suspicious phone number";
+        call(function () { return api.aPatch("profiles", "id=eq." + b.getAttribute("data-pcban"), { banned: true, banned_reason: why }); })
+          .then(function () { return api.audit("phonecheck_suspend", { user: un }); }).then(function () { renderPhoneCheck(host); })
+          .catch(function (e) { alert("Failed: " + e.message); });
+      }); });
+    });
+  }
+
   function renderSuspicious() {
     var body = el("#admin-body");
+    body.innerHTML = '<div id="pc-host"></div><div id="sa-host"></div>';
+    var pcHost = el("#pc-host", body), body2 = el("#sa-host", body); renderPhoneCheck(pcHost);
     var labels = { device: "Same device", fingerprint: "Similar device profile", network: "Same network, many new accounts" };
     function load() {
       call(function () { return api.rpc("admin_suspicious_accounts", {}, true); }).then(function (r) {
-        if (!r || !r.ok) { body.innerHTML = '<div class="card">' + esc((r && r.error) || "Could not load.") + "</div>"; return; }
-        body.innerHTML = '<div class="card"><h3>Suspicious accounts</h3><p style="font-size:13px">Groups of accounts that share a device, device profile or network. Nothing is banned automatically. Shared family phones and campus Wi-Fi can look the same, so check before acting. Phone numbers are never shown here.</p>' + (r.rows.length ? r.rows.map(function (g) {
+        if (!r || !r.ok) { body2.innerHTML = '<div class="card">' + esc((r && r.error) || "Could not load.") + "</div>"; return; }
+        body2.innerHTML = '<div class="card"><h3>Suspicious accounts</h3><p style="font-size:13px">Groups of accounts that share a device, device profile or network. Nothing is banned automatically. Shared family phones and campus Wi-Fi can look the same, so check before acting. Phone numbers are never shown here.</p>' + (r.rows.length ? r.rows.map(function (g) {
           return '<div style="padding:10px 0;border-top:1px solid rgba(255,255,255,.08)"><b>' + esc(labels[g.kind] || g.kind) + "</b> \u00b7 " + String(g.created_at).slice(0, 16).replace("T", " ") + " \u00b7 " + esc(g.status) + (g.note ? " \u00b7 " + esc(g.note) : "") +
             "<ul style='margin:6px 0 6px 18px'>" + (g.accounts || []).map(function (a) { return "<li>" + esc(a.username) + (a.ign ? " (" + esc(a.ign) + ")" : "") + " \u00b7 joined " + String(a.created_at).slice(0, 10) + (a.verified ? " \u00b7 verified" : "") + (a.banned ? " \u00b7 BANNED" : ' <button class="btn btn-red btn-sm" style="padding:2px 8px" data-ban="' + a.id + '" data-un="' + esc(a.username) + '">Suspend</button>') + "</li>"; }).join("") + "</ul>" +
             (g.status === "open" ? '<button class="btn btn-ghost btn-sm" data-af="' + g.id + '" data-st="dismissed">Looks fine</button> <button class="btn btn-red btn-sm" data-af="' + g.id + '" data-st="actioned">Mark handled</button>' : "") + "</div>";
         }).join("") : "<p>No suspicious groups right now.</p>") + "</div>";
-        body.querySelectorAll("[data-ban]").forEach(function (b) {
+        body2.querySelectorAll("[data-ban]").forEach(function (b) {
           b.addEventListener("click", function () {
             var un = b.getAttribute("data-un");
             if (!confirm("Suspend " + un + "? They will be banned from XARENA until you lift it. This does not touch other accounts in the group.")) return;
@@ -1786,7 +1813,7 @@
               .catch(function (e) { alert("Failed: " + e.message); });
           });
         });
-        body.querySelectorAll("[data-af]").forEach(function (b) {
+        body2.querySelectorAll("[data-af]").forEach(function (b) {
           b.addEventListener("click", function () {
             var note = prompt("Note (optional)", "") || "";
             call(function () { return api.rpc("admin_handle_abuse_flag", { p_id: parseInt(b.getAttribute("data-af"), 10), p_status: b.getAttribute("data-st"), p_note: note }, true); }).then(load);

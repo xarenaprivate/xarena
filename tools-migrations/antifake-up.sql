@@ -34,6 +34,9 @@ declare v_p text := normalize_phone(p_phone); ip text := _abuse_h(_req_ip()); dv
 begin
   if v_p is null then return jsonb_build_object('ok',false,'error','Phone number must be 10 digits.'); end if;
   ph := _abuse_h(v_p);
+  if (_phone_risk(v_p)->>'score')::int >= 50 then
+    insert into signup_attempts(ip_hash,device_hash,phone_hash,result) values (_abuse_h(_req_ip()),_abuse_h(left(p_device_id,128)),ph,'junk_phone');
+    return jsonb_build_object('ok',false,'error','Please enter your real 10-digit mobile number (starts with 6, 7, 8 or 9).'); end if;
   delete from signup_attempts where ts < now() - interval '3 days';
   if ip is not null and (select count(*) from signup_attempts where ip_hash=ip and ts > now() - interval '1 hour') >= 15 then
     insert into signup_attempts(ip_hash,device_hash,phone_hash,result) values (ip,dv,ph,'rate_ip');

@@ -142,14 +142,14 @@ window.addEventListener("load", function () {
         .then(function (r) {
           if (r.error) { btn.disabled = false; btn.textContent = "LOGIN"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = r.error.message === "Invalid login credentials" ? "Wrong number/email or password." : r.error.message; return; }
           clearAcctState(); routeAfterLogin();
-        });
+        }).catch(function () { btn.disabled = false; btn.textContent = "LOGIN"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = "Network problem. Check your connection and try again."; });
     });
   }
 
   function showSignup() {
     box.innerHTML = "<h3>Create free account</h3>" +
       '<form id="su-form"><div class="field"><label>WhatsApp phone number (10 digit)</label><input id="s-phone" required inputmode="numeric" placeholder="e.g. 9876543210"><p style="color:var(--muted);font-size:12px;margin-top:4px">This is your login ID. One number = one account.</p></div>' +
-      '<div class="field"><label>Password (6+ chars)</label><input id="s-pass" type="password" required minlength="6"></div>' +
+      '<div class="field"><label>Password (8+ characters)</label><input id="s-pass" type="password" required minlength="8" maxlength="72" autocomplete="new-password"></div>' +
       errBox() + '<button class="btn btn-red" type="submit">Sign up</button></form>' +
       '<p style="margin-top:14px;color:var(--muted);font-size:13.5px">No email needed. Right after signup you get a verification code — send it to the owner on Instagram @ud_speed (manual verification, completely free). <a href="#" id="go-login" style="color:var(--gold2)">Already have an account? Login</a></p>';
     try { sessionStorage.setItem("xr_acct_view", "signup"); } catch (e) {}
@@ -160,6 +160,10 @@ window.addEventListener("load", function () {
       e.preventDefault();
       var ph = normPhone(document.getElementById("s-phone").value);
       if (!ph) { box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = "Phone number must be 10 digits."; return; }
+      var pw = document.getElementById("s-pass").value, errEl = box.querySelector(".server-err");
+      if (!/^91[6-9][0-9]{9}$/.test(ph)) { errEl.style.display = "block"; errEl.textContent = "Please enter your real 10-digit mobile number (starts with 6, 7, 8 or 9)."; return; }
+      if (pw.length < 8) { errEl.style.display = "block"; errEl.textContent = "Password must be at least 8 characters."; return; }
+      if (pw.replace(/[^0-9]/g, "") === ph.slice(2) || pw.indexOf(ph.slice(2)) >= 0 || /^(.)\1+$/.test(pw) || /^(12345678|password|qwertyui|11111111|00000000)/i.test(pw)) { errEl.style.display = "block"; errEl.textContent = "Choose a password that is harder to guess (not your phone number or a simple pattern)."; return; }
       var btn = e.target.querySelector("button"); btn.disabled = true; btn.textContent = "CHECKING…";
       xrApi.rpc("signup_precheck", { p_phone: ph, p_device_id: (xrApi.deviceInfo().id || ""), p_fp: xrApi.deviceInfo().fp }).then(function (chk) {
         if (!chk || !chk.ok) { btn.disabled = false; btn.textContent = "SIGN UP"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = (chk && chk.error) || "Could not check right now. Try again."; return; }
@@ -170,8 +174,8 @@ window.addEventListener("load", function () {
             var dupe = r.error || !r.data || !r.data.user || (r.data.user.identities && r.data.user.identities.length === 0);
             if (dupe) { btn.disabled = false; btn.textContent = "SIGN UP"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = (r.error && /password|weak|least/i.test(r.error.message || "")) ? r.error.message : "We could not create an account with these details. If you already signed up, please log in instead."; return; }
             clearAcctState(); try { sessionStorage.removeItem("xr_bound"); } catch (e2) {} setTimeout(function () { if (xrApi.bindDevice) xrApi.bindDevice(); }, 300); routeAfterLogin();
-          });
-      });
+          }).catch(function () { btn.disabled = false; btn.textContent = "SIGN UP"; errEl.style.display = "block"; errEl.textContent = "Network problem. Check your connection and try again."; });
+      }).catch(function () { btn.disabled = false; btn.textContent = "SIGN UP"; errEl.style.display = "block"; errEl.textContent = "Network problem. Check your connection and try again."; });
     });
   }
 
