@@ -9,10 +9,11 @@ import java.io.InputStream
 /* Pure-Kotlin bspatch (BSDIFF40 format) - applies a binary delta to the installed APK
    to reconstruct the new signed APK. No NDK needed. */
 object BsPatch {
+    /* bsdiff offtout: little-endian magnitude across 8 bytes, sign in the top bit of byte 7. */
     private fun le64(b: ByteArray, off: Int): Long {
         var v = 0L
-        for (i in 7 downTo 0) v = (v shl 8) or (b[off + i].toLong() and 0xff)
-        return v
+        for (i in 7 downTo 0) v = (v shl 8) or (b[off + i].toLong() and (if (i == 7) 0x7f else 0xff))
+        return if (b[off + 7].toInt() and 0x80 != 0) -v else v
     }
 
     private fun readFully(s: InputStream, b: ByteArray, n: Int) {
@@ -53,7 +54,8 @@ object BsPatch {
                 val r = diff.read(buf, 0, minOf(buf.size, remaining))
                 if (r <= 0) throw EOFException()
                 for (j in 0 until r) {
-                    val ov = if (oldpos + off + j < old.size) old[oldpos + off + j].toInt() and 0xff else 0
+                    val oi = oldpos + off + j
+                    val ov = if (oi >= 0 && oi < old.size) old[oi].toInt() and 0xff else 0
                     new[newpos + off + j] = (((buf[j].toInt() and 0xff) + ov) and 0xff).toByte()
                 }
                 off += r; remaining -= r

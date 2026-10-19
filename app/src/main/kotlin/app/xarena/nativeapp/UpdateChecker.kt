@@ -171,7 +171,8 @@ object UpdateChecker {
                 if (!hex.equals(info.sha256, true)) { newApk.delete(); return@withContext "patched file failed verification" }
             }
             null
-        } catch (e: Exception) { "patch failed" }
+        } catch (e: OutOfMemoryError) { "quick update ran out of memory" }
+        catch (e: Exception) { "quick update failed: " + e.javaClass.simpleName + (e.message?.take(60)?.let { " ($it)" } ?: "") }
     }
 
     /** Launches the system installer. Returns null if the install flow was launched, else a user-visible message. */
@@ -212,6 +213,7 @@ fun UpdateDialog(info: UpdateChecker.Info, onDismiss: () -> Unit) {
     var total by remember { mutableStateOf(-1L) }
     var bps by remember { mutableStateOf(0L) }
     var err by remember { mutableStateOf<String?>(null) }
+    var note by remember { mutableStateOf<String?>(null) }
     var installing by remember { mutableStateOf(false) }
     var sizeKnown by remember { mutableStateOf(-1L) }
     val patchEligible = info.patchUrl.isNotBlank() && info.patchFrom == BuildConfig.VERSION_CODE
@@ -226,7 +228,7 @@ fun UpdateDialog(info: UpdateChecker.Info, onDismiss: () -> Unit) {
             if (info.patchUrl.isNotBlank() && info.patchFrom == BuildConfig.VERSION_CODE) {
                 // small delta update first; any failure falls back to the full APK
                 e = UpdateChecker.downloadPatchAndApply(ctx, info) { d, t, s2 -> done = d; total = t; bps = s2 }
-                if (e != null) { e = null; done = 0; e = UpdateChecker.download(ctx, info) { d, t, s2 -> done = d; total = t; bps = s2 } }
+                if (e != null) { withContext(Dispatchers.Main) { note = e }; e = null; done = 0; e = UpdateChecker.download(ctx, info) { d, t, s2 -> done = d; total = t; bps = s2 } }
             } else {
                 e = UpdateChecker.download(ctx, info) { d, t, s2 -> done = d; total = t; bps = s2 }
             }
@@ -293,6 +295,7 @@ fun UpdateDialog(info: UpdateChecker.Info, onDismiss: () -> Unit) {
                     if (!installing) Text(mb(done) + " MB of " + mb(total) + " MB" + (if (bps > 0) " • " + String.format("%.1f", bps / 1048576.0) + " MB/s" else ""),
                         color = Muted, fontSize = 12.sp)
                     if (installing) Text("Preparing install", color = Muted, fontSize = 12.sp)
+                    note?.let { Text("Quick update did not work ($it) - getting the full app instead.", color = Gold, fontSize = 11.sp) }
                 }
                 if (info.notes.isNotBlank()) {
                     Spacer(Modifier.height(12.dp))
