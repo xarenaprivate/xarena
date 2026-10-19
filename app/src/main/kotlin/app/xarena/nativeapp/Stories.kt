@@ -117,6 +117,7 @@ fun StoriesScreen(onBack: () -> Unit) {
 
 @Composable
 private fun StoryViewer(authorId: String, authorName: String, onClose: () -> Unit) {
+    androidx.activity.compose.BackHandler { onClose() }
     var stories by remember { mutableStateOf<JSONArray?>(null) }
     var idx by remember { mutableIntStateOf(0) }
     var err by remember { mutableStateOf<String?>(null) }

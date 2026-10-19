@@ -14,7 +14,7 @@ object Api {
     const val KEY = "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7"
     lateinit var ctx: Context
     fun init(c: Context) { ctx = c.applicationContext }
-    private val prefs get() = ctx.getSharedPreferences("xr_native_session", Context.MODE_PRIVATE)
+    val prefs get() = ctx.getSharedPreferences("xr_native_session", Context.MODE_PRIVATE)
 
     var access: String? = null; private set
     var uid: String? = null; private set
@@ -24,13 +24,14 @@ object Api {
 
     class ApiError(msg: String) : Exception(msg)
 
-    private fun call(method: String, path: String, body: JSONObject?, token: String?): Pair<Int, String> {
+    private fun call(method: String, path: String, body: JSONObject?, token: String?, headers: Map<String, String> = emptyMap()): Pair<Int, String> {
         val c = URL(BASE + path).openConnection() as HttpURLConnection
         c.requestMethod = method
         c.connectTimeout = 15000; c.readTimeout = 20000
         c.setRequestProperty("apikey", KEY)
         c.setRequestProperty("Authorization", "Bearer " + (token ?: KEY))
         c.setRequestProperty("Content-Type", "application/json")
+        headers.forEach { (k, v) -> c.setRequestProperty(k, v) }
         if (body != null) { c.doOutput = true; c.outputStream.use { it.write(body.toString().toByteArray()) } }
         val code = c.responseCode
         val text = (if (code in 200..299) c.inputStream else c.errorStream)?.bufferedReader()?.readText() ?: ""
@@ -218,6 +219,13 @@ object Api {
     }
 
     /* ---- Squads (same RPCs/views the site uses) ---- */
+
+    fun authedRaw(method: String, path: String, body: JSONObject?, headers: Map<String, String> = emptyMap()): Pair<Int, String> {
+        val t = access ?: throw ApiError("Not logged in.")
+        var r = call(method, path, body, t, headers)
+        if (r.first == 401 && refresh()) r = call(method, path, body, access, headers)
+        return r
+    }
 
     suspend fun authedGetArray(path: String): JSONArray = withContext(Dispatchers.IO) {
         JSONArray(authed("GET", path, null))

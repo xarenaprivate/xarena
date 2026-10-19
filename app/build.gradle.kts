@@ -3,6 +3,8 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+val hasGServices = file("google-services.json").exists()
+if (hasGServices) apply(plugin = "com.google.gms.google-services")
 android {
     namespace = "app.xarena.nativeapp"
     compileSdk = 34
@@ -10,8 +12,8 @@ android {
         applicationId = "app.xarena.esports.native"
         minSdk = 24
         targetSdk = 34
-        versionCode = 14
-        versionName = "0.12.2-native"
+        versionCode = 15
+        versionName = "0.12.3-native"
     }
     val keyInfo = rootProject.file("keystore/KEY_INFO.txt")
     if (keyInfo.exists()) {
@@ -45,6 +47,7 @@ android {
     packaging { resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}", "META-INF/*.version") }
 }
 dependencies {
+    implementation("androidx.compose.material:material-icons-core:1.6.8")
     implementation(platform("androidx.compose:compose-bom:2024.06.00"))
     implementation("io.coil-kt:coil-compose:2.6.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
@@ -57,4 +60,13 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+}
+
+// Push (FCM) wiring activates automatically the moment app/google-services.json is dropped in.
+if (hasGServices) {
+    android.sourceSets["main"].java.srcDir("src/push/kotlin")
+    dependencies {
+        implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+        implementation("com.google.firebase:firebase-messaging")
+    }
 }

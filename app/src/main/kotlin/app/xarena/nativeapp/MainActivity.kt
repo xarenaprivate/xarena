@@ -2,7 +2,10 @@ package app.xarena.nativeapp
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,6 +22,30 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -78,6 +105,20 @@ fun XarenaApp() {
     var setupChecked by remember { mutableStateOf(false) }
     var update by remember { mutableStateOf<UpdateChecker.Info?>(null) }
     var updateDismissed by remember { mutableStateOf(false) }
+    val notifPerm = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    LaunchedEffect(screen) {
+        if (screen == Screen.Home && Api.loggedIn) {
+            runCatching {
+                Class.forName("app.xarena.nativeapp.PushRegistrar")
+                    .getMethod("sync", android.content.Context::class.java)
+                    .invoke(null, Api.ctx)
+            }
+            if (android.os.Build.VERSION.SDK_INT >= 33 && !Api.prefs.getBoolean("notif_asked", false)) {
+                Api.prefs.edit().putBoolean("notif_asked", true).apply()
+                notifPerm.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
     LaunchedEffect(Unit) {
         val latest = UpdateChecker.latest()
         if (latest != null && latest.code > BuildConfig.VERSION_CODE && latest.url.startsWith("https://github.com/xarenaprivate/xarena/releases/")) update = latest
@@ -252,9 +293,13 @@ fun HomeShell(onLogout: () -> Unit) {
     var tab by remember { mutableIntStateOf(0) }
     var feature by remember { mutableStateOf<String?>(null) }
     var conv by remember { mutableStateOf<DmConv?>(null) }
-    val tabs = listOf("Tournaments", "Board", "Chat", "Luna", "Squads", "Store", "Profile", "More")
+    val tabs = listOf(
+        "Tournaments" to Icons.Default.Home, "Board" to Icons.Default.List, "Chat" to Icons.Default.MailOutline,
+        "Luna" to Icons.Default.Face, "Squads" to Icons.Default.AccountBox, "Store" to Icons.Default.ShoppingCart,
+        "Profile" to Icons.Default.Person, "More" to Icons.Default.Menu)
     val c = conv
-    if (c != null) { ConversationScreen(c.threadId, c.peerId, c.peerName, c.status, c.reqByMe) { conv = null }; return }
+    if (c != null) { BackHandler { conv = null }; ConversationScreen(c.threadId, c.peerId, c.peerName, c.status, c.reqByMe) { conv = null }; return }
+    if (feature != null) BackHandler { feature = null }
     when (feature) {
         "messages" -> { MessagesScreen(onBack = { feature = null }, onOpenConv = { t, p, n, st, r -> conv = DmConv(t, p, n, st, r) }); return }
         "match" -> { MatchCenterScreen(onBack = { feature = null }); return }
@@ -287,19 +332,21 @@ fun HomeShell(onLogout: () -> Unit) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("XARENA", color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { feature = "messages" }.padding(8.dp)) {
-                Text("✉", color = Gold, fontSize = 18.sp)
+                Icon(Icons.Default.Email, contentDescription = "Messages", tint = Gold, modifier = Modifier.size(20.dp))
                 if (msgBadge > 0) Text(msgBadge.toString(), color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold,
                     modifier = Modifier.align(Alignment.TopEnd).offset(x = 8.dp, y = (-4).dp).clip(CircleShape).background(Color(0xFFE10600)).padding(horizontal = 4.dp, vertical = 1.dp))
             }
-            Text("⚙", color = Gold, fontSize = 18.sp, modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { feature = "settings" }.padding(8.dp))
+            Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Gold, modifier = Modifier.size(20.dp).clip(RoundedCornerShape(8.dp)).clickable { feature = "settings" }.padding(2.dp))
         }
+        BackHandler(enabled = tab != 0) { tab = 0 }
         Box(Modifier.weight(1f)) {
             when (tab) { 0 -> TournamentsScreen(); 1 -> LeaderboardScreen(); 2 -> ChatScreen(); 3 -> LunaScreen(); 4 -> SquadsScreen(); 5 -> StoreScreen(); 6 -> ProfileScreen(onLogout); else -> MoreGrid { feature = it } }
         }
         Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(vertical = 6.dp)) {
-            tabs.forEachIndexed { i, label ->
-                Column(Modifier.width(78.dp).clickable { tab = i }.padding(vertical = 8.dp, horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(Modifier.size(6.dp).clip(CircleShape).background(if (tab == i) Gold else Color.Transparent))
+            tabs.forEachIndexed { i, (label, icon) ->
+                Column(Modifier.width(78.dp).clickable { tab = i }.padding(vertical = 6.dp, horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(icon, contentDescription = label, tint = if (tab == i) Gold else Muted, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.height(2.dp))
                     Text(label, color = if (tab == i) Gold else Muted, fontSize = 11.sp, maxLines = 1, fontWeight = if (tab == i) FontWeight.Bold else FontWeight.Medium)
                 }
             }
@@ -307,40 +354,44 @@ fun HomeShell(onLogout: () -> Unit) {
     }
 }
 
+data class GridItem(val key: String, val name: String, val sub: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
+
 @Composable
 fun MoreGrid(onOpen: (String) -> Unit) {
     // One button per feature, each opening its own full screen. Only real, working features are listed.
     val items = listOf(
-        Triple("messages", "Messages", "Private end-to-end encrypted chats"),
-        Triple("match", "Match Center", "Rooms, check-in, result proofs, reports"),
-        Triple("playercard", "Player Card", "Your card, followers, following"),
-        Triple("vote", "Fan Vote", "Vote in the open poll"),
-        Triple("streak", "Daily Streak", "Check in daily, earn badges"),
-        Triple("certs", "Certificates", "Your real tournament certificates"),
-        Triple("academy", "Academy", "Free Fire training drills"),
-        Triple("news", "News", "Updates and announcements"),
-        Triple("rules", "Rules", "Tournament and squad rules"),
-        Triple("notifications", "Notifications", "Your alerts"),
-        Triple("stories", "Stories", "24-hour highlights from players"),
-        Triple("feed", "Feed", "Player highlights - post, like, comment, save"),
-        Triple("clips", "Clips", "Approved community clips"),
-        Triple("live", "Live", "Streams and match schedule"),
-        Triple("winners", "Winners", "Hall of fame and awards"),
-        Triple("stats", "Stats", "Your numbers and platform numbers"),
-        Triple("tasks", "Tasks", "Finish tasks, earn points"),
-        Triple("scrims", "Scrims", "Looking-for-game board"),
-        Triple("calendar", "Calendar", "Tournament and event dates"),
-        Triple("settings", "Settings", "App version, activity status, logout"),
+        GridItem("messages", "Messages", "Private end-to-end encrypted chats", Icons.Default.Email),
+        GridItem("match", "Match Center", "Rooms, check-in, result proofs, reports", Icons.Default.Place),
+        GridItem("playercard", "Player Card", "Your card, followers, following", Icons.Default.Person),
+        GridItem("vote", "Fan Vote", "Vote in the open poll", Icons.Default.ThumbUp),
+        GridItem("streak", "Daily Streak", "Check in daily, earn badges", Icons.Default.Favorite),
+        GridItem("certs", "Certificates", "Your real tournament certificates", Icons.Default.CheckCircle),
+        GridItem("academy", "Academy", "Free Fire training drills", Icons.Default.Create),
+        GridItem("news", "News", "Updates and announcements", Icons.Default.Info),
+        GridItem("rules", "Rules", "Tournament and squad rules", Icons.Default.Menu),
+        GridItem("notifications", "Notifications", "Your alerts", Icons.Default.Notifications),
+        GridItem("stories", "Stories", "24-hour highlights from players", Icons.Default.Face),
+        GridItem("feed", "Feed", "Player highlights - post, like, comment, save", Icons.Default.Home),
+        GridItem("clips", "Clips", "Approved community clips", Icons.Default.PlayArrow),
+        GridItem("live", "Live", "Streams and match schedule", Icons.Default.Share),
+        GridItem("winners", "Winners", "Hall of fame and awards", Icons.Default.Star),
+        GridItem("stats", "Stats", "Your numbers and platform numbers", Icons.Default.List),
+        GridItem("tasks", "Tasks", "Finish tasks, earn points", Icons.Default.Done),
+        GridItem("scrims", "Scrims", "Looking-for-game board", Icons.Default.Search),
+        GridItem("calendar", "Calendar", "Tournament and event dates", Icons.Default.DateRange),
+        GridItem("settings", "Settings", "App version, activity status, logout", Icons.Default.Settings),
     )
     Column(Modifier.fillMaxSize()) {
         Brand()
         LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
-            items(items) { (key, name, sub) ->
+            items(items) { it ->
                 Column(Modifier.padding(6.dp).clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg)
-                    .border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).clickable { onOpen(key) }.padding(16.dp)) {
-                    Text(name, color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    .border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).clickable { onOpen(it.key) }.padding(16.dp)) {
+                    Icon(it.icon, contentDescription = it.name, tint = Look.accent, modifier = Modifier.size(24.dp))
+                    Spacer(Modifier.height(8.dp))
+                    Text(it.name, color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(4.dp))
-                    Text(sub, color = Muted, fontSize = 12.sp)
+                    Text(it.sub, color = Muted, fontSize = 12.sp)
                 }
             }
         }
@@ -373,8 +424,8 @@ fun PanelCard(content: @Composable ColumnScope.() -> Unit) {
 fun TournamentsScreen() {
     var showRegister by remember { mutableStateOf(false) }
     var showMatches by remember { mutableStateOf(false) }
-    if (showRegister) { RegisterScreen(onBack = { showRegister = false }); return }
-    if (showMatches) { MatchCenterScreen(onBack = { showMatches = false }); return }
+    if (showRegister) { androidx.activity.compose.BackHandler { showRegister = false }; RegisterScreen(onBack = { showRegister = false }); return }
+    if (showMatches) { androidx.activity.compose.BackHandler { showMatches = false }; MatchCenterScreen(onBack = { showMatches = false }); return }
     Column(Modifier.fillMaxSize()) {
         Brand()
         Box(Modifier.padding(horizontal = 16.dp, vertical = 2.dp)) { GoldButton("REGISTER YOUR SQUAD - SEASON 1") { showRegister = true } }
