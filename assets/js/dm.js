@@ -68,7 +68,7 @@
   }
 
   /* ---------- my keypair (this device) ---------- */
-  var keypairP = null, myIdP = null;
+  var keypairP = null, myIdP = null, lastSync = null;
   function ensureKeys() {
     if (keypairP) return keypairP;
     keypairP = idbGet("ecdh").then(function (pair) {
@@ -90,6 +90,7 @@
     return Promise.all([ensureKeys(), window.xrApi.user()]).then(function (r) {
       var pair = r[0], u = r[1];
       if (!u) return { state: "nouser" };
+      publishDeviceKey().catch(function () {});
       return Promise.all([crypto.subtle.exportKey("jwk", pair.publicKey), rest("GET", "/rest/v1/dm_public_keys?user_id=eq." + u.id + "&select=public_key")]).then(function (q) {
         var jwk = q[0], rows = q[1];
         return keyIdOfJwk(jwk).then(function (mine) {
@@ -98,7 +99,8 @@
               .then(function () { return { state: "published", mine: mine, published: mine }; });
           }
           return keyIdOfJwk(rows[0].public_key).then(function (pub) {
-            return { state: pub === mine ? "ok" : "mismatch", mine: mine, published: pub };
+            lastSync = { state: pub === mine ? "ok" : "mismatch", mine: mine, published: pub };
+            return lastSync;
           });
         });
       });
@@ -109,7 +111,7 @@
     return Promise.all([ensureKeys(), window.xrApi.user()]).then(function (r) {
       var u = r[1]; if (!u) return;
       return crypto.subtle.exportKey("jwk", r[0].publicKey).then(function (jwk) {
-        keyCache = {};
+        keyCache = {}; lastSync = { state: "ok" };
         return rest("POST", "/rest/v1/dm_public_keys", { user_id: u.id, public_key: jwk }, { "Prefer": "return=minimal,resolution=merge-duplicates" });
       });
     });
@@ -131,6 +133,109 @@
     return keyCache[peerId];
   }
   function threadKey(peerId) { return threadCtx(peerId).then(function (c) { return c.key; }); }
+
+  /* ---------- v2 multi-device: per-device keys, per-message AES key wrapped to every device ---------- */
+  function deviceId() {
+    return idbGet("device_id").then(function (d) {
+      if (d) return d;
+      var n = crypto.randomUUID ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+      return idbSet("device_id", n).then(function () { return n; });
+    });
+  }
+  /* Publish THIS device's public key (additive; safe to repeat). Never touches other devices' rows. */
+  function publishDeviceKey() {
+    return Promise.all([ensureKeys(), deviceId(), window.xrApi.user()]).then(function (r) {
+      var u = r[2]; if (!u) return;
+      return crypto.subtle.exportKey("jwk", r[0].publicKey).then(function (jwk) {
+        return keyIdOfJwk(jwk).then(function (kid) {
+          return rest("POST", "/rest/v1/dm_device_keys?on_conflict=user_id,device_id", { user_id: u.id, device_id: r[1], public_key: jwk, key_id: kid, updated_at: new Date().toISOString() }, { "Prefer": "return=minimal,resolution=merge-duplicates" });
+        });
+      });
+    });
+  }
+  var devCache = {};
+  function deviceKeysOf(uid, fresh) {
+    var c = devCache[uid];
+    if (c && !fresh && Date.now() - c.at < 20000) return c.p;
+    var p = rest("GET", "/rest/v1/dm_device_keys?user_id=eq." + uid + "&select=public_key").then(function (rows) {
+      return Promise.all((rows || []).map(function (r) { return keyIdOfJwk(r.public_key).then(function (id) { return { id: id, jwk: r.public_key }; }); }));
+    });
+    devCache[uid] = { at: Date.now(), p: p };
+    return p;
+  }
+  function ecdhAes(priv, jwk) {
+    return crypto.subtle.importKey("jwk", jwk, { name: "ECDH", namedCurve: "P-256" }, false, []).then(function (pub) {
+      return crypto.subtle.deriveKey({ name: "ECDH", public: pub }, priv, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+    });
+  }
+  /* Does this peer use v2? (any device-key rows) */
+  function peerIsV2(peerId) { return deviceKeysOf(peerId, true).then(function (d) { return d.length > 0; }); }
+  /* Encrypt bytes for a peer under a random key K; returns {ct, iv, meta:{v:2,sk,w}} */
+  function encryptV2(peerId, plain) {
+    return Promise.all([ensureKeys(), myKeyId(), window.xrApi.user()]).then(function (r) {
+      var pair = r[0], sk = r[1], u = r[2];
+      return Promise.all([deviceKeysOf(peerId, true), deviceKeysOf(u.id, true), crypto.subtle.exportKey("jwk", pair.publicKey)]).then(function (z) {
+        var targets = {}; z[0].concat(z[1]).forEach(function (d) { targets[d.id] = d.jwk; });
+        targets[sk] = z[2];
+        return crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt"]).then(function (K) {
+          var iv = crypto.getRandomValues(new Uint8Array(12));
+          return Promise.all([crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, K, plain), crypto.subtle.exportKey("raw", K)]).then(function (e) {
+            var ids = Object.keys(targets), w = {};
+            return Promise.all(ids.map(function (id) {
+              return ecdhAes(pair.privateKey, targets[id]).then(function (wk) {
+                var wiv = crypto.getRandomValues(new Uint8Array(12));
+                return crypto.subtle.encrypt({ name: "AES-GCM", iv: wiv }, wk, e[1]).then(function (wc) { w[id] = { c: b2a(wc), i: b2a(wiv) }; });
+              });
+            })).then(function () { return { ct: e[0], iv: b2a(iv), meta: { v: 2, sk: sk, w: w } }; });
+          });
+        });
+      });
+    });
+  }
+  /* Recover K for a v2 message (throws code NOWRAP when this device has no wrap) */
+  function unwrapV2(meta) {
+    return Promise.all([ensureKeys(), myKeyId()]).then(function (r) {
+      var wrap = meta.w && meta.w[r[1]];
+      if (!wrap) { var e = new Error("not encrypted for this device"); e.code = "NOWRAP"; throw e; }
+      return senderJwk(meta.sk).then(function (jwk) {
+        if (!jwk) { var e2 = new Error("sender key not found"); e2.code = "NOSENDER"; throw e2; }
+        return ecdhAes(r[0].privateKey, jwk);
+      }).then(function (wk) {
+        return crypto.subtle.decrypt({ name: "AES-GCM", iv: new Uint8Array(a2b(wrap.i)) }, wk, a2b(wrap.c));
+      }).then(function (raw) { return crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, ["decrypt"]); });
+    });
+  }
+  var senderCache = {};
+  /* find the sender device public key by key id: search the thread peers' device keys (cached) */
+  var senderUsers = [];
+  function senderJwk(kid) {
+    if (senderCache[kid]) return Promise.resolve(senderCache[kid]);
+    return Promise.all(senderUsers.map(function (uid) { return deviceKeysOf(uid, true); })).then(function (lists) {
+      lists.forEach(function (l) { l.forEach(function (d) { senderCache[d.id] = d.jwk; }); });
+      return senderCache[kid] || null;
+    });
+  }
+  function setThreadUsers(list) { senderUsers = list.filter(Boolean); }
+
+  /* High-level: build an outgoing text payload (v2 when the peer has device keys, else v1 with sk/rk) */
+  function buildText(peerId, text) {
+    return peerIsV2(peerId).then(function (v2) {
+      if (v2) return encryptV2(peerId, new TextEncoder().encode(text)).then(function (e) { return { ciphertext: b2a(e.ct), iv: e.iv, meta: e.meta }; });
+      if (lastSync && lastSync.state === "mismatch") { var er = new Error("Activate this device first"); er.code = "NEEDACT"; throw er; }
+      return threadCtx(peerId).then(function (c) { return encText(c.key, text).then(function (e) { return { ciphertext: e.ciphertext, iv: e.iv, meta: { sk: c.sk, rk: c.rk } }; }); });
+    });
+  }
+  /* Decrypt a stored message: text -> string; media -> ArrayBuffer (given the downloaded ciphertext bytes) */
+  function openText(m, peerId) {
+    var meta = m.meta || {};
+    if (meta.v === 2) return unwrapV2(meta).then(function (K) { return crypto.subtle.decrypt({ name: "AES-GCM", iv: new Uint8Array(a2b(m.iv)) }, K, a2b(m.ciphertext)); }).then(function (pt) { return new TextDecoder().decode(pt); });
+    return threadCtx(peerId).then(function (c) { return decText(c.key, m.ciphertext, m.iv); });
+  }
+  function openBytes(m, peerId, bytes) {
+    var meta = m.meta || {};
+    if (meta.v === 2) return unwrapV2(meta).then(function (K) { return crypto.subtle.decrypt({ name: "AES-GCM", iv: new Uint8Array(a2b(m.iv)) }, K, bytes); });
+    return threadCtx(peerId).then(function (c) { return crypto.subtle.decrypt({ name: "AES-GCM", iv: new Uint8Array(a2b(m.iv)) }, c.key, bytes); });
+  }
 
   /* ---------- text ---------- */
   function encText(key, text) {
@@ -183,12 +288,21 @@
     else if (file.type.indexOf("video/") === 0) prep = checkVideo(file).then(function (r) { return { blob: file, meta: { mime: file.type, size: file.size, duration: r.duration }, kind: "video" }; });
     else return Promise.reject(new Error("Photos and short videos only."));
     return prep.then(function (p) {
-      return threadCtx(peerId).then(function (ctx) {
-        var key = ctx.key; p.meta.sk = ctx.sk; p.meta.rk = ctx.rk;
+      return peerIsV2(peerId).then(function (v2) {
         return p.blob.arrayBuffer().then(function (buf) {
-          var iv = crypto.getRandomValues(new Uint8Array(12));
-          return crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, buf).then(function (ct) {
-            return { path: threadId + "/" + crypto.randomUUID(), bytes: ct, iv: b2a(iv), meta: p.meta, kind: p.kind };
+          if (v2) {
+            return encryptV2(peerId, buf).then(function (e) {
+              var meta = p.meta; meta.v = 2; meta.sk = e.meta.sk; meta.w = e.meta.w;
+              return { path: threadId + "/" + crypto.randomUUID(), bytes: e.ct, iv: e.iv, meta: meta, kind: p.kind };
+            });
+          }
+          if (lastSync && lastSync.state === "mismatch") { var er = new Error("Activate this device first"); er.code = "NEEDACT"; throw er; }
+          return threadCtx(peerId).then(function (ctx) {
+            p.meta.sk = ctx.sk; p.meta.rk = ctx.rk;
+            var iv = crypto.getRandomValues(new Uint8Array(12));
+            return crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, ctx.key, buf).then(function (ct) {
+              return { path: threadId + "/" + crypto.randomUUID(), bytes: ct, iv: b2a(iv), meta: p.meta, kind: p.kind };
+            });
           });
         });
       });
@@ -228,6 +342,13 @@
     myKeyId: myKeyId,
     keyIdOfJwk: keyIdOfJwk,
     threadCtx: threadCtx,
+    buildText: buildText,
+    openText: openText,
+    openBytes: openBytes,
+    publishDeviceKey: publishDeviceKey,
+    setThreadUsers: setThreadUsers,
+    encryptV2: encryptV2,
+    unwrapV2: unwrapV2,
     threadKey: threadKey,
     encText: encText,
     decText: decText,

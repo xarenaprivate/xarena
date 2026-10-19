@@ -389,6 +389,7 @@ document.addEventListener("DOMContentLoaded", function () {
     opts = opts || {};
     stopPoll();
     openThread = threadId; openPeer = peerId;
+    window.xrDm.setThreadUsers([me.id, peerId]);
     app.innerHTML = tabs("chats", 0) + '<div class="dm-row" data-peer="' + peerId + '"><button class="dm-btn" id="dm-back" aria-label="Back to chats">←</button><div class="dm-av">' + esc(nameOf(peerId).slice(0, 1).toUpperCase()) + '</div><div class="sp"><div class="dm-name">' + esc(nameOf(peerId)) + '</div><div class="dm-sub">🔒 End-to-end encrypted</div></div>' +
       '<button class="dm-btn danger" id="dm-report">Report</button><button class="dm-btn danger" id="dm-block">Block</button></div>' +
       '<div id="dm-lockslot"></div><div class="dm-conv"><div class="dm-msgs" id="dm-msgs"><p class="dm-sub">Opening secure channel…</p></div>' +
@@ -440,35 +441,37 @@ document.addEventListener("DOMContentLoaded", function () {
     function sendText() {
       var inp = app.querySelector("#dm-text");
       var v = inp.value.trim();
-      if (!v || !openKey || !openCtx) return;
-      if (devState && devState.state === "mismatch") { alert("Another device holds your message key. Tap \"Activate this device\" first to send from here."); return; }
+      if (!v) return;
       inp.value = ""; inp.focus();
-      window.xrDm.encText(openKey, v).then(function (e2) {
-        return window.xrApi.uRpc("dm_send", { p_thread: threadId, p_kind: "text", p_ciphertext: e2.ciphertext, p_iv: e2.iv, p_meta: { sk: openCtx.sk, rk: openCtx.rk } });
+      window.xrDm.buildText(peerId, v).then(function (e2) {
+        return window.xrApi.uRpc("dm_send", { p_thread: threadId, p_kind: "text", p_ciphertext: e2.ciphertext, p_iv: e2.iv, p_meta: e2.meta });
       }).then(function (r2) {
         if (r2 && r2.ok) loadMsgs(threadId, peerId, openKey, true);
         else alert((r2 && r2.error) || "Could not send.");
-      });
+      }).catch(sendErr);
+    }
+    function sendErr(e) {
+      if (e && e.code === "NEEDACT") { alert("Another device holds your message key. Tap \"Activate this device\" first to send from here."); return; }
+      alert((e && e.message) || "Could not send.");
     }
     function sendMedia(tid, pid, file) {
       var msgs = app.querySelector("#dm-msgs");
       var note = document.createElement("p"); note.className = "dm-sub"; note.textContent = "Encrypting and sending media…";
       msgs.appendChild(note); msgs.scrollTop = msgs.scrollHeight;
-      if (devState && devState.state === "mismatch") { note.remove(); alert("Another device holds your message key. Tap \"Activate this device\" first to send from here."); return; }
       window.xrDm.uploadMedia(tid, pid, file).then(function (up) {
         return window.xrApi.uRpc("dm_send", { p_thread: tid, p_kind: up.kind, p_ciphertext: up.path, p_iv: up.iv, p_meta: up.meta });
       }).then(function (r2) {
         note.remove();
         if (r2 && r2.ok) loadMsgs(tid, pid, openKey, true);
         else alert((r2 && r2.error) || "Could not send.");
-      }).catch(function (e) { note.remove(); alert(e.message); });
+      }).catch(function (e) { note.remove(); sendErr(e); });
     }
   }
 
   /* Honest labels from key ids (sk = sender key id, rk = recipient key id). */
   function keyLabel(m, mine) {
     var meta = m.meta || {}, myId = openCtx && openCtx.sk;
-    if (!myId) return null;
+    if (meta.v === 2 || !myId) return null;
     if (!meta.sk || !meta.rk) return { text: "[locked by an older device key - cannot be recovered]", final: false };
     if (mine && meta.sk !== myId) return { text: "[sent from your other device - opens there]", final: true };
     if (!mine && meta.rk !== myId) return { text: "[sent to your other device - opens there]", final: true };
@@ -505,7 +508,7 @@ document.addEventListener("DOMContentLoaded", function () {
           bub.textContent = lbl.text; bub.style.opacity = ".7";
         } else if (m.kind === "text") {
           bub.textContent = "…";
-          window.xrDm.decText(key, m.ciphertext, m.iv).then(function (t) { bub.textContent = t; }).catch(function () { bub.textContent = (lbl && lbl.text) || "[cannot decrypt - the key changed]"; bub.style.opacity = ".7"; });
+          window.xrDm.openText(m, peerId).then(function (t) { bub.textContent = t; }).catch(function (e) { bub.textContent = (e && e.code === "NOWRAP") ? "[not encrypted for this device - opens on your other device]" : (lbl && lbl.text) || "[cannot decrypt - the key changed]"; bub.style.opacity = ".7"; });
         } else {
           var btn = document.createElement("span");
           btn.className = "dm-media-btn";
@@ -515,7 +518,7 @@ document.addEventListener("DOMContentLoaded", function () {
             window.xrDm.signMedia(m.ciphertext).then(function (d) {
               return fetch("https://oskccuajgbyabogbvedj.supabase.co/storage/v1" + d.signedURL).then(function (r) { return r.arrayBuffer(); });
             }).then(function (buf) {
-              return window.xrDm.decBytes(key, buf, m.iv);
+              return window.xrDm.openBytes(m, peerId, buf);
             }).then(function (plain) {
               var blob = new Blob([plain], { type: (m.meta && m.meta.mime) || "application/octet-stream" });
               var url = URL.createObjectURL(blob);
@@ -558,7 +561,7 @@ document.addEventListener("DOMContentLoaded", function () {
         rows = (rows || []).reverse();
         return Promise.all(rows.map(function (m) {
           if (m.kind !== "text") return { from: m.sender_id === me.id ? "me" : "them", type: m.kind, at: m.created_at };
-          return window.xrDm.decText(openKey, m.ciphertext, m.iv).then(function (t) {
+          return window.xrDm.openText(m, peerId).then(function (t) {
             return { from: m.sender_id === me.id ? "me" : "them", type: "text", text: t, at: m.created_at };
           }).catch(function () { return { from: "?", type: "text", text: "[undecryptable]", at: m.created_at }; });
         }));
