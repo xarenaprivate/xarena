@@ -39,10 +39,10 @@ private fun colorFor(h: String): Color {
 
 /** World Chat - real messages from the shared chat_messages table, polling every 10s (Realtime channel comes later). */
 @Composable
-fun ChatScreen(onGoTab: (Int) -> Unit = {}) {
+fun ChatScreen(onGoTab: (Int) -> Unit = {}, onBack: (() -> Unit)? = null) {
     var handleReady by remember { mutableStateOf(Api.chatHandle != null && Api.chatToken != null) }
     Column(Modifier.fillMaxSize()) {
-        Brand()
+        if (onBack != null) PageHeader("Chat", "World chat lobby", onBack) else Brand()
         ChatChips(onGoTab)
         if (!handleReady) ChatGate(onReady = { handleReady = true })
         else ChatRoom()

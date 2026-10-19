@@ -12,8 +12,8 @@ android {
         applicationId = "app.xarena.esports.native"
         minSdk = 24
         targetSdk = 34
-        versionCode = 30
-        versionName = "0.15.0-native"
+        versionCode = 31
+        versionName = "0.15.1-native"
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
     }
     val keyInfo = rootProject.file("keystore/KEY_INFO.txt")

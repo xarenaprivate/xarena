@@ -44,13 +44,13 @@ private fun kindLabel(k: String) = when (k) {
 
 /** Rewards Store - AP (Arena Points) are spendable here; XP is rank-only and shown read-only. Claims go to the owner for review. */
 @Composable
-fun StoreScreen() {
+fun StoreScreen(onBack: (() -> Unit)? = null) {
     val scope = rememberCoroutineScope()
     var notice by remember { mutableStateOf<String?>(null) }
     var claiming by remember { mutableStateOf<Long?>(null) }
     var tab by remember { mutableStateOf("All") }
     Column(Modifier.fillMaxSize()) {
-        Brand()
+        if (onBack != null) PageHeader("Store", "Spend AP on real rewards", onBack) else Brand()
         LoadState({ loadStore() }) { d ->
             LazyColumn {
                 item {

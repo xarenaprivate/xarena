@@ -52,12 +52,12 @@ private suspend fun loadSquads(): SquadData {
 }
 
 @Composable
-fun SquadsScreen() {
+fun SquadsScreen(onBack: (() -> Unit)? = null) {
     val scope = rememberCoroutineScope()
     var nonce by remember { mutableIntStateOf(0) }
     var notice by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxSize()) {
-        Brand()
+        if (onBack != null) PageHeader("Squads", "Find or build your squad", onBack) else Brand()
         LoadState({ loadSquads() }) { d ->
             LazyColumn {
                 item {

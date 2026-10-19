@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Create
@@ -299,9 +300,8 @@ fun HomeShell(onLogout: () -> Unit) {
     var feature by remember { mutableStateOf<String?>(null) }
     var conv by remember { mutableStateOf<DmConv?>(null) }
     val tabs = listOf(
-        "Home" to Icons.Default.Home, "Live" to Icons.Default.PlayArrow, "Tournaments" to Icons.Default.Star, "Board" to Icons.Default.List,
-        "Chat" to Icons.Default.MailOutline, "Luna" to Icons.Default.Face, "Squads" to Icons.Default.AccountBox,
-        "Store" to Icons.Default.ShoppingCart, "Profile" to Icons.Default.Person, "More" to Icons.Default.Menu)
+        "Home" to Icons.Default.Home, "Feed" to Icons.Default.FavoriteBorder, "Live" to Icons.Default.PlayArrow, "Voice" to Icons.Default.Call, "Tournaments" to Icons.Default.Star, "Board" to Icons.Default.List,
+        "More" to Icons.Default.Menu)
     val c = conv
     if (c != null) { BackHandler { conv = null }; ConversationScreen(c.threadId, c.peerId, c.peerName, c.status, c.reqByMe) { conv = null }; return }
     if (feature != null) BackHandler { feature = null }
@@ -343,6 +343,11 @@ fun HomeShell(onLogout: () -> Unit) {
         "players" -> { SearchScreen(onBack = { feature = null }, initialTab = 1, title = "Players"); return }
         "howto" -> { HowToPlayScreen(onBack = { feature = null }); return }
         "voice" -> { VoiceScreen(onBack = { feature = null }); return }
+        "chat" -> { ChatScreen(onGoTab = { i -> when (i) { 1 -> { feature = null; tab = 4 }; 2 -> { feature = null; tab = 5 }; else -> feature = "squads" } }, onBack = { feature = null }); return }
+        "luna" -> { LunaScreen(onBack = { feature = null }); return }
+        "squads" -> { SquadsScreen(onBack = { feature = null }); return }
+        "store" -> { StoreScreen(onBack = { feature = null }); return }
+        "profile" -> { ProfileScreen(onLogout, onBack = { feature = null }); return }
     }
     var msgBadge by remember { mutableIntStateOf(0) }
     LaunchedEffect(feature, conv) {
@@ -362,7 +367,7 @@ fun HomeShell(onLogout: () -> Unit) {
         }
         BackHandler(enabled = tab != 0) { tab = 0 }
         Box(Modifier.weight(1f)) {
-            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> LiveScreen(onBack = { tab = 0 }); 2 -> TournamentsScreen(); 3 -> LeaderboardScreen(); 4 -> ChatScreen(onGoTab = { tab = it }); 5 -> LunaScreen(); 6 -> SquadsScreen(); 7 -> StoreScreen(); 8 -> ProfileScreen(onLogout); else -> MoreGrid { feature = it } }
+            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> FeedScreen(onBack = { tab = 0 }); 2 -> LiveScreen(onBack = { tab = 0 }); 3 -> VoiceScreen(onBack = { tab = 0 }); 4 -> TournamentsScreen(); 5 -> LeaderboardScreen(); else -> MoreGrid { feature = it } }
         }
         Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(vertical = 6.dp)) {
             tabs.forEachIndexed { i, (label, icon) ->
@@ -382,6 +387,11 @@ data class GridItem(val key: String, val name: String, val sub: String, val icon
 fun MoreGrid(onOpen: (String) -> Unit) {
     // One button per feature, each opening its own full screen. Only real, working features are listed.
     val items = listOf(
+        GridItem("chat", "Chat", "World chat lobby", Icons.Default.MailOutline),
+        GridItem("luna", "Luna", "AI analyst and caster", Icons.Default.Face),
+        GridItem("squads", "Squads", "Find or build your squad", Icons.Default.AccountBox),
+        GridItem("store", "Store", "Spend AP on real rewards", Icons.Default.ShoppingCart),
+        GridItem("profile", "Profile", "Your account and settings", Icons.Default.Person),
         GridItem("messages", "Messages", "Private end-to-end encrypted chats", Icons.Default.Email),
         GridItem("match", "Match Center", "Rooms, check-in, result proofs, reports", Icons.Default.Place),
         GridItem("playercard", "Player Card", "Your card, followers, following", Icons.Default.Person),
@@ -559,11 +569,11 @@ fun tierColor(t: String) = when (t) {
 }
 
 @Composable
-fun ProfileScreen(onLogout: () -> Unit) {
+fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
     val clipboard = LocalClipboardManager.current
     var copied by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize()) {
-        Brand()
+        if (onBack != null) PageHeader("Profile", "Your account", onBack) else Brand()
         LoadState({ Api.myProfile() to Api.myStats() }) { (p, s) ->
             LazyColumn {
                 item {

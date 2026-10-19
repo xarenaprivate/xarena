@@ -26,11 +26,11 @@ private data class LunaMsg(val role: String, val content: String)
 
 /** Luna - the site's own luna-chat Edge Function, same session model. Shown only when she can really reply. */
 @Composable
-fun LunaScreen() {
+fun LunaScreen(onBack: (() -> Unit)? = null) {
     var alive by remember { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(Unit) { alive = Api.lunaAlive() }
     Column(Modifier.fillMaxSize()) {
-        Brand()
+        if (onBack != null) PageHeader("Luna", "AI analyst", onBack) else Brand()
         when (alive) {
             null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Gold) }
             false -> EmptyNote("Luna is offline", "The assistant backend is not live right now. Nothing here is faked - she appears as soon as she can really reply.")
