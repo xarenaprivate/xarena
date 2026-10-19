@@ -277,9 +277,15 @@ window.addEventListener("load", function () {
           '<div class="xg-stat"><b>' + (r.spins_total || 0) + '</b><span>SPINS</span></div>' +
           '<div class="xg-stat"><b>' + (r.quizzes_correct || 0) + "/" + (r.quizzes_answered || 0) + '</b><span>QUIZ WINS</span></div>' +
           "</div>" + '<div class="xg-badges">' + badges + "</div>" +
-          '<div id="pf-xstats"></div>' +
+          '<div id="pf-ranks"></div><div id="pf-xstats"></div>' +
           '<p style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-red btn-sm" href="play.html">Open Play hub</a>' +
           '<button class="btn btn-gold btn-sm" id="pf-share-card">Share my card</button></p>';
+        xrApi.uRpc("my_ranks", {}).then(function (rk) {
+          var el = document.getElementById("pf-ranks"); if (!el || !rk || !rk.ok) return;
+          function c(l, v) { return '<div class="xg-stat" style="min-width:72px"><b>' + (v ? "#" + v : "\u2014") + "</b><span>" + l + "</span></div>"; }
+          el.innerHTML = '<div style="margin-top:10px;font-size:12px;letter-spacing:1px;color:var(--muted)">MY RANKS' + (rk.district_name ? " \u00b7 " + esc(rk.district_name) + ", " + esc(rk.state_name) : "") + '</div><div class="xg-stat-row">' + c("GLOBAL", rk.global) + c("STATE", rk.state) + c("DISTRICT", rk.district) + "</div>" +
+            (rk.state_name ? "" : '<p style="font-size:12px;color:var(--muted)">Turn on location on the <a href="leaderboard.html" style="color:var(--gold2)">Leaderboard</a> to get State and District ranks.</p>');
+        }).catch(function () {});
         xrApi.uRpc("my_player_card", {}).then(function (pc) {
           if (!(pc && pc.ok)) return;
           window.__xcard = pc;

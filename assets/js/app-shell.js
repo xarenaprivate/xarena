@@ -65,6 +65,25 @@
     right.appendChild(bell);
     right.appendChild(avatar);
     if (navIn) navIn.appendChild(right);
+    (function chips() {
+      var tries = 0;
+      (function go() {
+        if (!window.xrApi || !xrApi.user) { if (++tries < 40) setTimeout(go, 500); return; }
+        xrApi.user().then(function (u) {
+          if (!u) return;
+          xrApi.uRpc("my_header", {}).then(function (h) {
+            if (!h || !h.ok || document.getElementById("xr-chips")) return;
+            var c = document.createElement("a"); c.id = "xr-chips"; c.href = "leaderboard.html";
+            c.setAttribute("aria-label", "Your EXP and AP");
+            c.style.cssText = "display:flex;gap:8px;align-items:center;color:inherit;text-decoration:none;font-size:12px;font-weight:800;margin-right:8px";
+            var ex = '<svg viewBox="0 0 24 24" width="16" height="16" fill="#f5b301"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 9.2l7.1-.6z"/></svg>';
+            var ap = '<svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="10" fill="#2fd1a5"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="800" fill="#05261d">AP</text></svg>';
+            c.innerHTML = '<span style="display:flex;gap:3px;align-items:center" title="EXP">' + ex + h.exp + '</span><span style="display:flex;gap:3px;align-items:center" title="AP">' + ap + h.ap + "</span>";
+            right.insertBefore(c, right.firstChild);
+          }).catch(function () {});
+        }).catch(function () {});
+      })();
+    })();
 
   });
 })();

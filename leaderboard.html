@@ -101,13 +101,15 @@
 </ul>
 </div></header>
 <link rel="stylesheet" href="assets/css/lb-nova.css">
-<script>try{document.body.classList.add(localStorage.getItem("xr_lb_look")==="classic"?"lb-classic":"lb-nova-page");}catch(e){document.body.classList.add("lb-nova-page");}</script>
+<style>.lb-gold-only{display:none}body.lb-gold-page .lb-gold-only{display:block}body.lb-gold-page .lb-nova-only,body.lb-gold-page .lb-classic-only{display:none!important}body.lb-gold-page{background:#07070a}</style>
+<script>try{var _l=localStorage.getItem("xr_lb_look");document.body.classList.add(_l==="classic"?"lb-classic":_l==="nova"?"lb-nova-page":"lb-gold-page");}catch(e){document.body.classList.add("lb-gold-page");}</script>
+<div class="lb-gold-only" id="lbg-root"></div>
 <main>
 <div class="lb-nova-only"><div class="wrap"><div class="lbn-head">
   <div class="lbn-title"><span class="cup">🏆</span>LEADERBOARD</div>
   <div class="lbn-sub">XP RANKS · SEASON 1</div>
   <div class="lbn-rule"></div>
-  <button class="lbn-look" id="lbn-look" type="button">Classic view</button>
+  <button class="lbn-look" id="lbn-look" type="button">Classic view</button> <button class="lbn-look" type="button" onclick="localStorage.setItem('xr_lb_look','gold');location.reload()">Gold look</button>
 </div>
 <div class="lbn-list" id="lbn-list"><p style="text-align:center;color:#9a86c2">Loading live ranks…</p></div>
 <div id="lbn-mine"></div>
@@ -121,7 +123,7 @@
   <div class="overline">Rankings</div>
   <h1>Leader<em>board</em></h1>
   <p>Live player ranks from earned XP, the weekly race, squad battles, and official match results — everything computed from real activity, updated as it happens.</p>
-  <button class="lbn-look" id="lbn-look2" type="button" style="margin-top:10px">Nova view</button>
+  <button class="lbn-look" id="lbn-look2" type="button" style="margin-top:10px">Nova view</button> <button class="lbn-look" type="button" onclick="localStorage.setItem('xr_lb_look','gold');location.reload()">Gold look</button>
 </div></section>
 <section class="section"><div class="wrap">
   <div class="lb-tabs" id="lb-tabs" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
@@ -415,7 +417,8 @@ window.addEventListener("load", function () {
   });
   wireLbLook();
   function bootView() {
-    if (document.body.classList.contains("lb-classic")) activate("players");
+    if (document.body.classList.contains("lb-gold-page")) { var gr = document.getElementById("lbg-root"); if (window.xrLbGold && gr) xrLbGold.mount(gr); }
+    else if (document.body.classList.contains("lb-classic")) activate("players");
     else if (window.xrApi) renderNova();
   }
   if (window.xrApi) bootView();
@@ -486,6 +489,7 @@ window.addEventListener("load", function () {
 <script src="assets/js/sharecard.js"></script>
 <script src="assets/js/funline.js"></script>
 <script src="assets/js/dm.js"></script>
+<script src="assets/js/lb-gold.js"></script>
 <script src="assets/js/chat-style.js"></script>
 <script src="assets/js/app-shell.js"></script>
 <script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script>
