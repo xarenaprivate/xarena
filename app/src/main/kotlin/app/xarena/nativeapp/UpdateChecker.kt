@@ -86,7 +86,8 @@ object UpdateChecker {
             val c = URL(info.url).openConnection() as HttpURLConnection
             c.connectTimeout = 15000; c.readTimeout = 20000; c.instanceFollowRedirects = true
             if (have > 0) c.setRequestProperty("Range", "bytes=$have-")
-            val code = c.responseCode
+            var code = c.responseCode
+            if (code == 416 && have > 0) { f.delete(); have = 0; c.disconnect(); return@withContext download(ctx, info, onProgress) } // stale complete file - start over
             if (code == 200 && have > 0) have = 0 // server ignored Range - start over
             if (code != 200 && code != 206) { c.disconnect(); return@withContext "Server error $code - tap RETRY." }
             var total = c.getHeaderFieldLong("Content-Length", -1)
