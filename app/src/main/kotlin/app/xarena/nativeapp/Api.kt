@@ -63,6 +63,7 @@ object Api {
             JSONObject().put("email", email).put("password", password), null)
         if (code !in 200..299) throw ApiError(if (code == 400) "Wrong phone/email or password." else "Login failed ($code).")
         saveSession(JSONObject(text))
+        bindDevice()
     }
 
     /** Phone signup identical to the site: phone_available check, then Supabase signup with phone metadata. */
@@ -73,6 +74,14 @@ object Api {
         val chk = JSONObject(t1)
         if (!chk.optBoolean("ok")) throw ApiError(chk.s("error").ifBlank { "Could not check right now. Try again." })
         if (!chk.optBoolean("available")) throw ApiError("An account already exists with this number. Please log in.")
+        // Anti-fake-account gate: rate limits, one-phone-many-accounts and 2-accounts-per-device blocks. Show its reason plainly.
+        val (cp, tp) = call("POST", "/rest/v1/rpc/signup_precheck",
+            JSONObject().put("p_phone", ph).put("p_device_id", DeviceIds.id).put("p_fp", DeviceIds.fp), null)
+        if (cp in 200..299) {
+            val pc = JSONObject(tp)
+            if (!pc.optBoolean("ok") || (pc.has("available") && !pc.optBoolean("available")))
+                throw ApiError(pc.s("error").ifBlank { pc.s("reason") }.ifBlank { "Sign-up is not allowed from this device right now." })
+        }
         val (c2, t2) = call("POST", "/auth/v1/signup",
             JSONObject().put("email", "p$ph@phone.xarena").put("password", password)
                 .put("data", JSONObject().put("phone", ph)), null)
@@ -81,7 +90,7 @@ object Api {
             throw ApiError(if (msg.isNotBlank()) msg else "Signup failed ($c2).")
         }
         val j = JSONObject(t2)
-        if (j.has("access_token")) saveSession(j)
+        if (j.has("access_token")) { saveSession(j); bindDevice() }
         else throw ApiError("Account created. Please log in.")
     }
 
@@ -100,6 +109,15 @@ object Api {
     }
 
     fun logout() { access = null; uid = null; prefs.edit().clear().apply() }
+
+    /** Binds this install to the account (anti-fake-account). Best-effort; no-op when logged out. */
+    fun bindDevice() {
+        if (access == null) return
+        runCatching {
+            authed("POST", "/rest/v1/rpc/bind_device",
+                JSONObject().put("p_device_id", DeviceIds.id).put("p_fp", DeviceIds.fp).put("p_platform", "android-native"))
+        }
+    }
 
     /** Authenticated GET/RPC with one automatic token refresh. */
     fun authed(method: String, path: String, body: JSONObject?): String {

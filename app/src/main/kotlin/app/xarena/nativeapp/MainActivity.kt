@@ -366,6 +366,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "play" -> { PlayScreen(onBack = { feature = null }); return }
         "season" -> { SeasonPassScreen(onBack = { feature = null }); return }
     }
+    LaunchedEffect(Unit) { runCatching { Api.bindDevice() } } // anti-fake-account: bind this install once per session
     LaunchedEffect(Unit) { // presence: keeps own last_seen_at fresh (server throttles to 40s) so profile "Online now" is real
         while (true) { runCatching { Api.presencePing() }; kotlinx.coroutines.delay(60_000) }
     }
