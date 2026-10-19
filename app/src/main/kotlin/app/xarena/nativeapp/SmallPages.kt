@@ -233,6 +233,11 @@ private fun CertCard(kind: String, kindRaw: String, tournament: String, who: Str
         val qr = remember(payload) { qrBitmap(payload, 240) }
         androidx.compose.foundation.Image(qr.asImageBitmap(), contentDescription = "QR - scan to check details", modifier = Modifier.size(80.dp).clip(RoundedCornerShape(6.dp)))
         Text("SCAN TO CHECK DETAILS", color = Muted, fontSize = 9.sp, modifier = Modifier.padding(top = 3.dp))
+        Spacer(Modifier.height(8.dp))
+        Text("SHARE / SAVE PNG", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Gold).clickable {
+                shareCertPng(kindRaw, who.ifBlank { "Player" }, tournament, date)
+            }.padding(horizontal = 14.dp, vertical = 8.dp))
     }
 }
 
@@ -367,4 +372,52 @@ fun <T> LoadState2(tick: Int, load: suspend () -> T, content: @Composable (T) ->
         }
         else -> content(s.getOrThrow())
     }
+}
+
+/* Renders the same certificate layout as the web's drawCert (1000x640) and opens the share sheet. */
+private fun certPngBitmap(kindRaw: String, name: String, tournament: String, date: String): android.graphics.Bitmap {
+    val w = 1000; val h = 640
+    val bmp = android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888)
+    val c = android.graphics.Canvas(bmp)
+    val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+    p.shader = android.graphics.LinearGradient(0f, 0f, w.toFloat(), h.toFloat(), 0xFF221338.toInt(), 0xFF12082A.toInt(), android.graphics.Shader.TileMode.CLAMP)
+    c.drawRect(0f, 0f, w.toFloat(), h.toFloat(), p); p.shader = null
+    p.style = android.graphics.Paint.Style.STROKE; p.color = 0xFFF5B301.toInt(); p.strokeWidth = 6f
+    c.drawRect(24f, 24f, w - 24f, h - 24f, p)
+    p.color = 0x59F5B301.toInt(); p.strokeWidth = 2f
+    c.drawRect(40f, 40f, w - 40f, h - 40f, p)
+    p.style = android.graphics.Paint.Style.FILL; p.textAlign = android.graphics.Paint.Align.CENTER
+    p.color = 0xFFF5B301.toInt(); p.textSize = 44f; p.isFakeBoldText = true
+    c.drawText("XARENA ESPORTS", w / 2f, 120f, p)
+    p.color = 0xFFB7A6D8.toInt(); p.textSize = 20f; p.isFakeBoldText = false
+    c.drawText("OFFICIAL CERTIFICATE", w / 2f, 152f, p)
+    p.strokeWidth = 2f; p.color = 0x80F5B301.toInt()
+    c.drawLine(w / 2f - 140, 176f, w / 2f + 140, 176f, p)
+    p.color = 0xFFFFE9A8.toInt(); p.textSize = 26f; p.isFakeBoldText = true
+    c.drawText(if (kindRaw == "champion") "CHAMPION" else "CERTIFICATE OF PARTICIPATION", w / 2f, 232f, p)
+    p.color = 0xFFD9CCF0.toInt(); p.textSize = 19f; p.isFakeBoldText = false
+    c.drawText("This certifies that", w / 2f, 272f, p)
+    p.color = 0xFFFFFFFF.toInt(); p.textSize = 40f; p.isFakeBoldText = true
+    c.drawText(name, w / 2f, 326f, p)
+    p.color = 0xFFD9CCF0.toInt(); p.textSize = 19f; p.isFakeBoldText = false
+    c.drawText(if (kindRaw == "champion") "claimed the championship title in" else "competed in", w / 2f, 362f, p)
+    p.color = 0xFFF5B301.toInt(); p.textSize = 30f; p.isFakeBoldText = true
+    c.drawText(tournament, w / 2f, 408f, p)
+    p.color = 0xFF9D8CC2.toInt(); p.textSize = 17f; p.isFakeBoldText = false
+    c.drawText(date, w / 2f, 448f, p)
+    c.drawText("XARENA ESPORTS - Free Fire Esports Made in India - XP only, never cash", w / 2f, h - 56f, p)
+    return bmp
+}
+
+private fun shareCertPng(kindRaw: String, name: String, tournament: String, date: String) {
+    try {
+        val dir = java.io.File(Api.ctx.cacheDir, "certs"); dir.mkdirs()
+        val f = java.io.File(dir, "xarena-certificate-" + kindRaw + ".png")
+        f.outputStream().use { certPngBitmap(kindRaw, name, tournament, date).compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+        val uri = androidx.core.content.FileProvider.getUriForFile(Api.ctx, "app.xarena.esports.native.fileprovider", f)
+        val i = android.content.Intent(android.content.Intent.ACTION_SEND)
+        i.type = "image/png"; i.putExtra(android.content.Intent.EXTRA_STREAM, uri)
+        i.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        Api.ctx.startActivity(android.content.Intent.createChooser(i, "Share certificate").addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+    } catch (e: Exception) { }
 }
