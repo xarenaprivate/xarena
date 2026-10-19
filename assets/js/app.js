@@ -378,9 +378,10 @@
         card.appendChild(h); card.appendChild(d);
         rf.style.display = "none"; rf.parentNode.insertBefore(card, rf);
       }
-      els('a[href$="tournaments.html#register"]').forEach(function (a) {
+      var markBtns = function () { els('a[href$="tournaments.html#register"]').forEach(function (a) {
         a.textContent = "Registered \u2713"; a.classList.add("disabled"); a.setAttribute("aria-disabled", "true");
-      });
+      }); };
+      markBtns(); setTimeout(markBtns, 1500); setTimeout(markBtns, 4000);
     }).catch(function () {});
   });
 
