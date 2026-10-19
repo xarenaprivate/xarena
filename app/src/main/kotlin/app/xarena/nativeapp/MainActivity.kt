@@ -28,7 +28,11 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
@@ -324,6 +328,10 @@ fun HomeShell(onLogout: () -> Unit) {
         "calendar" -> { CalendarScreen(onBack = { feature = null }); return }
         "ping" -> { PingScreen(onBack = { feature = null }); return }
         "refer" -> { ReferScreen(onBack = { feature = null }); return }
+        "verify" -> { VerifyScreen(onBack = { feature = null }); return }
+        "roles" -> { RolesScreen(onBack = { feature = null }); return }
+        "winner" -> { WinnerScreen(onBack = { feature = null }); return }
+        "sponsors" -> { SponsorsScreen(onBack = { feature = null }); return }
     }
     var msgBadge by remember { mutableIntStateOf(0) }
     LaunchedEffect(feature, conv) {
@@ -384,6 +392,10 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("calendar", "Calendar", "Tournament and event dates", Icons.Default.DateRange),
         GridItem("ping", "Ping Check", "Real connection and device test", Icons.Default.Refresh),
         GridItem("refer", "Refer & Earn", "Invite friends, earn Store Points", Icons.Default.Share),
+        GridItem("verify", "Verification", "Anti-cheat photo verification badge", Icons.Default.Lock),
+        GridItem("roles", "Team Roles", "Your role and squad formation", Icons.Default.Edit),
+        GridItem("winner", "Champions", "Winner celebration - real finals", Icons.Default.FavoriteBorder),
+        GridItem("sponsors", "Sponsors", "Real signed partners", Icons.Default.AccountCircle),
         GridItem("settings", "Settings", "App version, activity status, logout", Icons.Default.Settings),
     )
     Column(Modifier.fillMaxSize()) {
