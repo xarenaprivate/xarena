@@ -214,7 +214,10 @@ fun UpdateDialog(info: UpdateChecker.Info, onDismiss: () -> Unit) {
     var err by remember { mutableStateOf<String?>(null) }
     var installing by remember { mutableStateOf(false) }
     var sizeKnown by remember { mutableStateOf(-1L) }
-    LaunchedEffect(info.url) { sizeKnown = UpdateChecker.apkSize(info.url) }
+    val patchEligible = info.patchUrl.isNotBlank() && info.patchFrom == BuildConfig.VERSION_CODE
+    LaunchedEffect(info.url) {
+        sizeKnown = if (patchEligible) UpdateChecker.apkSize(info.patchUrl) else UpdateChecker.apkSize(info.url)
+    }
 
     fun startUpdate() {
         downloading = true; err = null; done = 0
