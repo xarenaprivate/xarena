@@ -227,6 +227,10 @@ object Api {
         return r
     }
 
+    suspend fun referralApply(code: String): JSONObject = withContext(Dispatchers.IO) {
+        authedRpc("referral_apply", JSONObject().put("p_code", code))
+    }
+
     suspend fun authedGetArray(path: String): JSONArray = withContext(Dispatchers.IO) {
         JSONArray(authed("GET", path, null))
     }

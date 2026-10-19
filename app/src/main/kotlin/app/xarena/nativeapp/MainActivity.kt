@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
@@ -321,6 +322,8 @@ fun HomeShell(onLogout: () -> Unit) {
         "live" -> { LiveScreen(onBack = { feature = null }); return }
         "scrims" -> { ScrimsScreen(onBack = { feature = null }); return }
         "calendar" -> { CalendarScreen(onBack = { feature = null }); return }
+        "ping" -> { PingScreen(onBack = { feature = null }); return }
+        "refer" -> { ReferScreen(onBack = { feature = null }); return }
     }
     var msgBadge by remember { mutableIntStateOf(0) }
     LaunchedEffect(feature, conv) {
@@ -379,6 +382,8 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("tasks", "Tasks", "Finish tasks, earn points", Icons.Default.Done),
         GridItem("scrims", "Scrims", "Looking-for-game board", Icons.Default.Search),
         GridItem("calendar", "Calendar", "Tournament and event dates", Icons.Default.DateRange),
+        GridItem("ping", "Ping Check", "Real connection and device test", Icons.Default.Refresh),
+        GridItem("refer", "Refer & Earn", "Invite friends, earn Store Points", Icons.Default.Share),
         GridItem("settings", "Settings", "App version, activity status, logout", Icons.Default.Settings),
     )
     Column(Modifier.fillMaxSize()) {
