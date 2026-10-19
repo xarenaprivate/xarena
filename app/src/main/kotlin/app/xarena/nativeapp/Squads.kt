@@ -139,8 +139,14 @@ fun SquadsScreen(onBack: (() -> Unit)? = null) {
                 items((0 until d.squads.length()).map { d.squads.getJSONObject(it) }) { s ->
                     PanelCard {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text(s.s("name") + (s.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""),
-                                color = Gold2, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                                if (s.s("logo_url").isNotBlank()) {
+                                    AsyncImage(model = s.s("logo_url"), contentDescription = null, contentScale = ContentScale.Crop,
+                                        modifier = Modifier.size(26.dp).clip(CircleShape))
+                                    Spacer(Modifier.width(8.dp))
+                                }
+                                Text(s.s("name") + (s.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""),
+                                    color = Gold2, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                             }
                             Text(if (s.has("member_count")) s.optInt("member_count").toString() + "/6" else "", color = Muted, fontSize = 12.sp)
                         }
