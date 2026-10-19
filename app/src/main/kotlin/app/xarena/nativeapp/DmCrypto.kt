@@ -66,6 +66,14 @@ object DmCrypto {
             .put("y", b64url(fixed32(ec.w.affineY)))
     }
 
+    /* Stable fingerprint of a public key (16 hex chars) - identifies which device key a message was encrypted to. */
+    fun jwkKeyId(jwk: JSONObject): String {
+        val md = java.security.MessageDigest.getInstance("SHA-256")
+        md.update(unb64url(jwk.getString("x"))); md.update(unb64url(jwk.getString("y")))
+        return md.digest().joinToString("") { "%02x".format(it) }.take(16)
+    }
+    fun myKeyId(): String = jwkKeyId(myPublicJwk())
+
     private fun importPeerPub(jwk: JSONObject): java.security.PublicKey {
         val x = BigInteger(1, unb64url(jwk.getString("x")))
         val y = BigInteger(1, unb64url(jwk.getString("y")))
@@ -76,7 +84,8 @@ object DmCrypto {
 
     /* Raw ECDH shared secret (X coordinate, 32 bytes) used directly as the AES key - WebCrypto deriveKey behavior. */
     fun threadKey(peerId: String, peerJwk: JSONObject): SecretKeySpec {
-        aesCache[peerId]?.let { return it }
+        val ck = peerId + ":" + jwkKeyId(peerJwk) + ":" + myKeyId()
+        aesCache[ck]?.let { return it }
         ensureKeys()
         val ka = KeyAgreement.getInstance("ECDH")
         ka.init(priv)
@@ -84,7 +93,7 @@ object DmCrypto {
         var secret = ka.generateSecret()
         if (secret.size < 32) { val out = ByteArray(32); System.arraycopy(secret, 0, out, 32 - secret.size, secret.size); secret = out }
         val key = SecretKeySpec(secret, "AES")
-        aesCache[peerId] = key
+        aesCache[ck] = key
         return key
     }
 

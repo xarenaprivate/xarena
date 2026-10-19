@@ -440,6 +440,10 @@ object Api {
         c.responseCode
         c.disconnect()
     }
+    suspend fun dmMyPublishedJwk(): JSONObject? = withContext(Dispatchers.IO) {
+        val rows = authedGetArray("/rest/v1/dm_public_keys?user_id=eq." + uid + "&select=public_key")
+        if (rows.length() == 0) null else rows.getJSONObject(0).optJSONObject("public_key")
+    }
     suspend fun dmPeerKey(peerId: String): JSONObject? = withContext(Dispatchers.IO) {
         val rows = authedGetArray("/rest/v1/dm_public_keys?user_id=eq." + peerId + "&select=public_key")
         if (rows.length() == 0) null else rows.getJSONObject(0).optJSONObject("public_key")
