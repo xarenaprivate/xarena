@@ -421,6 +421,11 @@ window.addEventListener("load", function () {
   });
   if (look !== "nova") { lookBtn.textContent = "Nova view"; return; }
   if (!uname) { novaBox.innerHTML = ""; return; }
+  if (window.xrPM) {
+    window.xrPM(novaBox, uname);
+    (function hc() { var el = document.getElementById("pc-classic-top"); if (el) el.style.display = "none"; else setTimeout(hc, 250); })();
+    return;
+  }
   fetch(URLB + "/rest/v1/rpc/player_profile_nova", {
     method: "POST",
     headers: { "apikey": KEY, "Content-Type": "application/json" },
@@ -577,6 +582,7 @@ window.addEventListener("load", function () {
 </div>
 </div></footer>
 <script src="assets/js/data.js"></script>
+<script src="assets/js/profile-mockup.js"></script>
 <script src="assets/js/app.js"></script>
 <script src="assets/js/vendor/supabase.min.js"></script>
 <script src="assets/js/vendor/qrcode.min.js"></script>
