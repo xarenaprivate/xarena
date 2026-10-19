@@ -1,6 +1,6 @@
 {
-  "versionCode": 16,
-  "versionName": "0.13.0",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.13.0-native/xarena-native.apk",
-  "notes": "New: Ping & Device Check (real measurements), Refer & Earn (invite code, share, apply code). Back button fixed, icons everywhere."
+  "versionCode": 17,
+  "versionName": "0.13.1",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.13.1-native/xarena-native.apk",
+  "notes": "New: Photo Verification, Team Roles + squad formation, Winner Celebration, Sponsor Wall. Plus Ping Check and Refer & Earn."
 }
