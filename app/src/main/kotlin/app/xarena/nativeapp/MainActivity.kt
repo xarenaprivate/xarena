@@ -588,12 +588,209 @@ fun tierColor(t: String) = when (t) {
     else -> Color(0xFFF0ABFC)
 }
 
+val NeonYellow = Color(0xFFF9F871)
+val NeonName = Color(0xFFFFE93B)
+val NeonCard = Color(0xFF1E0A3C)
+val NeonBorder = Color(0xFF7B2FBE)
+
+@Composable
+fun ProfileAvatarRing(initial: String, verified: Boolean) {
+    androidx.compose.foundation.Canvas(Modifier.size(76.dp)) {
+        val w = size.width
+        drawCircle(color = NeonYellow, radius = w / 2 - 4f, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 5f))
+        drawCircle(color = Color(0xFF2A1450), radius = w / 2 - 12f)
+        if (verified) drawCircle(color = Color(0xFF4ADE80), radius = w / 2 - 4f, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f))
+    }
+    // initial letter overlaid via Box in caller
+}
+
+@Composable
+fun NeonRing(fraction: Float?, label: String, value: String, emoji: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(6.dp)) {
+        Box(contentAlignment = Alignment.Center) {
+            androidx.compose.foundation.Canvas(Modifier.size(64.dp)) {
+                val sw = 7f
+                drawCircle(color = Color(0xFF3A2060), style = androidx.compose.ui.graphics.drawscope.Stroke(width = sw))
+                if (fraction != null) drawArc(color = NeonYellow, startAngle = -90f, sweepAngle = 360f * fraction.coerceIn(0f, 1f),
+                    useCenter = false, style = androidx.compose.ui.graphics.drawscope.Stroke(width = sw, cap = androidx.compose.ui.graphics.StrokeCap.Round))
+            }
+            Text(emoji, fontSize = 22.sp)
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(label, color = NeonName, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text(value, color = Color.White, fontSize = 12.sp)
+    }
+}
+
 @Composable
 fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
+    val uiPrefs = remember { Api.ctx.getSharedPreferences("xr_ui", 0) }
+    var classic by remember { mutableStateOf(uiPrefs.getBoolean("profile_classic", false)) }
+    if (classic) {
+        ProfileScreenClassic(onLogout, onBack) { classic = false; uiPrefs.edit().putBoolean("profile_classic", false).apply() }
+        return
+    }
+    Column(Modifier.fillMaxSize()) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f)) { if (onBack != null) PageHeader("Profile", "Your account", onBack) else Brand() }
+            Text("Classic view", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { classic = true; uiPrefs.edit().putBoolean("profile_classic", true).apply() }.padding(10.dp))
+        }
+        LoadState({ Api.myProfile() to Api.myStats() }) { (p, s) ->
+            val name = p?.s("ign").takeUnless { it.isNullOrBlank() || it == "null" } ?: p?.s("username") ?: "Player"
+            val verified = p?.optBoolean("verified") == true
+            val matches = p?.s("matches")?.toIntOrNull() ?: 0
+            val wins = p?.s("wins")?.toIntOrNull() ?: 0
+            val level = s?.optInt("level", 1) ?: 1
+            val xp = s?.optInt("xp", 0) ?: 0
+            val into = s?.optInt("into_level", 0) ?: 0
+            val need = s?.optInt("level_needed", 0) ?: 0
+            val streak = s?.optInt("streak", 0) ?: 0
+            val spins = s?.optInt("spins_total", 0) ?: 0
+            val qc = s?.optInt("quizzes_correct", 0) ?: 0
+            val qa = s?.optInt("quizzes_answered", 0) ?: 0
+            var shareBusy by remember { mutableStateOf(false) }
+            var shareMsg by remember { mutableStateOf<String?>(null) }
+            val profScope = rememberCoroutineScope()
+            LazyColumn(contentPadding = PaddingValues(bottom = 24.dp)) {
+                // header: avatar + name + level pill
+                item {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Box(contentAlignment = Alignment.Center) {
+                            ProfileAvatarRing(name.first().uppercase(), verified)
+                            Text(name.first().uppercase(), color = NeonName, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                        }
+                        Spacer(Modifier.width(14.dp))
+                        Column {
+                            Text(name, color = NeonName, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold)
+                            Spacer(Modifier.height(4.dp))
+                            Text("LEVEL " + level, color = Color(0xFF2A1450), fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(NeonYellow).padding(horizontal = 10.dp, vertical = 3.dp))
+                        }
+                    }
+                }
+                // one coherent XP bar
+                if (need > 0) item {
+                    Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+                        Row(Modifier.fillMaxWidth()) {
+                            Text("Level " + level + " -> " + (level + 1), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.weight(1f))
+                            Text(into.toString() + " / " + need + " XP to Level " + (level + 1), color = NeonName, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.height(6.dp))
+                        Box(Modifier.fillMaxWidth().height(10.dp).clip(RoundedCornerShape(6.dp)).background(Color(0xFF3A2060))) {
+                            Box(Modifier.fillMaxWidth((into.toFloat() / need).coerceIn(0f, 1f)).fillMaxHeight().clip(RoundedCornerShape(6.dp)).background(NeonYellow))
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        Text("\u26A1 XP: " + xp, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+                // streak pill
+                if (streak > 0) item {
+                    Column(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("\uD83D\uDD25 STREAK " + streak + " \uD83D\uDD25", color = NeonName, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clip(RoundedCornerShape(20.dp)).border(1.dp, NeonYellow, RoundedCornerShape(20.dp)).padding(horizontal = 14.dp, vertical = 5.dp))
+                        Text(streak.toString() + " day streak", color = Muted, fontSize = 12.sp)
+                    }
+                }
+                // badges - only real states
+                item {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(if (verified) "\u2713 VERIFIED" else "! Not yet verified",
+                            color = if (verified) Color(0xFF4ADE80) else Color(0xFFFF6B6B), fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clip(RoundedCornerShape(16.dp)).border(1.dp, if (verified) Color(0xFF4ADE80) else Color(0xFFFF6B6B), RoundedCornerShape(16.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
+                        if (matches == 0) Text("\u2B50 NEW PLAYER", color = NeonName, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clip(RoundedCornerShape(16.dp)).border(1.dp, NeonYellow, RoundedCornerShape(16.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
+                    }
+                }
+                // share stats card
+                item {
+                    Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(12.dp)).background(NeonYellow)
+                        .clickable(enabled = !shareBusy) {
+                            shareBusy = true; shareMsg = null
+                            profScope.launch {
+                                val f = ShareCard.build(Api.ctx)
+                                if (f != null) ShareCard.share(Api.ctx, f) else shareMsg = "Could not build the card - try again."
+                                shareBusy = false
+                            }
+                        }.padding(vertical = 13.dp), contentAlignment = Alignment.Center) {
+                        Text(if (shareBusy) "Drawing your card..." else "\u2728 SHARE MY STATS CARD", color = Color(0xFF2A1450), fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+                    }
+                    shareMsg?.let { Text(it, color = ErrRed, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp)) }
+                }
+                // matches / wins tiles
+                item {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        listOf("\uD83C\uDFAF" to ("MATCHES" to matches), "\uD83C\uDFC6" to ("WINS" to wins)).forEach { (emoji, kv) ->
+                            Column(Modifier.weight(1f).clip(RoundedCornerShape(16.dp)).background(NeonCard).border(1.dp, NeonBorder, RoundedCornerShape(16.dp)).padding(14.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) { Text(emoji, fontSize = 18.sp); Spacer(Modifier.width(6.dp)); Text(kv.first, color = NeonName, fontSize = 14.sp, fontWeight = FontWeight.Bold) }
+                                Text(kv.second.toString(), color = NeonName, fontSize = 44.sp, fontWeight = FontWeight.ExtraBold)
+                            }
+                        }
+                    }
+                }
+                // game stats rings
+                item {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(16.dp)).background(NeonCard).border(1.dp, NeonBorder, RoundedCornerShape(16.dp)).padding(14.dp)) {
+                        Text("\uD83C\uDFAE YOUR GAME STATS", color = NeonName, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(8.dp))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                            NeonRing(if (qa > 0) qc.toFloat() / qa else null, "QUIZZES", qc.toString() + "/" + qa.toString() + " correct", "\uD83C\uDFB4")
+                            NeonRing(null, "SPINS", spins.toString() + (if (spins == 1) " spin" else " spins"), "\uD83C\uDFB2")
+                            NeonRing(null, "STREAK", streak.toString() + (if (streak == 1) " day" else " days"), "\uD83D\uDEE1\uFE0F")
+                        }
+                    }
+                }
+                // account details
+                item {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(16.dp)).background(NeonCard).border(1.dp, NeonBorder, RoundedCornerShape(16.dp)).padding(14.dp)) {
+                        Text("ACCOUNT DETAILS", color = NeonName, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(6.dp))
+                        @Composable fun drow(k: String, v: String?) { if (!v.isNullOrBlank() && v != "null") Text(k + ": " + v, color = Color.White, fontSize = 14.sp, modifier = Modifier.padding(vertical = 2.dp)) }
+                        drow("Username", p?.s("username"))
+                        drow("Free Fire UID", p?.s("ff_uid"))
+                        drow("Rank", p?.s("ff_rank"))
+                    }
+                }
+                // phone verification pending card (real flow, kept)
+                if (p != null && p.s("phone").isNotBlank() && !p.optBoolean("phone_verified")) {
+                    item {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(16.dp)).background(NeonCard).border(1.dp, NeonBorder, RoundedCornerShape(16.dp)).padding(14.dp)) {
+                            val clipboard = LocalClipboardManager.current
+                            var copied by remember { mutableStateOf(false) }
+                            Text("PHONE VERIFICATION PENDING", color = NeonName, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Spacer(Modifier.height(6.dp))
+                            Text("Send this code to the owner on Instagram @ud_speed. Once confirmed, squad registration opens for you.", color = Muted, fontSize = 13.sp)
+                            Spacer(Modifier.height(8.dp))
+                            Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(Color(0x55000000))
+                                .clickable { clipboard.setText(AnnotatedString(p.s("phone_code"))); copied = true }.padding(12.dp), contentAlignment = Alignment.Center) {
+                                Text(p.s("phone_code", "------"), color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 6.sp, textAlign = TextAlign.Center)
+                            }
+                            Text(if (copied) "Copied" else "Tap the code to copy it", color = Muted, fontSize = 12.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                        }
+                    }
+                }
+                // logout - outlined per mockup
+                item {
+                    Spacer(Modifier.height(10.dp))
+                    Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp).clip(RoundedCornerShape(12.dp)).border(2.dp, NeonYellow, RoundedCornerShape(12.dp))
+                        .clickable { onLogout() }.padding(vertical = 13.dp), contentAlignment = Alignment.Center) {
+                        Text("LOG OUT", color = NeonName, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileScreenClassic(onLogout: () -> Unit, onBack: (() -> Unit)? = null, onSwitchToNew: (() -> Unit)? = null) {
     val clipboard = LocalClipboardManager.current
     var copied by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize()) {
         if (onBack != null) PageHeader("Profile", "Your account", onBack) else Brand()
+        if (onSwitchToNew != null) Text("Switch to the new look", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 20.dp).clip(RoundedCornerShape(6.dp)).clickable { onSwitchToNew() }.padding(6.dp))
         var shareBusy by remember { mutableStateOf(false) }
         var shareMsg by remember { mutableStateOf<String?>(null) }
         val profScope = rememberCoroutineScope()

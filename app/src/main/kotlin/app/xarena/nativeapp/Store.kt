@@ -26,7 +26,7 @@ private suspend fun loadStore(): StoreData {
         val b = Api.authedRpc("points_balance", JSONObject())
         if (b.optBoolean("ok")) b.optInt("balance") else null
     } catch (e: Exception) { null }
-    val catalog = try { Api.publicGet("/rest/v1/rewards_catalog?active=eq.true&select=id,title,description,cost,kind&order=sort.asc,cost.asc") } catch (e: Exception) { JSONArray() }
+    val catalog = try { Api.publicGet("/rest/v1/rewards_catalog?active=eq.true&select=id,title,description,cost,kind,image_url,logo_url&order=sort.asc,cost.asc") } catch (e: Exception) { JSONArray() }
     val mine = try { Api.authedRpc("my_redemptions", JSONObject()).optJSONArray("rows") ?: JSONArray() } catch (e: Exception) { JSONArray() }
     val xp = try {
         val g = Api.authedRpc("my_game_stats", JSONObject())
@@ -36,6 +36,8 @@ private suspend fun loadStore(): StoreData {
 }
 
 private fun kindLabel(k: String) = when (k) {
+    "avatar" -> "AVATAR"
+    "team_logo" -> "TEAM LOGO"
     "avatar_frame" -> "AVATAR FRAME"
     "name_badge" -> "NAME BADGE"
     "title" -> "TITLE"
@@ -66,7 +68,7 @@ fun StoreScreen(onBack: (() -> Unit)? = null) {
                     EmptyNote("Catalog opens soon", "The owner is adding real rewards. Keep stacking XP - every check-in, spin and quiz win counts. XP is never cash.")
                 }
                 item {
-                    val tabs = listOf("All", "Avatar Frames", "Name Badges", "Titles")
+                    val tabs = listOf("All", "Avatars", "Team Logos", "Avatar Frames", "Name Badges", "Titles")
                     Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
                         tabs.forEach { t ->
                             val on = tab == t
@@ -77,7 +79,7 @@ fun StoreScreen(onBack: (() -> Unit)? = null) {
                         }
                     }
                 }
-                val tabKinds = mapOf("Avatar Frames" to "avatar_frame", "Name Badges" to "name_badge", "Titles" to "title")
+                val tabKinds = mapOf("Avatars" to "avatar", "Team Logos" to "team_logo", "Avatar Frames" to "avatar_frame", "Name Badges" to "name_badge", "Titles" to "title")
                 val shownItems = (0 until d.catalog.length()).map { d.catalog.getJSONObject(it) }
                     .filter { tab == "All" || it.s("kind") == tabKinds[tab] }
                 if (d.catalog.length() > 0 && shownItems.isEmpty()) item {
@@ -86,6 +88,13 @@ fun StoreScreen(onBack: (() -> Unit)? = null) {
                 items(shownItems) { it ->
                     PanelCard {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            val img = it.s("image_url").ifBlank { it.s("logo_url") }
+                            if (img.isNotBlank()) {
+                                coil.compose.AsyncImage(model = xrImageModel(Api.ctx, img), contentDescription = it.s("title"),
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                    modifier = Modifier.size(56.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF2A1450)))
+                                Spacer(Modifier.width(10.dp))
+                            }
                             Column(Modifier.weight(1f)) {
                                 Text(kindLabel(it.s("kind")), color = Gold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 Text(it.s("title"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
