@@ -1,12 +1,12 @@
 {
-  "versionCode": 37,
-  "versionName": "0.16.2-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.2-native/xarena-native.apk",
-  "sha256": "c778599e613eca47f84c012b3086813497452febfc4c3cb70f84690e4fe3004b",
-  "notes": "Quick updates fixed for real (873 KB this time). Create your squad, captain tools with team logo, squad logos, Live video fixes, true update size shown.",
+  "versionCode": 38,
+  "versionName": "0.16.3-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.3-native/xarena-native.apk",
+  "sha256": "e41aa8432374d5a5add41382ec9f10f2fa6b35231aaab494e132e9081dadbeea",
+  "notes": "Squad Logo Store: 40 original logos in 4 tiers, bought with AP (never cash). Captains buy once and set the team logo. Gallery logo upload removed - store only. Squad join/disband fixes.",
   "patch": {
-    "from": 36,
-    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.2-native/xarena-native-36to37.patch",
-    "sha256": "165c881e511eb1acbc148376fee9d8c1cf84de633ff14b941c1711f899da8632"
+    "from": 37,
+    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.3-native/xarena-native-37to38.patch",
+    "sha256": "8fec19cb58fa5d04a4462dd56f9895ae18945e1316d2f0ac7458cff337f66a2a"
   }
 }
