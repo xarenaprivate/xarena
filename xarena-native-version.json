@@ -1,52 +1,52 @@
 {
- "versionCode": 50,
- "versionName": "0.17.5-native",
- "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.5-native/xarena-native.apk",
- "sha256": "ebcf4745c064ecebce28d4d1ec470ab3be8cab40c563fe695de7d01869c01415",
- "apkBytes": 31637959,
- "notes": "Fix: Leaderboard revamp: 4 scope tabs, top-3 mockup cards, auto location, Nearby Rival challenges, My Ranks, EXP/AP header.",
+ "versionCode": 51,
+ "versionName": "0.17.6-native",
+ "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.6-native/xarena-native.apk",
+ "sha256": "be33ca593e03476aea1cc4013a0258599285fd806ac0fbd73f8384734e31f8d3",
+ "apkBytes": 31703495,
+ "notes": "Fix: All-8 feature batch: missions v2, season pass, squad wars+board, weekly clip, scrim finder, share card, report player, match reminders.",
  "patches": [
   {
-   "from": 44,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.5-native/p44to50.patch",
-   "sha256": "3f7f18edc56878391838a7eb627e295353d0b87a138ca25f9bc1d07fcadc454a",
-   "bytes": 1013686
-  },
-  {
    "from": 45,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.5-native/p45to50.patch",
-   "sha256": "bc9f3477cdd493a5a401c67bdaa6f8ba2c65c116f8f10ad9f15acedd1769e1b5",
-   "bytes": 1012964
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.6-native/p45to51.patch",
+   "sha256": "4683eb6611d54546c6493b9566bdb6ed6248dfa37ce67aa93230eaecd552f5a6",
+   "bytes": 1074601
   },
   {
    "from": 46,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.5-native/p46to50.patch",
-   "sha256": "383da6b6ff999aed8c6c51330b7359c666d2dbb783dfaec1e852b4c233d61f7e",
-   "bytes": 1013790
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.6-native/p46to51.patch",
+   "sha256": "952ebbbb155e41f1ae04c5bb56087466e5414244f070b388c849dfdb0e035e00",
+   "bytes": 1075846
   },
   {
    "from": 47,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.5-native/p47to50.patch",
-   "sha256": "f25e217d0a639a7ee60b65dd344518784be9404505c257e06a6d50595b8bc70d",
-   "bytes": 1013034
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.6-native/p47to51.patch",
+   "sha256": "f18490ab2b6c4d6895374d562c4bb329ad6c84dc9c5972377d4261dd1e5bedba",
+   "bytes": 1075135
   },
   {
    "from": 48,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.5-native/p48to50.patch",
-   "sha256": "9e923b5783ec4aa03d9f56eabdbae79100a25312b4763dbc3abf2cd84329e3e6",
-   "bytes": 1012802
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.6-native/p48to51.patch",
+   "sha256": "c0d9249ccb11479b1ca92ad930ab0c655a35523483dfbb45c5841b8e53077563",
+   "bytes": 1075105
   },
   {
    "from": 49,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.5-native/p49to50.patch",
-   "sha256": "bf60ef6ffbc4b23756ed08e7f97db6badd0b930226356475e75e97311c38b259",
-   "bytes": 1011875
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.6-native/p49to51.patch",
+   "sha256": "b27eb8c398aa38044a106aadc7839f95c2150f2cbaf69c0654e9a1adb3ba2ecc",
+   "bytes": 1076204
+  },
+  {
+   "from": 50,
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.6-native/p50to51.patch",
+   "sha256": "b7f9ade37210fd83401d07677f4d1ed4d176b58ca3b0a22626b13198a8b0d4af",
+   "bytes": 1073881
   }
  ],
  "patch": {
-  "from": 49,
-  "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.5-native/p49to50.patch",
-  "sha256": "bf60ef6ffbc4b23756ed08e7f97db6badd0b930226356475e75e97311c38b259",
-  "bytes": 1011875
+  "from": 50,
+  "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.6-native/p50to51.patch",
+  "sha256": "b7f9ade37210fd83401d07677f4d1ed4d176b58ca3b0a22626b13198a8b0d4af",
+  "bytes": 1073881
  }
 }
