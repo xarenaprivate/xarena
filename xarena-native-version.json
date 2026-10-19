@@ -1,6 +1,6 @@
 {
-  "versionCode": 20,
-  "versionName": "0.13.4",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.13.4-native/xarena-native.apk",
-  "notes": "Leaderboard, restyled: medal top 3, tier chips from Bronze to Grandmaster, player search, and your own rank pinned at the bottom."
+  "versionCode": 21,
+  "versionName": "0.13.5",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.13.5-native/xarena-native.apk",
+  "notes": "Store fixed: your balance is AP (spendable), XP shown separately as rank-only, plus shelf tabs - All, Avatar Frames, Name Badges, Titles."
 }
