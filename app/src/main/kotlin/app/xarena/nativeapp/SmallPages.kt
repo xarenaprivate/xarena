@@ -133,6 +133,34 @@ fun StreakScreen(onBack: () -> Unit) {
                     scope.launch { try { Api.authedRpc("daily_checkin", JSONObject()); tick++ } catch (e: Exception) { } }
                 }
             }
+            val weekDay = if (streak <= 0) 0 else ((streak - 1) % 7) + 1
+            SmallCard {
+                Text("DAILY LOGIN STREAK", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally))
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    for (d in 1..7) {
+                        val on = d <= weekDay
+                        Box(Modifier.size(34.dp).clip(RoundedCornerShape(17.dp))
+                            .background(if (on) Gold else Color(0x22FFFFFF)),
+                            contentAlignment = Alignment.Center) {
+                            Text(if (on) "✓" else d.toString(), color = if (on) Ink else Muted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(if (streak > 0) "Day " + minOf(streak, 7) + " of this streak" + (if (streak > 7) " - day " + streak + " total" else "") else "Check in today to start day 1",
+                    color = Gold2, fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
+                val milestones = listOf(Triple("streak_3", 3, "Warming Up"), Triple("streak_7", 7, "On Fire"), Triple("streak_30", 30, "Unstoppable"))
+                val next = milestones.firstOrNull { !has(it.first) }
+                if (next != null) {
+                    Spacer(Modifier.height(8.dp))
+                    Text("Next badge: " + next.third + " at " + next.second + " days", color = Color.White, fontSize = 12.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
+                    Spacer(Modifier.height(6.dp))
+                    Box(Modifier.fillMaxWidth().height(9.dp).clip(RoundedCornerShape(6.dp)).background(Color(0x22FFFFFF))) {
+                        Box(Modifier.fillMaxWidth((streak.toFloat() / next.second).coerceIn(0f, 1f)).fillMaxHeight().background(Gold))
+                    }
+                }
+            }
             Text("BADGES", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(16.dp))
             listOf(Triple("streak_3", 3, "Warming Up"), Triple("streak_7", 7, "On Fire"), Triple("streak_30", 30, "Unstoppable")).forEach { (k, d, n) ->
                 SmallCard {
@@ -215,8 +243,11 @@ fun AcademyScreen(onBack: () -> Unit) {
     val prefs = remember { Api.ctx.getSharedPreferences("xr_academy", 0) }
     var doneTick by remember { mutableIntStateOf(0) }
     var cat by remember { mutableStateOf("All") }
+    var q by remember { mutableStateOf("") }
     Column(Modifier.fillMaxSize().background(Ink)) {
         PageHeader("Academy", "Training drills - progress saves on this device", onBack)
+        OutlinedTextField(q, { q = it }, placeholder = { Text("Search drills") }, singleLine = true,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp))
         val cats = listOf("All") + (0 until drills.length()).map { drills.getJSONObject(it).getString("cat") }.distinct()
         Row(Modifier.padding(horizontal = 16.dp)) {
             cats.forEach { c ->
@@ -226,7 +257,7 @@ fun AcademyScreen(onBack: () -> Unit) {
         }
         Spacer(Modifier.height(6.dp))
         LazyColumn {
-            items((0 until drills.length()).map { drills.getJSONObject(it) }.filter { cat == "All" || it.getString("cat") == cat }) { d ->
+            items((0 until drills.length()).map { drills.getJSONObject(it) }.filter { (cat == "All" || it.getString("cat") == cat) && (q.isBlank() || it.getString("title").contains(q.trim(), true)) }) { d ->
                 val done = prefs.getBoolean(d.getString("id"), false); doneTick.let { }
                 SmallCard {
                     var open by remember { mutableStateOf(false) }
