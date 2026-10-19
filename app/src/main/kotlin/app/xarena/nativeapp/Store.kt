@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
-private data class StoreData(val balance: Int?, val catalog: JSONArray, val mine: JSONArray)
+private data class StoreData(val balance: Int?, val xp: Int?, val catalog: JSONArray, val mine: JSONArray)
 
 private suspend fun loadStore(): StoreData {
     val balance = try {
@@ -28,7 +28,11 @@ private suspend fun loadStore(): StoreData {
     } catch (e: Exception) { null }
     val catalog = try { Api.publicGet("/rest/v1/rewards_catalog?active=eq.true&select=id,title,description,cost,kind&order=sort.asc,cost.asc") } catch (e: Exception) { JSONArray() }
     val mine = try { Api.authedRpc("my_redemptions", JSONObject()).optJSONArray("rows") ?: JSONArray() } catch (e: Exception) { JSONArray() }
-    return StoreData(balance, catalog, mine)
+    val xp = try {
+        val g = Api.authedRpc("my_game_stats", JSONObject())
+        if (g.optBoolean("ok")) g.optInt("xp") else null
+    } catch (e: Exception) { null }
+    return StoreData(balance, xp, catalog, mine)
 }
 
 private fun kindLabel(k: String) = when (k) {
@@ -38,12 +42,13 @@ private fun kindLabel(k: String) = when (k) {
     else -> "REWARD"
 }
 
-/** XP Rewards Store - real catalog + real balance, claims go to the owner for review. XP is never cash. */
+/** Rewards Store - AP (Arena Points) are spendable here; XP is rank-only and shown read-only. Claims go to the owner for review. */
 @Composable
 fun StoreScreen() {
     val scope = rememberCoroutineScope()
     var notice by remember { mutableStateOf<String?>(null) }
     var claiming by remember { mutableStateOf<Long?>(null) }
+    var tab by remember { mutableStateOf("All") }
     Column(Modifier.fillMaxSize()) {
         Brand()
         LoadState({ loadStore() }) { d ->
@@ -51,15 +56,34 @@ fun StoreScreen() {
                 item {
                     PanelCard {
                         Text("FREE - NO CASH", color = Color(0xFF4ADE80), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        Text("YOUR XP BALANCE", color = Muted, fontSize = 11.sp)
-                        Text(d.balance?.let { "$it XP" } ?: "-", color = Gold2, fontSize = 28.sp, fontWeight = FontWeight.Black)
-                        Text("Earn more XP by completing matches and quests. The owner reviews every claim.", color = Muted, fontSize = 12.sp)
+                        Text("YOUR AP BALANCE", color = Muted, fontSize = 11.sp)
+                        Text(d.balance?.let { "$it AP" } ?: "-", color = Gold2, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                        Text("Arena Points are spendable here. Earn them with check-ins, spins and quiz wins. The owner reviews every claim.", color = Muted, fontSize = 12.sp)
+                        if (d.xp != null) Text("Your XP: " + d.xp + " - rank points, not spendable", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
                     }
                 }
                 if (d.catalog.length() == 0) item {
                     EmptyNote("Catalog opens soon", "The owner is adding real rewards. Keep stacking XP - every check-in, spin and quiz win counts. XP is never cash.")
                 }
-                items((0 until d.catalog.length()).map { d.catalog.getJSONObject(it) }) { it ->
+                item {
+                    val tabs = listOf("All", "Avatar Frames", "Name Badges", "Titles")
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)) {
+                        tabs.forEach { t ->
+                            val on = tab == t
+                            Text(t, color = if (on) Ink else Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 4.dp).clip(RoundedCornerShape(8.dp))
+                                    .background(if (on) Gold else Color(0x22FFFFFF))
+                                    .clickable { tab = t }.padding(horizontal = 10.dp, vertical = 6.dp))
+                        }
+                    }
+                }
+                val tabKinds = mapOf("Avatar Frames" to "avatar_frame", "Name Badges" to "name_badge", "Titles" to "title")
+                val shownItems = (0 until d.catalog.length()).map { d.catalog.getJSONObject(it) }
+                    .filter { tab == "All" || it.optString("kind") == tabKinds[tab] }
+                if (d.catalog.length() > 0 && shownItems.isEmpty()) item {
+                    Text("Nothing in this shelf yet.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+                }
+                items(shownItems) { it ->
                     PanelCard {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
@@ -69,7 +93,7 @@ fun StoreScreen() {
                             }
                             Spacer(Modifier.width(10.dp))
                             Column(horizontalAlignment = Alignment.End) {
-                                Text(it.optInt("cost").toString() + " XP", color = Gold2, fontWeight = FontWeight.Bold)
+                                Text(it.optInt("cost").toString() + " AP", color = Gold2, fontWeight = FontWeight.Bold)
                                 Spacer(Modifier.height(6.dp))
                                 val canAfford = d.balance != null && d.balance >= it.optInt("cost")
                                 Text(if (claiming == it.optLong("id")) "SENDING..." else "CLAIM",
@@ -82,7 +106,7 @@ fun StoreScreen() {
                                             scope.launch {
                                                 try {
                                                     val r = Api.authedRpc("redeem_reward", JSONObject().put("p_item", it.optLong("id")))
-                                                    notice = if (r.optBoolean("ok")) "Claim sent! The owner will review it. New balance: " + r.optInt("balance") + " XP."
+                                                    notice = if (r.optBoolean("ok")) "Claim sent! The owner will review it. New balance: " + r.optInt("balance") + " AP."
                                                     else r.optString("error").ifBlank { "Could not claim right now." }
                                                 } catch (e: Exception) { notice = e.message ?: "Network error - try again." }
                                                 claiming = null
