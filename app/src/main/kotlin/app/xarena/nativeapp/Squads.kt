@@ -1,6 +1,7 @@
 package app.xarena.nativeapp
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -257,30 +258,9 @@ private fun RequestCreatorCard(onDone: (String) -> Unit) {
 private fun CaptainManageCard(squadId: String, onDone: (String) -> Unit) {
     val scope = rememberCoroutineScope()
     var invite by remember { mutableStateOf("") }
-    var showGallery by remember { mutableStateOf(false) }
-    var busy by remember { mutableStateOf(false) }
-    if (showGallery) {
-        GallerySheet(emptyList(), onPick = { uri ->
-            showGallery = false; busy = true
-            scope.launch {
-                try {
-                    val cr = Api.ctx.contentResolver
-                    val bytes = withContext(Dispatchers.IO) { cr.openInputStream(uri)!!.use { it.readBytes() } }
-                    if (bytes.size > 8 * 1024 * 1024) throw Exception("Image too large (max 8 MB).")
-                    var bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: throw Exception("Pick an image file (PNG or JPG).")
-                    if (maxOf(bmp.width, bmp.height) > 512) {
-                        val f = 512f / maxOf(bmp.width, bmp.height)
-                        bmp = android.graphics.Bitmap.createScaledBitmap(bmp, Math.round(bmp.width * f), Math.round(bmp.height * f), true)
-                    }
-                    val baos = java.io.ByteArrayOutputStream()
-                    bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, 80, baos)
-                    val url = Api.cloudinaryUpload(baos.toByteArray())
-                    val r = Api.authedRpc("set_squad_logo", JSONObject().put("p_squad", squadId).put("p_logo", url))
-                    onDone(if (r.optBoolean("ok")) "Team logo saved." else r.s("error").ifBlank { "Could not save the logo." })
-                } catch (e: Exception) { onDone(e.message ?: "Could not save the logo.") }
-                busy = false
-            }
-        }, onConfirm = { showGallery = false }, onCancel = { showGallery = false })
+    var showShop by remember { mutableStateOf(false) }
+    if (showShop) {
+        LogoStoreSheet(squadId, onDone = { msg -> if (msg != null) onDone(msg) }, onClose = { showShop = false })
     }
     PanelCard {
         Text("Captain tools", color = Gold, fontWeight = FontWeight.Bold, fontSize = 15.sp)
@@ -302,8 +282,8 @@ private fun CaptainManageCard(squadId: String, onDone: (String) -> Unit) {
                 }.padding(horizontal = 14.dp, vertical = 10.dp))
         }
         Spacer(Modifier.height(8.dp))
-        Text(if (busy) "Uploading logo..." else "Change team logo", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
-            modifier = Modifier.clickable { if (!busy) showGallery = true }.padding(vertical = 6.dp))
+        Text("Team logo (store)", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.clickable { showShop = true }.padding(vertical = 6.dp))
         Spacer(Modifier.height(4.dp))
         Row {
             Text("Leave squad", color = Muted, fontSize = 13.sp,
@@ -325,6 +305,97 @@ private fun CaptainManageCard(squadId: String, onDone: (String) -> Unit) {
                         } catch (e: Exception) { onDone(e.message ?: "Could not disband.") }
                     }
                 }.padding(vertical = 6.dp))
+        }
+    }
+}
+
+private val TIER_COLORS = mapOf("common" to Color(0xFF9AA4B2), "rare" to Color(0xFF38BDF8), "epic" to Color(0xFFA78BFA), "legendary" to Color(0xFFFFD700))
+
+private data class LogoShopData(val catalog: JSONArray, val owned: Set<String>, val balance: Int?)
+
+private suspend fun loadLogoShop(): LogoShopData {
+    val catalog = Api.publicGet("/rest/v1/squad_logos?active=eq.true&select=id,title,image_url,tier,cost_ap,sort&order=sort.asc")
+    val owned = HashSet<String>()
+    var balance: Int? = null
+    try {
+        val r = Api.authedRpc("my_squad_logos", JSONObject())
+        val arr = r.optJSONArray("logos") ?: JSONArray()
+        for (i in 0 until arr.length()) owned.add(arr.getJSONObject(i).s("id"))
+    } catch (e: Exception) { }
+    try {
+        val b = Api.authedRpc("points_balance", JSONObject())
+        if (b.optBoolean("ok")) balance = b.optInt("balance")
+    } catch (e: Exception) { }
+    return LogoShopData(catalog, owned, balance)
+}
+
+@Composable
+private fun LogoStoreSheet(squadId: String, onDone: (String?) -> Unit, onClose: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var tick by remember { mutableIntStateOf(0) }
+    var busy by remember { mutableStateOf(false) }
+    var msg by remember { mutableStateOf<String?>(null) }
+    androidx.compose.ui.window.Dialog(onDismissRequest = { if (!busy) onClose() },
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        Column(Modifier.fillMaxSize().background(Ink).padding(horizontal = 12.dp, vertical = 10.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Squad Logo Store", color = Gold2, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                Text("Close", color = Muted, fontSize = 14.sp, modifier = Modifier.clickable { if (!busy) onClose() }.padding(10.dp))
+            }
+            LoadState2(tick, { loadLogoShop() }) { d ->
+                if (d == null || d.catalog.length() == 0) {
+                    Text("The logo store is being stocked - check back soon.", color = Muted, fontSize = 14.sp)
+                } else {
+                    Text("Your AP: " + (d.balance?.toString() ?: "-") + "  •  Buy once, keep forever. AP only, never cash.",
+                        color = Muted, fontSize = 12.sp)
+                    msg?.let { Text(it, color = ErrRed, fontSize = 12.sp) }
+                    Spacer(Modifier.height(8.dp))
+                    androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                        columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(d.catalog.length()) { i ->
+                            val l = d.catalog.getJSONObject(i)
+                            val id = l.s("id")
+                            val tier = l.s("tier")
+                            val owned = d.owned.contains(id)
+                            val afford = d.balance != null && d.balance >= l.optInt("cost_ap")
+                            val tcol = TIER_COLORS[tier] ?: Muted
+                            Column(Modifier.clip(RoundedCornerShape(10.dp)).background(Card)
+                                .border(1.5.dp, tcol, RoundedCornerShape(10.dp))
+                                .clickable(enabled = !busy) {
+                                    if (busy) return@clickable
+                                    if (!owned && d.balance == null) { msg = "Log in to buy logos."; return@clickable }
+                                    if (!owned && !afford) { msg = "Not enough AP for " + l.s("title") + " (" + l.optInt("cost_ap") + " AP)."; return@clickable }
+                                    busy = true; msg = null
+                                    scope.launch {
+                                        try {
+                                            if (!owned) {
+                                                val r = Api.authedRpc("buy_squad_logo", JSONObject().put("p_logo", id))
+                                                if (!r.optBoolean("ok")) { msg = r.s("error").ifBlank { "Could not buy this logo." }; busy = false; return@launch }
+                                            }
+                                            val e = Api.authedRpc("equip_squad_logo", JSONObject().put("p_squad", squadId).put("p_logo", id))
+                                            if (e.optBoolean("ok")) { onDone("Team logo set: " + l.s("title")); onClose() }
+                                            else { msg = e.s("error").ifBlank { "Could not set the logo." } }
+                                        } catch (ex: Exception) { msg = ex.message }
+                                        busy = false
+                                    }
+                                }.padding(8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally) {
+                                AsyncImage(model = l.s("image_url"), contentDescription = l.s("title"), contentScale = ContentScale.Fit,
+                                    modifier = Modifier.size(64.dp))
+                                Spacer(Modifier.height(4.dp))
+                                Text(l.s("title"), color = Color.White, fontSize = 11.sp, maxLines = 1)
+                                Text(if (owned) "OWNED - tap to use" else l.optInt("cost_ap").toString() + " AP",
+                                    color = if (owned) Color(0xFF8FF0B8) else (if (afford) Gold else Muted), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text(tier.uppercase(), color = tcol, fontSize = 9.sp)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
