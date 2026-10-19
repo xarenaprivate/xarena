@@ -1,6 +1,6 @@
 {
-  "versionCode": 18,
-  "versionName": "0.13.2",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.13.2-native/xarena-native.apk",
+  "versionCode": 19,
+  "versionName": "0.13.3",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.13.3-native/xarena-native.apk",
   "notes": "Push notifications are live (FCM). Plus Verification, Team Roles, Champions, Sponsors, Ping Check, Refer & Earn."
 }
