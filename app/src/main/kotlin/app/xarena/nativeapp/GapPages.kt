@@ -536,7 +536,7 @@ fun WinnerScreen(onBack: () -> Unit) {
 @Composable
 fun SponsorsScreen(onBack: () -> Unit) {
     var tick by remember { mutableIntStateOf(0) }
-    LoadState2(tick, { Api.publicGet("/rest/v1/sponsors?select=name,tier,url&active=eq.true&order=id.asc") }) { rows ->
+    LoadState2(tick, { Api.publicGet("/rest/v1/sponsors_wall?select=name,tier,url,image_url&order=id.asc") }) { rows ->
         LazyColumn(Modifier.fillMaxSize()) {
             item { PageHeader("Sponsor Wall", "Proudly supporting the community", onBack) }
             item {
@@ -556,6 +556,12 @@ fun SponsorsScreen(onBack: () -> Unit) {
                         val sp = rows.getJSONObject(it)
                         Spacer(Modifier.height(8.dp))
                         SmallCard {
+                            sp.optString("image_url").takeIf { u -> u.isNotBlank() && u.startsWith("https://") }?.let { img ->
+                                coil.compose.AsyncImage(model = img, contentDescription = sp.optString("name"),
+                                    modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(10.dp)).background(Look.cardBorder),
+                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+                                Spacer(Modifier.height(8.dp))
+                            }
                             Text(sp.optString("name"), color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             Text((sp.optString("tier").ifBlank { "partner" }) + " Partner", color = Muted, fontSize = 12.sp)
                             sp.optString("url").takeIf { u -> u.isNotBlank() }?.let { u ->
