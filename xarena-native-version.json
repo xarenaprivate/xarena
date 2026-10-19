@@ -1,12 +1,45 @@
 {
-  "versionCode": 41,
-  "versionName": "0.16.6-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.6-native/xarena-native.apk",
-  "sha256": "87568d7903c7bae42497f99f1239534017f30f5791b79ff1dabfa0fe868e7b11",
-  "notes": "Push notifications now register: log in once on this version and your device can receive XARENA alerts.",
+  "versionCode": 42,
+  "versionName": "0.16.7-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.7-native/xarena-native.apk",
+  "sha256": "5a50406095fb11f85441f596c873ce146cda99d96654e211b99656383676a6f1",
+  "apkBytes": 31539655,
+  "notes": "Updates stay small even if you skip versions - this one downloads under 1 MB from any recent version.",
+  "patches": [
+    {
+      "from": 37,
+      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.7-native/xarena-native-37to42.patch",
+      "sha256": "ec64134b95436a3539a9ceff086c8e7f413abd4d513d7df8b75faf339bd3e7ea",
+      "bytes": 907551
+    },
+    {
+      "from": 38,
+      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.7-native/xarena-native-38to42.patch",
+      "sha256": "d581023e3d386eb313cb232c1a4b7ca242a7811c96eca50604921889c52f4700",
+      "bytes": 903864
+    },
+    {
+      "from": 39,
+      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.7-native/xarena-native-39to42.patch",
+      "sha256": "b66125c0e21f68683e0b2542f9dcf0c94bde7f0c8f23d8452384360e6207c08a",
+      "bytes": 904718
+    },
+    {
+      "from": 40,
+      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.7-native/xarena-native-40to42.patch",
+      "sha256": "463a45c701c2003173047f31e8cdbdd3b2d68739766d9fb5512ca74abc9da605",
+      "bytes": 897521
+    },
+    {
+      "from": 41,
+      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.7-native/xarena-native-41to42.patch",
+      "sha256": "4dac4780fc077be6b6e6d9deb47d168a6ab0484801ee644ec9aa4beb5f0f6cc7",
+      "bytes": 896277
+    }
+  ],
   "patch": {
-    "from": 40,
-    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.6-native/xarena-native-40to41.patch",
-    "sha256": "3aaaf7cdae8c4ad0c863c0433a6f6aa798c78e4da6cdb5d75a0c9b961a8a73b9"
+    "from": 41,
+    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.7-native/xarena-native-41to42.patch",
+    "sha256": "4dac4780fc077be6b6e6d9deb47d168a6ab0484801ee644ec9aa4beb5f0f6cc7"
   }
 }
