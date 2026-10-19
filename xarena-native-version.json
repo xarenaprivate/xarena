@@ -1,7 +1,12 @@
 {
-  "versionCode": 34,
-  "versionName": "0.15.4-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.15.4-native/xarena-native.apk",
-  "sha256": "673781be51dc111ba9d101aa54da991276f9593dbcb6dadc98f0745f22e5a616",
-  "notes": "In-app updates: download with progress, resume, verified install - no browser needed."
+  "versionCode": 35,
+  "versionName": "0.16.0-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.0-native/xarena-native.apk",
+  "sha256": "f75ec6a9d8f01c3371ecea24132e90d0929cc423c6099e68031bc78f4f7793f1",
+  "notes": "Smaller delta updates, AP tournament entry, Play (spin + quizzes).",
+  "patch": {
+    "from": 34,
+    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.0-native/xarena-native-34to35.patch",
+    "sha256": "5bf3500e176a8dc6f783847f45477ab6768153ddc3e3bb0565247e09ffe254cc"
+  }
 }
