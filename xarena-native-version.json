@@ -1,6 +1,6 @@
 {
-  "versionCode": 30,
-  "versionName": "0.15.0-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.15.0-native/xarena-native.apk",
-  "notes": "Voice Lobby (P2P voice). Untested audio on device - fallback v0.14.3 if problems."
+  "versionCode": 31,
+  "versionName": "0.15.1-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.15.1-native/xarena-native.apk",
+  "notes": "Bottom bar: Home | Feed | Live | Voice | Tournaments | Board | More. Chat/Luna/Squads/Store/Profile in More. Voice audio untested on device."
 }
