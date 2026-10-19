@@ -378,6 +378,18 @@ fun HomeShell(onLogout: () -> Unit) {
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("XARENA", color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            var hdrExp by remember { mutableStateOf<Int?>(null) }
+            var hdrAp by remember { mutableStateOf<Int?>(null) }
+            LaunchedEffect(Unit) {
+                runCatching {
+                    val h = Api.authedRpc("my_header", JSONObject())
+                    if (h.optBoolean("ok")) { hdrExp = h.optInt("exp"); hdrAp = h.optInt("ap") }
+                }
+            }
+            if (hdrExp != null) Text("EXP " + hdrExp, color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(end = 4.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, Gold, RoundedCornerShape(8.dp)).padding(horizontal = 6.dp, vertical = 3.dp))
+            if (hdrAp != null) Text("AP " + hdrAp, color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(end = 4.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, Gold, RoundedCornerShape(8.dp)).padding(horizontal = 6.dp, vertical = 3.dp))
             Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { feature = "messages" }.padding(8.dp)) {
                 Icon(Icons.Default.Email, contentDescription = "Messages", tint = Gold, modifier = Modifier.size(20.dp))
                 if (msgBadge > 0) Text(msgBadge.toString(), color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold,
@@ -516,71 +528,6 @@ fun TournamentsScreen() {
                         color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             } }
-        }
-    }
-}
-
-@Composable
-fun LeaderboardScreen() {
-    var tick by remember { mutableIntStateOf(0) }
-    var query by remember { mutableStateOf("") }
-    LoadState2(tick, {
-        val rows = Api.publicRpc("leaderboard_nova", JSONObject()).optJSONArray("rows") ?: JSONArray()
-        val mine = runCatching { Api.authedRpc("my_rank_nova", JSONObject()) }.getOrNull()
-        rows to mine
-    }) { (rows, mine) ->
-        Column(Modifier.fillMaxSize()) {
-            Brand()
-            OutlinedTextField(query, { query = it }, placeholder = { Text("Search a player by name") },
-                singleLine = true, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp))
-            LazyColumn(Modifier.weight(1f)) {
-                val all = (0 until rows.length()).map { rows.getJSONObject(it) }
-                val shown = all.filter { query.isBlank() || it.s("name").contains(query.trim(), true) }
-                if (shown.isEmpty()) item { EmptyNote(if (all.isEmpty()) "No XP earned yet" else "No player matches " + query.trim(),
-                    if (all.isEmpty()) "The board lights up when players earn XP." else "Try a different name.") }
-                items(shown.size) { i ->
-                    val r = shown[i]; val rank = all.indexOf(r) + 1
-                    val medal = when (rank) { 1 -> Color(0xFFFFD700); 2 -> Color(0xFFC0C0C0); 3 -> Color(0xFFCD7F32); else -> Gold }
-                    PanelCard {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("#" + rank, color = medal, fontSize = if (rank <= 3) 22.sp else 18.sp, fontWeight = FontWeight.Black,
-                                modifier = Modifier.width(48.dp))
-                            Box(Modifier.size(38.dp).clip(CircleShape).background(Look.cardBorder),
-                                contentAlignment = Alignment.Center) {
-                                Text(r.s("name").firstOrNull()?.uppercase() ?: "P", color = Gold2, fontWeight = FontWeight.Bold)
-                            }
-                            Spacer(Modifier.width(10.dp))
-                            Column(Modifier.weight(1f)) {
-                                Text(r.s("name"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                                val moh = r.s("mohalla").takeIf { it.isNotBlank() && it != "null" }
-                                if (moh != null) Text(moh, color = Muted, fontSize = 12.sp)
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text(r.optInt("xp").toString() + " XP", color = Gold2, fontWeight = FontWeight.Bold)
-                                Text(tierOf(r.optInt("xp")), color = tierColor(tierOf(r.optInt("xp"))), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-                }
-            }
-            if (mine != null && mine.optBoolean("ok")) {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).clip(RoundedCornerShape(Look.cardRadius))
-                    .background(Look.cardBg).border(1.dp, Gold, RoundedCornerShape(Look.cardRadius)).padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text("YOUR RANK", color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        Text("You (" + mine.s("name") + ")", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                        Text(tierOf(mine.optInt("xp")), color = tierColor(tierOf(mine.optInt("xp"))), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Text("#" + mine.optInt("rank"), color = Gold, fontSize = 24.sp, fontWeight = FontWeight.Black)
-                    Spacer(Modifier.width(14.dp))
-                    Column(horizontalAlignment = Alignment.End) {
-                        val wx = mine.optInt("week_xp", 0)
-                        Text((if (wx > 0) "+" + wx else mine.optInt("xp")).toString() + " XP", color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        Text(if (wx > 0) "this week" else "earned", color = Muted, fontSize = 10.sp)
-                    }
-                }
-            }
         }
     }
 }
