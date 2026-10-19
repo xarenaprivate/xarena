@@ -72,33 +72,14 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
             updateInfo?.let { Text(it, color = Muted, fontSize = 12.sp) }
             Spacer(Modifier.height(14.dp))
             Text("X-Panel (floating)", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            Text("A small X ball and a right-edge swipe zone over other apps: clan room chat, your match room details, EXP and AP, voice, messages and honest boost tools. It never reads your screen and you can turn it off any time.",
-                color = Muted, fontSize = 12.sp)
+            Text("Floating tools over your game - full details in More > X-Panel.", color = Muted, fontSize = 12.sp)
             Spacer(Modifier.height(4.dp))
-            var panelOn by remember { mutableStateOf(XPanelStore.enabled) }
-            val overlayOk = android.provider.Settings.canDrawOverlays(Api.ctx)
-            Text(when {
-                panelOn && overlayOk -> "On - drag the X ball or swipe the right edge"
-                overlayOk -> "Off"
-                else -> "Needs the 'Display over other apps' permission"
-            }, color = if (panelOn && overlayOk) Color(0xFF4ADE80) else Muted, fontSize = 12.sp)
+            XPanelSwitchRow()
             Spacer(Modifier.height(14.dp))
             Text("Screen Recorder", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            Text("Records your screen (and mic if allowed) to this phone only - Movies > XARENA. Nothing is uploaded. Same recorder as the X-Panel button.", color = Muted, fontSize = 12.sp)
-            Text(if (RecStore.recording) "Stop recording" else "Start recording", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable {
-                    if (RecStore.recording) Api.ctx.startService(android.content.Intent(Api.ctx, RecorderService::class.java).setAction("stop"))
-                    else Api.ctx.startActivity(android.content.Intent(Api.ctx, RecorderActivity::class.java).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
-                }.padding(vertical = 6.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(if (panelOn) "Turn off" else "Turn on", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable {
-                        if (!android.provider.Settings.canDrawOverlays(Api.ctx)) {
-                            Api.ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                                android.net.Uri.parse("package:" + Api.ctx.packageName)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
-                        } else { panelOn = !panelOn; XPanelStore.enabled = panelOn; XPanelStore.sync(Api.ctx) }
-                    }.padding(vertical = 6.dp))
-            }
+            Text("Records your screen to this phone only (Movies > XARENA). Nothing is uploaded.", color = Muted, fontSize = 12.sp)
+            Spacer(Modifier.height(4.dp))
+            RecorderControls()
         }
         Column(Modifier.padding(16.dp).clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).padding(16.dp)) {
             Text("Look", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
@@ -289,3 +270,115 @@ fun PlayerCardScreen(onBack: () -> Unit, onOpenConv: (String?, String, String) -
         }
     }
 }
+
+/* ---- X-Panel + Screen Recorder controls (shared by Settings and the More-menu screens) ---- */
+
+@Composable
+fun XPanelSwitchRow() {
+    var panelOn by remember { mutableStateOf(XPanelStore.enabled) }
+    var overlayOk by remember { mutableStateOf(android.provider.Settings.canDrawOverlays(Api.ctx)) }
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val obs = androidx.lifecycle.LifecycleEventObserver { _, ev ->
+            if (ev == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                overlayOk = android.provider.Settings.canDrawOverlays(Api.ctx)
+                if (panelOn) XPanelStore.sync(Api.ctx)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(obs)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(obs) }
+    }
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(when {
+            panelOn && overlayOk -> "On - drag the X ball, or swipe the right edge of your screen"
+            overlayOk -> "Off"
+            panelOn -> "Almost there - allow 'Display over other apps' and come back"
+            else -> "Off - switch on to allow the overlay permission"
+        }, color = if (panelOn && overlayOk) Color(0xFF4ADE80) else Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
+        Switch(checked = panelOn && overlayOk, onCheckedChange = { want ->
+            panelOn = want
+            XPanelStore.enabled = want
+            if (want && !overlayOk) {
+                Api.ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    android.net.Uri.parse("package:" + Api.ctx.packageName)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+            } else XPanelStore.sync(Api.ctx)
+        })
+    }
+}
+
+@Composable
+fun RecorderControls() {
+    var rec by remember { mutableStateOf(RecStore.recording) }
+    var secs by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (true) { rec = RecStore.recording; secs = ((System.currentTimeMillis() - RecStore.startedAt) / 1000).toInt(); kotlinx.coroutines.delay(1000) }
+    }
+    GoldButton(if (rec) "STOP RECORDING" else "START RECORDING") {
+        if (RecStore.recording) Api.ctx.startService(android.content.Intent(Api.ctx, RecorderService::class.java).setAction("stop"))
+        else Api.ctx.startActivity(android.content.Intent(Api.ctx, RecorderActivity::class.java).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
+    if (rec) Text("Recording " + secs + "s - saved on this phone only (Movies > XARENA)", color = Color(0xFF4ADE80), fontSize = 12.sp)
+}
+
+@Composable
+fun XPanelScreen(onBack: () -> Unit) {
+    LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        item { Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("< Back", color = Gold, fontSize = 14.sp, modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { onBack() }.padding(8.dp))
+            Text("X-Panel", color = Gold2, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        } }
+        item { PanelCard {
+            Text("Floating tools over your game", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Spacer(Modifier.height(4.dp))
+            Text("A small gold X ball floats over other apps. Drag it anywhere, or swipe the right edge of your screen to open the full panel.",
+                color = Muted, fontSize = 12.sp)
+            Spacer(Modifier.height(8.dp))
+            XPanelSwitchRow()
+        } }
+        item { PanelCard {
+            Text("What is inside", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Spacer(Modifier.height(4.dp))
+            listOf(
+                "Clan Room - chat with your squad without leaving the game",
+                "Match details - today\'s match, room ID and password with one-tap copy",
+                "Your EXP, level and AP",
+                "Messages - new DM alerts",
+                "Voice Lobby - one tap to talk with your clan",
+                "XBoost - Do Not Disturb switch, clear app cache, real RAM and battery info",
+                "Screen Recorder button"
+            ).forEach { Text("- " + it, color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(vertical = 2.dp)) }
+            Spacer(Modifier.height(6.dp))
+            Text("Honest limits: it never reads your screen, never touches the game, and there are no fake FPS claims. You can turn it off any time.",
+                color = Muted, fontSize = 12.sp)
+        } }
+    }
+}
+
+@Composable
+fun RecorderScreen(onBack: () -> Unit) {
+    LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        item { Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("< Back", color = Gold, fontSize = 14.sp, modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { onBack() }.padding(8.dp))
+            Text("Screen Recorder", color = Gold2, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        } }
+        item { PanelCard {
+            Text("Record your gameplay", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Spacer(Modifier.height(4.dp))
+            Text("Records your screen (and your mic if you allowed it). The video is saved ONLY on this phone: Movies > XARENA. Nothing is uploaded, ever.",
+                color = Muted, fontSize = 12.sp)
+            Spacer(Modifier.height(8.dp))
+            RecorderControls()
+        } }
+        item { PanelCard {
+            Text("Good to know", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+            Spacer(Modifier.height(4.dp))
+            listOf(
+                "Android asks for permission every time you start - that is normal and keeps you in control",
+                "720p quality, 30 frames per second, with sound",
+                "On a 2GB phone, recording while gaming can lower your FPS - close other apps first",
+                "Stop from the notification, from here, or from the X-Panel"
+            ).forEach { Text("- " + it, color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(vertical = 2.dp)) }
+        } }
+    }
+}
+

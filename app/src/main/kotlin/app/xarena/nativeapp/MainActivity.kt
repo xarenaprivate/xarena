@@ -366,6 +366,8 @@ fun HomeShell(onLogout: () -> Unit) {
         "messages" -> { MessagesScreen(onBack = { feature = null }, onOpenConv = { t, p, n, st, r -> conv = DmConv(t, p, n, st, r) }); return }
         "match" -> { MatchCenterScreen(onBack = { feature = null }); return }
         "settings" -> { SettingsScreen(onBack = { feature = null }, onLogout = onLogout); return }
+        "xpanel" -> { XPanelScreen(onBack = { feature = null }); return }
+        "recorder" -> { RecorderScreen(onBack = { feature = null }); return }
         "playercard" -> { PlayerCardScreen(onBack = { feature = null }, onOpenConv = { t, p, n -> if (t != null) conv = DmConv(t, p, n, "open", false) else feature = "messages" }); return }
         "vote" -> { FanVoteScreen(onBack = { feature = null }); return }
         "streak" -> { StreakScreen(onBack = { feature = null }); return }
@@ -507,6 +509,8 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("players", "Players", "Verified player profiles", Icons.Default.Person),
         GridItem("howto", "How to Play", "3 steps to your first match", Icons.Default.Info),
         GridItem("voice", "Voice Lobby", "Talk live - peer to peer", Icons.Default.Notifications),
+        GridItem("xpanel", "X-Panel", "Floating game tools - on/off switch", Icons.Default.Star),
+        GridItem("recorder", "Screen Recorder", "Record gameplay to this phone only", Icons.Default.PlayArrow),
         GridItem("settings", "Settings", "App version, activity status, logout", Icons.Default.Settings),
     )
     val items = itemsAll.filter { RemoteConfig.featureEnabled(it.key) }
