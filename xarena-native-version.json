@@ -1,6 +1,6 @@
 {
-  "versionCode": 17,
-  "versionName": "0.13.1",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.13.1-native/xarena-native.apk",
-  "notes": "New: Photo Verification, Team Roles + squad formation, Winner Celebration, Sponsor Wall. Plus Ping Check and Refer & Earn."
+  "versionCode": 18,
+  "versionName": "0.13.2",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.13.2-native/xarena-native.apk",
+  "notes": "Push notifications are live (FCM). Plus Verification, Team Roles, Champions, Sponsors, Ping Check, Refer & Earn."
 }
