@@ -70,6 +70,35 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
                 }
             }.padding(vertical = 4.dp))
             updateInfo?.let { Text(it, color = Muted, fontSize = 12.sp) }
+            Spacer(Modifier.height(14.dp))
+            Text("X-Panel (floating)", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text("A small X ball and a right-edge swipe zone over other apps: clan room chat, your match room details, EXP and AP, voice, messages and honest boost tools. It never reads your screen and you can turn it off any time.",
+                color = Muted, fontSize = 12.sp)
+            Spacer(Modifier.height(4.dp))
+            var panelOn by remember { mutableStateOf(XPanelStore.enabled) }
+            val overlayOk = android.provider.Settings.canDrawOverlays(Api.ctx)
+            Text(when {
+                panelOn && overlayOk -> "On - drag the X ball or swipe the right edge"
+                overlayOk -> "Off"
+                else -> "Needs the 'Display over other apps' permission"
+            }, color = if (panelOn && overlayOk) Color(0xFF4ADE80) else Muted, fontSize = 12.sp)
+            Spacer(Modifier.height(14.dp))
+            Text("Screen Recorder", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text("Records your screen (and mic if allowed) to this phone only - Movies > XARENA. Nothing is uploaded. Same recorder as the X-Panel button.", color = Muted, fontSize = 12.sp)
+            Text(if (RecStore.recording) "Stop recording" else "Start recording", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable {
+                    if (RecStore.recording) Api.ctx.startService(android.content.Intent(Api.ctx, RecorderService::class.java).setAction("stop"))
+                    else Api.ctx.startActivity(android.content.Intent(Api.ctx, RecorderActivity::class.java).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+                }.padding(vertical = 6.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(if (panelOn) "Turn off" else "Turn on", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable {
+                        if (!android.provider.Settings.canDrawOverlays(Api.ctx)) {
+                            Api.ctx.startActivity(android.content.Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                android.net.Uri.parse("package:" + Api.ctx.packageName)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+                        } else { panelOn = !panelOn; XPanelStore.enabled = panelOn; XPanelStore.sync(Api.ctx) }
+                    }.padding(vertical = 6.dp))
+            }
         }
         Column(Modifier.padding(16.dp).clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).padding(16.dp)) {
             Text("Look", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)

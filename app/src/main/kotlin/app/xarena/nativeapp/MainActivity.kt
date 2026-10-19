@@ -79,7 +79,18 @@ object Look {
     private const val PREF = "xr_look"
     var liquid: Boolean = true
         private set
-    fun init(c: android.content.Context) { liquid = c.getSharedPreferences(PREF, 0).getBoolean("liquid", true) }
+    var redGold by mutableStateOf(false); private set
+    fun init(c: android.content.Context) {
+        liquid = c.getSharedPreferences(PREF, 0).getBoolean("liquid", true)
+        redGold = c.getSharedPreferences(PREF, 0).getBoolean("redgold", false)
+        applyPalette()
+    }
+    fun setRedGold(c: android.content.Context, v: Boolean) {
+        redGold = v; c.getSharedPreferences(PREF, 0).edit().putBoolean("redgold", v).apply(); applyPalette()
+    }
+    private fun applyPalette() {
+        if (redGold) { Gold = Color(0xFFFF5252); Gold2 = Color(0xFFFFB4A2) } else { Gold = Color(0xFFF5C451); Gold2 = Color(0xFFFFE9A3) }
+    }
     fun set(c: android.content.Context, v: Boolean) { liquid = v; c.getSharedPreferences(PREF, 0).edit().putBoolean("liquid", v).apply() }
     val accent: Color get() = if (liquid) Color(0xFF0A84FF) else Gold
     val cardBg: Color get() = if (liquid) Card.copy(alpha = .5f) else Card.copy(alpha = .85f)
@@ -87,22 +98,47 @@ object Look {
     val cardRadius get() = if (liquid) 22.dp else 16.dp
 }
 
-val Gold = Color(0xFFF5C451)
-val Gold2 = Color(0xFFFFE9A3)
+var Gold by mutableStateOf(Color(0xFFF5C451)); private set
+var Gold2 by mutableStateOf(Color(0xFFFFE9A3)); private set
 val Ink = Color(0xFF120A24)
 val Card = Color(0xFF241440)
 val Muted = Color(0xFFB79CE0)
 val ErrRed = Color(0xFFFF8A8A)
 
 class MainActivity : ComponentActivity() {
+    companion object { var pendingOpen by mutableStateOf<String?>(null) }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Api.init(this); Api.restore()
+        pendingOpen = intent?.getStringExtra("open")
+        runCatching { XPanelStore.sync(this) }
         setContent { XarenaApp() }
+    }
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        pendingOpen = intent.getStringExtra("open")
     }
 }
 
 enum class Screen { Login, Signup, CompleteProfile, Home }
+
+
+@Composable
+fun PaperPlaneIcon(tint: Color, size: androidx.compose.ui.unit.Dp) {
+    androidx.compose.foundation.Canvas(Modifier.size(size)) {
+        val w = this.size.width; val h = this.size.height
+        val p1 = androidx.compose.ui.geometry.Offset(w * 0.08f, h * 0.46f)
+        val p2 = androidx.compose.ui.geometry.Offset(w * 0.92f, h * 0.08f)
+        val p3 = androidx.compose.ui.geometry.Offset(w * 0.62f, h * 0.92f)
+        val p4 = androidx.compose.ui.geometry.Offset(w * 0.46f, h * 0.58f)
+        val path = androidx.compose.ui.graphics.Path().apply {
+            moveTo(p1.x, p1.y); lineTo(p2.x, p2.y); lineTo(p3.x, p3.y); lineTo(p4.x, p4.y); close()
+            moveTo(p4.x, p4.y); lineTo(p2.x, p2.y)
+        }
+        drawPath(path, tint, style = androidx.compose.ui.graphics.drawscope.Stroke(
+            width = w * 0.08f, cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round))
+    }
+}
 
 @Composable
 fun XarenaApp() {
@@ -306,6 +342,12 @@ private data class DmConv(val threadId: String, val peerId: String, val peerName
 fun HomeShell(onLogout: () -> Unit) {
     var tab by remember { mutableIntStateOf(0) }
     var feature by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(MainActivity.pendingOpen) {
+        when (MainActivity.pendingOpen) {
+            "voice" -> tab = 3; "live" -> tab = 2; "messages" -> feature = "messages"; "squads" -> feature = "squads"
+        }
+        if (MainActivity.pendingOpen != null) MainActivity.pendingOpen = null
+    }
     var conv by remember { mutableStateOf<DmConv?>(null) }
     var playerId by remember { mutableStateOf<String?>(null) }
     val tabs = listOf(
@@ -393,7 +435,7 @@ fun HomeShell(onLogout: () -> Unit) {
             if (hdrAp != null) Text("AP " + hdrAp, color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(end = 4.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, Gold, RoundedCornerShape(8.dp)).padding(horizontal = 6.dp, vertical = 3.dp))
             Box(Modifier.clip(RoundedCornerShape(8.dp)).clickable { feature = "messages" }.padding(8.dp)) {
-                Icon(Icons.Default.Email, contentDescription = "Messages", tint = Gold, modifier = Modifier.size(20.dp))
+                PaperPlaneIcon(Gold, 20.dp)
                 if (msgBadge > 0) Text(msgBadge.toString(), color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold,
                     modifier = Modifier.align(Alignment.TopEnd).offset(x = 8.dp, y = (-4).dp).clip(CircleShape).background(Color(0xFFE10600)).padding(horizontal = 4.dp, vertical = 1.dp))
             }
@@ -569,6 +611,7 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
                     PanelCard {
                         Text(p?.s("ign").takeUnless { it.isNullOrBlank() || it == "null" } ?: p?.s("username") ?: "Player",
                             color = Gold2, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        if (p?.optBoolean("verified") == true) Text("✓ Verified", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         if (p != null) {
                             @Composable fun row(k: String, v: String?) { if (!v.isNullOrBlank() && v != "null") Text("$k: $v", color = Color.White, fontSize = 14.sp) }
                             row("Username", p.s("username"))
