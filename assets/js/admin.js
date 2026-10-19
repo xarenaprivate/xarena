@@ -81,10 +81,12 @@
         { k: "name", l: "Sponsor / brand name", t: "text", req: true },
         { k: "tier", l: "Tier", t: "select", opts: ["title", "gold", "partner"] },
         { k: "url", l: "Link (optional, https://...)", t: "text" },
-        { k: "active", l: "Visible on the Sponsors page", t: "checkbox" }
+        { k: "active", l: "Visible on the Sponsors page", t: "checkbox" },
+        { k: "image_url", l: "Poster / banner image (upload, max 5 MB)", t: "image" },
+        { k: "image_approved", l: "Approved - show this image publicly on the Sponsor Wall", t: "checkbox", noDefault: true }
       ],
       rowTitle: function (r) { return r.name; },
-      rowSub: function (r) { return (r.tier || "Partner") + " · " + (r.active ? "visible" : "hidden"); }
+      rowSub: function (r) { return (r.tier || "Partner") + " · " + (r.active ? "visible" : "hidden") + (r.image_url ? (r.image_approved ? " · image approved" : " · image PENDING approval") : ""); }
     },
     sponsorapps: { title: "Sponsor Requests", custom: renderSponsorApps },
     chatmod: { title: "Chat & Fans", custom: renderChatMod },
@@ -607,6 +609,10 @@
       return '<select name="' + c.k + '">' + o2 + "</select>";
     }
     if (c.t === "checkbox") return '<input type="checkbox" name="' + c.k + '"' + (v ? " checked" : "") + ' style="width:20px;height:20px">';
+    if (c.t === "image") return '<input type="text" name="' + c.k + '" value="' + esc(v) + '" readonly placeholder="No image yet" style="font-size:12px">' +
+      '<input type="file" accept="image/*" data-img-file="' + c.k + '" style="margin-top:6px">' +
+      '<div data-img-msg style="font-size:12px;margin-top:4px"></div>' +
+      '<img data-img-prev="' + c.k + '" alt="" src="' + esc(v) + '" style="display:' + (v ? "block" : "none") + ';max-width:160px;border-radius:8px;margin-top:6px">';
     if (c.t === "number") return '<input type="number" step="any" name="' + c.k + '" value="' + esc(v) + '">';
     if (c.t === "datetime") {
       var dv = "";
@@ -622,12 +628,37 @@
     call(function () { return api.aGet("teams", "?select=id,name&order=name.asc"); }).then(function (teams) {
       var fields = sec.cols.map(function (c) {
         if (isEdit && c.createOnly) return "";
-        return '<div class="field"><label>' + esc(c.l) + "</label>" + inputHtml(c, row ? row[c.k] : (c.t === "checkbox" ? true : ""), teams) + "</div>";
+        return '<div class="field"><label>' + esc(c.l) + "</label>" + inputHtml(c, row ? row[c.k] : (c.t === "checkbox" && !c.noDefault ? true : ""), teams) + "</div>";
       }).join("");
       el("#editor").innerHTML = '<div class="form-panel" style="margin-top:20px"><h3>' + (isEdit ? "Edit" : "Add") + " " + esc(sec.title.replace(/s$/, "")) + '</h3><form id="edit-form">' + fields +
         '<div style="display:flex;gap:10px"><button class="btn btn-red" type="submit">Save</button><button class="btn btn-ghost" type="button" id="cancel-edit">Cancel</button></div></form></div>';
       el("#editor").scrollIntoView({ behavior: "smooth" });
       el("#cancel-edit").addEventListener("click", function () { el("#editor").innerHTML = ""; });
+      els("[data-img-file]", el("#editor")).forEach(function (fi) {
+        fi.addEventListener("change", function () {
+          var file = fi.files[0]; if (!file) return;
+          var k = fi.getAttribute("data-img-file");
+          var msg = fi.parentNode.querySelector("[data-img-msg]");
+          if (file.type.indexOf("image/") !== 0) { msg.textContent = "Only images."; return; }
+          if (file.size > 5 * 1024 * 1024) { msg.textContent = "Image too large (max 5 MB)."; return; }
+          msg.textContent = "Uploading…";
+          call(function () { return api.userToken(); }).then(function (tok) {
+            return fetch(api.url + "/functions/v1/cloudinary-sign", { method: "POST", headers: { "apikey": api.key, "Authorization": "Bearer " + tok, "Content-Type": "application/json" }, body: "{}" });
+          }).then(function (r) { return r.json(); }).then(function (sig) {
+            if (!sig || !sig.cloud) throw new Error("Upload unavailable.");
+            var fd = new FormData();
+            fd.append("file", file); fd.append("api_key", sig.key); fd.append("timestamp", sig.timestamp);
+            fd.append("folder", sig.folder); fd.append("signature", sig.signature);
+            return fetch("https://api.cloudinary.com/v1_1/" + sig.cloud + "/image/upload", { method: "POST", body: fd }).then(function (r) { return r.json(); });
+          }).then(function (up) {
+            if (!up || !up.secure_url) throw new Error("Upload failed.");
+            el('[name="' + k + '"]', el("#editor")).value = up.secure_url;
+            var pv = el('[data-img-prev="' + k + '"]', el("#editor")); pv.src = up.secure_url; pv.style.display = "block";
+            var ap = el('[name="image_approved"]', el("#editor")); if (ap) ap.checked = false;
+            msg.textContent = "Uploaded. Check the preview, then tick Approved and Save to show it publicly.";
+          }).catch(function (e) { msg.textContent = e.message || "Upload failed."; });
+        });
+      });
       el("#edit-form").addEventListener("submit", function (ev) {
         ev.preventDefault();
         var data = {};
