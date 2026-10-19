@@ -27,9 +27,32 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 import kotlin.random.Random
+
+/** This account's Season 1 registration from the backend, or null. One account = one registration. */
+private suspend fun findMySeasonReg(): JSONObject? = try {
+    val r = Api.authedRpc("my_registrations", JSONObject())
+    val arr = r.optJSONArray("registrations") ?: JSONArray()
+    var found: JSONObject? = null
+    for (i in 0 until arr.length()) {
+        val o = arr.getJSONObject(i)
+        if (o.s("tournament_id") == "xr-s1") { found = o; break }
+    }
+    found
+} catch (e: Exception) { null }
+
+private fun regStatusLine(o: JSONObject): String {
+    val st = o.s("status").ifBlank { "pending" }.uppercase()
+    return when {
+        o.optBoolean("hold") -> "UNDER REVIEW - routine security check"
+        o.optBoolean("verified") || st == "VERIFIED" || st == "APPROVED" -> "VERIFIED"
+        st == "REJECTED" || st == "CANCELLED" -> st
+        else -> "PENDING VERIFICATION"
+    }
+}
 
 /** Tournament squad registration - same fields, proof upload and register_squad RPC as the site's form. */
 @Composable
@@ -49,7 +72,13 @@ fun RegisterScreen(onBack: () -> Unit) {
     var holdNote by remember { mutableStateOf(false) }
     var entryCost by remember { mutableStateOf(0) }
     var apNote by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(Unit) { entryCost = Api.tournamentEntryCost("xr-s1") }
+    var myReg by remember { mutableStateOf<JSONObject?>(null) }
+    var regChecked by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        entryCost = Api.tournamentEntryCost("xr-s1")
+        myReg = findMySeasonReg()
+        regChecked = true
+    }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
@@ -89,6 +118,23 @@ fun RegisterScreen(onBack: () -> Unit) {
                 Text("Screenshot this ID - it is your proof of entry for Season 1.", color = Color.White, fontSize = 13.sp)
                 apNote?.let { Text(it, color = Gold2, fontSize = 13.sp) }
                 if (holdNote) Text("Note: your entry is under a quick security review (routine). It shows in the management panel and gets verified there.", color = Gold2, fontSize = 12.sp)
+                Spacer(Modifier.height(12.dp))
+                GoldButton("BACK TO TOURNAMENTS", onClick = onBack)
+            }
+            return@Column
+        }
+        if (regChecked && myReg != null) {
+            val reg = myReg!!
+            PanelCard {
+                Text("REGISTERED FOR SEASON 1", color = Color(0xFF4ADE80), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                Spacer(Modifier.height(8.dp))
+                Text(reg.s("id"), color = Gold, fontSize = 26.sp, fontWeight = FontWeight.Black)
+                Spacer(Modifier.height(6.dp))
+                Text("Squad: " + reg.s("squad"), color = Color.White, fontSize = 14.sp)
+                Spacer(Modifier.height(4.dp))
+                Text("Status: " + regStatusLine(reg), color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                Text("One account gets one registration per tournament. Screenshot your ID - it is your proof of entry.", color = Muted, fontSize = 12.sp)
                 Spacer(Modifier.height(12.dp))
                 GoldButton("BACK TO TOURNAMENTS", onClick = onBack)
             }
@@ -140,10 +186,18 @@ fun RegisterScreen(onBack: () -> Unit) {
                             val charged = r.optInt("ap_charged", 0)
                             if (charged > 0) apNote = charged.toString() + " AP charged. Balance: " + r.optInt("balance", -1).takeIf { it >= 0 }?.toString() + " AP."
                             successId = regId
+                            myReg = findMySeasonReg() ?: myReg
                         } else {
                             val cost = r.optInt("cost", 0); val bal = r.optInt("balance", -1)
-                            err = if (cost > 0 && bal >= 0) "Need " + cost + " AP to enter - you have " + bal + " AP."
-                                else r.s("error").ifBlank { "Could not register right now. Try again." }
+                            val serverErr = r.s("error")
+                            if (serverErr.contains("already registered", ignoreCase = true)) {
+                                val again = findMySeasonReg()
+                                if (again != null) myReg = again
+                                else err = serverErr
+                            } else {
+                                err = if (cost > 0 && bal >= 0) "Need " + cost + " AP to enter - you have " + bal + " AP."
+                                    else serverErr.ifBlank { "Could not register right now. Try again." }
+                            }
                         }
                     } catch (e: Exception) { err = e.message ?: "Could not register right now. Try again." }
                     busy = false
