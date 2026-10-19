@@ -1,12 +1,12 @@
 {
-  "versionCode": 38,
-  "versionName": "0.16.3-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.3-native/xarena-native.apk",
-  "sha256": "e41aa8432374d5a5add41382ec9f10f2fa6b35231aaab494e132e9081dadbeea",
-  "notes": "Squad Logo Store: 40 original logos in 4 tiers, bought with AP (never cash). Captains buy once and set the team logo. Gallery logo upload removed - store only. Squad join/disband fixes.",
+  "versionCode": 39,
+  "versionName": "0.16.4-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.4-native/xarena-native.apk",
+  "sha256": "9e289cea8951c59426bc05d2ee2083993bfbe8073129bdb0cf9372a5da917024",
+  "notes": "Registration fix: the app now checks the backend - already-registered accounts see REGISTERED with their ID and status instead of the form. Squad Logo Store from 0.16.3 included.",
   "patch": {
-    "from": 37,
-    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.3-native/xarena-native-37to38.patch",
-    "sha256": "8fec19cb58fa5d04a4462dd56f9895ae18945e1316d2f0ac7458cff337f66a2a"
+    "from": 38,
+    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.4-native/xarena-native-38to39.patch",
+    "sha256": "cf392783b0ecd3864cb8bc48986d6c3fb2e358f1bcde243e3aa51a03e0e25637"
   }
 }
