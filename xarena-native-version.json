@@ -1,12 +1,12 @@
 {
-  "versionCode": 39,
-  "versionName": "0.16.4-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.4-native/xarena-native.apk",
-  "sha256": "9e289cea8951c59426bc05d2ee2083993bfbe8073129bdb0cf9372a5da917024",
-  "notes": "Registration fix: the app now checks the backend - already-registered accounts see REGISTERED with their ID and status instead of the form. Squad Logo Store from 0.16.3 included.",
+  "versionCode": 40,
+  "versionName": "0.16.5-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.5-native/xarena-native.apk",
+  "sha256": "d73ed0e60d9096a0c3e962c3dfb7457ef68f2245648e222fd1fc12bddc1e8482",
+  "notes": "Voice Lobby fixed: presence list works, talking connects over relay when needed, speakerphone while in the lobby, live connection status per person.",
   "patch": {
-    "from": 38,
-    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.4-native/xarena-native-38to39.patch",
-    "sha256": "cf392783b0ecd3864cb8bc48986d6c3fb2e358f1bcde243e3aa51a03e0e25637"
+    "from": 39,
+    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.5-native/xarena-native-39to40.patch",
+    "sha256": "41d27280470feb24cd84ce9de4d74e77aaf788a5bf5641340804a6d1ec6128d7"
   }
 }
