@@ -48,8 +48,9 @@ begin
   return jsonb_build_object('ok', true, 'balance', v_balance - v_logo.cost_ap);
 end $fn$;
 
--- equip an owned store logo (captain only); the (uuid, text) custom-URL variant stays untouched
-create or replace function public.set_squad_logo(p_squad uuid, p_logo uuid)
+-- equip an owned store logo (captain only). Named equip_squad_logo: overloading
+-- set_squad_logo(uuid, text) makes PostgREST fail both variants (PGRST203).
+create or replace function public.equip_squad_logo(p_squad uuid, p_logo uuid)
 returns jsonb language plpgsql security definer set search_path = public as $fn$
 declare v_uid uuid := auth.uid(); v_url text;
 begin
@@ -123,7 +124,7 @@ on conflict do nothing;
 
 -- UNDO:
 -- drop function if exists public.my_squad_logos();
--- drop function if exists public.set_squad_logo(uuid, uuid);
+-- drop function if exists public.equip_squad_logo(uuid, uuid);
 -- drop function if exists public.buy_squad_logo(uuid);
 -- drop table if exists public.squad_logo_owners;
 -- drop table if exists public.squad_logos;
