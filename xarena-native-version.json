@@ -1,6 +1,6 @@
 {
-  "versionCode": 26,
-  "versionName": "0.14.0",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.14.0-native/xarena-native.apk",
-  "notes": "Five new pages: Clan Room squad chat, Contact & Support, Sensitivity Share, Coaches, Sponsor a Cup."
+  "versionCode": 27,
+  "versionName": "0.14.1",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.14.1-native/xarena-native.apk",
+  "notes": "Search across squads, players and tournaments. Teams, Players and How to Play pages."
 }
