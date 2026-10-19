@@ -127,7 +127,8 @@ fun XarenaApp() {
     }
     LaunchedEffect(Unit) {
         val latest = UpdateChecker.latest()
-        if (latest != null && latest.code > BuildConfig.VERSION_CODE && latest.url.startsWith("https://github.com/xarenaprivate/xarena/releases/")) update = latest
+        if (latest != null && latest.code > BuildConfig.VERSION_CODE && latest.code != Api.prefs.getInt("skipped_update_code", -1)
+            && latest.url.startsWith("https://github.com/xarenaprivate/xarena/releases/")) update = latest
     }
     MaterialTheme(colorScheme = darkColorScheme(primary = Gold, background = Ink, surface = Card, onSurface = Color.White)) {
         NovaBackground {
@@ -152,7 +153,10 @@ fun XarenaApp() {
             }
         }
         val u = update
-        if (u != null && !updateDismissed) UpdateDialog(u) { updateDismissed = true }
+        if (u != null && !updateDismissed) UpdateDialog(u) {
+            updateDismissed = true
+            Api.prefs.edit().putInt("skipped_update_code", u.code).apply()
+        }
     }
 }
 
