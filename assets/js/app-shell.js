@@ -71,6 +71,7 @@
         if (!window.xrApi || !xrApi.user) { if (++tries < 40) setTimeout(go, 500); return; }
         xrApi.user().then(function (u) {
           if (!u) return;
+          if (xrApi.bindDevice) xrApi.bindDevice();
           xrApi.uRpc("my_header", {}).then(function (h) {
             if (!h || !h.ok || document.getElementById("xr-chips")) return;
             var c = document.createElement("a"); c.id = "xr-chips"; c.href = "leaderboard.html";

@@ -161,14 +161,14 @@ window.addEventListener("load", function () {
       var ph = normPhone(document.getElementById("s-phone").value);
       if (!ph) { box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = "Phone number must be 10 digits."; return; }
       var btn = e.target.querySelector("button"); btn.disabled = true; btn.textContent = "CHECKING…";
-      xrApi.rpc("phone_available", { p_phone: ph }).then(function (chk) {
+      xrApi.rpc("signup_precheck", { p_phone: ph, p_device_id: (xrApi.deviceInfo().id || ""), p_fp: xrApi.deviceInfo().fp }).then(function (chk) {
         if (!chk || !chk.ok) { btn.disabled = false; btn.textContent = "SIGN UP"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = (chk && chk.error) || "Could not check right now. Try again."; return; }
         if (!chk.available) { btn.disabled = false; btn.textContent = "SIGN UP"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = "An account already exists with this number. Please log in."; return; }
         btn.textContent = "CREATING…";
         xrSb.auth.signUp({ email: "p" + ph + "@phone.xarena", password: document.getElementById("s-pass").value, options: { data: { phone: ph } } })
           .then(function (r) {
             if (r.error) { btn.disabled = false; btn.textContent = "SIGN UP"; box.querySelector(".server-err").style.display = "block"; box.querySelector(".server-err").textContent = r.error.message; return; }
-            clearAcctState(); routeAfterLogin();
+            clearAcctState(); try { sessionStorage.removeItem("xr_bound"); } catch (e2) {} setTimeout(function () { if (xrApi.bindDevice) xrApi.bindDevice(); }, 300); routeAfterLogin();
           });
       });
     });

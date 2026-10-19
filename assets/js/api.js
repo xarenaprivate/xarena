@@ -152,6 +152,21 @@
   if (window.supabase && !window.xrSb) {
     window.xrSb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
   }
+  
+  /* anti-abuse: install id (random, stays in this browser/app) + coarse fingerprint. Both are hashed server side; nothing personal is stored. */
+  api.deviceInfo = function () {
+    var id = null;
+    try { id = localStorage.getItem("xr_did"); if (!id) { id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)); localStorage.setItem("xr_did", id); } } catch (e) {}
+    var fp = "";
+    try { fp = [navigator.userAgent, screen.width + "x" + screen.height + "x" + screen.colorDepth, navigator.language, new Date().getTimezoneOffset(), navigator.hardwareConcurrency || "", navigator.platform || ""].join("|"); } catch (e) {}
+    var ua = ""; try { ua = /XARENA|; wv\)/i.test(navigator.userAgent) ? "android" : "web"; } catch (e) {}
+    return { id: id, fp: fp, platform: ua || "web" };
+  };
+  api.bindDevice = function () {
+    try { if (sessionStorage.getItem("xr_bound")) return; var d = api.deviceInfo(); if (!d.id) return;
+      api.uRpc("bind_device", { p_device_id: d.id, p_fp: d.fp, p_platform: d.platform }).then(function (r) { if (r && r.ok) sessionStorage.setItem("xr_bound", "1"); }).catch(function () {});
+    } catch (e) {}
+  };
   window.xrApi = api;
 
   /* Native app bridge: hand the session to the APK so it can poll alerts
