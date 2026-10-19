@@ -318,6 +318,8 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
     val scope = rememberCoroutineScope()
     var key by remember { mutableStateOf<javax.crypto.spec.SecretKeySpec?>(null) }
     var peerKeyId by remember { mutableStateOf("") }
+    var peerDevs by remember { mutableStateOf<Map<String, JSONObject>>(emptyMap()) }
+    var myDevs by remember { mutableStateOf<Map<String, JSONObject>>(emptyMap()) }
     var keyErr by remember { mutableStateOf<String?>(null) }
     var msgs by remember { mutableStateOf<List<DmMsg>>(emptyList()) }
     var input by remember { mutableStateOf("") }
@@ -329,25 +331,44 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
     var locked by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
 
-    fun decode(rows: JSONArray, k: javax.crypto.spec.SecretKeySpec): List<DmMsg> {
+    /* v2 envelope: unwrap the per-message key wrapped for MY device key, then decrypt the body. */
+    fun v2MessageKey(mt: JSONObject): javax.crypto.spec.SecretKeySpec? {
+        val w = mt.optJSONObject("w") ?: return null
+        val wrap = w.optJSONObject(DmCrypto.myKeyId()) ?: return null
+        val sk = mt.s("sk")
+        val senderJwk = (if (sk == DmCrypto.myKeyId()) myDevs[sk] ?: DmCrypto.myPublicJwk() else peerDevs[sk]) ?: return null
+        return try {
+            val kb = DmCrypto.decrypt(DmCrypto.ecdhKey(senderJwk), wrap.s("c"), wrap.s("i"))
+            javax.crypto.spec.SecretKeySpec(kb, "AES")
+        } catch (e: Exception) { null }
+    }
+
+    fun decode(rows: JSONArray, k: javax.crypto.spec.SecretKeySpec?): List<DmMsg> {
         val out = ArrayList<DmMsg>()
         for (i in 0 until rows.length()) {
             val m = rows.getJSONObject(i)
             val kind = m.s("kind", "text")
             val mine = m.s("sender_id") == Api.uid
             var text = ""
-            if (kind == "text") text = try {
-                String(DmCrypto.decrypt(k, m.getString("ciphertext"), m.getString("iv")), Charsets.UTF_8)
-            } catch (e: Exception) {
+            if (kind == "text") {
                 val mt = m.optJSONObject("meta") ?: JSONObject()
-                val sk = mt.s("sk"); val rk = mt.s("rk")
-                val myId = DmCrypto.myKeyId()
-                when {
-                    mine && sk.isNotBlank() && sk != myId -> "[sent from your other device - opens there]"
-                    !mine && rk.isNotBlank() && rk != myId -> "[sent to your other device - opens there]"
-                    sk.isBlank() && rk.isBlank() -> "[locked by an older device key - cannot be recovered]"
-                    else -> "[undecryptable message]"
-                }
+                if (mt.optInt("v") == 2) {
+                    val mk = v2MessageKey(mt)
+                    text = if (mk != null) try { String(DmCrypto.decrypt(mk, m.getString("ciphertext"), m.getString("iv")), Charsets.UTF_8) } catch (e: Exception) { "[undecryptable message]" }
+                        else if (mine) "[sent from your other device - opens there]"
+                        else "[sent to your other device - opens there]"
+                } else if (k != null) text = try {
+                    String(DmCrypto.decrypt(k, m.getString("ciphertext"), m.getString("iv")), Charsets.UTF_8)
+                } catch (e: Exception) {
+                    val sk = mt.s("sk"); val rk = mt.s("rk")
+                    val myId = DmCrypto.myKeyId()
+                    when {
+                        mine && sk.isNotBlank() && sk != myId -> "[sent from your other device - opens there]"
+                        !mine && rk.isNotBlank() && rk != myId -> "[sent to your other device - opens there]"
+                        sk.isBlank() && rk.isBlank() -> "[locked by an older device key - cannot be recovered]"
+                        else -> "[undecryptable message]"
+                    }
+                } else text = "[locked by an older device key - cannot be recovered]"
             }
             out.add(DmMsg(m.s("id"), mine, kind, text, if (kind == "text") null else m.s("ciphertext"), m.s("iv"), m.optJSONObject("meta") ?: JSONObject(), m.s("created_at")))
         }
@@ -356,13 +377,26 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
 
     LaunchedEffect(threadId) {
         try {
-            val jwk = Api.dmPeerKey(peerId) ?: throw Exception(peerName + " has not set up messages on their device yet. They need to open Messages once.")
-            peerKeyId = DmCrypto.jwkKeyId(jwk)
-            key = DmCrypto.threadKey(peerId, jwk)
+            Api.dmPublishDeviceKey(DmCrypto.myPublicJwk(), DmCrypto.myKeyId())
+            val me = Api.uid ?: return@LaunchedEffect
+            val pd = Api.dmDeviceKeys(peerId)
+            val md = Api.dmDeviceKeys(me)
+            val pmap = HashMap<String, JSONObject>(); val mmap = HashMap<String, JSONObject>()
+            for (i in 0 until pd.length()) { val r = pd.getJSONObject(i); r.optJSONObject("public_key")?.let { pmap[r.s("key_id")] = it } }
+            for (i in 0 until md.length()) { val r = md.getJSONObject(i); r.optJSONObject("public_key")?.let { mmap[r.s("key_id")] = it } }
+            peerDevs = pmap; myDevs = mmap
+            val jwk = Api.dmPeerKey(peerId)
+            if (jwk != null) {
+                peerKeyId = DmCrypto.jwkKeyId(jwk)
+                key = DmCrypto.threadKey(peerId, jwk)
+            } else if (pmap.isEmpty()) {
+                throw Exception(peerName + " has not set up messages on their device yet. They need to open Messages once.")
+            }
         } catch (e: Exception) { keyErr = e.message }
     }
-    LaunchedEffect(key) {
-        val k = key ?: return@LaunchedEffect
+    LaunchedEffect(key, peerDevs) {
+        if (key == null && peerDevs.isEmpty()) return@LaunchedEffect
+        val k = key
         while (isActive) {
             try {
                 msgs = withContext(Dispatchers.Default) { decode(Api.dmMessages(threadId), k) }
@@ -373,7 +407,7 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
     }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri == null || key == null) return@rememberLauncherForActivityResult
+        if (uri == null || (key == null && peerDevs.isEmpty())) return@rememberLauncherForActivityResult
         busy = true
         scope.launch {
             try {
@@ -405,12 +439,28 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
                     kind = "image"
                     meta = JSONObject().put("mime", "image/jpeg").put("width", w).put("height", h).put("size", bytes.size).put("sk", DmCrypto.myKeyId()).put("rk", peerKeyId)
                 }
-                val enc = DmCrypto.encrypt(key!!, bytes)
-                val encBytes = android.util.Base64.decode(enc.ciphertext, android.util.Base64.NO_WRAP)
-                val path = Api.dmMediaUpload(threadId, encBytes)
-                val r = Api.dmSend(threadId, kind, path, enc.iv, meta)
-                if (!r.optBoolean("ok")) throw Exception(r.s("error").ifBlank { "Could not send." })
-                msgs = decode(Api.dmMessages(threadId), key!!)
+                if (peerDevs.isNotEmpty()) {
+                    val mk = DmCrypto.newMessageKey()
+                    val enc = DmCrypto.encrypt(mk, bytes)
+                    val w = JSONObject()
+                    for ((kid, jwk) in (peerDevs + myDevs + (DmCrypto.myKeyId() to DmCrypto.myPublicJwk()))) {
+                        val e2 = DmCrypto.encrypt(DmCrypto.ecdhKey(jwk), mk.encoded)
+                        w.put(kid, JSONObject().put("c", e2.ciphertext).put("i", e2.iv))
+                    }
+                    meta.put("v", 2).put("w", w)
+                    val encBytes = android.util.Base64.decode(enc.ciphertext, android.util.Base64.NO_WRAP)
+                    val path = Api.dmMediaUpload(threadId, encBytes)
+                    val r = Api.dmSend(threadId, kind, path, enc.iv, meta)
+                    if (!r.optBoolean("ok")) throw Exception(r.s("error").ifBlank { "Could not send." })
+                    msgs = decode(Api.dmMessages(threadId), key)
+                } else {
+                    val enc = DmCrypto.encrypt(key!!, bytes)
+                    val encBytes = android.util.Base64.decode(enc.ciphertext, android.util.Base64.NO_WRAP)
+                    val path = Api.dmMediaUpload(threadId, encBytes)
+                    val r = Api.dmSend(threadId, kind, path, enc.iv, meta)
+                    if (!r.optBoolean("ok")) throw Exception(r.s("error").ifBlank { "Could not send." })
+                    msgs = decode(Api.dmMessages(threadId), key!!)
+                }
             } catch (e: Exception) { err = if (e.message?.contains("never") == true) "Upload error." else e.message }
             busy = false
         }
@@ -451,7 +501,7 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
         err?.let { Text(it, color = ErrRed, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp)) }
         if (locked) Text("This conversation is locked pending owner review.", color = ErrRed, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
         LazyColumn(state = listState, modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 12.dp)) {
-            if (key != null && msgs.isEmpty()) item { Text("No messages yet. Say hello.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(20.dp)) }
+            if ((key != null || peerDevs.isNotEmpty()) && msgs.isEmpty()) item { Text("No messages yet. Say hello.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(20.dp)) }
             items(msgs) { m ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = if (m.mine) Arrangement.End else Arrangement.Start) {
                     Column(Modifier.padding(vertical = 3.dp).clip(RoundedCornerShape(14.dp))
@@ -461,12 +511,13 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
                         else {
                             val label = if (m.kind == "image") "Photo - tap to view" else "Video" + (if (m.meta.optInt("duration") > 0) " (" + m.meta.optInt("duration") + "s)" else "") + " - tap to play"
                             Text(label, color = if (m.mine) Ink else Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable {
-                                val k = key ?: return@clickable
+                                val mk = if (m.meta.optInt("v") == 2) v2MessageKey(m.meta) else key
+                                if (mk == null) { err = "This media is locked to another device key."; return@clickable }
                                 scope.launch {
                                     try {
                                         val signed = Api.dmMediaSign(m.mediaPath!!)
                                         val enc = Api.dmMediaDownload(signed)
-                                        val plain = DmCrypto.decrypt(k, android.util.Base64.encodeToString(enc, android.util.Base64.NO_WRAP), m.iv)
+                                        val plain = DmCrypto.decrypt(mk, android.util.Base64.encodeToString(enc, android.util.Base64.NO_WRAP), m.iv)
                                         if (m.kind == "image") viewImage = BitmapFactory.decodeByteArray(plain, 0, plain.size)
                                         else {
                                             val f = java.io.File(Api.ctx.cacheDir, "dmv_" + m.id + ".mp4")
@@ -491,13 +542,27 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
                 modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(Gold).clickable {
                     val v = input.trim()
                     val k = key
-                    if (v.isEmpty() || k == null || busy) return@clickable
+                    if (v.isEmpty() || busy || (k == null && peerDevs.isEmpty())) return@clickable
                     input = ""; busy = true
                     scope.launch {
                         try {
-                            val enc = DmCrypto.encrypt(k, v.toByteArray(Charsets.UTF_8))
-                            val r = Api.dmSend(threadId, "text", enc.ciphertext, enc.iv,
-                                JSONObject().put("sk", DmCrypto.myKeyId()).put("rk", peerKeyId))
+                            val ct: String; val ivv: String; val meta: JSONObject
+                            if (peerDevs.isNotEmpty()) {
+                                val mk = DmCrypto.newMessageKey()
+                                val enc = DmCrypto.encrypt(mk, v.toByteArray(Charsets.UTF_8))
+                                val w = JSONObject()
+                                for ((kid, jwk) in (peerDevs + myDevs + (DmCrypto.myKeyId() to DmCrypto.myPublicJwk()))) {
+                                    val e2 = DmCrypto.encrypt(DmCrypto.ecdhKey(jwk), mk.encoded)
+                                    w.put(kid, JSONObject().put("c", e2.ciphertext).put("i", e2.iv))
+                                }
+                                ct = enc.ciphertext; ivv = enc.iv
+                                meta = JSONObject().put("v", 2).put("sk", DmCrypto.myKeyId()).put("w", w)
+                            } else {
+                                val enc = DmCrypto.encrypt(k!!, v.toByteArray(Charsets.UTF_8))
+                                ct = enc.ciphertext; ivv = enc.iv
+                                meta = JSONObject().put("sk", DmCrypto.myKeyId()).put("rk", peerKeyId)
+                            }
+                            val r = Api.dmSend(threadId, "text", ct, ivv, meta)
                             if (!r.optBoolean("ok")) throw Exception(r.s("error").ifBlank { "Could not send." })
                             msgs = withContext(Dispatchers.Default) { decode(Api.dmMessages(threadId), k) }
                             if (msgs.isNotEmpty()) listState.scrollToItem(msgs.size - 1)
@@ -536,7 +601,11 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
                 for (i in start until rows.length()) {
                     val m = rows.getJSONObject(i)
                     val o = JSONObject().put("from", if (m.s("sender_id") == Api.uid) "me" else "them").put("type", m.s("kind", "text")).put("at", m.s("created_at"))
-                    if (m.s("kind") == "text" && k != null) o.put("text", try { String(DmCrypto.decrypt(k, m.getString("ciphertext"), m.getString("iv")), Charsets.UTF_8) } catch (e: Exception) { "[undecryptable]" })
+                    if (m.s("kind") == "text") {
+                        val mt2 = m.optJSONObject("meta") ?: JSONObject()
+                        val mk2 = if (mt2.optInt("v") == 2) v2MessageKey(mt2) else k
+                        if (mk2 != null) o.put("text", try { String(DmCrypto.decrypt(mk2, m.getString("ciphertext"), m.getString("iv")), Charsets.UTF_8) } catch (e: Exception) { "[undecryptable]" })
+                    }
                     last.put(o)
                 }
                 val r = Api.dmReport(threadId, peerId, reason, note, last)

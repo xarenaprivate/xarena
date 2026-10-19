@@ -444,6 +444,25 @@ object Api {
         val rows = authedGetArray("/rest/v1/dm_public_keys?user_id=eq." + uid + "&select=public_key")
         if (rows.length() == 0) null else rows.getJSONObject(0).optJSONObject("public_key")
     }
+    suspend fun dmPublishDeviceKey(jwk: JSONObject, keyId: String) = withContext(Dispatchers.IO) {
+        val tok = access ?: return@withContext
+        val c = java.net.URL(BASE + "/rest/v1/dm_device_keys").openConnection() as java.net.HttpURLConnection
+        c.requestMethod = "POST"
+        c.connectTimeout = 15000; c.readTimeout = 15000
+        c.setRequestProperty("apikey", KEY)
+        c.setRequestProperty("Authorization", "Bearer " + tok)
+        c.setRequestProperty("Content-Type", "application/json")
+        c.setRequestProperty("Prefer", "return=minimal,resolution=merge-duplicates")
+        c.doOutput = true
+        val body = JSONObject().put("user_id", uid).put("device_id", DmCrypto.deviceId())
+            .put("public_key", jwk).put("key_id", keyId).toString()
+        c.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+        c.responseCode
+        c.disconnect()
+    }
+    suspend fun dmDeviceKeys(userId: String): JSONArray = withContext(Dispatchers.IO) {
+        authedGetArray("/rest/v1/dm_device_keys?user_id=eq." + userId + "&select=device_id,public_key,key_id&order=updated_at.desc&limit=10")
+    }
     suspend fun dmPeerKey(peerId: String): JSONObject? = withContext(Dispatchers.IO) {
         val rows = authedGetArray("/rest/v1/dm_public_keys?user_id=eq." + peerId + "&select=public_key")
         if (rows.length() == 0) null else rows.getJSONObject(0).optJSONObject("public_key")
