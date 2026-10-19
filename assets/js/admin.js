@@ -75,6 +75,7 @@
     brackets: { title: "Brackets", custom: renderBrackets },
     wars: { title: "Squad Wars", custom: renderWars },
     livestream: { title: "Live Stream", custom: renderLivestream },
+    playerreports: { title: "Player Reports", custom: renderPlayerReports },
     sponsors: {
       title: "Sponsors", table: "sponsors", order: "id.asc",
       cols: [
@@ -1742,6 +1743,27 @@
   }
 
   function xrYtId(s){s=String(s||"").trim();if(!s)return"";var m=s.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#]*&)?v=|live\/|embed\/|shorts\/|v\/))([A-Za-z0-9_-]{11})/i);if(m)return m[1];m=s.match(/^[A-Za-z0-9_-]{11}$/);return m?m[0]:"";}
+  function renderPlayerReports() {
+    var body = el("#admin-body");
+    function load() {
+      call(function () { return api.rpc("admin_player_reports", {}, true); }).then(function (r) {
+        if (!r || !r.ok) { body.innerHTML = '<div class="card">' + esc((r && r.error) || "Could not load.") + "</div>"; return; }
+        body.innerHTML = '<div class="card"><h3>Player reports</h3>' + (r.rows.length ? r.rows.map(function (x) {
+          return '<div style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08)"><b>' + esc(x.reported) + "</b> reported by " + esc(x.reporter) + " \u00b7 " + esc(x.reason) + " \u00b7 " + String(x.created_at).slice(0, 16).replace("T", " ") + " \u00b7 total reports against: " + x.reports_against +
+            (x.details ? "<p style='margin:4px 0'>" + esc(x.details) + "</p>" : "") + "<div>Status: <b>" + esc(x.status) + "</b>" + (x.admin_note ? " \u00b7 " + esc(x.admin_note) : "") + "</div>" +
+            (x.status === "open" ? '<div style="margin-top:6px"><button class="btn btn-ghost btn-sm" data-pr="' + x.id + '" data-st="dismissed">Dismiss</button> <button class="btn btn-red btn-sm" data-pr="' + x.id + '" data-st="actioned">Mark actioned</button> <span style="font-size:12px;color:var(--muted)">Ban or warn from the Players tab.</span></div>' : "") + "</div>";
+        }).join("") : "<p>No reports yet.</p>") + "</div>";
+        body.querySelectorAll("[data-pr]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            var note = prompt("Note (optional)", "") || "";
+            call(function () { return api.rpc("admin_handle_player_report", { p_id: parseInt(b.getAttribute("data-pr"), 10), p_status: b.getAttribute("data-st"), p_note: note }, true); }).then(load);
+          });
+        });
+      });
+    }
+    load();
+  }
+
   function renderLivestream() {
     var body = el("#admin-body");
     call(function () { return api.aGet("site_settings", "?key=eq.youtube_live&select=value"); }).then(function (rows) {

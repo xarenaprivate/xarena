@@ -67,7 +67,7 @@
   }
   function render(body) {
     var h = '<div class="lbg"><style>' + CSS + "</style>" + head() + "<h1>LEADERBOARD</h1>";
-    h += '<p class="sub">' + esc(scopeTitle()) + " \u2022 live from real XP</p>" + ranksBox() + body + '<div id="lbg-ch"></div><div><button class="lbg-look" id="lbg-prev">Use previous look</button></div></div>';
+    h += '<p class="sub">' + esc(scopeTitle()) + " \u2022 live from real XP</p>" + ranksBox() + body + '<div id="lbg-ch"></div><div style="margin-top:14px"><a class="lbg-btn" href="hub.html" style="text-decoration:none;display:inline-block">Missions, Season Pass, Squad board, Scrims</a></div><div><button class="lbg-look" id="lbg-prev">Use previous look</button></div></div>';
     root.innerHTML = h;
     root.querySelectorAll("[data-sc]").forEach(function (b) { b.onclick = function () { state.scope = b.getAttribute("data-sc"); load(); }; });
     root.querySelectorAll("[data-ch]").forEach(function (b) { b.onclick = function () { challengeDialog(b.getAttribute("data-ch"), b.getAttribute("data-nm")); }; });

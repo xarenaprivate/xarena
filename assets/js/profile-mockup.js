@@ -110,6 +110,13 @@
             else { ab.disabled = false; alert((r && r.error) || "Could not send the request."); }
           });
         });
+        var rb = document.createElement("button"); rb.className = "pm-btn line"; rb.textContent = "Report"; rb.style.opacity = ".8"; act.appendChild(rb);
+        rb.addEventListener("click", function () {
+          var reason = (prompt("Report " + d.username + ". Type one reason: cheating, abuse, spam, fake_account, other", "cheating") || "").trim().toLowerCase();
+          if (!reason) return;
+          var det = prompt("Add short details (optional)", "") || "";
+          xrApi.uRpc("report_player", { p_username: d.username, p_reason: reason, p_details: det }).then(function (r) { alert(r && r.ok ? "Report sent. Admins will review it." : ((r && r.error) || "Could not send the report.")); });
+        });
         mb.addEventListener("click", function () {
           mb.disabled = true;
           xrApi.uRpc("dm_open_by_name", { p_name: d.username }).then(function (r) {

@@ -281,7 +281,7 @@ window.addEventListener("load", function () {
           '<p style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><a class="btn btn-red btn-sm" href="play.html">Open Play hub</a>' +
           '<button class="btn btn-gold btn-sm" id="pf-share-card">Share my card</button></p>';
         xrApi.uRpc("my_ranks", {}).then(function (rk) {
-          var el = document.getElementById("pf-ranks"); if (!el || !rk || !rk.ok) return;
+          window.__xranks = rk; var el = document.getElementById("pf-ranks"); if (!el || !rk || !rk.ok) return;
           function c(l, v) { return '<div class="xg-stat" style="min-width:72px"><b>' + (v ? "#" + v : "\u2014") + "</b><span>" + l + "</span></div>"; }
           el.innerHTML = '<div style="margin-top:10px;font-size:12px;letter-spacing:1px;color:var(--muted)">MY RANKS' + (rk.district_name ? " \u00b7 " + esc(rk.district_name) + ", " + esc(rk.state_name) : "") + '</div><div class="xg-stat-row">' + c("GLOBAL", rk.global) + c("STATE", rk.state) + c("DISTRICT", rk.district) + "</div>" +
             (rk.state_name ? "" : '<p style="font-size:12px;color:var(--muted)">Turn on location on the <a href="leaderboard.html" style="color:var(--gold2)">Leaderboard</a> to get State and District ranks.</p>');
@@ -311,6 +311,7 @@ window.addEventListener("load", function () {
             var pc = window.__xcard || {};
             var lines = ["Level " + (pc.level || r.level || 1) + " - " + (pc.xp || r.xp || 0) + " XP",
                          (pc.streak || r.streak || 0) + " day streak - " + ((pc.badges || r.badges || []).length) + " badges"];
+            var rkk = window.__xranks; if (rkk && rkk.ok && (rkk.global || rkk.state || rkk.district)) lines.push("Rank: Global " + (rkk.global ? "#" + rkk.global : "-") + (rkk.state ? " - State #" + rkk.state : "") + (rkk.district ? " - District #" + rkk.district : ""));
             if (pc.role || pc.ff_rank) lines.push((pc.role || "") + (pc.role && pc.ff_rank ? " - " : "") + (pc.ff_rank || ""));
             if (pc.match_played) lines.push(pc.match_played + " official matches - " + pc.match_kills + " kills - " + pc.match_wins + " wins");
             var cv = xshare.draw({ kicker: "XARENA player", title: name, lines: lines, sub: "Free Fire tournaments - free forever" });
