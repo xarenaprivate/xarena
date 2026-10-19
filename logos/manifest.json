@@ -1,0 +1,282 @@
+[
+ {
+  "name": "Apex Shield",
+  "file": "apex-shield.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 1
+ },
+ {
+  "name": "Bolt Core",
+  "file": "bolt-core.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 2
+ },
+ {
+  "name": "Iron Chevron",
+  "file": "iron-chevron.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 3
+ },
+ {
+  "name": "Night Fang",
+  "file": "night-fang.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 4
+ },
+ {
+  "name": "Pulse Ring",
+  "file": "pulse-ring.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 5
+ },
+ {
+  "name": "Steel Claw",
+  "file": "steel-claw.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 6
+ },
+ {
+  "name": "Valor Star",
+  "file": "valor-star.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 7
+ },
+ {
+  "name": "War Diamond",
+  "file": "war-diamond.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 8
+ },
+ {
+  "name": "Cobalt Spear",
+  "file": "cobalt-spear.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 9
+ },
+ {
+  "name": "Onyx Gate",
+  "file": "onyx-gate.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 10
+ },
+ {
+  "name": "Crimson Mark",
+  "file": "crimson-mark.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 11
+ },
+ {
+  "name": "Jade Tusk",
+  "file": "jade-tusk.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 12
+ },
+ {
+  "name": "Amber Watch",
+  "file": "amber-watch.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 13
+ },
+ {
+  "name": "Violet Edge",
+  "file": "violet-edge.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 14
+ },
+ {
+  "name": "Ember Triad",
+  "file": "ember-triad.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 15
+ },
+ {
+  "name": "Frost Bar",
+  "file": "frost-bar.webp",
+  "tier": "common",
+  "cost_ap": 100,
+  "sort": 16
+ },
+ {
+  "name": "Skywing",
+  "file": "skywing.webp",
+  "tier": "rare",
+  "cost_ap": 300,
+  "sort": 17
+ },
+ {
+  "name": "Venom Strike",
+  "file": "venom-strike.webp",
+  "tier": "rare",
+  "cost_ap": 300,
+  "sort": 18
+ },
+ {
+  "name": "Solar Crown",
+  "file": "solar-crown.webp",
+  "tier": "rare",
+  "cost_ap": 300,
+  "sort": 19
+ },
+ {
+  "name": "Nova Claw",
+  "file": "nova-claw.webp",
+  "tier": "rare",
+  "cost_ap": 300,
+  "sort": 20
+ },
+ {
+  "name": "Twin Serpent",
+  "file": "twin-serpent.webp",
+  "tier": "rare",
+  "cost_ap": 300,
+  "sort": 21
+ },
+ {
+  "name": "Blaze Shield",
+  "file": "blaze-shield.webp",
+  "tier": "rare",
+  "cost_ap": 300,
+  "sort": 22
+ },
+ {
+  "name": "Aqua Reaper",
+  "file": "aqua-reaper.webp",
+  "tier": "rare",
+  "cost_ap": 300,
+  "sort": 23
+ },
+ {
+  "name": "Ember Phoenix",
+  "file": "ember-phoenix.webp",
+  "tier": "rare",
+  "cost_ap": 300,
+  "sort": 24
+ },
+ {
+  "name": "Thorn Star",
+  "file": "thorn-star.webp",
+  "tier": "rare",
+  "cost_ap": 300,
+  "sort": 25
+ },
+ {
+  "name": "Cobalt Hornet",
+  "file": "cobalt-hornet.webp",
+  "tier": "rare",
+  "cost_ap": 300,
+  "sort": 26
+ },
+ {
+  "name": "Ruby Vanguard",
+  "file": "ruby-vanguard.webp",
+  "tier": "rare",
+  "cost_ap": 300,
+  "sort": 27
+ },
+ {
+  "name": "Mint Raptor",
+  "file": "mint-raptor.webp",
+  "tier": "rare",
+  "cost_ap": 300,
+  "sort": 28
+ },
+ {
+  "name": "Void Emperor",
+  "file": "void-emperor.webp",
+  "tier": "epic",
+  "cost_ap": 750,
+  "sort": 29
+ },
+ {
+  "name": "Inferno Drake",
+  "file": "inferno-drake.webp",
+  "tier": "epic",
+  "cost_ap": 750,
+  "sort": 30
+ },
+ {
+  "name": "Celestial Guard",
+  "file": "celestial-guard.webp",
+  "tier": "epic",
+  "cost_ap": 750,
+  "sort": 31
+ },
+ {
+  "name": "Storm Leviathan",
+  "file": "storm-leviathan.webp",
+  "tier": "epic",
+  "cost_ap": 750,
+  "sort": 32
+ },
+ {
+  "name": "Phantom Owl",
+  "file": "phantom-owl.webp",
+  "tier": "epic",
+  "cost_ap": 750,
+  "sort": 33
+ },
+ {
+  "name": "Titan Breaker",
+  "file": "titan-breaker.webp",
+  "tier": "epic",
+  "cost_ap": 750,
+  "sort": 34
+ },
+ {
+  "name": "Aurora Viper",
+  "file": "aurora-viper.webp",
+  "tier": "epic",
+  "cost_ap": 750,
+  "sort": 35
+ },
+ {
+  "name": "Savage Kraken",
+  "file": "savage-kraken.webp",
+  "tier": "epic",
+  "cost_ap": 750,
+  "sort": 36
+ },
+ {
+  "name": "Golden Imperium",
+  "file": "golden-imperium.webp",
+  "tier": "legendary",
+  "cost_ap": 1500,
+  "sort": 37
+ },
+ {
+  "name": "Radiant Falcon",
+  "file": "radiant-falcon.webp",
+  "tier": "legendary",
+  "cost_ap": 1500,
+  "sort": 38
+ },
+ {
+  "name": "Eternal Dragon",
+  "file": "eternal-dragon.webp",
+  "tier": "legendary",
+  "cost_ap": 1500,
+  "sort": 39
+ },
+ {
+  "name": "Celestial X",
+  "file": "celestial-x.webp",
+  "tier": "legendary",
+  "cost_ap": 1500,
+  "sort": 40
+ }
+]
