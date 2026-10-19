@@ -567,9 +567,7 @@ fun SponsorsScreen(onBack: () -> Unit) {
                             sp.optString("url").takeIf { u -> u.isNotBlank() }?.let { u ->
                                 Spacer(Modifier.height(4.dp))
                                 Text("Visit", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.clickable {
-                                        Api.ctx.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(u)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                                    }.padding(vertical = 4.dp))
+                                    modifier = Modifier.clickable { openExternalUrl(u) }.padding(vertical = 4.dp))
                             }
                         }
                     }

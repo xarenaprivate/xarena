@@ -66,7 +66,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                     Text("See all →", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenFeature("live") }.padding(4.dp))
                 }
                 val liveCards = mutableListOf<@Composable () -> Unit>()
-                if (d.ytUrl.isNotBlank()) liveCards.add { LiveStreamCard { onOpenFeature("live") } }
+                if (ytLiveInfo(d.ytUrl) != null) liveCards.add { LiveStreamCard { onOpenFeature("live") } }
                 (0 until d.matches.length()).forEach { i ->
                     val m = d.matches.getJSONObject(i)
                     liveCards.add { LiveMatchCard(m) { onOpenFeature("live") } }

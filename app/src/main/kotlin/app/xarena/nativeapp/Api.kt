@@ -464,3 +464,14 @@ fun statDisplay(v: Any?): String = when (v) {
     is JSONObject -> v.length().toString()
     else -> v.toString()
 }
+
+// Safe external link open - never crash the app on a bad/unresolvable intent.
+fun openExternalUrl(u: String) {
+    try {
+        val i = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(u))
+        i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        Api.ctx.startActivity(i)
+    } catch (t: Throwable) {
+        android.widget.Toast.makeText(Api.ctx, "No app on this device can open that link.", android.widget.Toast.LENGTH_SHORT).show()
+    }
+}

@@ -203,23 +203,21 @@ fun LiveScreen(onBack: () -> Unit) {
             val matches = runCatching { Api.publicGet("/rest/v1/matches_public?select=*&order=starts_at.asc.nullslast&limit=10") }.getOrElse { JSONArray() }
             yt to matches
         }) { (yt, matches) ->
-            val url = if (yt.length() > 0) yt.getJSONObject(0).optString("value") else ""
+            val live = ytLiveInfo(if (yt.length() > 0) yt.getJSONObject(0).optString("value") else "")
             LazyColumn {
                 item { SmallCard {
                     Text("STREAM", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(6.dp))
-                    if (url.isBlank()) Text("No stream is live right now. When XARENA goes live, the stream plays here inside the app.", color = Muted, fontSize = 13.sp)
+                    if (live == null) Text("No stream is live right now. When XARENA goes live, the stream plays here inside the app.", color = Muted, fontSize = 13.sp)
                     else {
                         Text("Live now", color = Color(0xFF22C55E), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        if (live.second.isNotBlank()) Text(live.second, color = Color.White, fontSize = 13.sp)
                         Spacer(Modifier.height(6.dp))
-                        YouTubeEmbed(url, Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp)))
+                        YouTubeEmbed(live.first, Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp))
+                            .border(1.dp, Gold.copy(alpha = .45f), RoundedCornerShape(12.dp)).background(Ink))
                         Spacer(Modifier.height(6.dp))
                         Text("Open in YouTube", color = Muted, fontSize = 12.sp,
-                            modifier = Modifier.clickable {
-                                val i = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
-                                i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                                Api.ctx.startActivity(i)
-                            }.padding(4.dp))
+                            modifier = Modifier.clickable { openExternalUrl("https://youtu.be/" + live.first) }.padding(4.dp))
                     }
                 } }
                 item { Text("UPCOMING MATCHES", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(14.dp)) }
@@ -279,12 +277,30 @@ fun CalendarScreen(onBack: () -> Unit) {
 }
 
 
+/* youtube_live site_setting: value may be a JSON object {video_id, title, active}, a full URL, or a bare 11-char id.
+   Returns (videoId, title) only when active and an id could be extracted, else null. */
+fun ytLiveInfo(raw: String): Pair<String, String>? {
+    if (raw.isBlank()) return null
+    var vid = raw.trim()
+    var title = ""
+    var active = true
+    val obj = runCatching { JSONObject(raw) }.getOrNull()
+    if (obj != null) {
+        vid = obj.optString("video_id").ifBlank { obj.optString("url") }.trim()
+        title = obj.optString("title")
+        active = obj.optBoolean("active", true)
+    }
+    val id = Regex("(?:youtu\\.be/|youtube(?:-nocookie)?\\.com/(?:watch\\?(?:[^#]*&)?v=|live/|embed/|shorts/|v/))([A-Za-z0-9_-]{11})").find(vid)?.groupValues?.get(1)
+        ?: vid.takeIf { Regex("^[A-Za-z0-9_-]{11}$").matches(it) }
+    return if (active && id != null) Pair(id, title) else null
+}
+
 /* Lightweight YouTube embed - a plain WebView pointed at youtube.com/embed/<id>. */
 @Composable
 fun YouTubeEmbed(url: String, modifier: Modifier = Modifier) {
     val id = remember(url) {
-        val m = Regex("(?:youtube\\.com/(?:watch\\?.*v=|live/|shorts/|embed/)|youtu\\.be/)([A-Za-z0-9_-]{6,20})").find(url)
-        m?.groupValues?.get(1)
+        Regex("^[A-Za-z0-9_-]{11}$").find(url.trim())?.value
+            ?: Regex("(?:youtube\\.com/(?:watch\\?.*v=|live/|shorts/|embed/)|youtu\\.be/)([A-Za-z0-9_-]{6,20})").find(url)?.groupValues?.get(1)
     }
     if (id == null) {
         Text("Open the stream", color = Gold, fontSize = 13.sp, modifier = Modifier.clickable {
@@ -294,11 +310,24 @@ fun YouTubeEmbed(url: String, modifier: Modifier = Modifier) {
         return
     }
     androidx.compose.ui.viewinterop.AndroidView(factory = { ctx ->
-        android.webkit.WebView(ctx).apply {
-            settings.javaScriptEnabled = true
-            settings.mediaPlaybackRequiresUserGesture = false
-            settings.domStorageEnabled = true
-            loadUrl("https://www.youtube.com/embed/" + id + "?rel=0")
+        try {
+            android.webkit.WebView(ctx).apply {
+                settings.javaScriptEnabled = true
+                settings.mediaPlaybackRequiresUserGesture = false
+                settings.domStorageEnabled = true
+                webViewClient = object : android.webkit.WebViewClient() {
+                    override fun onRenderProcessGone(view: android.webkit.WebView, detail: android.webkit.RenderProcessGoneDetail): Boolean {
+                        view.destroy()
+                        return true
+                    }
+                    override fun onReceivedError(view: android.webkit.WebView, request: android.webkit.WebResourceRequest, error: android.webkit.WebResourceError) {
+                        if (request.isForMainFrame) view.loadUrl("about:blank")
+                    }
+                }
+                loadUrl("https://www.youtube-nocookie.com/embed/" + id + "?rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&color=white")
+            }
+        } catch (t: Throwable) {
+            android.view.View(ctx) // no WebView on this device - the fallback link below stays visible
         }
     }, modifier = modifier)
 }
