@@ -53,48 +53,84 @@
     });
   }
 
+  /* ---------- key ids (v1): first 16 hex chars of SHA-256(raw x || raw y) ---------- */
+  function b64uToBytes(str) {
+    str = str.replace(/-/g, "+").replace(/_/g, "/"); while (str.length % 4) str += "=";
+    var s = atob(str), b = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) b[i] = s.charCodeAt(i); return b;
+  }
+  function keyIdOfJwk(jwk) {
+    var x = b64uToBytes(jwk.x), y = b64uToBytes(jwk.y), all = new Uint8Array(x.length + y.length);
+    all.set(x, 0); all.set(y, x.length);
+    return crypto.subtle.digest("SHA-256", all).then(function (h) {
+      var u = new Uint8Array(h), hex = ""; for (var i = 0; i < 8; i++) hex += ("0" + u[i].toString(16)).slice(-2);
+      return hex;
+    });
+  }
+
   /* ---------- my keypair (this device) ---------- */
-  var keypairP = null;
+  var keypairP = null, myIdP = null;
   function ensureKeys() {
     if (keypairP) return keypairP;
     keypairP = idbGet("ecdh").then(function (pair) {
       if (pair) return pair;
       return crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveKey"]).then(function (p) {
-        return idbSet("ecdh", p).then(function () { return publishMyKey(); }).then(function () { return p; });
+        return idbSet("ecdh", p).then(function () { return p; });   /* generating never publishes: see syncKey */
       });
     });
     return keypairP;
   }
+  function myKeyId() {
+    if (myIdP) return myIdP;
+    myIdP = ensureKeys().then(function (pair) { return crypto.subtle.exportKey("jwk", pair.publicKey); }).then(keyIdOfJwk);
+    return myIdP;
+  }
+  /* Read-before-publish. Publishes only when no key is published yet.
+     Returns {state:"ok"|"published"|"mismatch", mine, published}. A different published key is NEVER overwritten silently. */
+  function syncKey() {
+    return Promise.all([ensureKeys(), window.xrApi.user()]).then(function (r) {
+      var pair = r[0], u = r[1];
+      if (!u) return { state: "nouser" };
+      return Promise.all([crypto.subtle.exportKey("jwk", pair.publicKey), rest("GET", "/rest/v1/dm_public_keys?user_id=eq." + u.id + "&select=public_key")]).then(function (q) {
+        var jwk = q[0], rows = q[1];
+        return keyIdOfJwk(jwk).then(function (mine) {
+          if (!rows || !rows.length || !rows[0].public_key) {
+            return rest("POST", "/rest/v1/dm_public_keys", { user_id: u.id, public_key: jwk }, { "Prefer": "return=minimal,resolution=merge-duplicates" })
+              .then(function () { return { state: "published", mine: mine, published: mine }; });
+          }
+          return keyIdOfJwk(rows[0].public_key).then(function (pub) {
+            return { state: pub === mine ? "ok" : "mismatch", mine: mine, published: pub };
+          });
+        });
+      });
+    });
+  }
+  /* Explicit "Activate this device": plain upsert of this device's key (the only way the published key changes). */
   function publishMyKey() {
-    return idbGet("ecdh").then(function (pair) {
-      if (!pair) return;
-      return crypto.subtle.exportKey("jwk", pair.publicKey).catch(function () {
-        // legacy non-extractable keypair: regenerate so the public key can be shared
-        return crypto.subtle.generateKey({ name: "ECDH", namedCurve: "P-256" }, true, ["deriveKey"]).then(function (p2) {
-          return idbSet("ecdh", p2).then(function () { return crypto.subtle.exportKey("jwk", p2.publicKey); });
-        });
-      }).then(function (jwk) {
-        return window.xrApi.user().then(function (u) {
-          if (!u) return;
-          return rest("POST", "/rest/v1/dm_public_keys", { user_id: u.id, public_key: jwk }, { "Prefer": "return=minimal,resolution=merge-duplicates" }).catch(function () { });
-        });
+    return Promise.all([ensureKeys(), window.xrApi.user()]).then(function (r) {
+      var u = r[1]; if (!u) return;
+      return crypto.subtle.exportKey("jwk", r[0].publicKey).then(function (jwk) {
+        keyCache = {};
+        return rest("POST", "/rest/v1/dm_public_keys", { user_id: u.id, public_key: jwk }, { "Prefer": "return=minimal,resolution=merge-duplicates" });
       });
     });
   }
 
   /* ---------- shared thread key ---------- */
   var keyCache = {};
-  function threadKey(peerId) {
+  function threadCtx(peerId) {
     if (keyCache[peerId]) return keyCache[peerId];
-    keyCache[peerId] = Promise.all([ensureKeys(), rest("GET", "/rest/v1/dm_public_keys?user_id=eq." + peerId + "&select=public_key")]).then(function (r) {
-      var rows = r[1];
+    keyCache[peerId] = Promise.all([ensureKeys(), myKeyId(), rest("GET", "/rest/v1/dm_public_keys?user_id=eq." + peerId + "&select=public_key")]).then(function (r) {
+      var rows = r[2];
       if (!rows || !rows.length || !rows[0].public_key) throw new Error("Your friend has not set up messages on this device yet.");
-      return crypto.subtle.importKey("jwk", rows[0].public_key, { name: "ECDH", namedCurve: "P-256" }, false, []).then(function (pub) {
-        return crypto.subtle.deriveKey({ name: "ECDH", public: pub }, r[0].privateKey, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
+      return Promise.all([keyIdOfJwk(rows[0].public_key), crypto.subtle.importKey("jwk", rows[0].public_key, { name: "ECDH", namedCurve: "P-256" }, false, [])]).then(function (z) {
+        return crypto.subtle.deriveKey({ name: "ECDH", public: z[1] }, r[0].privateKey, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]).then(function (key) {
+          return { key: key, sk: r[1], rk: z[0] };
+        });
       });
     });
     return keyCache[peerId];
   }
+  function threadKey(peerId) { return threadCtx(peerId).then(function (c) { return c.key; }); }
 
   /* ---------- text ---------- */
   function encText(key, text) {
@@ -147,7 +183,8 @@
     else if (file.type.indexOf("video/") === 0) prep = checkVideo(file).then(function (r) { return { blob: file, meta: { mime: file.type, size: file.size, duration: r.duration }, kind: "video" }; });
     else return Promise.reject(new Error("Photos and short videos only."));
     return prep.then(function (p) {
-      return threadKey(peerId).then(function (key) {
+      return threadCtx(peerId).then(function (ctx) {
+        var key = ctx.key; p.meta.sk = ctx.sk; p.meta.rk = ctx.rk;
         return p.blob.arrayBuffer().then(function (buf) {
           var iv = crypto.getRandomValues(new Uint8Array(12));
           return crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, buf).then(function (ct) {
@@ -187,6 +224,10 @@
   window.xrDm = {
     ensureKeys: ensureKeys,
     publishMyKey: publishMyKey,
+    syncKey: syncKey,
+    myKeyId: myKeyId,
+    keyIdOfJwk: keyIdOfJwk,
+    threadCtx: threadCtx,
     threadKey: threadKey,
     encText: encText,
     decText: decText,
