@@ -1,6 +1,6 @@
 {
-  "versionCode": 19,
-  "versionName": "0.13.3",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.13.3-native/xarena-native.apk",
-  "notes": "Home tab: featured tournament, LIVE NOW, upcoming events, your stats. Watch the stream inside the app (YouTube embed). Register from Home."
+  "versionCode": 20,
+  "versionName": "0.13.4",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.13.4-native/xarena-native.apk",
+  "notes": "Leaderboard, restyled: medal top 3, tier chips from Bronze to Grandmaster, player search, and your own rank pinned at the bottom."
 }
