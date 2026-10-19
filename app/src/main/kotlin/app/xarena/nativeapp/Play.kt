@@ -48,10 +48,11 @@ fun PlayScreen(onBack: () -> Unit) {
                     Text("DAILY MISSIONS", color = Gold, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Text("Three real tasks a day. Finish all three, claim +" + (mission?.optInt("reward", 15) ?: 15) + " AP.", color = Muted, fontSize = 12.sp)
                     Spacer(Modifier.height(8.dp))
-                    if (mission == null || !mission.optBoolean("ok")) {
-                        Text("Log in to see today's missions.", color = Muted, fontSize = 12.sp)
+                    val m = mission
+                    if (m == null || !m.optBoolean("ok")) {
+                        Text(if (m == null) "Loading today's missions..." else "Log in to see today's missions.", color = Muted, fontSize = 12.sp)
                     } else {
-                        listOf("Daily check-in" to mission.optBoolean("checkin"), "Free spin" to mission.optBoolean("spin"), "Answer a quiz" to mission.optBoolean("quiz")).forEach { (label, doneIt) ->
+                        listOf("Daily check-in" to m.optBoolean("checkin"), "Free spin" to m.optBoolean("spin"), "Answer a quiz" to m.optBoolean("quiz")).forEach { (label, doneIt) ->
                             Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Text(if (doneIt) "✓" else "•", color = if (doneIt) Color(0xFF4ADE80) else Muted, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(18.dp))
                                 Text(label, color = if (doneIt) Color.White else Muted, fontSize = 13.sp, fontWeight = if (doneIt) FontWeight.Bold else FontWeight.Normal)
@@ -61,8 +62,8 @@ fun PlayScreen(onBack: () -> Unit) {
                         }
                         Spacer(Modifier.height(6.dp))
                         when {
-                            mission.optBoolean("claimed") -> Text("Claimed for today - new missions at midnight.", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            mission.optBoolean("done") -> GoldButton(if (claimBusy) "CLAIMING..." else "CLAIM +" + mission.optInt("reward", 15) + " AP", enabled = !claimBusy) {
+                            m.optBoolean("claimed") -> Text("Claimed for today - new missions at midnight.", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            m.optBoolean("done") -> GoldButton(if (claimBusy) "CLAIMING..." else "CLAIM +" + m.optInt("reward", 15) + " AP", enabled = !claimBusy) {
                                 claimBusy = true; claimMsg = null
                                 scope.launch {
                                     try {
