@@ -47,6 +47,9 @@ fun RegisterScreen(onBack: () -> Unit) {
     var err by remember { mutableStateOf<String?>(null) }
     var successId by remember { mutableStateOf<String?>(null) }
     var holdNote by remember { mutableStateOf(false) }
+    var entryCost by remember { mutableStateOf(0) }
+    var apNote by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) { entryCost = Api.tournamentEntryCost("xr-s1") }
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
@@ -84,6 +87,7 @@ fun RegisterScreen(onBack: () -> Unit) {
                 Text(successId!!, color = Gold, fontSize = 26.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.height(6.dp))
                 Text("Screenshot this ID - it is your proof of entry for Season 1.", color = Color.White, fontSize = 13.sp)
+                apNote?.let { Text(it, color = Gold2, fontSize = 13.sp) }
                 if (holdNote) Text("Note: your entry is under a quick security review (routine). It shows in the management panel and gets verified there.", color = Gold2, fontSize = 12.sp)
                 Spacer(Modifier.height(12.dp))
                 GoldButton("BACK TO TOURNAMENTS", onClick = onBack)
@@ -93,6 +97,10 @@ fun RegisterScreen(onBack: () -> Unit) {
         PanelCard {
             Text("Season 1 - Squad Registration", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Text("Takes under a minute. Your Registration ID is your proof of entry - screenshot it.", color = Muted, fontSize = 12.sp)
+            if (entryCost > 0) {
+                Spacer(Modifier.height(8.dp))
+                Text("Entry fee: " + entryCost + " AP (arena points - refunded automatically if your entry is rejected or the tournament is cancelled)", color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
             Spacer(Modifier.height(12.dp))
             OutlinedTextField(squad, { squad = it }, label = { Text("Squad name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(8.dp))
@@ -124,13 +132,18 @@ fun RegisterScreen(onBack: () -> Unit) {
                     try {
                         val regId = "XR-S1-" + Random.nextInt(1000, 10000)
                         val path = Api.uploadProof(regId, proofBytes!!)
-                        val r = Api.registerSquad(regId, squad.trim(), captain.trim(), uid, phone, path)
+                        val r = if (entryCost > 0) Api.registerSquadAp(regId, squad.trim(), captain.trim(), uid, phone, path)
+                            else Api.registerSquad(regId, squad.trim(), captain.trim(), uid, phone, path)
                         if (r.optBoolean("ok")) {
                             Api.myRegsAdd(regId, squad.trim())
                             holdNote = r.optBoolean("hold") || r.optBoolean("review")
+                            val charged = r.optInt("ap_charged", 0)
+                            if (charged > 0) apNote = charged.toString() + " AP charged. Balance: " + r.optInt("balance", -1).takeIf { it >= 0 }?.toString() + " AP."
                             successId = regId
                         } else {
-                            err = r.optString("error").ifBlank { "Could not register right now. Try again." }
+                            val cost = r.optInt("cost", 0); val bal = r.optInt("balance", -1)
+                            err = if (cost > 0 && bal >= 0) "Need " + cost + " AP to enter - you have " + bal + " AP."
+                                else r.optString("error").ifBlank { "Could not register right now. Try again." }
                         }
                     } catch (e: Exception) { err = e.message ?: "Could not register right now. Try again." }
                     busy = false

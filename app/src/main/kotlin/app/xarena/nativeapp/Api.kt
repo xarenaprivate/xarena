@@ -211,6 +211,22 @@ object Api {
                 .put("p_client", deviceId()).put("p_ip", JSONObject.NULL))
         }
 
+    suspend fun registerSquadAp(id: String, squad: String, captain: String, uid: String, phone: String, proofPath: String?): JSONObject =
+        withContext(Dispatchers.IO) {
+            authedRpc("enter_tournament_with_ap", JSONObject()
+                .put("p_id", id).put("p_tournament", "xr-s1").put("p_squad", squad)
+                .put("p_captain", captain).put("p_uid", uid).put("p_ign", captain)
+                .put("p_phone", phone).put("p_proof", proofPath ?: JSONObject.NULL)
+                .put("p_client", deviceId()).put("p_ip", JSONObject.NULL))
+        }
+
+    suspend fun tournamentEntryCost(id: String): Int = withContext(Dispatchers.IO) {
+        try {
+            val a = publicGet("/rest/v1/tournaments?select=entry_cost_ap&id=eq." + id)
+            if (a.length() > 0) a.getJSONObject(0).optInt("entry_cost_ap", 0) else 0
+        } catch (e: Exception) { 0 }
+    }
+
     fun myRegsLoad(): JSONArray = try { JSONArray(prefs.getString("my_regs", "[]")) } catch (e: Exception) { JSONArray() }
     fun myRegsAdd(id: String, squad: String) {
         val a = myRegsLoad()

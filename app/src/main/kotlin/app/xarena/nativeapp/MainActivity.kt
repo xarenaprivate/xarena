@@ -348,6 +348,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "squads" -> { SquadsScreen(onBack = { feature = null }); return }
         "store" -> { StoreScreen(onBack = { feature = null }); return }
         "profile" -> { ProfileScreen(onLogout, onBack = { feature = null }); return }
+        "play" -> { PlayScreen(onBack = { feature = null }); return }
     }
     var msgBadge by remember { mutableIntStateOf(0) }
     LaunchedEffect(feature, conv) {
@@ -387,6 +388,7 @@ data class GridItem(val key: String, val name: String, val sub: String, val icon
 fun MoreGrid(onOpen: (String) -> Unit) {
     // One button per feature, each opening its own full screen. Only real, working features are listed.
     val items = listOf(
+        GridItem("play", "Play", "Daily spin and quizzes - real XP, free", Icons.Default.Star),
         GridItem("chat", "Chat", "World chat lobby", Icons.Default.MailOutline),
         GridItem("luna", "Luna", "AI analyst and caster", Icons.Default.Face),
         GridItem("squads", "Squads", "Find or build your squad", Icons.Default.AccountBox),

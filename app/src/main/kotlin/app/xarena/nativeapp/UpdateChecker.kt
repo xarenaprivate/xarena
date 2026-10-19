@@ -30,19 +30,25 @@ import java.security.MessageDigest
 object UpdateChecker {
     const val MANIFEST = "https://xarenaprivate.github.io/xarena/xarena-native-version.json"
 
-    data class Info(val code: Int, val name: String, val url: String, val notes: String, val sha256: String, val mandatory: Boolean)
+    data class Info(val code: Int, val name: String, val url: String, val notes: String, val sha256: String, val mandatory: Boolean,
+                    val patchFrom: Int, val patchUrl: String, val patchSha256: String)
 
     suspend fun latest(): Info? = withContext(Dispatchers.IO) {
         try {
             val text = URL(MANIFEST).openConnection().apply { connectTimeout = 10000; readTimeout = 10000 }
                 .getInputStream().bufferedReader().readText()
             val j = JSONObject(text)
-            Info(j.optInt("versionCode"), j.optString("versionName"), j.optString("apkUrl"),
-                j.optString("notes"), j.optString("sha256"), j.optBoolean("mandatory", false))
+            run {
+                val pj = j.optJSONObject("patch") ?: JSONObject()
+                Info(j.optInt("versionCode"), j.optString("versionName"), j.optString("apkUrl"),
+                    j.optString("notes"), j.optString("sha256"), j.optBoolean("mandatory", false),
+                    pj.optInt("from"), pj.optString("url"), pj.optString("sha256"))
+            }
         } catch (e: Exception) { null }
     }
 
     fun updateFile(ctx: android.content.Context): File = File(File(ctx.cacheDir, "updates"), "xarena-update.apk")
+    fun patchFile(ctx: android.content.Context): File = File(File(ctx.cacheDir, "updates"), "xarena-update.patch")
 
     /** HEAD request for the real APK size in bytes; -1 if unknown. */
     suspend fun apkSize(url: String): Long = withContext(Dispatchers.IO) {
@@ -114,6 +120,60 @@ object UpdateChecker {
         }
     }
 
+    /** Patch path: downloads the small delta, applies it to the installed APK, verifies the result. Returns null on success, else an error message (caller falls back to full download). */
+    suspend fun downloadPatchAndApply(ctx: android.content.Context, info: Info, onProgress: (Long, Long, Long) -> Unit): String? = withContext(Dispatchers.IO) {
+        try {
+            val pf = patchFile(ctx)
+            pf.parentFile?.mkdirs()
+            if (pf.exists()) pf.delete()
+            val c = URL(info.patchUrl).openConnection() as HttpURLConnection
+            c.connectTimeout = 15000; c.readTimeout = 20000; c.instanceFollowRedirects = true
+            if (c.responseCode != 200) { c.disconnect(); return@withContext "patch unavailable" }
+            val total = c.getHeaderFieldLong("Content-Length", -1)
+            val sha = MessageDigest.getInstance("SHA-256")
+            val input = c.inputStream
+            val out = pf.outputStream()
+            val buf = ByteArray(32768)
+            var done = 0L
+            val startedAt = System.nanoTime()
+            var lastTick = 0L
+            while (true) {
+                val r = input.read(buf)
+                if (r < 0) break
+                out.write(buf, 0, r); sha.update(buf, 0, r); done += r
+                val now = System.currentTimeMillis()
+                if (now - lastTick > 300) {
+                    lastTick = now
+                    val secs = (System.nanoTime() - startedAt) / 1_000_000_000.0
+                    val bps = if (secs > 0.5) (done / secs).toLong() else 0L
+                    withContext(Dispatchers.Main) { onProgress(done, total, bps) }
+                }
+            }
+            out.close(); input.close(); c.disconnect()
+            withContext(Dispatchers.Main) { onProgress(done, total, 0L) }
+            if (total > 0 && done != total) return@withContext "patch incomplete"
+            if (info.patchSha256.isNotBlank()) {
+                val hex = sha.digest().joinToString("") { "%02x".format(it) }
+                if (!hex.equals(info.patchSha256, true)) { pf.delete(); return@withContext "patch corrupted" }
+            }
+            val oldApk = File(ctx.applicationInfo.sourceDir)
+            val newApk = updateFile(ctx)
+            if (newApk.exists()) newApk.delete()
+            BsPatch.apply(oldApk, pf, newApk)
+            pf.delete()
+            if (info.sha256.isNotBlank()) {
+                val vsha = MessageDigest.getInstance("SHA-256")
+                newApk.inputStream().use { ins ->
+                    val vb = ByteArray(65536)
+                    while (true) { val r = ins.read(vb); if (r < 0) break; vsha.update(vb, 0, r) }
+                }
+                val hex = vsha.digest().joinToString("") { "%02x".format(it) }
+                if (!hex.equals(info.sha256, true)) { newApk.delete(); return@withContext "patched file failed verification" }
+            }
+            null
+        } catch (e: Exception) { "patch failed" }
+    }
+
     /** Launches the system installer. Returns null if the install flow was launched, else a user-visible message. */
     fun install(ctx: android.content.Context): String? {
         return try {
@@ -156,6 +216,26 @@ fun UpdateDialog(info: UpdateChecker.Info, onDismiss: () -> Unit) {
     var sizeKnown by remember { mutableStateOf(-1L) }
     LaunchedEffect(info.url) { sizeKnown = UpdateChecker.apkSize(info.url) }
 
+    fun startUpdate() {
+        downloading = true; err = null; done = 0
+        scope.launch {
+            var e: String? = null
+            if (info.patchUrl.isNotBlank() && info.patchFrom == BuildConfig.VERSION_CODE) {
+                // small delta update first; any failure falls back to the full APK
+                e = UpdateChecker.downloadPatchAndApply(ctx, info) { d, t, s2 -> done = d; total = t; bps = s2 }
+                if (e != null) { e = null; done = 0; e = UpdateChecker.download(ctx, info) { d, t, s2 -> done = d; total = t; bps = s2 } }
+            } else {
+                e = UpdateChecker.download(ctx, info) { d, t, s2 -> done = d; total = t; bps = s2 }
+            }
+            if (e != null) { err = e; downloading = false }
+            else {
+                installing = true
+                val ie = UpdateChecker.install(ctx)
+                if (ie != null) { err = ie; downloading = false; installing = false } else onDismiss()
+            }
+        }
+    }
+
     Box(Modifier.fillMaxSize().background(Color(0xCC000000)), contentAlignment = Alignment.Center) {
         Column(Modifier.padding(20.dp).fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(Card)
             .border(1.dp, Gold.copy(alpha = .45f), RoundedCornerShape(20.dp)).padding(20.dp),
@@ -185,19 +265,7 @@ fun UpdateDialog(info: UpdateChecker.Info, onDismiss: () -> Unit) {
                     Spacer(Modifier.height(14.dp))
                 }
                 err?.let { Text(it, color = ErrRed, fontSize = 13.sp, textAlign = TextAlign.Center); Spacer(Modifier.height(8.dp)) }
-                GoldButton("UPDATE NOW" + if (sizeKnown > 0) " (" + mb(sizeKnown) + " MB)" else "") {
-                    downloading = true; err = null
-                    scope.launch {
-                        val e = UpdateChecker.download(ctx, info) { d, t, s -> done = d; total = t; bps = s }
-                        if (e != null) { err = e; downloading = false }
-                        else {
-                            installing = true
-                            val ie = UpdateChecker.install(ctx)
-                            if (ie != null) { err = ie; downloading = false; installing = false }
-                            else onDismiss()
-                        }
-                    }
-                }
+                GoldButton("UPDATE NOW" + if (sizeKnown > 0) " (" + mb(sizeKnown) + " MB)" else "") { startUpdate() }
                 Spacer(Modifier.height(8.dp))
                 if (!info.mandatory) Text("Skip for now", color = Muted, fontSize = 13.sp,
                     modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { onDismiss() }.padding(8.dp))
@@ -234,14 +302,7 @@ fun UpdateDialog(info: UpdateChecker.Info, onDismiss: () -> Unit) {
                 err?.let {
                     Spacer(Modifier.height(10.dp)); Text(it, color = ErrRed, fontSize = 12.sp, textAlign = TextAlign.Center)
                     Spacer(Modifier.height(6.dp))
-                    GoldButton("RETRY") {
-                        err = null
-                        scope.launch {
-                            val e = UpdateChecker.download(ctx, info) { d, t, s -> done = d; total = t; bps = s }
-                            if (e != null) err = e
-                            else { installing = true; val ie = UpdateChecker.install(ctx); if (ie != null) { err = ie; installing = false } else onDismiss() }
-                        }
-                    }
+                    GoldButton("RETRY") { startUpdate() }
                 }
                 Spacer(Modifier.height(12.dp))
                 Text("Do not close the app while the update is in progress", color = Muted, fontSize = 11.sp, textAlign = TextAlign.Center)
