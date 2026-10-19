@@ -458,7 +458,7 @@ window.addEventListener("load", function () {
     xrApi.uRpc("my_referral", {}).then(function (r) {
       if (!(r && r.ok)) { box.innerHTML = '<p style="color:var(--muted);font-size:13px">Could not load invites. Try refreshing.</p>'; return; }
       var link = "https://xarenaprivate.github.io/xarena/account.html?ref=" + r.code;
-      var msg = "Join me on XARENA ESPORTS - free Free Fire tournaments. Sign up with my code " + r.code + " and we both get 50 Store Points (XP only, never cash): " + link;
+      var msg = "Join me on XARENA ESPORTS - free Free Fire tournaments. Sign up with my code " + r.code + " and we both get 50 Store Points (AP only, never cash): " + link;
       box.innerHTML =
         '<div class="xg-stat-row">' +
         '<div class="xg-stat"><b>' + escG(r.code) + '</b><span>YOUR CODE</span></div>' +
