@@ -20,32 +20,32 @@ function boot(){
  function render(){
   var tabs=['All','Avatar Frames','Name Badges','Titles'];
   var shown=catalog.filter(function(it){return tab==='All'||kindMeta(it.kind).tab===tab;});
-  var html='<div class="xst"><div class="xst-head"><a class="xst-back" href="play.html">←</a><h2>XP REWARDS STORE</h2></div>'+
-   '<div class="xst-bal"><span class="xst-free">FREE · NO CASH</span><div class="lbl">YOUR XP BALANCE</div><div class="amt">'+(balance===null?'—':esc(balance)+' XP')+'</div><div class="sub">Earn more XP by completing matches & quests - No cash needed. FREE rewards only.</div></div>'+
+  var html='<div class="xst"><div class="xst-head"><a class="xst-back" href="play.html">←</a><h2>AP REWARDS STORE</h2></div>'+
+   '<div class="xst-bal"><span class="xst-free">FREE · NO CASH</span><div class="lbl">YOUR AP BALANCE</div><div class="amt">'+(balance===null?'—':esc(balance)+' AP')+'</div><div class="sub">Earn more AP by completing matches & quests - No cash needed. FREE rewards only.</div></div>'+
    '<div class="xst-tabs">'+tabs.map(function(t){return '<button class="xst-tab'+(t===tab?' on':'')+'" data-tab="'+t+'">'+t+'</button>';}).join('')+'</div>'+
-   '<div class="xst-sect">Featured Rewards - Claim with XP</div>'+
-   (catalog.length===0?'<div class="xst-empty"><h3>Catalog opens soon</h3><p>The owner is adding real rewards. Keep stacking XP - every check-in, spin and quiz win counts. XP is never cash.</p></div>':
+   '<div class="xst-sect">Featured Rewards - Claim with AP</div>'+
+   (catalog.length===0?'<div class="xst-empty"><h3>Catalog opens soon</h3><p>The owner is adding real rewards. Keep stacking AP - every check-in, spin and quiz win counts. AP is never cash.</p></div>':
     shown.length===0?'<div class="xst-empty"><p>Nothing in this category yet.</p></div>':
     shown.map(function(it){var km=kindMeta(it.kind);var afford=balance!==null&&Number(balance)>=Number(it.cost);
-     return '<div class="xst-item"><div class="iic">'+km.icon+'</div><div class="ibody"><span class="ikind">'+km.label+'</span><h4>'+esc(it.title)+'</h4>'+(it.description?'<p>'+esc(it.description)+'</p>':'')+'</div><div class="iside"><span class="icost">'+esc(it.cost)+' XP · FREE</span><button class="xst-claim" data-claim="'+it.id+'" data-title="'+esc(it.title)+'" data-cost="'+it.cost+'"'+(!me||!afford?' disabled':'')+'>'+(me?afford?'CLAIM':'LOCKED':'LOG IN')+'</button></div></div>';}).join(''))+
+     return '<div class="xst-item"><div class="iic">'+km.icon+'</div><div class="ibody"><span class="ikind">'+km.label+'</span><h4>'+esc(it.title)+'</h4>'+(it.description?'<p>'+esc(it.description)+'</p>':'')+'</div><div class="iside"><span class="icost">'+esc(it.cost)+' AP · FREE</span><button class="xst-claim" data-claim="'+it.id+'" data-title="'+esc(it.title)+'" data-cost="'+it.cost+'"'+(!me||!afford?' disabled':'')+'>'+(me?afford?'CLAIM':'LOCKED':'LOG IN')+'</button></div></div>';}).join(''))+
    '<div class="xst-msg" data-msg></div>'+
    '<div class="xst-sect">My requests</div>'+
-   (mine.length?mine.map(function(x){var col=x.status==='fulfilled'?'#7ee787':x.status==='rejected'?'#ff9d9d':'#ffd783';return '<div class="xst-req"><span>'+esc(x.title)+' · '+esc(x.cost)+' XP</span><b style="color:'+col+'">'+esc(x.status)+'</b></div>';}).join(''):'<p style="font-size:13px;color:#c5b3d6">Nothing yet - your claim requests will show here. The owner reviews each one.</p>')+
+   (mine.length?mine.map(function(x){var col=x.status==='fulfilled'?'#7ee787':x.status==='rejected'?'#ff9d9d':'#ffd783';return '<div class="xst-req"><span>'+esc(x.title)+' · '+esc(x.cost)+' AP</span><b style="color:'+col+'">'+esc(x.status)+'</b></div>';}).join(''):'<p style="font-size:13px;color:#c5b3d6">Nothing yet - your claim requests will show here. The owner reviews each one.</p>')+
    '</div>';
   root.innerHTML=html;
   root.querySelectorAll('[data-tab]').forEach(function(b){b.addEventListener('click',function(){tab=b.getAttribute('data-tab');render();});});
   root.querySelectorAll('[data-claim]').forEach(function(b){b.addEventListener('click',function(){
    if(b.disabled)return;
-   if(!confirm('Claim "'+b.getAttribute('data-title')+'" for '+b.getAttribute('data-cost')+' XP? The owner reviews every request.'))return;
+   if(!confirm('Claim "'+b.getAttribute('data-title')+'" for '+b.getAttribute('data-cost')+' AP? The owner reviews every request.'))return;
    b.disabled=true;var msg=root.querySelector('[data-msg]');msg.textContent='Sending claim…';
    api.uRpc('redeem_reward',{p_item:parseInt(b.getAttribute('data-claim'),10)}).then(function(r){
-    if(r&&r.ok){msg.textContent='Claim sent! The owner will review it. New balance: '+r.balance+' XP.';load();}
+    if(r&&r.ok){msg.textContent='Claim sent! The owner will review it. New balance: '+r.balance+' AP.';load();}
     else{msg.textContent=(r&&r.error)||'Could not claim right now.';b.disabled=false;}
    }).catch(function(){msg.textContent='Network error - try again.';b.disabled=false;});
   });});
  }
  function load(){
-  root.innerHTML='<div class="xst"><div class="xst-head"><h2>XP REWARDS STORE</h2></div><p style="text-align:center;color:#c5b3d6">Loading…</p></div>';
+  root.innerHTML='<div class="xst"><div class="xst-head"><h2>AP REWARDS STORE</h2></div><p style="text-align:center;color:#c5b3d6">Loading…</p></div>';
   Promise.all([
    api.user().catch(function(){return null;}),
    fetch(api.url+'/rest/v1/rewards_catalog?active=eq.true&select=id,title,description,cost,kind&order=sort.asc,cost.asc',{headers:{apikey:api.key}}).then(function(r){return r.json();}).catch(function(){return [];})
