@@ -321,10 +321,13 @@ fun YouTubeEmbed(url: String, modifier: Modifier = Modifier) {
                 setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
                 webChromeClient = android.webkit.WebChromeClient()
                 var stage = 0
+                val referer = mapOf("Referer" to "https://xarenaprivate.github.io/")
                 fun loadStage() {
                     when (stage) {
-                        0 -> loadUrl("https://www.youtube.com/embed/" + id + "?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1")
-                        1 -> loadUrl("https://www.youtube-nocookie.com/embed/" + id + "?autoplay=1&mute=1&playsinline=1&rel=0")
+                        // Host the iframe on our real https domain: YouTube error 153 (embedder identity)
+                        // hits bare WebView embeds; xarenaprivate.github.io is a valid embed origin.
+                        0 -> loadUrl("https://xarenaprivate.github.io/xarena/xarena-native-live.html?v=" + id, referer)
+                        1 -> loadUrl("https://www.youtube-nocookie.com/embed/" + id + "?autoplay=1&mute=1&playsinline=1&rel=0", referer)
                         else -> loadUrl("https://m.youtube.com/watch?v=" + id)
                     }
                 }
