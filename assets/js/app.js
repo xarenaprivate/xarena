@@ -360,6 +360,30 @@
     });
   });
 
+
+  /* One registration per account: show a "Registered" state instead of the register form/buttons */
+  window.addEventListener("load", function () {
+    if (!window.xrApi || !xrApi.uRpc) return;
+    xrApi.uRpc("my_registrations", {}).then(function (r) {
+      if (!r || !r.ok) return;
+      var mine = (r.registrations || []).filter(function (x) { return x.tournament_id === "xr-s1"; })[0];
+      if (!mine) return;
+      var st = mine.verified ? "VERIFIED" : (mine.status === "confirmed" ? "Confirmed" : (mine.status || "pending"));
+      var rf = document.getElementById("reg-form");
+      if (rf) {
+        var card = document.createElement("div");
+        card.style.cssText = "background:rgba(60,200,120,.08);border:1px solid rgba(60,200,120,.4);border-radius:8px;padding:16px;margin:8px 0";
+        var h = document.createElement("p"); h.style.cssText = "color:var(--gold2);font-weight:700;letter-spacing:2px;text-transform:uppercase;font-size:13px"; h.textContent = "Registered";
+        var d = document.createElement("p"); d.textContent = "Your squad \u201C" + mine.squad + "\u201D is registered for Season 1. Status: " + st + ". Registration ID: " + mine.id + ". One registration per account.";
+        card.appendChild(h); card.appendChild(d);
+        rf.style.display = "none"; rf.parentNode.insertBefore(card, rf);
+      }
+      els('a[href$="tournaments.html#register"]').forEach(function (a) {
+        a.textContent = "Registered \u2713"; a.classList.add("disabled"); a.setAttribute("aria-disabled", "true");
+      });
+    }).catch(function () {});
+  });
+
   /* optional AP entry cost (additive): free tournaments keep the exact register_squad path */
   var xrEntryCost = 0;
   window.addEventListener("load", function () {
