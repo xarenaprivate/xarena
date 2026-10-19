@@ -30,20 +30,36 @@ import java.security.MessageDigest
 object UpdateChecker {
     const val MANIFEST = "https://xarenaprivate.github.io/xarena/xarena-native-version.json"
 
+    data class Patch(val from: Int, val url: String, val sha256: String, val bytes: Long)
+
     data class Info(val code: Int, val name: String, val url: String, val notes: String, val sha256: String, val mandatory: Boolean,
-                    val patchFrom: Int, val patchUrl: String, val patchSha256: String)
+                    val apkBytes: Long, val patches: List<Patch>) {
+        /** The direct delta for the installed version, or null when none is listed (full APK then). */
+        fun patchFor(versionCode: Int): Patch? = patches.firstOrNull { it.from == versionCode }
+        /** Real bytes the user will download for the chosen path; -1 unknown. */
+        fun downloadBytes(versionCode: Int): Long = patchFor(versionCode)?.bytes ?: apkBytes
+    }
 
     suspend fun latest(): Info? = withContext(Dispatchers.IO) {
         try {
             val text = URL(MANIFEST).openConnection().apply { connectTimeout = 10000; readTimeout = 10000 }
                 .getInputStream().bufferedReader().readText()
             val j = JSONObject(text)
-            run {
-                val pj = j.optJSONObject("patch") ?: JSONObject()
-                Info(j.optInt("versionCode"), j.s("versionName"), j.s("apkUrl"),
-                    j.s("notes"), j.s("sha256"), j.optBoolean("mandatory", false),
-                    pj.optInt("from"), pj.s("url"), pj.s("sha256"))
+            val patches = ArrayList<Patch>()
+            val arr = j.optJSONArray("patches")
+            if (arr != null) {
+                for (i in 0 until arr.length()) {
+                    val p = arr.getJSONObject(i)
+                    patches.add(Patch(p.optInt("from"), p.s("url"), p.s("sha256"), p.optLong("bytes", -1)))
+                }
             }
+            val pj = j.optJSONObject("patch") // legacy single-patch field (pre-0.16.7 manifests)
+            if (pj != null && patches.none { it.from == pj.optInt("from") })
+                patches.add(Patch(pj.optInt("from"), pj.s("url"), pj.s("sha256"), pj.optLong("bytes", -1)))
+            patches.removeAll { it.from <= 0 || it.url.isBlank() }
+            Info(j.optInt("versionCode"), j.s("versionName"), j.s("apkUrl"),
+                j.s("notes"), j.s("sha256"), j.optBoolean("mandatory", false),
+                j.optLong("apkBytes", -1), patches)
         } catch (e: Exception) { null }
     }
 
@@ -121,12 +137,12 @@ object UpdateChecker {
     }
 
     /** Patch path: downloads the small delta, applies it to the installed APK, verifies the result. Returns null on success, else an error message (caller falls back to full download). */
-    suspend fun downloadPatchAndApply(ctx: android.content.Context, info: Info, onProgress: (Long, Long, Long) -> Unit): String? = withContext(Dispatchers.IO) {
+    suspend fun downloadPatchAndApply(ctx: android.content.Context, info: Info, patch: Patch, onProgress: (Long, Long, Long) -> Unit): String? = withContext(Dispatchers.IO) {
         try {
             val pf = patchFile(ctx)
             pf.parentFile?.mkdirs()
             if (pf.exists()) pf.delete()
-            val c = URL(info.patchUrl).openConnection() as HttpURLConnection
+            val c = URL(patch.url).openConnection() as HttpURLConnection
             c.connectTimeout = 15000; c.readTimeout = 20000; c.instanceFollowRedirects = true
             if (c.responseCode != 200) { c.disconnect(); return@withContext "patch unavailable" }
             val total = c.getHeaderFieldLong("Content-Length", -1)
@@ -152,9 +168,9 @@ object UpdateChecker {
             out.close(); input.close(); c.disconnect()
             withContext(Dispatchers.Main) { onProgress(done, total, 0L) }
             if (total > 0 && done != total) return@withContext "patch incomplete"
-            if (info.patchSha256.isNotBlank()) {
+            if (patch.sha256.isNotBlank()) {
                 val hex = sha.digest().joinToString("") { "%02x".format(it) }
-                if (!hex.equals(info.patchSha256, true)) { pf.delete(); return@withContext "patch corrupted" }
+                if (!hex.equals(patch.sha256, true)) { pf.delete(); return@withContext "patch corrupted" }
             }
             val oldApk = File(ctx.applicationInfo.sourceDir)
             val newApk = updateFile(ctx)
@@ -215,19 +231,19 @@ fun UpdateDialog(info: UpdateChecker.Info, onDismiss: () -> Unit) {
     var err by remember { mutableStateOf<String?>(null) }
     var note by remember { mutableStateOf<String?>(null) }
     var installing by remember { mutableStateOf(false) }
-    var sizeKnown by remember { mutableStateOf(-1L) }
-    val patchEligible = info.patchUrl.isNotBlank() && info.patchFrom == BuildConfig.VERSION_CODE
+    var sizeKnown by remember { mutableStateOf(info.downloadBytes(BuildConfig.VERSION_CODE)) }
+    val patch = info.patchFor(BuildConfig.VERSION_CODE)
     LaunchedEffect(info.url) {
-        sizeKnown = if (patchEligible) UpdateChecker.apkSize(info.patchUrl) else UpdateChecker.apkSize(info.url)
+        if (sizeKnown <= 0) sizeKnown = UpdateChecker.apkSize(patch?.url ?: info.url) // old manifests without byte counts
     }
 
     fun startUpdate() {
         downloading = true; err = null; done = 0
         scope.launch {
             var e: String? = null
-            if (info.patchUrl.isNotBlank() && info.patchFrom == BuildConfig.VERSION_CODE) {
+            if (patch != null) {
                 // small delta update first; any failure falls back to the full APK
-                e = UpdateChecker.downloadPatchAndApply(ctx, info) { d, t, s2 -> done = d; total = t; bps = s2 }
+                e = UpdateChecker.downloadPatchAndApply(ctx, info, patch) { d, t, s2 -> done = d; total = t; bps = s2 }
                 if (e != null) { withContext(Dispatchers.Main) { note = e }; e = null; done = 0; e = UpdateChecker.download(ctx, info) { d, t, s2 -> done = d; total = t; bps = s2 } }
             } else {
                 e = UpdateChecker.download(ctx, info) { d, t, s2 -> done = d; total = t; bps = s2 }
@@ -270,12 +286,16 @@ fun UpdateDialog(info: UpdateChecker.Info, onDismiss: () -> Unit) {
                     Spacer(Modifier.height(14.dp))
                 }
                 err?.let { Text(it, color = ErrRed, fontSize = 13.sp, textAlign = TextAlign.Center); Spacer(Modifier.height(8.dp)) }
-                GoldButton("UPDATE NOW" + if (sizeKnown > 0) " (" + mb(sizeKnown) + " MB)" else "") { startUpdate() }
+                GoldButton("UPDATE NOW" + if (sizeKnown > 0) " - " + mb(sizeKnown) + " MB" else "") { startUpdate() }
+                if (sizeKnown > 0 && patch != null) {
+                    Spacer(Modifier.height(6.dp))
+                    Text("Quick update - only " + mb(sizeKnown) + " MB to download", color = Color(0xFF22C55E), fontSize = 12.sp)
+                }
                 Spacer(Modifier.height(8.dp))
                 if (!info.mandatory) Text("Skip for now", color = Muted, fontSize = 13.sp,
                     modifier = Modifier.clip(RoundedCornerShape(6.dp)).clickable { onDismiss() }.padding(8.dp))
                 Spacer(Modifier.height(4.dp))
-                Text("Version " + info.name + (if (sizeKnown > 0) " • " + mb(sizeKnown) + " MB" else ""), color = Muted, fontSize = 11.sp)
+                Text("Version " + info.name + (if (sizeKnown > 0) " - " + mb(sizeKnown) + " MB download" else ""), color = Muted, fontSize = 11.sp)
             } else {
                 Text("Update in Progress", color = Gold2, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Text("please wait • Downloading & Installing", color = Muted, fontSize = 12.sp)
