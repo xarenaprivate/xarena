@@ -185,9 +185,9 @@ private fun PostCard(p: JSONObject, onChanged: () -> Unit) {
     }
 }
 
-private data class GalleryItem(val uri: android.net.Uri, val isVideo: Boolean, val durationMs: Long)
+data class GalleryItem(val uri: android.net.Uri, val isVideo: Boolean, val durationMs: Long)
 
-private fun loadGallery(ctx: android.content.Context): List<GalleryItem> {
+fun loadGallery(ctx: android.content.Context): List<GalleryItem> {
     val out = ArrayList<GalleryItem>()
     val base = android.provider.MediaStore.Files.getContentUri("external")
     val projection = arrayOf(
@@ -216,18 +216,18 @@ private fun loadGallery(ctx: android.content.Context): List<GalleryItem> {
     return out
 }
 
-private fun mediaPerms(): Array<String> =
+fun mediaPerms(): Array<String> =
     if (android.os.Build.VERSION.SDK_INT >= 33)
         arrayOf(android.Manifest.permission.READ_MEDIA_IMAGES, android.Manifest.permission.READ_MEDIA_VIDEO)
     else arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
 
-private fun fmtDur(ms: Long): String {
+fun fmtDur(ms: Long): String {
     val s = ms / 1000
     return (s / 60).toString() + ":" + (s % 60).toString().padStart(2, '0')
 }
 
 @Composable
-private fun GallerySheet(selected: List<android.net.Uri>, onPick: (android.net.Uri) -> Unit, onConfirm: () -> Unit, onCancel: () -> Unit) {
+fun GallerySheet(selected: List<android.net.Uri>, onPick: (android.net.Uri) -> Unit, onConfirm: () -> Unit, onCancel: () -> Unit) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     var items by remember { mutableStateOf<List<GalleryItem>>(emptyList()) }
     var hasPerm by remember {

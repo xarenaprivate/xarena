@@ -315,13 +315,17 @@ fun YouTubeEmbed(url: String, modifier: Modifier = Modifier) {
                 settings.javaScriptEnabled = true
                 settings.mediaPlaybackRequiresUserGesture = false
                 settings.domStorageEnabled = true
+                settings.loadsImagesAutomatically = true
+                // hardware layer + chrome client: without these HTML5 video renders as a black box on many devices
+                setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
+                webChromeClient = android.webkit.WebChromeClient()
                 webViewClient = object : android.webkit.WebViewClient() {
                     override fun onRenderProcessGone(view: android.webkit.WebView, detail: android.webkit.RenderProcessGoneDetail): Boolean {
                         view.destroy()
                         return true
                     }
                     override fun onReceivedError(view: android.webkit.WebView, request: android.webkit.WebResourceRequest, error: android.webkit.WebResourceError) {
-                        if (request.isForMainFrame) view.loadUrl("about:blank")
+                        if (request.isForMainFrame) view.loadUrl("https://m.youtube.com/watch?v=" + id)
                     }
                 }
                 val html = "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>" +
