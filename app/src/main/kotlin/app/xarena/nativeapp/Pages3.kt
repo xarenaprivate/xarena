@@ -75,7 +75,7 @@ fun SearchScreen(onBack: () -> Unit, initialTab: Int = 0, title: String = "Searc
                                 .clickable { onOpenPlayer(r.s("id")) }.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Box(Modifier.size(44.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(0x33FFFFFF)), contentAlignment = Alignment.Center) {
                                     val av = r.s("avatar_url")
-                                    if (av.isNotBlank()) coil.compose.AsyncImage(model = av, contentDescription = nm, modifier = Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+                                    if (av.isNotBlank()) coil.compose.AsyncImage(model = xrImageModel(androidx.compose.ui.platform.LocalContext.current, av), contentDescription = nm, modifier = Modifier.fillMaxSize(), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
                                     else Text(nm.first().uppercase(), color = Gold, fontSize = 17.sp, fontWeight = FontWeight.Black)
                                 }
                                 Spacer(Modifier.width(12.dp))

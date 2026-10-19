@@ -330,7 +330,7 @@ fun YouTubeEmbed(url: String, modifier: Modifier = Modifier) {
                 }
                 val html = "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>" +
                     "<style>html,body{margin:0;padding:0;background:#0a0a14;height:100%}iframe{border:0;width:100%;height:100%;border-radius:12px}</style></head>" +
-                    "<body><iframe src='https://www.youtube-nocookie.com/embed/" + id + "?rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&color=white' allowfullscreen allow='autoplay; encrypted-media; picture-in-picture'></iframe></body></html>"
+                    "<body><iframe src='https://www.youtube-nocookie.com/embed/" + id + "?rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&color=white&autoplay=1&mute=1' allowfullscreen allow='autoplay; encrypted-media; picture-in-picture'></iframe></body></html>"
                 loadDataWithBaseURL("https://www.youtube-nocookie.com/", html, "text/html", "utf-8", null)
             }
         } catch (t: Throwable) {

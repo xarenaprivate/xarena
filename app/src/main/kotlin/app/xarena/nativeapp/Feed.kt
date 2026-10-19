@@ -30,6 +30,22 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 
+
+/* Supabase storage (feed-media) is a PRIVATE bucket: requests must carry the apikey header.
+   Coil/VideoView send no headers by default, which is why feed/story media rendered blank. */
+fun xrImageModel(ctx: android.content.Context, url: String): Any =
+    if (url.contains("/storage/v1/object/")) coil.request.ImageRequest.Builder(ctx).data(url)
+        .addHeader("apikey", Api.KEY).addHeader("Authorization", "Bearer " + (Api.access ?: Api.KEY)).build() else url
+
+fun xrVideoView(ctx: android.content.Context, url: String): android.widget.VideoView {
+    val v = android.widget.VideoView(ctx)
+    if (url.contains("/storage/v1/object/")) {
+        val h = HashMap<String, String>(); h["apikey"] = Api.KEY; h["Authorization"] = "Bearer " + (Api.access ?: Api.KEY)
+        v.setVideoURI(android.net.Uri.parse(url), h)
+    } else v.setVideoPath(url)
+    return v
+}
+
 fun feedMediaUrl(p: JSONObject): String? {
     val path = p.s("media_path")
     if (path.isBlank()) return null
@@ -114,16 +130,22 @@ private fun PostCard(p: JSONObject, onChanged: () -> Unit) {
         feedMediaUrl(p)?.let { url ->
             Spacer(Modifier.height(8.dp))
             if (p.s("kind") == "clip") {
-                var playing by remember { mutableStateOf(false) }
+                // muted autoplay inline; tap the corner to toggle sound; playback stops when the item leaves composition
+                var muted by remember { mutableStateOf(true) }
+                var player by remember { mutableStateOf<android.media.MediaPlayer?>(null) }
+                LaunchedEffect(muted) { player?.setVolume(if (muted) 0f else 1f, if (muted) 0f else 1f) }
                 Box(Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp)).background(Color.Black), contentAlignment = Alignment.Center) {
-                    if (playing) androidx.compose.ui.viewinterop.AndroidView(factory = { ctx ->
-                        android.widget.VideoView(ctx).apply { setVideoPath(url); setOnPreparedListener { it.start() } }
-                    }, modifier = Modifier.fillMaxSize())
-                    else Text("▶ Play clip", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Gold.copy(alpha = .35f)).clickable { playing = true }.padding(horizontal = 18.dp, vertical = 10.dp))
+                    androidx.compose.ui.viewinterop.AndroidView(factory = { ctx ->
+                        xrVideoView(ctx, url).apply {
+                            setOnPreparedListener { mp -> player = mp; mp.isLooping = true; mp.setVolume(0f, 0f); mp.start() }
+                        }
+                    }, modifier = Modifier.fillMaxSize(), onRelease = { v -> runCatching { v.stopPlayback() }; player = null })
+                    Text(if (muted) "🔇" else "🔊", color = Color.White, fontSize = 16.sp,
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp).clip(RoundedCornerShape(8.dp))
+                            .background(Color(0x88000000)).clickable { muted = !muted }.padding(horizontal = 10.dp, vertical = 6.dp))
                 }
             } else {
-                AsyncImage(model = url, contentDescription = p.s("caption"), modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp).clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.Crop)
+                AsyncImage(model = xrImageModel(androidx.compose.ui.platform.LocalContext.current, url), contentDescription = p.s("caption"), modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp).clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.Crop)
             }
         }
         if (likes > 0) Text(likes.toString() + if (likes == 1) " like" else " likes", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))

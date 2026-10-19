@@ -95,7 +95,7 @@ fun PlayerProfileScreen(playerId: String, onBack: () -> Unit, onOpenConv: (Strin
                     Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(92.dp).clip(CircleShape).border(2.dp, Gold, CircleShape).background(Card), contentAlignment = Alignment.Center) {
                             val av = p.s("avatar_url")
-                            if (av.isNotBlank()) AsyncImage(model = av, contentDescription = name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                            if (av.isNotBlank()) AsyncImage(model = xrImageModel(androidx.compose.ui.platform.LocalContext.current, av), contentDescription = name, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                             else Text(name.first().uppercase(), color = Gold, fontSize = 34.sp, fontWeight = FontWeight.Black)
                         }
                         Spacer(Modifier.width(16.dp))
@@ -234,7 +234,7 @@ fun PlayerProfileScreen(playerId: String, onBack: () -> Unit, onOpenConv: (Strin
         androidx.compose.ui.window.Dialog(onDismissRequest = { playUrl = null }) {
             Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Card).padding(12.dp)) {
                 androidx.compose.ui.viewinterop.AndroidView(factory = { ctx ->
-                    android.widget.VideoView(ctx).apply { setVideoPath(url); setOnPreparedListener { it.start() } }
+                    xrVideoView(ctx, url).apply { setOnPreparedListener { it.start() } }
                 }, modifier = Modifier.fillMaxWidth().height(420.dp))
                 Text("Close", color = Gold, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally).clickable { playUrl = null }.padding(12.dp))
             }

@@ -37,7 +37,7 @@ private fun storyMediaUrl(st: JSONObject): String {
         val t = if (st.s("kind") == "clip") "/upload/q_auto/" else "/upload/q_auto,f_auto,w_1080/"
         return p.replace("/upload/", t)
     }
-    return Api.BASE + "/storage/v1/object/public/feed-media/" + p
+    return Api.BASE + "/storage/v1/object/feed-media/" + p
 }
 
 @Composable
@@ -149,14 +149,13 @@ private fun StoryViewer(authorId: String, authorName: String, onClose: () -> Uni
             val st = arr.getJSONObject(idx)
             if (st.s("kind") == "clip") {
                 AndroidView(factory = { ctx ->
-                    android.widget.VideoView(ctx).apply {
-                        setVideoPath(storyMediaUrl(st))
+                    xrVideoView(ctx, storyMediaUrl(st)).apply {
                         setOnPreparedListener { mp -> mp.start() }
                         setOnErrorListener { _, _, _ -> err = "Could not play this clip."; true }
                     }
                 }, modifier = Modifier.fillMaxSize())
             } else {
-                AsyncImage(model = storyMediaUrl(st), contentDescription = "story", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+                AsyncImage(model = xrImageModel(androidx.compose.ui.platform.LocalContext.current, storyMediaUrl(st)), contentDescription = "story", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
             }
             Row(Modifier.fillMaxWidth().padding(8.dp).align(Alignment.TopCenter)) {
                 for (i in 0 until count) Box(Modifier.weight(1f).height(3.dp).padding(horizontal = 2.dp).clip(RoundedCornerShape(2.dp)).background(if (i <= idx) Gold else Color.White.copy(alpha = .3f)))
