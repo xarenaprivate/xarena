@@ -309,6 +309,8 @@ fun YouTubeEmbed(url: String, modifier: Modifier = Modifier) {
         }.padding(4.dp))
         return
     }
+    // Direct embed navigation (real Referer, no data-URL origin): the old loadDataWithBaseURL iframe
+    // made YouTube serve error 153 / a black player on many WebViews. Fallbacks: nocookie, then the watch page.
     androidx.compose.ui.viewinterop.AndroidView(factory = { ctx ->
         try {
             android.webkit.WebView(ctx).apply {
@@ -316,25 +318,32 @@ fun YouTubeEmbed(url: String, modifier: Modifier = Modifier) {
                 settings.mediaPlaybackRequiresUserGesture = false
                 settings.domStorageEnabled = true
                 settings.loadsImagesAutomatically = true
-                // hardware layer + chrome client: without these HTML5 video renders as a black box on many devices
                 setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
                 webChromeClient = android.webkit.WebChromeClient()
+                var stage = 0
+                fun loadStage() {
+                    when (stage) {
+                        0 -> loadUrl("https://www.youtube.com/embed/" + id + "?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1")
+                        1 -> loadUrl("https://www.youtube-nocookie.com/embed/" + id + "?autoplay=1&mute=1&playsinline=1&rel=0")
+                        else -> loadUrl("https://m.youtube.com/watch?v=" + id)
+                    }
+                }
                 webViewClient = object : android.webkit.WebViewClient() {
                     override fun onRenderProcessGone(view: android.webkit.WebView, detail: android.webkit.RenderProcessGoneDetail): Boolean {
                         view.destroy()
                         return true
                     }
                     override fun onReceivedError(view: android.webkit.WebView, request: android.webkit.WebResourceRequest, error: android.webkit.WebResourceError) {
-                        if (request.isForMainFrame) view.loadUrl("https://m.youtube.com/watch?v=" + id)
+                        if (request.isForMainFrame && stage < 2) { stage++; loadStage() }
+                    }
+                    override fun onReceivedHttpError(view: android.webkit.WebView, request: android.webkit.WebResourceRequest, errorResponse: android.webkit.WebResourceResponse) {
+                        if (request.isForMainFrame && stage < 2) { stage++; loadStage() }
                     }
                 }
-                val html = "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>" +
-                    "<style>html,body{margin:0;padding:0;background:#0a0a14;height:100%}iframe{border:0;width:100%;height:100%;border-radius:12px}</style></head>" +
-                    "<body><iframe src='https://www.youtube-nocookie.com/embed/" + id + "?rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&color=white&autoplay=1&mute=1' allowfullscreen allow='autoplay; encrypted-media; picture-in-picture'></iframe></body></html>"
-                loadDataWithBaseURL("https://www.youtube-nocookie.com/", html, "text/html", "utf-8", null)
+                loadStage()
             }
         } catch (t: Throwable) {
-            android.view.View(ctx) // no WebView on this device - the fallback link below stays visible
+            android.view.View(ctx) // no WebView on this device - the "Open in YouTube" link below stays visible
         }
     }, modifier = modifier)
 }
