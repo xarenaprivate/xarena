@@ -127,8 +127,12 @@ fun XarenaApp() {
     }
     LaunchedEffect(Unit) {
         val latest = UpdateChecker.latest()
-        if (latest != null && latest.code > BuildConfig.VERSION_CODE && latest.code != Api.prefs.getInt("skipped_update_code", -1)
-            && latest.url.startsWith("https://github.com/xarenaprivate/xarena/releases/")) update = latest
+        val minCode = runCatching { RemoteConfig.get().optInt("min_version_code", 0) }.getOrDefault(0)
+        if (latest != null && latest.url.startsWith("https://github.com/xarenaprivate/xarena/releases/")) {
+            val mandatory = latest.mandatory || minCode > BuildConfig.VERSION_CODE
+            if (latest.code > BuildConfig.VERSION_CODE && (mandatory || latest.code != Api.prefs.getInt("skipped_update_code", -1)))
+                update = if (mandatory) latest.copy(mandatory = true) else latest
+        }
     }
     MaterialTheme(colorScheme = darkColorScheme(primary = Gold, background = Ink, surface = Card, onSurface = Color.White)) {
         NovaBackground {
@@ -364,6 +368,7 @@ fun HomeShell(onLogout: () -> Unit) {
     LaunchedEffect(Unit) { // presence: keeps own last_seen_at fresh (server throttles to 40s) so profile "Online now" is real
         while (true) { runCatching { Api.presencePing() }; kotlinx.coroutines.delay(60_000) }
     }
+    LaunchedEffect(Unit) { runCatching { RemoteConfig.get() } } // prefetch remote config
     var msgBadge by remember { mutableIntStateOf(0) }
     LaunchedEffect(feature, conv) {
         msgBadge = runCatching {
@@ -401,7 +406,9 @@ data class GridItem(val key: String, val name: String, val sub: String, val icon
 @Composable
 fun MoreGrid(onOpen: (String) -> Unit) {
     // One button per feature, each opening its own full screen. Only real, working features are listed.
-    val items = listOf(
+    // site_settings key "native" {features: {"<key>": false}} hides an entry without an APK update.
+    produceState<org.json.JSONObject?>(null) { value = runCatching { RemoteConfig.get() }.getOrNull() }.value
+    val itemsAll = listOf(
         GridItem("play", "Play", "Daily spin and quizzes - real XP, free", Icons.Default.Star),
         GridItem("chat", "Chat", "World chat lobby", Icons.Default.MailOutline),
         GridItem("luna", "Luna", "AI analyst and caster", Icons.Default.Face),
@@ -445,6 +452,7 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("voice", "Voice Lobby", "Talk live - peer to peer", Icons.Default.Notifications),
         GridItem("settings", "Settings", "App version, activity status, logout", Icons.Default.Settings),
     )
+    val items = itemsAll.filter { RemoteConfig.featureEnabled(it.key) }
     Column(Modifier.fillMaxSize()) {
         Brand()
         LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp)) {

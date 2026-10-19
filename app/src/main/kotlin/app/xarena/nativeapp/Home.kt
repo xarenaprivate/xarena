@@ -30,11 +30,23 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
         val yt = runCatching { Api.publicGet("/rest/v1/site_settings?key=eq.youtube_live&select=value") }.getOrElse { JSONArray() }
         val matches = runCatching { Api.publicGet("/rest/v1/matches_public?select=*&order=starts_at.asc.nullslast&limit=6") }.getOrElse { JSONArray() }
         val stats = runCatching { Api.authedRpc("my_stats", JSONObject()) }.getOrNull()
-        HomeData(ts, if (yt.length() > 0) yt.getJSONObject(0).s("value") else "", matches, stats)
+        val ann = runCatching { RemoteConfig.get(); RemoteConfig.announcement() }.getOrNull()
+        HomeData(ts, if (yt.length() > 0) yt.getJSONObject(0).s("value") else "", matches, stats, ann)
     }) { d ->
         LazyColumn(Modifier.fillMaxSize()) {
             item {
                 Brand()
+                d.ann?.let { a ->
+                    val ctx = androidx.compose.ui.platform.LocalContext.current
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(12.dp))
+                        .background(Gold.copy(alpha = .15f)).border(1.dp, Gold.copy(alpha = .5f), RoundedCornerShape(12.dp))
+                        .clickable(enabled = a.s("link").isNotBlank()) {
+                            runCatching { ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(a.s("link")))) }
+                        }.padding(14.dp)) {
+                        Text(a.s("text"), color = Gold2, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        if (a.s("link").isNotBlank()) Text("Tap to open", color = Muted, fontSize = 11.sp)
+                    }
+                }
                 // Featured tournament = first with open registration, else first in list
                 val openIdx = (0 until d.ts.length()).indexOfFirst { d.ts.getJSONObject(it).optBoolean("reg_open") }
                 val featIdx = if (openIdx >= 0) openIdx else if (d.ts.length() > 0) 0 else -1
@@ -129,7 +141,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
     }
 }
 
-private data class HomeData(val ts: JSONArray, val ytUrl: String, val matches: JSONArray, val stats: JSONObject?)
+private data class HomeData(val ts: JSONArray, val ytUrl: String, val matches: JSONArray, val stats: JSONObject?, val ann: JSONObject? = null)
 
 @Composable
 private fun LiveStreamCard(onOpen: () -> Unit) {

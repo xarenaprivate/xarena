@@ -241,7 +241,7 @@ fun PlayerCardScreen(onBack: () -> Unit, onOpenConv: (String?, String, String) -
                     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Card.copy(alpha = .85f)).padding(16.dp)) {
                         Text("Free Fire identity", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                         Spacer(Modifier.height(6.dp))
-                        listOf("Role" to p.s("role"), "Free Fire rank" to p.s("ff_rank"), "K/D" to (if (p.isNull("kd")) "" else p.optDouble("kd").toString()), "Device" to p.s("device")).forEach { (k, v) ->
+                        listOf("Role" to p.s("role"), "Free Fire rank" to p.s("ff_rank"), "K/D" to (if (p.isNull("kd")) "" else p.optDouble("kd").toString())).forEach { (k, v) -> // device/ff_uid hidden from public player_cards
                             if (v.isNotBlank() && v != "null") Row(Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
                                 Text(k, color = Muted, fontSize = 13.sp, modifier = Modifier.weight(1f))
                                 Text(v, color = Color.White, fontSize = 13.sp)
