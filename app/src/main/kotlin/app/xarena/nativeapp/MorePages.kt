@@ -33,10 +33,10 @@ fun ClipsScreen(onBack: () -> Unit) {
             else LazyColumn {
                 items((0 until arr.length()).map { arr.getJSONObject(it) }) { c ->
                     SmallCard {
-                        Text(c.optString("caption").ifBlank { "Clip" }, color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                        Text(dmTime(c.optString("created_at")), color = Muted, fontSize = 11.sp)
+                        Text(c.s("caption").ifBlank { "Clip" }, color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                        Text(dmTime(c.s("created_at")), color = Muted, fontSize = 11.sp)
                         Spacer(Modifier.height(6.dp))
-                        val path = c.optString("media_path")
+                        val path = c.s("media_path")
                         val url = if (path.startsWith("https://res.cloudinary.com/")) path.replace("/upload/", "/upload/q_auto/") else null
                         if (url != null) {
                             var playing by remember { mutableStateOf(false) }
@@ -71,9 +71,9 @@ fun WinnersScreen(onBack: () -> Unit) {
                     item { Text("HALL OF FAME", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(14.dp)) }
                     items((0 until hof.length()).map { hof.getJSONObject(it) }) { w ->
                         SmallCard {
-                            Text(w.optString("title").ifBlank { w.optString("name") }, color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            Text(listOf(w.optString("team"), w.optString("tournament"), w.optString("season")).filter { it.isNotBlank() }.joinToString(" - "), color = Color.White, fontSize = 13.sp)
-                            Text(dmTime(w.optString("created_at")), color = Muted, fontSize = 11.sp)
+                            Text(w.s("title").ifBlank { w.s("name") }, color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text(listOf(w.s("team"), w.s("tournament"), w.s("season")).filter { it.isNotBlank() }.joinToString(" - "), color = Color.White, fontSize = 13.sp)
+                            Text(dmTime(w.s("created_at")), color = Muted, fontSize = 11.sp)
                         }
                     }
                 }
@@ -81,8 +81,8 @@ fun WinnersScreen(onBack: () -> Unit) {
                     item { Text("AWARDS", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(14.dp)) }
                     items((0 until awards.length()).map { awards.getJSONObject(it) }) { a ->
                         SmallCard {
-                            Text(a.optString("title").ifBlank { a.optString("name") }, color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                            Text(listOf(a.optString("holder"), a.optString("team"), a.optString("note")).filter { it.isNotBlank() }.joinToString(" - "), color = Color.White, fontSize = 13.sp)
+                            Text(a.s("title").ifBlank { a.s("name") }, color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text(listOf(a.s("holder"), a.s("team"), a.s("note")).filter { it.isNotBlank() }.joinToString(" - "), color = Color.White, fontSize = 13.sp)
                         }
                     }
                 }
@@ -147,11 +147,11 @@ fun TasksScreen(onBack: () -> Unit) {
             val done = runCatching { Api.authedGetArray("/rest/v1/task_completions?user_id=eq." + Api.uid + "&select=task_id,status") }.getOrElse { JSONArray() }
             tasks to done
         }) { (tasks, done) ->
-            val doneIds = (0 until done.length()).map { done.getJSONObject(it).optString("task_id") }.toSet()
+            val doneIds = (0 until done.length()).map { done.getJSONObject(it).s("task_id") }.toSet()
             LazyColumn {
                 if (tasks.length() == 0) item { Text("No active tasks right now.", color = Muted, fontSize = 14.sp, modifier = Modifier.padding(24.dp)) }
                 items((0 until tasks.length()).map { tasks.getJSONObject(it) }) { t ->
-                    val id = t.optString("id")
+                    val id = t.s("id")
                     val finished = id in doneIds
                     var note by remember { mutableStateOf("") }
                     var busy by remember { mutableStateOf(false) }
@@ -161,8 +161,8 @@ fun TasksScreen(onBack: () -> Unit) {
                             Text(if (finished) "✅" else "🎯", fontSize = 18.sp)
                             Spacer(Modifier.width(10.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(t.optString("title").ifBlank { t.optString("name") }, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                                if (t.optString("description").isNotBlank()) Text(t.optString("description"), color = Muted, fontSize = 12.sp)
+                                Text(t.s("title").ifBlank { t.s("name") }, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                                if (t.s("description").isNotBlank()) Text(t.s("description"), color = Muted, fontSize = 12.sp)
                                 if (t.optInt("points") > 0) Text(t.optInt("points").toString() + " points", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
@@ -179,7 +179,7 @@ fun TasksScreen(onBack: () -> Unit) {
                                     scope.launch {
                                         try {
                                             val r = Api.authedRpc("submit_task", JSONObject().put("p_task_id", id).put("p_note", note.ifBlank { null }))
-                                            if (r.optBoolean("ok", true)) tick++ else msg = r.optString("error").ifBlank { "Submit failed." }
+                                            if (r.optBoolean("ok", true)) tick++ else msg = r.s("error").ifBlank { "Submit failed." }
                                         } catch (e: Exception) { msg = e.message }
                                         busy = false
                                     }
@@ -203,7 +203,7 @@ fun LiveScreen(onBack: () -> Unit) {
             val matches = runCatching { Api.publicGet("/rest/v1/matches_public?select=*&order=starts_at.asc.nullslast&limit=10") }.getOrElse { JSONArray() }
             yt to matches
         }) { (yt, matches) ->
-            val live = ytLiveInfo(if (yt.length() > 0) yt.getJSONObject(0).optString("value") else "")
+            val live = ytLiveInfo(if (yt.length() > 0) yt.getJSONObject(0).s("value") else "")
             LazyColumn {
                 item { SmallCard {
                     Text("STREAM", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
@@ -224,9 +224,9 @@ fun LiveScreen(onBack: () -> Unit) {
                 if (matches.length() == 0) item { Text("No matches scheduled yet.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 16.dp)) }
                 items((0 until matches.length()).map { matches.getJSONObject(it) }) { m ->
                     SmallCard {
-                        Text(m.optString("title").ifBlank { m.optString("name").ifBlank { "Match" } }, color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                        Text(listOf(m.optString("team_a"), m.optString("team_b")).filter { it.isNotBlank() }.joinToString(" vs "), color = Color.White, fontSize = 13.sp)
-                        Text(dmTime(m.optString("starts_at")), color = Muted, fontSize = 11.sp)
+                        Text(m.s("title").ifBlank { m.s("name").ifBlank { "Match" } }, color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text(listOf(m.s("team_a"), m.s("team_b")).filter { it.isNotBlank() }.joinToString(" vs "), color = Color.White, fontSize = 13.sp)
+                        Text(dmTime(m.s("starts_at")), color = Muted, fontSize = 11.sp)
                     }
                 }
             }
@@ -245,9 +245,9 @@ fun ScrimsScreen(onBack: () -> Unit) {
                 if (list.length() == 0) item { Text("No LFG posts right now.", color = Muted, fontSize = 14.sp, modifier = Modifier.padding(24.dp)) }
                 items((0 until list.length()).map { list.getJSONObject(it) }) { p ->
                     SmallCard {
-                        Text(p.optString("ign").ifBlank { p.optString("author").ifBlank { "Player" } }, color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                        Text(p.optString("note").ifBlank { p.optString("body") }, color = Color.White, fontSize = 13.sp)
-                        Text(dmTime(p.optString("created_at").ifBlank { p.optString("at") }), color = Muted, fontSize = 11.sp)
+                        Text(p.s("ign").ifBlank { p.s("author").ifBlank { "Player" } }, color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text(p.s("note").ifBlank { p.s("body") }, color = Color.White, fontSize = 13.sp)
+                        Text(dmTime(p.s("created_at").ifBlank { p.s("at") }), color = Muted, fontSize = 11.sp)
                     }
                 }
             }
@@ -266,9 +266,9 @@ fun CalendarScreen(onBack: () -> Unit) {
                 if (list.length() == 0) item { Text("No events scheduled yet.", color = Muted, fontSize = 14.sp, modifier = Modifier.padding(24.dp)) }
                 items((0 until list.length()).map { list.getJSONObject(it) }) { e ->
                     SmallCard {
-                        Text(e.optString("title").ifBlank { e.optString("name") }, color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                        Text(e.optString("date_text").ifBlank { dmTime(e.optString("at").ifBlank { e.optString("starts_at") }) }, color = Color.White, fontSize = 13.sp)
-                        if (e.optString("note").isNotBlank()) Text(e.optString("note"), color = Muted, fontSize = 12.sp)
+                        Text(e.s("title").ifBlank { e.s("name") }, color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text(e.s("date_text").ifBlank { dmTime(e.s("at").ifBlank { e.s("starts_at") }) }, color = Color.White, fontSize = 13.sp)
+                        if (e.s("note").isNotBlank()) Text(e.s("note"), color = Muted, fontSize = 12.sp)
                     }
                 }
             }
@@ -286,8 +286,8 @@ fun ytLiveInfo(raw: String): Pair<String, String>? {
     var active = true
     val obj = runCatching { JSONObject(raw) }.getOrNull()
     if (obj != null) {
-        vid = obj.optString("video_id").ifBlank { obj.optString("url") }.trim()
-        title = obj.optString("title")
+        vid = obj.s("video_id").ifBlank { obj.s("url") }.trim()
+        title = obj.s("title")
         active = obj.optBoolean("active", true)
     }
     val id = Regex("(?:youtu\\.be/|youtube(?:-nocookie)?\\.com/(?:watch\\?(?:[^#]*&)?v=|live/|embed/|shorts/|v/))([A-Za-z0-9_-]{11})").find(vid)?.groupValues?.get(1)
@@ -324,7 +324,10 @@ fun YouTubeEmbed(url: String, modifier: Modifier = Modifier) {
                         if (request.isForMainFrame) view.loadUrl("about:blank")
                     }
                 }
-                loadUrl("https://www.youtube-nocookie.com/embed/" + id + "?rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&color=white")
+                val html = "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>" +
+                    "<style>html,body{margin:0;padding:0;background:#0a0a14;height:100%}iframe{border:0;width:100%;height:100%;border-radius:12px}</style></head>" +
+                    "<body><iframe src='https://www.youtube-nocookie.com/embed/" + id + "?rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&color=white' allowfullscreen allow='autoplay; encrypted-media; picture-in-picture'></iframe></body></html>"
+                loadDataWithBaseURL("https://www.youtube-nocookie.com/", html, "text/html", "utf-8", null)
             }
         } catch (t: Throwable) {
             android.view.View(ctx) // no WebView on this device - the fallback link below stays visible

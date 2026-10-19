@@ -79,7 +79,7 @@ fun StoreScreen(onBack: (() -> Unit)? = null) {
                 }
                 val tabKinds = mapOf("Avatar Frames" to "avatar_frame", "Name Badges" to "name_badge", "Titles" to "title")
                 val shownItems = (0 until d.catalog.length()).map { d.catalog.getJSONObject(it) }
-                    .filter { tab == "All" || it.optString("kind") == tabKinds[tab] }
+                    .filter { tab == "All" || it.s("kind") == tabKinds[tab] }
                 if (d.catalog.length() > 0 && shownItems.isEmpty()) item {
                     Text("Nothing in this shelf yet.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                 }
@@ -87,9 +87,9 @@ fun StoreScreen(onBack: (() -> Unit)? = null) {
                     PanelCard {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
-                                Text(kindLabel(it.optString("kind")), color = Gold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                Text(it.optString("title"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                                if (it.optString("description").isNotBlank()) Text(it.optString("description"), color = Muted, fontSize = 12.sp)
+                                Text(kindLabel(it.s("kind")), color = Gold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text(it.s("title"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                if (it.s("description").isNotBlank()) Text(it.s("description"), color = Muted, fontSize = 12.sp)
                             }
                             Spacer(Modifier.width(10.dp))
                             Column(horizontalAlignment = Alignment.End) {
@@ -107,7 +107,7 @@ fun StoreScreen(onBack: (() -> Unit)? = null) {
                                                 try {
                                                     val r = Api.authedRpc("redeem_reward", JSONObject().put("p_item", it.optLong("id")))
                                                     notice = if (r.optBoolean("ok")) "Claim sent! The owner will review it. New balance: " + r.optInt("balance") + " AP."
-                                                    else r.optString("error").ifBlank { "Could not claim right now." }
+                                                    else r.s("error").ifBlank { "Could not claim right now." }
                                                 } catch (e: Exception) { notice = e.message ?: "Network error - try again." }
                                                 claiming = null
                                             }
@@ -120,8 +120,8 @@ fun StoreScreen(onBack: (() -> Unit)? = null) {
                     item { Text("Your claims", color = Gold, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) }
                     items((0 until d.mine.length()).map { d.mine.getJSONObject(it) }) { m ->
                         PanelCard {
-                            Text(m.optString("title").ifBlank { "Reward #" + m.optLong("item") }, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                            Text(m.optString("status").ifBlank { "pending" }.uppercase(), color = Gold, fontSize = 12.sp)
+                            Text(m.s("title").ifBlank { "Reward #" + m.optLong("item") }, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                            Text(m.s("status").ifBlank { "pending" }.uppercase(), color = Gold, fontSize = 12.sp)
                         }
                     }
                 }

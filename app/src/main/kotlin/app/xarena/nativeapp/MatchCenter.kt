@@ -101,13 +101,13 @@ private fun MatchCard(m: JSONObject, ctx: android.content.Context, scope: kotlin
         } catch (e: Exception) { }
     }
 
-    val statusCol = when (m.optString("status")) { "live" -> Color(0xFF4ADE80); "done" -> Muted; else -> Gold2 }
+    val statusCol = when (m.s("status")) { "live" -> Color(0xFF4ADE80); "done" -> Muted; else -> Gold2 }
     PanelCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(m.optString("title"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-            Text(m.optString("status").uppercase(), color = statusCol, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(m.s("title"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Text(m.s("status").uppercase(), color = statusCol, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
-        Text(m.optString("tournament_id") + " - " + fmtWhen(m.optString("starts_at")), color = Muted, fontSize = 12.sp)
+        Text(m.s("tournament_id") + " - " + fmtWhen(m.s("starts_at")), color = Muted, fontSize = 12.sp)
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             SmallButton("ROOM ID & PASS") {
@@ -116,8 +116,8 @@ private fun MatchCard(m: JSONObject, ctx: android.content.Context, scope: kotlin
                 scope.launch {
                     try {
                         val r = Api.authedRpc("match_room", JSONObject().put("p_match", mid))
-                        roomText = if (r.optBoolean("ok")) "Room ID: " + r.optString("room_id") + "  -  Password: " + r.optString("room_pass").ifBlank { "(none)" }
-                        else r.optString("error").ifBlank { "Room not available yet." }
+                        roomText = if (r.optBoolean("ok")) "Room ID: " + r.s("room_id") + "  -  Password: " + r.s("room_pass").ifBlank { "(none)" }
+                        else r.s("error").ifBlank { "Room not available yet." }
                     } catch (e: Exception) { roomText = e.message }
                     busy = false
                 }
@@ -129,7 +129,7 @@ private fun MatchCard(m: JSONObject, ctx: android.content.Context, scope: kotlin
                     try {
                         val r = Api.authedRpc("match_checkin", JSONObject().put("p_match", mid))
                         if (r.optBoolean("ok")) { checkedIn = true; checkinText = "You are checked in (" + r.optInt("count") + " in)" }
-                        else checkinText = r.optString("error").ifBlank { "Check-in not open yet." }
+                        else checkinText = r.s("error").ifBlank { "Check-in not open yet." }
                     } catch (e: Exception) { checkinText = e.message }
                     busy = false
                 }
@@ -176,7 +176,7 @@ private fun ProofForm(matchId: Long, ctx: android.content.Context, scope: kotlin
                     try {
                         val url = Api.cloudinaryUpload(img!!)
                         val r = Api.authedRpc("proof_submit", JSONObject().put("p_match", matchId).put("p_image", url).put("p_note", note))
-                        msg = if (r.optBoolean("ok")) "Submitted - the owner reviews it soon." else r.optString("error").ifBlank { "Could not submit." }
+                        msg = if (r.optBoolean("ok")) "Submitted - the owner reviews it soon." else r.s("error").ifBlank { "Could not submit." }
                         if (r.optBoolean("ok")) onDone()
                     } catch (e: Exception) { msg = e.message ?: "Upload failed." }
                     busy = false
@@ -205,7 +205,7 @@ private fun ReportForm(matchId: Long, ctx: android.content.Context, scope: kotli
             scope.launch {
                 try {
                     val r = Api.authedRpc("cheat_report", JSONObject().put("p_name", name).put("p_reason", reason).put("p_match", matchId))
-                    msg = if (r.optBoolean("ok")) "Report sent to the owner." else r.optString("error").ifBlank { "Could not send the report." }
+                    msg = if (r.optBoolean("ok")) "Report sent to the owner." else r.s("error").ifBlank { "Could not send the report." }
                     if (r.optBoolean("ok")) onDone()
                 } catch (e: Exception) { msg = e.message }
                 busy = false

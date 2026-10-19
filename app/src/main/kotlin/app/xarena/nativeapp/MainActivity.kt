@@ -484,13 +484,13 @@ fun TournamentsScreen() {
             if (arr.length() == 0) EmptyNote("No tournaments yet", "Tournaments appear here as soon as the admin creates them.")
             else LazyColumn { items((0 until arr.length()).map { arr.getJSONObject(it) }) { t ->
                 PanelCard {
-                    Text(t.optString("name"), color = Gold2, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text(t.optString("mode") + " - " + t.optInt("slots") + " slots", color = Muted, fontSize = 13.sp)
+                    Text(t.s("name"), color = Gold2, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(t.s("mode") + " - " + t.optInt("slots") + " slots", color = Muted, fontSize = 13.sp)
                     Spacer(Modifier.height(6.dp))
-                    Text(t.optString("date_text"), color = Color.White, fontSize = 14.sp)
-                    Text(t.optString("prize"), color = Color.White, fontSize = 14.sp)
+                    Text(t.s("date_text"), color = Color.White, fontSize = 14.sp)
+                    Text(t.s("prize"), color = Color.White, fontSize = 14.sp)
                     Spacer(Modifier.height(6.dp))
-                    Text((t.optString("status").uppercase()) + if (t.optBoolean("reg_open")) " - REGISTRATION OPEN" else " - REGISTRATION CLOSED",
+                    Text((t.s("status").uppercase()) + if (t.optBoolean("reg_open")) " - REGISTRATION OPEN" else " - REGISTRATION CLOSED",
                         color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             } }
@@ -513,7 +513,7 @@ fun LeaderboardScreen() {
                 singleLine = true, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp))
             LazyColumn(Modifier.weight(1f)) {
                 val all = (0 until rows.length()).map { rows.getJSONObject(it) }
-                val shown = all.filter { query.isBlank() || it.optString("name").contains(query.trim(), true) }
+                val shown = all.filter { query.isBlank() || it.s("name").contains(query.trim(), true) }
                 if (shown.isEmpty()) item { EmptyNote(if (all.isEmpty()) "No XP earned yet" else "No player matches " + query.trim(),
                     if (all.isEmpty()) "The board lights up when players earn XP." else "Try a different name.") }
                 items(shown.size) { i ->
@@ -525,12 +525,12 @@ fun LeaderboardScreen() {
                                 modifier = Modifier.width(48.dp))
                             Box(Modifier.size(38.dp).clip(CircleShape).background(Look.cardBorder),
                                 contentAlignment = Alignment.Center) {
-                                Text(r.optString("name").firstOrNull()?.uppercase() ?: "P", color = Gold2, fontWeight = FontWeight.Bold)
+                                Text(r.s("name").firstOrNull()?.uppercase() ?: "P", color = Gold2, fontWeight = FontWeight.Bold)
                             }
                             Spacer(Modifier.width(10.dp))
                             Column(Modifier.weight(1f)) {
-                                Text(r.optString("name"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                                val moh = r.optString("mohalla").takeIf { it.isNotBlank() && it != "null" }
+                                Text(r.s("name"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                val moh = r.s("mohalla").takeIf { it.isNotBlank() && it != "null" }
                                 if (moh != null) Text(moh, color = Muted, fontSize = 12.sp)
                             }
                             Column(horizontalAlignment = Alignment.End) {
@@ -547,7 +547,7 @@ fun LeaderboardScreen() {
                     verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("YOUR RANK", color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        Text("You (" + mine.optString("name") + ")", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        Text("You (" + mine.s("name") + ")", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         Text(tierOf(mine.optInt("xp")), color = tierColor(tierOf(mine.optInt("xp"))), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                     Text("#" + mine.optInt("rank"), color = Gold, fontSize = 24.sp, fontWeight = FontWeight.Black)
@@ -580,19 +580,19 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
             LazyColumn {
                 item {
                     PanelCard {
-                        Text(p?.optString("ign").takeUnless { it.isNullOrBlank() || it == "null" } ?: p?.optString("username") ?: "Player",
+                        Text(p?.s("ign").takeUnless { it.isNullOrBlank() || it == "null" } ?: p?.s("username") ?: "Player",
                             color = Gold2, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                         if (p != null) {
                             @Composable fun row(k: String, v: String?) { if (!v.isNullOrBlank() && v != "null") Text("$k: $v", color = Color.White, fontSize = 14.sp) }
-                            row("Username", p.optString("username"))
-                            row("Free Fire UID", p.optString("ff_uid"))
-                            row("Role", p.optString("role")); row("Rank", p.optString("ff_rank"))
+                            row("Username", p.s("username"))
+                            row("Free Fire UID", p.s("ff_uid"))
+                            row("Role", p.s("role")); row("Rank", p.s("ff_rank"))
                             row("Verified", if (p.optBoolean("verified")) "Yes" else "Not yet")
-                            row("Matches", p.optString("matches")); row("Wins", p.optString("wins"))
+                            row("Matches", p.s("matches")); row("Wins", p.s("wins"))
                         } else Text("Profile not found.", color = Muted)
                     }
                 }
-                if (p != null && p.optString("phone").isNotBlank() && !p.optBoolean("phone_verified")) {
+                if (p != null && p.s("phone").isNotBlank() && !p.optBoolean("phone_verified")) {
                     item {
                         PanelCard {
                             Text("PHONE VERIFICATION PENDING", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 13.sp)
@@ -601,9 +601,9 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
                                 color = Muted, fontSize = 13.sp)
                             Spacer(Modifier.height(8.dp))
                             Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(Color(0x55000000))
-                                .clickable { clipboard.setText(AnnotatedString(p.optString("phone_code"))); copied = true }.padding(12.dp),
+                                .clickable { clipboard.setText(AnnotatedString(p.s("phone_code"))); copied = true }.padding(12.dp),
                                 contentAlignment = Alignment.Center) {
-                                Text(p.optString("phone_code", "------"), color = Color.White, fontSize = 26.sp,
+                                Text(p.s("phone_code", "------"), color = Color.White, fontSize = 26.sp,
                                     fontWeight = FontWeight.ExtraBold, letterSpacing = 6.sp, textAlign = TextAlign.Center)
                             }
                             Text(if (copied) "Copied" else "Tap the code to copy it", color = Muted, fontSize = 12.sp,

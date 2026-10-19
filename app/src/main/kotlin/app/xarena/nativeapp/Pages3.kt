@@ -48,43 +48,43 @@ fun SearchScreen(onBack: () -> Unit, initialTab: Int = 0, title: String = "Searc
                 when (tab) {
                     0 -> {
                         val rows = (0 until squads.length()).map { squads.getJSONObject(it) }
-                            .filter { needle.isBlank() || it.optString("squad").contains(needle, true) || it.optString("ign").contains(needle, true) }
+                            .filter { needle.isBlank() || it.s("squad").contains(needle, true) || it.s("ign").contains(needle, true) }
                         if (rows.isEmpty()) item { Text("No squads found.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(16.dp)) }
                         items(rows) { r ->
                             SmallCard {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(r.optString("squad"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                    Text(r.s("squad"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                                     if (r.optBoolean("verified")) {
                                         Spacer(Modifier.width(8.dp))
                                         Text("VERIFIED", color = Gold2, fontSize = 9.sp, fontWeight = FontWeight.Bold,
                                             modifier = Modifier.clip(RoundedCornerShape(4.dp)).border(1.dp, Gold2, RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp))
                                     }
                                 }
-                                Text("Captain IGN: " + r.optString("ign").ifBlank { "-" }, color = Muted, fontSize = 12.sp)
+                                Text("Captain IGN: " + r.s("ign").ifBlank { "-" }, color = Muted, fontSize = 12.sp)
                             }
                         }
                     }
                     1 -> {
                         val rows = (0 until players.length()).map { players.getJSONObject(it) }
-                            .filter { needle.isBlank() || it.optString("ign").contains(needle, true) }
+                            .filter { needle.isBlank() || it.s("ign").contains(needle, true) }
                         if (rows.isEmpty()) item { Text("No players found.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(16.dp)) }
                         items(rows) { r ->
                             SmallCard {
-                                Text(r.optString("ign"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                                Text(listOf(r.optString("role"), if (r.optString("kd").isNotBlank()) "K/D " + r.optString("kd") else "")
+                                Text(r.s("ign"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                Text(listOf(r.s("role"), if (r.s("kd").isNotBlank()) "K/D " + r.s("kd") else "")
                                     .filter { it.isNotBlank() }.joinToString(" - "), color = Muted, fontSize = 12.sp)
                             }
                         }
                     }
                     else -> {
                         val rows = (0 until ts.length()).map { ts.getJSONObject(it) }
-                            .filter { needle.isBlank() || it.optString("name").contains(needle, true) }
+                            .filter { needle.isBlank() || it.s("name").contains(needle, true) }
                         if (rows.isEmpty()) item { Text("No tournaments found.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(16.dp)) }
                         items(rows) { r ->
                             SmallCard {
-                                Text(r.optString("status").uppercase(), color = Gold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                Text(r.optString("name"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                                Text(listOf(r.optString("mode"), r.optString("date_text"), r.optString("prize"))
+                                Text(r.s("status").uppercase(), color = Gold, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text(r.s("name"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                Text(listOf(r.s("mode"), r.s("date_text"), r.s("prize"))
                                     .filter { it.isNotBlank() }.joinToString(" - "), color = Muted, fontSize = 12.sp)
                             }
                         }

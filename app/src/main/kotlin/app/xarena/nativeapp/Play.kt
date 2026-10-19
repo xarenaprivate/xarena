@@ -48,8 +48,8 @@ fun PlayScreen(onBack: () -> Unit) {
                                 spinMsg = if (r.optBoolean("ok")) {
                                     val seg = r.optInt("segment", -1)
                                     "+" + r.optInt("xp", 0) + " XP - landed on " + (SEG_LABELS.getOrNull(seg) ?: "the wheel") +
-                                        (if (!r.optString("badge").isNullOrBlank()) " + Lucky Spinner badge!" else "")
-                                } else r.optString("error").ifBlank { "Spin failed - try again." }
+                                        (if (!r.s("badge").isNullOrBlank()) " + Lucky Spinner badge!" else "")
+                                } else r.s("error").ifBlank { "Spin failed - try again." }
                             } catch (e: Exception) { spinMsg = e.message ?: "Spin failed - try again." }
                             spinBusy = false; tick++
                         }
@@ -65,9 +65,9 @@ fun PlayScreen(onBack: () -> Unit) {
             }
             items(quizzes) { q ->
                 SmallCard {
-                    Text((if (q.optString("kind") == "daily") "DAILY" else "QUIZ") + " - +" + q.optInt("points", 0) + " XP", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text((if (q.s("kind") == "daily") "DAILY" else "QUIZ") + " - +" + q.optInt("points", 0) + " XP", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(4.dp))
-                    Text(q.optString("question"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text(q.s("question"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(8.dp))
                     val opts = q.optJSONArray("options")
                     val answered = q.optBoolean("answered")

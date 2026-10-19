@@ -30,7 +30,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
         val yt = runCatching { Api.publicGet("/rest/v1/site_settings?key=eq.youtube_live&select=value") }.getOrElse { JSONArray() }
         val matches = runCatching { Api.publicGet("/rest/v1/matches_public?select=*&order=starts_at.asc.nullslast&limit=6") }.getOrElse { JSONArray() }
         val stats = runCatching { Api.authedRpc("my_stats", JSONObject()) }.getOrNull()
-        HomeData(ts, if (yt.length() > 0) yt.getJSONObject(0).optString("value") else "", matches, stats)
+        HomeData(ts, if (yt.length() > 0) yt.getJSONObject(0).s("value") else "", matches, stats)
     }) { d ->
         LazyColumn(Modifier.fillMaxSize()) {
             item {
@@ -45,11 +45,11 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                     val t = d.ts.getJSONObject(featIdx)
                     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(Look.cardRadius))
                         .background(Look.cardBg).border(1.dp, Gold.copy(alpha = .45f), RoundedCornerShape(Look.cardRadius)).padding(18.dp)) {
-                        Text(t.optString("name"), color = Gold2, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                        Text(listOf(t.optString("mode"), t.optString("date_text")).filter { it.isNotBlank() }.joinToString(" · "), color = Muted, fontSize = 12.sp)
-                        if (t.optString("prize").isNotBlank()) {
+                        Text(t.s("name"), color = Gold2, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        Text(listOf(t.s("mode"), t.s("date_text")).filter { it.isNotBlank() }.joinToString(" · "), color = Muted, fontSize = 12.sp)
+                        if (t.s("prize").isNotBlank()) {
                             Spacer(Modifier.height(8.dp))
-                            Text("Prize: " + t.optString("prize"), color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                            Text("Prize: " + t.s("prize"), color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                                 modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Gold).padding(horizontal = 10.dp, vertical = 4.dp))
                         }
                         if (t.optInt("slots", 0) > 0) { Spacer(Modifier.height(4.dp)); Text(t.optInt("slots").toString() + " slots", color = Muted, fontSize = 12.sp) }
@@ -88,8 +88,8 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                     items((0 until d.ts.length()).map { d.ts.getJSONObject(it) }) { t ->
                         Column(Modifier.width(220.dp).padding(horizontal = 4.dp).clip(RoundedCornerShape(Look.cardRadius))
                             .background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).padding(14.dp)) {
-                            Text(t.optString("name"), color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 2)
-                            Text(listOf(t.optString("date_text"), if (t.optInt("slots", 0) > 0) t.optInt("slots").toString() + " slots" else "").filter { it.isNotBlank() }.joinToString(" · "),
+                            Text(t.s("name"), color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 2)
+                            Text(listOf(t.s("date_text"), if (t.optInt("slots", 0) > 0) t.optInt("slots").toString() + " slots" else "").filter { it.isNotBlank() }.joinToString(" · "),
                                 color = Muted, fontSize = 11.sp)
                             Spacer(Modifier.height(8.dp))
                             if (t.optBoolean("reg_open")) Text("REGISTER", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
@@ -146,10 +146,10 @@ private fun LiveStreamCard(onOpen: () -> Unit) {
 private fun LiveMatchCard(m: JSONObject, onOpen: () -> Unit) {
     Column(Modifier.clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg)
         .border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).clickable { onOpen() }.padding(14.dp)) {
-        Text(m.optString("title").ifBlank { m.optString("name").ifBlank { "Match" } }, color = Gold2, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        Text(m.s("title").ifBlank { m.s("name").ifBlank { "Match" } }, color = Gold2, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
         Spacer(Modifier.height(4.dp))
-        val teams = listOf(m.optString("team_a"), m.optString("team_b")).filter { it.isNotBlank() }
+        val teams = listOf(m.s("team_a"), m.s("team_b")).filter { it.isNotBlank() }
         if (teams.isNotEmpty()) Text(teams.joinToString("  VS  "), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1)
-        Text(dmTime(m.optString("starts_at")), color = Muted, fontSize = 11.sp)
+        Text(dmTime(m.s("starts_at")), color = Muted, fontSize = 11.sp)
     }
 }

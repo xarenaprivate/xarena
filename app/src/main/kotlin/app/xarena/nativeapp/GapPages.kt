@@ -166,7 +166,7 @@ private fun PingRow(label: String, value: String) {
 fun ReferScreen(onBack: () -> Unit) {
     var tick by remember { mutableIntStateOf(0) }
     LoadState2(tick, { Api.authedRpc("my_referral", JSONObject()) }) { info ->
-        val code = info.optString("code")
+        val code = info.s("code")
         var friend by remember { mutableStateOf("") }
         var msg by remember { mutableStateOf<String?>(null) }
         var busy by remember { mutableStateOf(false) }
@@ -215,8 +215,8 @@ fun ReferScreen(onBack: () -> Unit) {
                             scope.launch {
                                 try {
                                     val r = Api.referralApply(friend.trim())
-                                    msg = if (r.optBoolean("ok")) r.optString("message").ifBlank { "Code applied." }
-                                          else r.optString("error").ifBlank { "That code did not work." }
+                                    msg = if (r.optBoolean("ok")) r.s("message").ifBlank { "Code applied." }
+                                          else r.s("error").ifBlank { "That code did not work." }
                                 } catch (e: Exception) { msg = e.message }
                                 busy = false
                             }
@@ -251,7 +251,7 @@ fun VerifyScreen(onBack: () -> Unit) {
     var tick by remember { mutableIntStateOf(0) }
     LoadState2(tick, { Api.authedRpc("my_id_verification", JSONObject()) }) { r ->
         val sub = r.optJSONObject("submission")
-        val status = sub?.optString("status") ?: ""
+        val status = sub?.s("status") ?: ""
         val verified = r.optBoolean("verified")
         var busy by remember { mutableStateOf(false) }
         var msg by remember { mutableStateOf<String?>(null) }
@@ -276,7 +276,7 @@ fun VerifyScreen(onBack: () -> Unit) {
                     }
                     val url = Api.cloudinaryUpload(bytes)
                     val res = Api.authedRpc("submit_id_verification", JSONObject().put("p_image", url))
-                    msg = if (res.optBoolean("ok")) "Submitted - pending admin review." else res.optString("error").ifBlank { "Could not submit." }
+                    msg = if (res.optBoolean("ok")) "Submitted - pending admin review." else res.s("error").ifBlank { "Could not submit." }
                     if (res.optBoolean("ok")) tick++
                 } catch (e: Exception) { msg = e.message ?: "Upload failed - try again." }
                 busy = false
@@ -287,8 +287,8 @@ fun VerifyScreen(onBack: () -> Unit) {
             item {
                 Column(Modifier.padding(16.dp)) {
                     SmallCard {
-                        GapRow("Player", r.optString("ign").ifBlank { r.optString("username") }.ifBlank { "-" })
-                        GapRow("Free Fire ID", r.optString("ff_uid").ifBlank { "-" })
+                        GapRow("Player", r.s("ign").ifBlank { r.s("username") }.ifBlank { "-" })
+                        GapRow("Free Fire ID", r.s("ff_uid").ifBlank { "-" })
                         GapRow("Status", when {
                             verified -> "Verified ✓"
                             status == "pending" -> "Pending review"
@@ -298,15 +298,15 @@ fun VerifyScreen(onBack: () -> Unit) {
                             verified -> Color(0xFF7EE787); status == "pending" -> Gold
                             status == "rejected" -> ErrRed; else -> Muted
                         })
-                        if (verified && sub?.optString("reviewed_at")?.isNotBlank() == true)
-                            GapRow("Verified at", sub.optString("reviewed_at").take(16).replace('T', ' '))
+                        if (verified && sub?.s("reviewed_at")?.isNotBlank() == true)
+                            GapRow("Verified at", sub.s("reviewed_at").take(16).replace('T', ' '))
                         Spacer(Modifier.height(8.dp))
                         val frac = when { verified -> 1f; status == "pending" -> .55f; status == "rejected" -> .15f; else -> .08f }
                         Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(Color.White.copy(alpha = .12f))) {
                             Box(Modifier.fillMaxWidth(frac).fillMaxHeight().clip(RoundedCornerShape(3.dp)).background(if (verified) Color(0xFF7EE787) else Gold))
                         }
                     }
-                    sub?.optString("image_path")?.takeIf { it.isNotBlank() }?.let { img ->
+                    sub?.s("image_path")?.takeIf { it.isNotBlank() }?.let { img ->
                         Spacer(Modifier.height(10.dp))
                         SmallCard {
                             Text("UPLOADED SCREENSHOT", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
@@ -319,7 +319,7 @@ fun VerifyScreen(onBack: () -> Unit) {
                     Text(when {
                         verified -> "Verification complete - badge granted by admin review."
                         status == "pending" -> "Screenshot received - the admin reviews every submission personally."
-                        status == "rejected" -> "Not approved" + (sub?.optString("admin_note")?.takeIf { it.isNotBlank() }?.let { ": $it" } ?: " - please upload a clearer Free Fire profile screenshot.")
+                        status == "rejected" -> "Not approved" + (sub?.s("admin_note")?.takeIf { it.isNotBlank() }?.let { ": $it" } ?: " - please upload a clearer Free Fire profile screenshot.")
                         else -> "Upload your Free Fire profile screenshot to start verification."
                     }, color = Muted, fontSize = 13.sp)
                     Spacer(Modifier.height(12.dp))
@@ -356,8 +356,8 @@ fun RolesScreen(onBack: () -> Unit) {
     var tick by remember { mutableIntStateOf(0) }
     LoadState2(tick, {
         val uid = Api.uid ?: throw Exception("Log in first.")
-        val prof = Api.authedGetArray("/rest/v1/profiles?id=eq.$uid&select=role,ign,username&limit=1")
-        val myRole = if (prof.length() > 0) prof.getJSONObject(0).optString("role") else ""
+        val prof = Api.authedGetArray("/rest/v1/profiles?id=eq.$uid&select=role,device,ff_rank,kd,instagram&limit=1")
+        val myRole = if (prof.length() > 0) prof.getJSONObject(0).s("role") else ""
         val sq = Api.authedGetArray("/rest/v1/squad_members?user_id=eq.$uid&select=squad_id,role&limit=1")
         var members = org.json.JSONArray()
         var names = mapOf<String, String>()
@@ -384,9 +384,9 @@ fun RolesScreen(onBack: () -> Unit) {
                             scope.launch {
                                 saveMsg = "Saving..."
                                 try {
-                                    val res = Api.authedRpc("update_player_card", JSONObject().put("p_role", r))
-                                    if (res.optBoolean("ok")) { current = r; saveMsg = null } else saveMsg = res.optString("error").ifBlank { "Could not save - try again." }
-                                } catch (e: Exception) { saveMsg = "Could not save - try again." }
+                                    val res = Api.saveRole(r)
+                                    if (res.optBoolean("ok")) { current = r; saveMsg = null } else saveMsg = res.s("error").ifBlank { "Could not save - try again." }
+                                } catch (e: Exception) { saveMsg = e.message ?: "Could not save - try again." }
                             }
                         } }
                     }
@@ -396,9 +396,9 @@ fun RolesScreen(onBack: () -> Unit) {
                             scope.launch {
                                 saveMsg = "Saving..."
                                 try {
-                                    val res = Api.authedRpc("update_player_card", JSONObject().put("p_role", r))
-                                    if (res.optBoolean("ok")) { current = r; saveMsg = null } else saveMsg = res.optString("error").ifBlank { "Could not save - try again." }
-                                } catch (e: Exception) { saveMsg = "Could not save - try again." }
+                                    val res = Api.saveRole(r)
+                                    if (res.optBoolean("ok")) { current = r; saveMsg = null } else saveMsg = res.s("error").ifBlank { "Could not save - try again." }
+                                } catch (e: Exception) { saveMsg = e.message ?: "Could not save - try again." }
                             }
                         } }
                     }
@@ -413,10 +413,10 @@ fun RolesScreen(onBack: () -> Unit) {
                         else if (members.length() == 0) Text("Your squad has no members listed yet.", color = Muted, fontSize = 13.sp)
                         else {
                             val ordered = (0 until members.length()).map { members.getJSONObject(it) }
-                                .sortedByDescending { it.optString("role") == "IGL" }
+                                .sortedByDescending { it.s("role") == "IGL" }
                             ordered.forEach { m ->
-                                val nm = names[m.optString("user_id")] ?: "Player"
-                                val role = m.optString("role")
+                                val nm = names[m.s("user_id")] ?: "Player"
+                                val role = m.s("role")
                                 Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Text(nm, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                                     if (role.isNotBlank()) Text(role, color = if (role == "IGL") Gold else Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -453,13 +453,13 @@ fun WinnerScreen(onBack: () -> Unit) {
         var best: JSONObject? = null
         byT.forEach { (_, ms) ->
             val maxR = ms.maxOf { it.optInt("round") }
-            val fin = ms.filter { it.optInt("round") == maxR }.maxByOrNull { it.optString("updated_at") }
-            if (fin != null && (best == null || fin.optString("updated_at") > best!!.optString("updated_at"))) best = fin
+            val fin = ms.filter { it.optInt("round") == maxR }.maxByOrNull { it.s("updated_at") }
+            if (fin != null && (best == null || fin.s("updated_at") > best!!.s("updated_at"))) best = fin
         }
         if (best == null) return@LoadState2 null
         val tname = try {
             val t = Api.publicGet("/rest/v1/tournaments?id=eq." + best!!.getString("tournament_id") + "&select=name&limit=1")
-            if (t.length() > 0) t.getJSONObject(0).optString("name") else "Tournament"
+            if (t.length() > 0) t.getJSONObject(0).s("name") else "Tournament"
         } catch (e: Exception) { "Tournament" }
         var mine = false
         try {
@@ -469,11 +469,11 @@ fun WinnerScreen(onBack: () -> Unit) {
                 val squadIds = (0 until sq.length()).map { sq.getJSONObject(it).getString("squad_id") }
                 val sqs = Api.publicGet("/rest/v1/squads_public?select=id,name")
                 val myNames = (0 until sqs.length()).map { sqs.getJSONObject(it) }
-                    .filter { squadIds.contains(it.optString("id")) }.map { it.optString("name") }
-                mine = myNames.any { it.equals(best!!.optString("winner"), ignoreCase = true) }
+                    .filter { squadIds.contains(it.s("id")) }.map { it.s("name") }
+                mine = myNames.any { it.equals(best!!.s("winner"), ignoreCase = true) }
             }
         } catch (e: Exception) { }
-        Triple(best!!.getString("tournament_id"), best!!.optString("winner"), tname to (best!!.optString("updated_at").take(10)) to mine)
+        Triple(best!!.getString("tournament_id"), best!!.s("winner"), tname to (best!!.s("updated_at").take(10)) to mine)
     }) { champ ->
         var msg by remember { mutableStateOf<String?>(null) }
         var busy by remember { mutableStateOf(false) }
@@ -510,7 +510,7 @@ fun WinnerScreen(onBack: () -> Unit) {
                             scope.launch {
                                 try {
                                     val r = Api.authedRpc("claim_champion_title", JSONObject().put("p_tournament", tid))
-                                    msg = if (r.optBoolean("ok")) "Title claimed - recorded on squad profiles." else r.optString("error").ifBlank { "Only squad members of the champion can claim." }
+                                    msg = if (r.optBoolean("ok")) "Title claimed - recorded on squad profiles." else r.s("error").ifBlank { "Only squad members of the champion can claim." }
                                 } catch (e: Exception) { msg = e.message }
                                 busy = false
                             }
@@ -556,15 +556,15 @@ fun SponsorsScreen(onBack: () -> Unit) {
                         val sp = rows.getJSONObject(it)
                         Spacer(Modifier.height(8.dp))
                         SmallCard {
-                            sp.optString("image_url").takeIf { u -> u.isNotBlank() && u.startsWith("https://") }?.let { img ->
-                                coil.compose.AsyncImage(model = img, contentDescription = sp.optString("name"),
+                            sp.s("image_url").takeIf { u -> u.isNotBlank() && u.startsWith("https://") }?.let { img ->
+                                coil.compose.AsyncImage(model = img, contentDescription = sp.s("name"),
                                     modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(10.dp)).background(Look.cardBorder),
                                     contentScale = androidx.compose.ui.layout.ContentScale.Crop)
                                 Spacer(Modifier.height(8.dp))
                             }
-                            Text(sp.optString("name"), color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                            Text((sp.optString("tier").ifBlank { "partner" }) + " Partner", color = Muted, fontSize = 12.sp)
-                            sp.optString("url").takeIf { u -> u.isNotBlank() }?.let { u ->
+                            Text(sp.s("name"), color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text((sp.s("tier").ifBlank { "partner" }) + " Partner", color = Muted, fontSize = 12.sp)
+                            sp.s("url").takeIf { u -> u.isNotBlank() }?.let { u ->
                                 Spacer(Modifier.height(4.dp))
                                 Text("Visit", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
                                     modifier = Modifier.clickable { openExternalUrl(u) }.padding(vertical = 4.dp))

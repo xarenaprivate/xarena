@@ -52,8 +52,12 @@ fun FanVoteScreen(onBack: () -> Unit) {
     Column(Modifier.fillMaxSize().background(Ink)) {
         PageHeader("Fan Vote", "One vote per player - changeable while open", onBack)
         LoadState2(tick, {
-            val polls = Api.authedRpc("active_polls", JSONObject())
-            val arr = polls.optJSONArray("polls") ?: JSONArray()
+            val body = Api.authedRpcRaw("active_polls", JSONObject()).trim()
+            val arr = when {
+                body.startsWith("[") -> JSONArray(body)
+                body.startsWith("{") -> JSONObject(body).optJSONArray("polls") ?: JSONArray()
+                else -> JSONArray()
+            }
             if (arr.length() == 0) null else {
                 val p = arr.getJSONObject(0)
                 val r = Api.authedRpc("poll_results", JSONObject().put("p_poll", p.getString("id")))
@@ -64,11 +68,11 @@ fun FanVoteScreen(onBack: () -> Unit) {
             val poll = res.getJSONObject("poll")
             val opts = res.optJSONArray("options") ?: JSONArray()
             val total = res.optInt("total", -1)
-            val closed = poll.optString("status") != "open"
-            var sel by remember { mutableStateOf(res.optString("my_vote").ifBlank { null }) }
+            val closed = poll.s("status") != "open"
+            var sel by remember { mutableStateOf(res.s("my_vote").ifBlank { null }) }
             var msg by remember { mutableStateOf<String?>(null) }
             Text(if (closed) "CLOSED" else "LIVE", color = if (closed) Muted else Color(0xFF22C55E), fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp))
-            Text(poll.optString("title"), color = Gold2, fontSize = 19.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
+            Text(poll.s("title"), color = Gold2, fontSize = 19.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp))
             if (total >= 0) Text(total.toString() + " votes", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp))
             Spacer(Modifier.height(8.dp))
             LazyColumn {
@@ -76,12 +80,12 @@ fun FanVoteScreen(onBack: () -> Unit) {
                     val oid = o.getString("id")
                     val votes = o.optInt("votes")
                     val pct = if (total > 0) 100 * votes / total else 0
-                    val mine = res.optString("my_vote") == oid
+                    val mine = res.s("my_vote") == oid
                     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).clip(RoundedCornerShape(12.dp))
                         .background(if (sel == oid) Gold.copy(alpha = .25f) else Card.copy(alpha = .85f))
                         .border(1.dp, if (sel == oid) Gold else Gold.copy(alpha = .2f), RoundedCornerShape(12.dp))
                         .clickable(enabled = !closed) { sel = oid }.padding(12.dp)) {
-                        Text(o.optString("label"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                        Text(o.s("label"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                         Row {
                             Text(if (mine) "Your vote" else " ", color = Gold, fontSize = 12.sp, modifier = Modifier.weight(1f))
                             if (total >= 0) Text(votes.toString() + " votes - " + pct + "%", color = Muted, fontSize = 12.sp)
@@ -99,7 +103,7 @@ fun FanVoteScreen(onBack: () -> Unit) {
                         scope.launch {
                             try {
                                 val r = Api.authedRpc("cast_vote", JSONObject().put("p_poll", poll.getString("id")).put("p_option", sel))
-                                if (r.optBoolean("ok")) tick++ else msg = r.optString("error").ifBlank { "Vote failed." }
+                                if (r.optBoolean("ok")) tick++ else msg = r.s("error").ifBlank { "Vote failed." }
                             } catch (e: Exception) { msg = e.message }
                         }
                     }
@@ -192,16 +196,16 @@ fun CertsScreen(onBack: () -> Unit) {
             Triple(regs, badges, names)
         }) { (regs, badges, names) ->
             val me = remember { mutableStateOf("") }
-            LaunchedEffect(Unit) { me.value = runCatching { Api.myProfile()?.optString("ign") ?: "" }.getOrDefault("") }
+            LaunchedEffect(Unit) { me.value = runCatching { Api.myProfile()?.s("ign") ?: "" }.getOrDefault("") }
             LazyColumn {
                 if (regs.length() == 0 && badges.length() == 0) item {
                     Text("No certificates yet. They appear here after a verified registration or a title.", color = Muted, fontSize = 14.sp, modifier = Modifier.padding(24.dp))
                 }
-                items((0 until badges.length()).map { badges.getJSONObject(it) }.filter { it.optString("badge").startsWith("Champion: ") }) { b ->
-                    CertCard("CHAMPION", "champion", b.getString("badge").removePrefix("Champion: "), me.value, b.optString("earned_at").take(10))
+                items((0 until badges.length()).map { badges.getJSONObject(it) }.filter { it.s("badge").startsWith("Champion: ") }) { b ->
+                    CertCard("CHAMPION", "champion", b.getString("badge").removePrefix("Champion: "), me.value, b.s("earned_at").take(10))
                 }
                 items((0 until regs.length()).map { regs.getJSONObject(it) }) { r ->
-                    CertCard("PARTICIPATION", "participation", names[r.optString("tournament_id")] ?: "XARENA Tournament", r.optString("squad").ifBlank { me.value }, r.optString("created_at").take(10))
+                    CertCard("PARTICIPATION", "participation", names[r.s("tournament_id")] ?: "XARENA Tournament", r.s("squad").ifBlank { me.value }, r.s("created_at").take(10))
                 }
             }
         }
@@ -303,10 +307,10 @@ fun NewsScreen(onBack: () -> Unit) {
             LazyColumn {
                 items((0 until arr.length()).map { arr.getJSONObject(it) }) { n ->
                     SmallCard {
-                        Text(n.optString("tag") + " - " + n.optString("published_at").ifBlank { n.optString("date") }.take(10), color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text(n.s("tag") + " - " + n.s("published_at").ifBlank { n.s("date") }.take(10), color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(4.dp))
-                        Text(n.optString("title"), color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                        if (!n.optString("body").isBlank()) { Spacer(Modifier.height(4.dp)); Text(n.optString("body"), color = Color.White, fontSize = 13.sp) }
+                        Text(n.s("title"), color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        if (!n.s("body").isBlank()) { Spacer(Modifier.height(4.dp)); Text(n.s("body"), color = Color.White, fontSize = 13.sp) }
                     }
                 }
             }
@@ -339,11 +343,11 @@ fun NotificationsScreen(onBack: () -> Unit) {
                 if (list.length() == 0) item { Text("No alerts right now.", color = Muted, fontSize = 14.sp, modifier = Modifier.padding(24.dp)) }
                 items((0 until list.length()).map { list.getJSONObject(it) }) { n ->
                     SmallCard {
-                        Text(n.optString("kind").replace("_", " "), color = if (n.optBoolean("read")) Muted else Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text(n.s("kind").replace("_", " "), color = if (n.optBoolean("read")) Muted else Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(3.dp))
-                        Text(n.optString("title"), color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                        if (!n.optString("body").isBlank()) Text(n.optString("body"), color = Color.White, fontSize = 13.sp)
-                        Text(n.optString("at").take(16).replace("T", " "), color = Muted, fontSize = 11.sp)
+                        Text(n.s("title"), color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                        if (!n.s("body").isBlank()) Text(n.s("body"), color = Color.White, fontSize = 13.sp)
+                        Text(n.s("at").take(16).replace("T", " "), color = Muted, fontSize = 11.sp)
                     }
                 }
                 if (list.length() > 0) item {

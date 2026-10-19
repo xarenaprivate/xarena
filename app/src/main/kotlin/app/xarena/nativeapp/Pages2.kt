@@ -65,20 +65,20 @@ fun RoomScreen(onBack: () -> Unit) {
             }
         } else {
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(info!!.optString("name") + (info!!.optString("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""),
+                Text(info!!.s("name") + (info!!.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""),
                     color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 Text(info!!.optInt("members").toString() + " member" + (if (info!!.optInt("members") == 1) "" else "s"), color = Muted, fontSize = 12.sp)
             }
             LazyColumn(state = listState, modifier = Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp)) {
                 if (msgs.isEmpty()) item { Text("No messages yet - say hello to your squad.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(vertical = 12.dp)) }
                 items(msgs) { m ->
-                    val mine = m.optString("user_id") == Api.uid
+                    val mine = m.s("user_id") == Api.uid
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (mine) Arrangement.End else Arrangement.Start) {
                         Column(Modifier.widthIn(max = 280.dp).padding(vertical = 3.dp).clip(RoundedCornerShape(12.dp))
                             .background(if (mine) Color(0xFF7A2E2E) else Look.cardBg).padding(10.dp)) {
-                            if (!mine) Text(m.optString("by"), color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            Text(m.optString("body"), color = Color.White, fontSize = 14.sp)
-                            Text(dmTime(m.optString("created_at")), color = Color.White.copy(alpha = .6f), fontSize = 9.sp, modifier = Modifier.align(Alignment.End))
+                            if (!mine) Text(m.s("by"), color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(m.s("body"), color = Color.White, fontSize = 14.sp)
+                            Text(dmTime(m.s("created_at")), color = Color.White.copy(alpha = .6f), fontSize = 9.sp, modifier = Modifier.align(Alignment.End))
                         }
                     }
                 }
@@ -95,7 +95,7 @@ fun RoomScreen(onBack: () -> Unit) {
                         scope.launch {
                             try {
                                 val r = Api.authedRpc("room_post", JSONObject().put("p_body", body))
-                                if (!r.optBoolean("ok")) { err = r.optString("error").ifBlank { "Could not send." }; input = body }
+                                if (!r.optBoolean("ok")) { err = r.s("error").ifBlank { "Could not send." }; input = body }
                             } catch (e: Exception) { err = "Network error - try again."; input = body }
                         }
                     }, contentAlignment = Alignment.Center) { Text("➤", color = Ink, fontSize = 18.sp) }
@@ -129,7 +129,7 @@ fun SupportScreen(onBack: () -> Unit) {
                                 try {
                                     val r = Api.authedRpc("support_ask", JSONObject().put("p_question", q.trim()))
                                     if (r.optBoolean("ok")) { q = ""; msg = "Sent - the owner will answer here."; tick++ }
-                                    else msg = r.optString("error").ifBlank { "Failed - try again." }
+                                    else msg = r.s("error").ifBlank { "Failed - try again." }
                                 } catch (e: Exception) { msg = "Network error - try again." }
                                 busy = false
                             }
@@ -141,9 +141,9 @@ fun SupportScreen(onBack: () -> Unit) {
                     item { Text("MY QUESTIONS", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(16.dp)) }
                     items((0 until items.length()).map { items.getJSONObject(it) }) { it2 ->
                         SmallCard {
-                            Text(it2.optString("question"), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                            Text(it2.s("question"), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                             Spacer(Modifier.height(4.dp))
-                            if (it2.optString("status") == "answered") Text(it2.optString("answer"), color = Color(0xFF4ADE80), fontSize = 13.sp)
+                            if (it2.s("status") == "answered") Text(it2.s("answer"), color = Color(0xFF4ADE80), fontSize = 13.sp)
                             else Text("With the owner - you will get a notification.", color = Gold2, fontSize = 12.sp)
                         }
                     }
@@ -201,7 +201,7 @@ fun SensitivityScreen(onBack: () -> Unit) {
                                     val args = JSONObject().put("p_device", device.trim()).put("p_note", note.trim())
                                     SENS_FIELDS.forEach { (k, _) -> args.put("p_" + k, (vals[k] ?: "0").toIntOrNull() ?: 0) }
                                     val r = Api.authedRpc("sens_share", args)
-                                    msg = if (r.optBoolean("ok")) { showShare = false; tick++; "Setup published - it is live below." } else r.optString("error").ifBlank { "Could not publish." }
+                                    msg = if (r.optBoolean("ok")) { showShare = false; tick++; "Setup published - it is live below." } else r.s("error").ifBlank { "Could not publish." }
                                 } catch (e: Exception) { msg = "Network error - try again." }
                             }
                         }
@@ -215,12 +215,12 @@ fun SensitivityScreen(onBack: () -> Unit) {
                 items((0 until rows.length()).map { rows.getJSONObject(it) }) { r ->
                     SmallCard {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(r.optString("by"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            Text(r.s("by"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                             Text("  on  ", color = Muted, fontSize = 12.sp)
-                            Text(r.optString("device"), color = Gold2, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                            if (r.optString("user_id") == Api.uid) {
+                            Text(r.s("device"), color = Gold2, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                            if (r.s("user_id") == Api.uid) {
                                 Text("Delete", color = ErrRed, fontSize = 12.sp, modifier = Modifier.clickable {
-                                    scope.launch { runCatching { Api.authedRpc("sens_delete_own", JSONObject().put("p_id", r.optString("id"))) }; tick++ }
+                                    scope.launch { runCatching { Api.authedRpc("sens_delete_own", JSONObject().put("p_id", r.s("id"))) }; tick++ }
                                 }.padding(4.dp))
                             }
                         }
@@ -233,7 +233,7 @@ fun SensitivityScreen(onBack: () -> Unit) {
                                 }
                             }
                         }
-                        if (r.optString("note").isNotBlank()) Text(r.optString("note"), color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
+                        if (r.s("note").isNotBlank()) Text(r.s("note"), color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
                     }
                 }
                 item { Spacer(Modifier.height(20.dp)) }
@@ -275,13 +275,13 @@ fun CoachesScreen(onBack: () -> Unit) {
                                 scope.launch {
                                     try {
                                         val r = Api.authedRpc("coach_publish", JSONObject().put("p_specialty", specialty.trim()).put("p_bio", bio.trim()))
-                                        msg = if (r.optBoolean("ok")) { tick++; "Listed - players can now request you." } else r.optString("error").ifBlank { "Could not publish." }
+                                        msg = if (r.optBoolean("ok")) { tick++; "Listed - players can now request you." } else r.s("error").ifBlank { "Could not publish." }
                                     } catch (e: Exception) { msg = "Network error - try again." }
                                 }
                             }
                         }
                     } else SmallCard {
-                        Text("Your listing is live: " + listing.optString("specialty"), color = Color(0xFF4ADE80), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("Your listing is live: " + listing.s("specialty"), color = Color(0xFF4ADE80), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                         Text("Take it down", color = ErrRed, fontSize = 12.sp, modifier = Modifier.clickable {
                             scope.launch { runCatching { Api.authedRpc("coach_unpublish", JSONObject()) }; tick++ }
                         }.padding(vertical = 4.dp))
@@ -294,9 +294,9 @@ fun CoachesScreen(onBack: () -> Unit) {
                     item { Text("REQUESTS FOR YOU", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) }
                     items((0 until incoming.length()).map { incoming.getJSONObject(it) }) { r ->
                         SmallCard {
-                            Text(r.optString("by"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                            if (r.optString("note").isNotBlank()) Text(r.optString("note"), color = Muted, fontSize = 13.sp)
-                            if (r.optString("status") == "pending") Row(Modifier.padding(top = 6.dp)) {
+                            Text(r.s("by"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            if (r.s("note").isNotBlank()) Text(r.s("note"), color = Muted, fontSize = 13.sp)
+                            if (r.s("status") == "pending") Row(Modifier.padding(top = 6.dp)) {
                                 Text("Accept", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                                     modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Gold).clickable {
                                         scope.launch { runCatching { Api.authedRpc("coach_respond", JSONObject().put("p_request", r.optLong("id")).put("p_accept", true)) }; tick++ }
@@ -306,7 +306,7 @@ fun CoachesScreen(onBack: () -> Unit) {
                                     modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(1.dp, ErrRed, RoundedCornerShape(8.dp)).clickable {
                                         scope.launch { runCatching { Api.authedRpc("coach_respond", JSONObject().put("p_request", r.optLong("id")).put("p_accept", false)) }; tick++ }
                                     }.padding(horizontal = 14.dp, vertical = 7.dp))
-                            } else Text(r.optString("status").uppercase(), color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            } else Text(r.s("status").uppercase(), color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -315,14 +315,14 @@ fun CoachesScreen(onBack: () -> Unit) {
                 items((0 until feed.length()).map { feed.getJSONObject(it) }) { c ->
                     SmallCard {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(c.optString("by"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text(c.s("by"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                             Spacer(Modifier.width(8.dp))
-                            Text(c.optString("specialty"), color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                            Text(c.s("specialty"), color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold,
                                 modifier = Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, Gold.copy(alpha = .5f), RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 2.dp))
                         }
                         Text(c.optInt("coached").toString() + " player" + (if (c.optInt("coached") == 1) "" else "s") + " coached", color = Muted, fontSize = 12.sp)
-                        if (c.optString("bio").isNotBlank()) Text(c.optString("bio"), color = Muted, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
-                        if (c.optString("user_id") == Api.uid) Text("This is your listing.", color = Gold2, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
+                        if (c.s("bio").isNotBlank()) Text(c.s("bio"), color = Muted, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+                        if (c.s("user_id") == Api.uid) Text("This is your listing.", color = Gold2, fontSize = 12.sp, modifier = Modifier.padding(top = 6.dp))
                         else Text("REQUEST COACHING", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 8.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, Gold, RoundedCornerShape(8.dp))
                                 .clickable { reqFor = c; reqNote = "" }.padding(horizontal = 12.dp, vertical = 7.dp))
@@ -337,13 +337,13 @@ fun CoachesScreen(onBack: () -> Unit) {
                     val note = reqNote.trim(); reqFor = null
                     scope.launch {
                         try {
-                            val r = Api.authedRpc("coach_request", JSONObject().put("p_coach", c.optString("user_id")).put("p_note", note))
-                            msg = if (r.optBoolean("ok")) "Request sent - the coach got a notification." else r.optString("error").ifBlank { "Could not send the request." }
+                            val r = Api.authedRpc("coach_request", JSONObject().put("p_coach", c.s("user_id")).put("p_note", note))
+                            msg = if (r.optBoolean("ok")) "Request sent - the coach got a notification." else r.s("error").ifBlank { "Could not send the request." }
                         } catch (e: Exception) { msg = "Network error - try again." }
                     }
                 }.padding(8.dp)) },
                 dismissButton = { Text("Cancel", color = Muted, modifier = Modifier.clickable { reqFor = null }.padding(8.dp)) },
-                title = { Text("One line for " + c.optString("by"), color = Color.White) },
+                title = { Text("One line for " + c.s("by"), color = Color.White) },
                 text = { OutlinedTextField(reqNote, { reqNote = it }, placeholder = { Text("What do you want to work on?") }) },
                 containerColor = Color(0xFF241239))
         }
@@ -381,7 +381,7 @@ fun CupScreen(onBack: () -> Unit) {
                             try {
                                 val r = Api.authedRpc("sponsor_apply", JSONObject().put("p_brand", brand.trim()).put("p_contact", contact.trim()).put("p_note", note.trim()))
                                 if (r.optBoolean("ok")) { brand = ""; contact = ""; note = ""; msg = "Inquiry sent - the owner reads every one and will reach out." }
-                                else msg = r.optString("error").ifBlank { "Could not send - try again." }
+                                else msg = r.s("error").ifBlank { "Could not send - try again." }
                             } catch (e: Exception) { msg = "Network error - try again." }
                             busy = false
                         }

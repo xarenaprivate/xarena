@@ -123,7 +123,7 @@ fun MessagesScreen(onBack: () -> Unit, onOpenConv: (String, String, String, Stri
                     try {
                         val r = Api.dmOpen(fid)
                         if (r.optBoolean("ok")) onOpenConv(r.getString("thread"), fid, names[fid] ?: "Player", "open", false)
-                        else err = r.optString("error").ifBlank { "Could not open chat." }
+                        else err = r.s("error").ifBlank { "Could not open chat." }
                     } catch (e: Exception) { err = e.message }
                 } })
             else -> RequestsPane(msgReqs, incReqs, outReqs, names, { reload() }, { id, peer -> onOpenConv(id, peer, names[peer] ?: "Player", "requested", false) })
@@ -135,8 +135,8 @@ fun MessagesScreen(onBack: () -> Unit, onOpenConv: (String, String, String, Stri
 private fun ChatsPane(threads: JSONArray?, names: Map<String, String>, open: (String, String, String, Boolean) -> Unit) {
     if (threads == null) { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Gold) }; return }
     val me = Api.uid
-    val open2 = (0 until threads.length()).map { threads.getJSONObject(it) }.filter { it.optString("status") != "requested" }
-    val mine = (0 until threads.length()).map { threads.getJSONObject(it) }.filter { it.optString("status") == "requested" && it.optString("requested_by") == me }
+    val open2 = (0 until threads.length()).map { threads.getJSONObject(it) }.filter { it.s("status") != "requested" }
+    val mine = (0 until threads.length()).map { threads.getJSONObject(it) }.filter { it.s("status") == "requested" && it.s("requested_by") == me }
     LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         if (open2.isEmpty() && mine.isEmpty()) item { Text("No chats yet. Add a friend and say hello.", color = Muted, fontSize = 14.sp, modifier = Modifier.padding(24.dp)) }
         items(open2) { t ->
@@ -150,7 +150,7 @@ private fun ChatsPane(threads: JSONArray?, names: Map<String, String>, open: (St
                     Text(nm, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                     Text("Encrypted" + if (t.optBoolean("locked")) " - locked" else "", color = Muted, fontSize = 12.sp)
                 }
-                Text(dmTime(t.optString("created_at")), color = Muted, fontSize = 11.sp)
+                Text(dmTime(t.s("created_at")), color = Muted, fontSize = 11.sp)
             }
         }
         if (mine.isNotEmpty()) {
@@ -199,7 +199,7 @@ private fun FriendsPane(friends: JSONArray?, names: Map<String, String>, changed
             item { Text("RESULTS", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 6.dp)) }
             items((0 until rs.length()).map { rs.getJSONObject(it) }.filter { it.getString("id") != Api.uid }) { x ->
                 val id = x.getString("id")
-                val nm = x.optString("ign").ifBlank { x.optString("username") }
+                val nm = x.s("ign").ifBlank { x.s("username") }
                 val isF = (0 until (friends?.length() ?: 0)).any { friends!!.getJSONObject(it).getString("friend_id") == id }
                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp).clip(RoundedCornerShape(12.dp)).background(Card.copy(alpha = .85f)).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                     DmAvatar(nm); Spacer(Modifier.width(10.dp))
@@ -315,11 +315,11 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
         val out = ArrayList<DmMsg>()
         for (i in 0 until rows.length()) {
             val m = rows.getJSONObject(i)
-            val kind = m.optString("kind", "text")
-            val mine = m.optString("sender_id") == Api.uid
+            val kind = m.s("kind", "text")
+            val mine = m.s("sender_id") == Api.uid
             var text = ""
             if (kind == "text") text = try { String(DmCrypto.decrypt(k, m.getString("ciphertext"), m.getString("iv")), Charsets.UTF_8) } catch (e: Exception) { "[cannot decrypt - different device key]" }
-            out.add(DmMsg(m.optString("id"), mine, kind, text, if (kind == "text") null else m.optString("ciphertext"), m.optString("iv"), m.optJSONObject("meta") ?: JSONObject(), m.optString("created_at")))
+            out.add(DmMsg(m.s("id"), mine, kind, text, if (kind == "text") null else m.s("ciphertext"), m.s("iv"), m.optJSONObject("meta") ?: JSONObject(), m.s("created_at")))
         }
         return out
     }
@@ -378,7 +378,7 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
                 val encBytes = android.util.Base64.decode(enc.ciphertext, android.util.Base64.NO_WRAP)
                 val path = Api.dmMediaUpload(threadId, encBytes)
                 val r = Api.dmSend(threadId, kind, path, enc.iv, meta)
-                if (!r.optBoolean("ok")) throw Exception(r.optString("error").ifBlank { "Could not send." })
+                if (!r.optBoolean("ok")) throw Exception(r.s("error").ifBlank { "Could not send." })
                 msgs = decode(Api.dmMessages(threadId), key!!)
             } catch (e: Exception) { err = if (e.message?.contains("never") == true) "Upload error." else e.message }
             busy = false
@@ -466,7 +466,7 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
                         try {
                             val enc = DmCrypto.encrypt(k, v.toByteArray(Charsets.UTF_8))
                             val r = Api.dmSend(threadId, "text", enc.ciphertext, enc.iv, JSONObject())
-                            if (!r.optBoolean("ok")) throw Exception(r.optString("error").ifBlank { "Could not send." })
+                            if (!r.optBoolean("ok")) throw Exception(r.s("error").ifBlank { "Could not send." })
                             msgs = withContext(Dispatchers.Default) { decode(Api.dmMessages(threadId), k) }
                             if (msgs.isNotEmpty()) listState.scrollToItem(msgs.size - 1)
                         } catch (e: Exception) { err = e.message }
@@ -503,12 +503,12 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
                 val start = maxOf(0, rows.length() - 10)
                 for (i in start until rows.length()) {
                     val m = rows.getJSONObject(i)
-                    val o = JSONObject().put("from", if (m.optString("sender_id") == Api.uid) "me" else "them").put("type", m.optString("kind", "text")).put("at", m.optString("created_at"))
-                    if (m.optString("kind") == "text" && k != null) o.put("text", try { String(DmCrypto.decrypt(k, m.getString("ciphertext"), m.getString("iv")), Charsets.UTF_8) } catch (e: Exception) { "[undecryptable]" })
+                    val o = JSONObject().put("from", if (m.s("sender_id") == Api.uid) "me" else "them").put("type", m.s("kind", "text")).put("at", m.s("created_at"))
+                    if (m.s("kind") == "text" && k != null) o.put("text", try { String(DmCrypto.decrypt(k, m.getString("ciphertext"), m.getString("iv")), Charsets.UTF_8) } catch (e: Exception) { "[undecryptable]" })
                     last.put(o)
                 }
                 val r = Api.dmReport(threadId, peerId, reason, note, last)
-                done(r.optBoolean("ok"), r.optString("error"))
+                done(r.optBoolean("ok"), r.s("error"))
             } catch (e: Exception) { done(false, e.message ?: "Report failed.") }
         }
     })

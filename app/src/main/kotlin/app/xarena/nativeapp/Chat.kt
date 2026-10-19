@@ -58,9 +58,9 @@ private fun ChatChips(onGoTab: (Int) -> Unit) {
             val arr = Api.publicGet("/rest/v1/matches_public?select=title,starts_at,status&order=starts_at.asc&limit=10")
             val now = System.currentTimeMillis()
             (0 until arr.length()).map { arr.getJSONObject(it) }.firstOrNull {
-                val st = it.optString("starts_at")
+                val st = it.s("starts_at")
                 st.isNotBlank() && runCatching { java.time.Instant.parse(st).toEpochMilli() }.getOrDefault(0L) > now - 15 * 60000 &&
-                    it.optString("status") != "done"
+                    it.s("status") != "done"
             }
         }.getOrNull()
     }
@@ -68,11 +68,11 @@ private fun ChatChips(onGoTab: (Int) -> Unit) {
         val m = next
         if (m != null) {
             val whenStr = runCatching {
-                val t = java.time.Instant.parse(m.optString("starts_at")).atZone(java.time.ZoneId.systemDefault())
+                val t = java.time.Instant.parse(m.s("starts_at")).atZone(java.time.ZoneId.systemDefault())
                 t.dayOfMonth.toString() + " " + t.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() } + " " +
                     String.format("%d:%02d %s", (t.hour % 12).let { if (it == 0) 12 else it }, t.minute, if (t.hour < 12) "AM" else "PM")
             }.getOrDefault("")
-            Text("🎮 " + m.optString("title") + " · " + whenStr, color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+            Text("🎮 " + m.s("title") + " · " + whenStr, color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(end = 6.dp).clip(RoundedCornerShape(8.dp)).background(Gold)
                     .clickable { onGoTab(1) }.padding(horizontal = 10.dp, vertical = 6.dp))
         }
@@ -93,7 +93,7 @@ fun ChatGate(onReady: () -> Unit) {
     val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         // Pre-fill with the profile username, like the site's account-linked handle.
-        if (handle.isBlank()) handle = runCatching { Api.myProfile()?.optString("username") ?: "" }.getOrDefault("")
+        if (handle.isBlank()) handle = runCatching { Api.myProfile()?.s("username") ?: "" }.getOrDefault("")
     }
     Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center) {
         PanelCard {
@@ -110,7 +110,7 @@ fun ChatGate(onReady: () -> Unit) {
                     try {
                         val r = Api.chatClaim(handle.trim())
                         if (r.optBoolean("ok")) onReady()
-                        else err = r.optString("error").ifBlank { "Could not claim the name right now. Try again." }
+                        else err = r.s("error").ifBlank { "Could not claim the name right now. Try again." }
                     } catch (e: Exception) { err = e.message ?: "Could not claim the name right now." }
                     busy = false
                 }
@@ -135,7 +135,7 @@ fun ChatRoom() {
     fun addRows(arr: org.json.JSONArray, toFront: Boolean) {
         val fresh = (0 until arr.length()).map {
             val o: JSONObject = arr.getJSONObject(it)
-            ChatMsg(o.optLong("id"), o.optString("handle"), o.optString("body"), o.optString("created_at"))
+            ChatMsg(o.optLong("id"), o.s("handle"), o.s("body"), o.s("created_at"))
         }.filter { it.id > 0 }
         if (fresh.isEmpty()) return
         msgs = (if (toFront) fresh + msgs else msgs + fresh).distinctBy { it.id }.sortedBy { it.id }
@@ -206,11 +206,11 @@ fun ChatRoom() {
                         try {
                             val r = Api.chatSend(body)
                             if (r.optBoolean("ok")) { input = "" } else {
-                                when (r.optString("error")) {
+                                when (r.s("error")) {
                                     "unauthorized" -> { Api.clearChat(); notice = "Chat name no longer active - reopen the Chat tab to pick it again." }
                                     "muted" -> notice = "You are muted by the owner for now."
                                     "rate_limited" -> notice = "Slow down a little - too many messages."
-                                    else -> notice = r.optString("error").ifBlank { "Message not sent." }
+                                    else -> notice = r.s("error").ifBlank { "Message not sent." }
                                 }
                             }
                         } catch (e: Exception) { notice = "Message not sent - check your connection." }

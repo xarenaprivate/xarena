@@ -32,9 +32,9 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 private fun storyMediaUrl(st: JSONObject): String {
-    val p = st.optString("media_path").ifBlank { st.optString("media") }
+    val p = st.s("media_path").ifBlank { st.s("media") }
     if (p.startsWith("https://res.cloudinary.com/")) {
-        val t = if (st.optString("kind") == "clip") "/upload/q_auto/" else "/upload/q_auto,f_auto,w_1080/"
+        val t = if (st.s("kind") == "clip") "/upload/q_auto/" else "/upload/q_auto,f_auto,w_1080/"
         return p.replace("/upload/", t)
     }
     return Api.BASE + "/storage/v1/object/public/feed-media/" + p
@@ -77,7 +77,7 @@ fun StoriesScreen(onBack: () -> Unit) {
                     url = Api.cloudinaryUpload(baos.toByteArray())
                 }
                 val r = Api.storyCreate(kind, url, null)
-                if (!r.optBoolean("ok")) throw Exception(r.optString("error").ifBlank { "Could not post story." })
+                if (!r.optBoolean("ok")) throw Exception(r.s("error").ifBlank { "Could not post story." })
                 tick++
             } catch (e: Exception) { err = e.message }
             busy = false
@@ -94,10 +94,10 @@ fun StoriesScreen(onBack: () -> Unit) {
         else if (trays!!.length() == 0) Text("No active stories. Be the first.", color = Muted, fontSize = 14.sp, modifier = Modifier.padding(24.dp))
         else LazyColumn {
             items((0 until trays!!.length()).map { trays!!.getJSONObject(it) }) { t ->
-                val author = t.optString("author").ifBlank { "Player" }
+                val author = t.s("author").ifBlank { "Player" }
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 5.dp).clip(RoundedCornerShape(14.dp))
                     .background(Card.copy(alpha = .85f)).border(1.dp, if (t.optBoolean("unseen")) Gold else Gold.copy(alpha = .2f), RoundedCornerShape(14.dp))
-                    .clickable { viewing = t.optString("author_id") to author }.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    .clickable { viewing = t.s("author_id") to author }.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(44.dp).clip(CircleShape).background(Ink).border(2.dp, if (t.optBoolean("unseen")) Gold else Muted, CircleShape), contentAlignment = Alignment.Center) {
                         Text(author.firstOrNull()?.uppercase() ?: "?", color = Gold, fontWeight = FontWeight.Bold)
                     }
@@ -141,13 +141,13 @@ private fun StoryViewer(authorId: String, authorName: String, onClose: () -> Uni
         if (count == 0) return@LaunchedEffect
         val st = stories!!.getJSONObject(idx)
         runCatching { Api.storyMarkSeen(st.getLong("id")) }
-        delay(if (st.optString("kind") == "clip") 15000 else 5000)
+        delay(if (st.s("kind") == "clip") 15000 else 5000)
         if (isActive) { if (idx + 1 < count) idx++ else onClose() }
     }
     Box(Modifier.fillMaxSize().background(Color.Black).clickable { if (idx + 1 < count) idx++ else onClose() }) {
         stories?.let { arr ->
             val st = arr.getJSONObject(idx)
-            if (st.optString("kind") == "clip") {
+            if (st.s("kind") == "clip") {
                 AndroidView(factory = { ctx ->
                     android.widget.VideoView(ctx).apply {
                         setVideoPath(storyMediaUrl(st))
@@ -163,7 +163,7 @@ private fun StoryViewer(authorId: String, authorName: String, onClose: () -> Uni
             }
             Column(Modifier.align(Alignment.TopStart).padding(top = 20.dp, start = 14.dp)) {
                 Text(authorName, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                Text(st.optString("caption"), color = Color.White.copy(alpha = .85f), fontSize = 13.sp)
+                Text(st.s("caption"), color = Color.White.copy(alpha = .85f), fontSize = 13.sp)
             }
             if (authorId == Api.uid) Column(Modifier.align(Alignment.BottomStart).padding(14.dp)) {
                 var viewers by remember { mutableStateOf<JSONArray?>(null) }
@@ -185,7 +185,7 @@ private fun StoryViewer(authorId: String, authorName: String, onClose: () -> Uni
                     else if (viewers!!.length() == 0) Text("No views yet.", color = Color.White, fontSize = 12.sp)
                     else for (i in 0 until viewers!!.length()) {
                         val v = viewers!!.getJSONObject(i)
-                        Text(v.optString("name").ifBlank { v.optString("viewer").ifBlank { "Player" } }, color = Color.White, fontSize = 12.sp)
+                        Text(v.s("name").ifBlank { v.s("viewer").ifBlank { "Player" } }, color = Color.White, fontSize = 12.sp)
                     }
                 }
                 Text("Delete story", color = ErrRed, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color.Black.copy(alpha = .5f)).clickable {

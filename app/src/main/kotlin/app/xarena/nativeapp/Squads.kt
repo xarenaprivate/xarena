@@ -35,7 +35,7 @@ private suspend fun loadSquads(): SquadData {
         val uid = Api.uid
         if (uid != null) {
             val m = Api.authedGetArray("/rest/v1/squad_members?user_id=eq.$uid&select=squad_id,role")
-            if (m.length() > 0) { myId = m.getJSONObject(0).optLong("squad_id"); myRole = m.getJSONObject(0).optString("role") }
+            if (m.length() > 0) { myId = m.getJSONObject(0).optLong("squad_id"); myRole = m.getJSONObject(0).s("role") }
         }
     } catch (e: Exception) { }
     val invites = try { Api.authedRpc("my_squad_invites", JSONObject()).optJSONArray("invites") ?: JSONArray() } catch (e: Exception) { JSONArray() }
@@ -64,7 +64,7 @@ fun SquadsScreen(onBack: (() -> Unit)? = null) {
                     PanelCard {
                         if (d.mySquadId != null) {
                             val mine = (0 until d.squads.length()).map { d.squads.getJSONObject(it) }.firstOrNull { it.optLong("id") == d.mySquadId }
-                            Text("Your squad: " + (mine?.optString("name") ?: "Squad") + (mine?.optString("tag")?.takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""),
+                            Text("Your squad: " + (mine?.s("name") ?: "Squad") + (mine?.s("tag")?.takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""),
                                 color = Gold2, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             Text("Role: " + (d.myRole ?: "member"), color = Muted, fontSize = 13.sp)
                             d.rankLine?.let { Text(it, color = Color.White, fontSize = 13.sp) }
@@ -80,7 +80,7 @@ fun SquadsScreen(onBack: (() -> Unit)? = null) {
                         (0 until d.invites.length()).forEach { i ->
                             val inv = d.invites.getJSONObject(i)
                             Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(inv.optString("squad") + " (by " + inv.optString("by", "the captain") + ")",
+                                Text(inv.s("squad") + " (by " + inv.s("by", "the captain") + ")",
                                     color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f))
                                 Text("Accept", color = Color(0xFF2A1400), fontSize = 12.sp, fontWeight = FontWeight.Bold,
                                     modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Gold)
@@ -88,7 +88,7 @@ fun SquadsScreen(onBack: (() -> Unit)? = null) {
                                             scope.launch {
                                                 try {
                                                     val r = Api.authedRpc("squad_invite_respond", JSONObject().put("p_id", inv.optLong("id")).put("p_accept", true))
-                                                    notice = if (r.optBoolean("ok")) "Invite accepted." else r.optString("error").ifBlank { "Could not answer the invite." }
+                                                    notice = if (r.optBoolean("ok")) "Invite accepted." else r.s("error").ifBlank { "Could not answer the invite." }
                                                 } catch (e: Exception) { notice = e.message }
                                                 nonce++
                                             }
@@ -111,25 +111,25 @@ fun SquadsScreen(onBack: (() -> Unit)? = null) {
                 items((0 until d.squads.length()).map { d.squads.getJSONObject(it) }) { s ->
                     PanelCard {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text(s.optString("name") + (s.optString("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""),
+                            Text(s.s("name") + (s.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""),
                                 color = Gold2, fontSize = 17.sp, fontWeight = FontWeight.Bold)
-                            Text(s.optInt("member_count").toString() + "/6", color = Muted, fontSize = 12.sp)
+                            Text(if (s.has("member_count")) s.optInt("member_count").toString() + "/6" else "", color = Muted, fontSize = 12.sp)
                         }
-                        if (s.optString("bio").isNotBlank()) Text(s.optString("bio"), color = Muted, fontSize = 13.sp)
+                        if (s.s("bio").isNotBlank()) Text(s.s("bio"), color = Muted, fontSize = 13.sp)
                         val members = s.optJSONArray("members")
                         if (members != null && members.length() > 0) {
                             Text((0 until members.length()).joinToString("  ") { i ->
                                 val m = members.getJSONObject(i)
-                                (m.optString("ign").ifBlank { m.optString("username") }) + (if (m.optString("role") == "captain") " (captain)" else "")
+                                (m.s("ign").ifBlank { m.s("username") }) + (if (m.s("role") == "captain") " (captain)" else "")
                             }, color = Color.White, fontSize = 12.sp)
                         }
-                        if (d.mySquadId == null && s.optInt("member_count") < 6) {
+                        if (d.mySquadId == null && s.has("id") && !s.isNull("id") && s.optInt("member_count", 0) < 6) {
                             Spacer(Modifier.height(8.dp))
                             GoldButton("JOIN THIS SQUAD") {
                                 scope.launch {
                                     try {
                                         val r = Api.authedRpc("join_squad", JSONObject().put("p_squad", s.optLong("id")))
-                                        notice = if (r.optBoolean("ok")) "Joined " + s.optString("name") + "!" else r.optString("error").ifBlank { "Could not join right now." }
+                                        notice = if (r.optBoolean("ok")) "Joined " + s.s("name") + "!" else r.s("error").ifBlank { "Could not join right now." }
                                     } catch (e: Exception) { notice = e.message ?: "Could not join right now." }
                                     nonce++
                                 }
@@ -141,8 +141,8 @@ fun SquadsScreen(onBack: (() -> Unit)? = null) {
                     item { Text("Squad wars", color = Gold, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) }
                     items((0 until d.wars.length()).map { d.wars.getJSONObject(it) }) { w ->
                         PanelCard {
-                            Text(w.optString("challenger") + " vs " + w.optString("opponent"), color = Color.White, fontWeight = FontWeight.Bold)
-                            Text(w.optString("status").uppercase() + (if (w.optString("winner").isNotBlank()) " - Winner: " + w.optString("winner") else ""),
+                            Text(w.s("challenger") + " vs " + w.s("opponent"), color = Color.White, fontWeight = FontWeight.Bold)
+                            Text(w.s("status").uppercase() + (if (w.s("winner").isNotBlank()) " - Winner: " + w.s("winner") else ""),
                                 color = Gold, fontSize = 12.sp)
                         }
                     }

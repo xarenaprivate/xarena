@@ -143,7 +143,7 @@ fun RegisterScreen(onBack: () -> Unit) {
                         } else {
                             val cost = r.optInt("cost", 0); val bal = r.optInt("balance", -1)
                             err = if (cost > 0 && bal >= 0) "Need " + cost + " AP to enter - you have " + bal + " AP."
-                                else r.optString("error").ifBlank { "Could not register right now. Try again." }
+                                else r.s("error").ifBlank { "Could not register right now. Try again." }
                         }
                     } catch (e: Exception) { err = e.message ?: "Could not register right now. Try again." }
                     busy = false

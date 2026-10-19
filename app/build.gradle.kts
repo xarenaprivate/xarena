@@ -12,8 +12,8 @@ android {
         applicationId = "app.xarena.esports.native"
         minSdk = 24
         targetSdk = 34
-        versionCode = 35
-        versionName = "0.16.0-native"
+        versionCode = 36
+        versionName = "0.16.1-native"
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
     }
     val keyInfo = rootProject.file("keystore/KEY_INFO.txt")
@@ -53,6 +53,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-core:1.6.8")
     implementation(platform("androidx.compose:compose-bom:2024.06.00"))
     implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("io.coil-kt:coil-video:2.6.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.google.zxing:core:3.5.2")
     implementation("org.apache.commons:commons-compress:1.26.0")

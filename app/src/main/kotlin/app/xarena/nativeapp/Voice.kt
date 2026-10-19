@@ -65,7 +65,7 @@ private class PhoenixChannel(
                     val payload = arr.getJSONObject(4)
                     when (event) {
                         "phx_reply" -> {
-                            if (payload.optString("status") == "ok") { open = true; onState("joined"); onJoined() }
+                            if (payload.s("status") == "ok") { open = true; onState("joined"); onJoined() }
                             else onState("join failed: " + payload.toString().take(80))
                         }
                         "presence_state" -> onJoins(parsePresences(payload.optJSONObject("presences") ?: JSONObject()))
@@ -168,19 +168,19 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
     private fun onJoinsUpdate(joined: Map<String, JSONObject>) {
         for ((id, meta) in joined) {
             if (id == myId) continue
-            roster[id] = VoicePeer(id, meta.optString("handle").ifBlank { id.take(6) }, meta.optBoolean("muted"))
+            roster[id] = VoicePeer(id, meta.s("handle").ifBlank { id.take(6) }, meta.optBoolean("muted"))
             if (pcs[id] == null && myId < id) offerTo(id)
         }
         onPeers(roster.values.sortedBy { it.handle })
     }
 
     private fun onSignal(p: JSONObject) {
-        if (p.optString("to") != myId) return
-        val from = p.optString("from")
-        when (p.optString("kind")) {
+        if (p.s("to") != myId) return
+        val from = p.s("from")
+        when (p.s("kind")) {
             "offer" -> {
                 val pc = peerFor(from)
-                pc.setRemoteDescription(SimpleObserver(), org.webrtc.SessionDescription(org.webrtc.SessionDescription.Type.OFFER, p.optJSONObject("data")?.optString("sdp") ?: return))
+                pc.setRemoteDescription(SimpleObserver(), org.webrtc.SessionDescription(org.webrtc.SessionDescription.Type.OFFER, p.optJSONObject("data")?.s("sdp") ?: return))
                 pc.createAnswer(object : SimpleSdpObserver() {
                     override fun onCreateSuccess(desc: org.webrtc.SessionDescription) {
                         pc.setLocalDescription(SimpleObserver(), desc)
@@ -189,10 +189,10 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
                     }
                 }, org.webrtc.MediaConstraints())
             }
-            "answer" -> pcs[from]?.setRemoteDescription(SimpleObserver(), org.webrtc.SessionDescription(org.webrtc.SessionDescription.Type.ANSWER, p.optJSONObject("data")?.optString("sdp") ?: return))
+            "answer" -> pcs[from]?.setRemoteDescription(SimpleObserver(), org.webrtc.SessionDescription(org.webrtc.SessionDescription.Type.ANSWER, p.optJSONObject("data")?.s("sdp") ?: return))
             "ice" -> {
                 val d = p.optJSONObject("data") ?: return
-                pcs[from]?.addIceCandidate(org.webrtc.IceCandidate(d.optString("sdpMid"), d.optInt("sdpMLineIndex"), d.optString("candidate")))
+                pcs[from]?.addIceCandidate(org.webrtc.IceCandidate(d.s("sdpMid"), d.optInt("sdpMLineIndex"), d.s("candidate")))
             }
         }
     }
@@ -283,7 +283,7 @@ fun VoiceScreen(onBack: () -> Unit) {
                     engine = e
                     scope.launch(Dispatchers.IO) {
                         try {
-                            val h = runCatching { Api.myProfile()?.optString("username") ?: "" }.getOrDefault("")
+                            val h = runCatching { Api.myProfile()?.s("username") ?: "" }.getOrDefault("")
                             e.join(h)
                         } catch (ex: Throwable) { runCatching { e.leave() }; err = "Voice unavailable on this device right now - the rest of the app is unaffected."; engine = null; state = "idle" }
                     }

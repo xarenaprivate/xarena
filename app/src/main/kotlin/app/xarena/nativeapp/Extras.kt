@@ -142,7 +142,7 @@ fun PlayerCardScreen(onBack: () -> Unit, onOpenConv: (String?, String, String) -
     }
     LaunchedEffect(Unit) {
         val me = runCatching { Api.myProfile() }.getOrNull()
-        myName = me?.optString("username") ?: ""
+        myName = me?.s("username") ?: ""
         if (myName.isNotBlank()) loadCard(myName)
     }
 
@@ -166,11 +166,11 @@ fun PlayerCardScreen(onBack: () -> Unit, onOpenConv: (String?, String, String) -
                 item {
                     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Card.copy(alpha = .85f)).border(1.dp, Gold.copy(alpha = .35f), RoundedCornerShape(18.dp)).padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(Modifier.size(84.dp).clip(CircleShape).background(Ink).border(2.dp, Gold2, CircleShape), contentAlignment = Alignment.Center) {
-                            Text((p.optString("ign").ifBlank { uname }).firstOrNull()?.uppercase() ?: "?", color = Gold, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                            Text((p.s("ign").ifBlank { uname }).firstOrNull()?.uppercase() ?: "?", color = Gold, fontSize = 30.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(Modifier.height(10.dp))
-                        Text(p.optString("ign").ifBlank { uname } + if (p.optBoolean("verified")) " ✓" else "", color = Gold2, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                        Text("@" + uname + if (!p.optString("squad").isBlank()) " - Squad: " + p.optString("squad") else "", color = Muted, fontSize = 13.sp)
+                        Text(p.s("ign").ifBlank { uname } + if (p.optBoolean("verified")) " ✓" else "", color = Gold2, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text("@" + uname + if (!p.s("squad").isBlank()) " - Squad: " + p.s("squad") else "", color = Muted, fontSize = 13.sp)
                         Spacer(Modifier.height(12.dp))
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -202,7 +202,7 @@ fun PlayerCardScreen(onBack: () -> Unit, onOpenConv: (String?, String, String) -
                                             val r = Api.authedRpc("follow_toggle", JSONObject().put("p_name", uname))
                                             val c = Api.authedRpc("follow_counts", JSONObject().put("p_name", uname))
                                             if (c.optBoolean("ok")) counts = c
-                                            if (!r.optBoolean("ok", true)) err = r.optString("error")
+                                            if (!r.optBoolean("ok", true)) err = r.s("error")
                                         } catch (e: Exception) { err = e.message }
                                     }
                                 }.padding(horizontal = 16.dp, vertical = 9.dp))
@@ -215,10 +215,10 @@ fun PlayerCardScreen(onBack: () -> Unit, onOpenConv: (String?, String, String) -
                                             when {
                                                 r.optBoolean("requested") -> err = "Message request sent - they can accept it in Messages > Requests."
                                                 r.optBoolean("ok") -> {
-                                                    val tid = r.optString("thread").ifBlank { r.optString("thread_id") }
-                                                    onOpenConv(tid.ifBlank { null }, "", p.optString("ign").ifBlank { uname })
+                                                    val tid = r.s("thread").ifBlank { r.s("thread_id") }
+                                                    onOpenConv(tid.ifBlank { null }, "", p.s("ign").ifBlank { uname })
                                                 }
-                                                else -> err = r.optString("error").ifBlank { "Could not open chat." }
+                                                else -> err = r.s("error").ifBlank { "Could not open chat." }
                                             }
                                         } catch (e: Exception) { err = e.message }
                                     }
@@ -231,9 +231,9 @@ fun PlayerCardScreen(onBack: () -> Unit, onOpenConv: (String?, String, String) -
                     if (people == null) item { CircularProgressIndicator(color = Gold) }
                     else if (people!!.length() == 0) item { Text("Nobody here yet.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(bottom = 12.dp)) }
                     else items((0 until people!!.length()).map { people!!.getJSONObject(it) }) { x ->
-                        Text(x.optString("name").ifBlank { x.optString("ign") }, color = Color.White, fontSize = 14.sp,
+                        Text(x.s("name").ifBlank { x.s("ign") }, color = Color.White, fontSize = 14.sp,
                             modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp).clip(RoundedCornerShape(8.dp)).background(Card.copy(alpha = .6f))
-                                .clickable { loadCard(x.optString("name")) }.padding(10.dp))
+                                .clickable { loadCard(x.s("name")) }.padding(10.dp))
                     }
                 }
                 item {
@@ -241,7 +241,7 @@ fun PlayerCardScreen(onBack: () -> Unit, onOpenConv: (String?, String, String) -
                     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Card.copy(alpha = .85f)).padding(16.dp)) {
                         Text("Free Fire identity", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                         Spacer(Modifier.height(6.dp))
-                        listOf("Role" to p.optString("role"), "Free Fire rank" to p.optString("ff_rank"), "K/D" to (if (p.isNull("kd")) "" else p.optDouble("kd").toString()), "Device" to p.optString("device")).forEach { (k, v) ->
+                        listOf("Role" to p.s("role"), "Free Fire rank" to p.s("ff_rank"), "K/D" to (if (p.isNull("kd")) "" else p.optDouble("kd").toString()), "Device" to p.s("device")).forEach { (k, v) ->
                             if (v.isNotBlank() && v != "null") Row(Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
                                 Text(k, color = Muted, fontSize = 13.sp, modifier = Modifier.weight(1f))
                                 Text(v, color = Color.White, fontSize = 13.sp)

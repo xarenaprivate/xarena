@@ -49,7 +49,7 @@ fun LunaChat() {
 
     LaunchedEffect(Unit) {
         val h = Api.lunaHistoryLoad()
-        msgs = (0 until h.length()).map { val o = h.getJSONObject(it); LunaMsg(o.optString("role"), o.optString("content")) }
+        msgs = (0 until h.length()).map { val o = h.getJSONObject(it); LunaMsg(o.s("role"), o.s("content")) }
     }
     LaunchedEffect(msgs.size, thinking) { if (msgs.isNotEmpty()) listState.animateScrollToItem(msgs.size - 1 + if (thinking) 1 else 0) }
 

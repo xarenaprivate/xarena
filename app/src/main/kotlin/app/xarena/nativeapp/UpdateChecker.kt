@@ -40,9 +40,9 @@ object UpdateChecker {
             val j = JSONObject(text)
             run {
                 val pj = j.optJSONObject("patch") ?: JSONObject()
-                Info(j.optInt("versionCode"), j.optString("versionName"), j.optString("apkUrl"),
-                    j.optString("notes"), j.optString("sha256"), j.optBoolean("mandatory", false),
-                    pj.optInt("from"), pj.optString("url"), pj.optString("sha256"))
+                Info(j.optInt("versionCode"), j.s("versionName"), j.s("apkUrl"),
+                    j.s("notes"), j.s("sha256"), j.optBoolean("mandatory", false),
+                    pj.optInt("from"), pj.s("url"), pj.s("sha256"))
             }
         } catch (e: Exception) { null }
     }

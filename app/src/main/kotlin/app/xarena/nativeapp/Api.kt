@@ -41,7 +41,7 @@ object Api {
     private fun saveSession(j: JSONObject) {
         access = j.getString("access_token")
         uid = j.getJSONObject("user").getString("id")
-        prefs.edit().putString("access", access).putString("refresh", j.optString("refresh_token"))
+        prefs.edit().putString("access", access).putString("refresh", j.s("refresh_token"))
             .putString("uid", uid).apply()
     }
 
@@ -71,13 +71,13 @@ object Api {
         val (c1, t1) = call("POST", "/rest/v1/rpc/phone_available", JSONObject().put("p_phone", ph), null)
         if (c1 !in 200..299) throw ApiError("Could not check right now. Try again.")
         val chk = JSONObject(t1)
-        if (!chk.optBoolean("ok")) throw ApiError(chk.optString("error").ifBlank { "Could not check right now. Try again." })
+        if (!chk.optBoolean("ok")) throw ApiError(chk.s("error").ifBlank { "Could not check right now. Try again." })
         if (!chk.optBoolean("available")) throw ApiError("An account already exists with this number. Please log in.")
         val (c2, t2) = call("POST", "/auth/v1/signup",
             JSONObject().put("email", "p$ph@phone.xarena").put("password", password)
                 .put("data", JSONObject().put("phone", ph)), null)
         if (c2 !in 200..299) {
-            val msg = try { JSONObject(t2).optString("msg").ifBlank { JSONObject(t2).optString("message") } } catch (e: Exception) { "" }
+            val msg = try { JSONObject(t2).s("msg").ifBlank { JSONObject(t2).s("message") } } catch (e: Exception) { "" }
             throw ApiError(if (msg.isNotBlank()) msg else "Signup failed ($c2).")
         }
         val j = JSONObject(t2)
@@ -89,7 +89,7 @@ object Api {
     suspend fun completeProfile(username: String, ign: String, ffUid: String) = withContext(Dispatchers.IO) {
         val r = JSONObject(authed("POST", "/rest/v1/rpc/complete_profile",
             JSONObject().put("p_username", username.trim()).put("p_ign", ign.trim()).put("p_ff_uid", ffUid.trim())))
-        if (!r.optBoolean("ok")) throw ApiError(r.optString("error").ifBlank { "Could not save. Try again." })
+        if (!r.optBoolean("ok")) throw ApiError(r.s("error").ifBlank { "Could not save. Try again." })
     }
 
     private fun refresh(): Boolean {
@@ -126,7 +126,7 @@ object Api {
         val u = uid ?: return@withContext false
         val arr = JSONArray(authed("GET", "/rest/v1/profiles?id=eq.$u&select=username", null))
         if (arr.length() == 0) return@withContext true
-        Regex("^user[0-9a-f]{8}$").matches(arr.getJSONObject(0).optString("username"))
+        Regex("^user[0-9a-f]{8}$").matches(arr.getJSONObject(0).s("username"))
     }
 
     suspend fun myProfile(): JSONObject? = withContext(Dispatchers.IO) {
@@ -146,7 +146,7 @@ object Api {
     suspend fun cloudinaryUpload(jpeg: ByteArray): String = cloudinaryUploadRaw(jpeg, "image/jpeg", "image")
     private suspend fun cloudinaryUploadRaw(bytes: ByteArray, mime: String, resource: String): String = withContext(Dispatchers.IO) {
         val sig = JSONObject(authed("POST", "/functions/v1/cloudinary-sign", JSONObject()))
-        val cloud = sig.optString("cloud")
+        val cloud = sig.s("cloud")
         if (cloud.isBlank()) throw ApiError("Upload unavailable right now - try again shortly.")
         val boundary = "----xr" + System.currentTimeMillis()
         val c = java.net.URL("https://api.cloudinary.com/v1_1/$cloud/$resource/upload").openConnection() as java.net.HttpURLConnection
@@ -158,10 +158,10 @@ object Api {
         fun field(name: String, value: String) {
             w.writeBytes("--$boundary" + crlf + "Content-Disposition: form-data; name=\"" + name + "\"" + crlf + crlf + value + crlf)
         }
-        field("api_key", sig.optString("key"))
-        field("timestamp", sig.optString("timestamp"))
-        field("folder", sig.optString("folder"))
-        field("signature", sig.optString("signature"))
+        field("api_key", sig.s("key"))
+        field("timestamp", sig.s("timestamp"))
+        field("folder", sig.s("folder"))
+        field("signature", sig.s("signature"))
         val ext = if (mime.startsWith("video/")) ".mp4" else ".jpg"
         w.writeBytes("--$boundary" + crlf + "Content-Disposition: form-data; name=\"file\"; filename=\"upload" + ext + "\"" + crlf + "Content-Type: " + mime + crlf + crlf)
         w.write(bytes)
@@ -170,7 +170,7 @@ object Api {
         val code = c.responseCode
         val text = (if (code in 200..299) c.inputStream else c.errorStream)?.bufferedReader()?.readText() ?: ""
         if (code !in 200..299) throw ApiError("Upload failed ($code) - try again.")
-        val url = JSONObject(text).optString("secure_url")
+        val url = JSONObject(text).s("secure_url")
         if (url.isBlank()) throw ApiError("Upload failed - try again.")
         url
     }
@@ -255,8 +255,56 @@ object Api {
         JSONObject(authed("POST", "/rest/v1/rpc/$name", args))
     }
 
+    /* Some RPCs return a bare JSONArray (e.g. active_polls drifted from object to array).
+       This tolerant variant hands the raw body back so callers can branch. */
+    suspend fun authedRpcRaw(name: String, args: JSONObject): String = withContext(Dispatchers.IO) {
+        authed("POST", "/rest/v1/rpc/$name", args)
+    }
+
+    /* update_player_card requires the full param set (site profile.html sends all five);
+       sending only p_role fails with PGRST202. Carry current values, change only the role. */
+    suspend fun saveRole(role: String): JSONObject = withContext(Dispatchers.IO) {
+        val uidNow = uid ?: throw ApiError("Log in first.")
+        val prof = authedGetArray("/rest/v1/profiles?id=eq.$uidNow&select=device,ff_rank,kd,instagram&limit=1")
+        val p = if (prof.length() > 0) prof.getJSONObject(0) else JSONObject()
+        authedRpc("update_player_card", JSONObject()
+            .put("p_role", role)
+            .put("p_device", p.s("device"))
+            .put("p_ff_rank", p.s("ff_rank"))
+            .put("p_kd", if (p.opt("kd") == null || p.opt("kd") == JSONObject.NULL) JSONObject.NULL else p.optDouble("kd"))
+            .put("p_instagram", p.s("instagram")))
+    }
+
+    /* squads_public (join metadata, has id) is often empty while public_squads (verified display
+       view the site's Search uses) has the live rows. Merge so the list matches the site. */
     suspend fun squadsPublic(): JSONArray = withContext(Dispatchers.IO) {
-        publicGet("/rest/v1/squads_public?select=*")
+        val base = publicGet("/rest/v1/squads_public?select=*")
+        val extra = publicGet("/rest/v1/public_squads?select=*")
+        if (extra.length() == 0) return@withContext base
+        val byName = HashMap<String, JSONObject>()
+        for (i in 0 until base.length()) {
+            val o = base.getJSONObject(i)
+            byName[o.s("name").ifBlank { o.s("squad") }.lowercase()] = o
+        }
+        val out = JSONArray()
+        for (i in 0 until extra.length()) {
+            val p = extra.getJSONObject(i)
+            val key = p.s("squad").lowercase()
+            val hit = byName.remove(key)
+            if (hit != null) {
+                hit.put("verified", p.optBoolean("verified"))
+                if (p.s("logo_url").isNotBlank() && hit.s("logo_url").isBlank()) hit.put("logo_url", p.s("logo_url"))
+                out.put(hit)
+            } else {
+                out.put(JSONObject()
+                    .put("name", p.s("squad"))
+                    .put("bio", if (p.optBoolean("verified")) "Verified squad" else "")
+                    .put("verified", p.optBoolean("verified"))
+                    .put("logo_url", p.s("logo_url")))
+            }
+        }
+        for (o in byName.values) out.put(o)
+        out
     }
 
     /* ---- Luna (same luna-chat Edge Function the site uses) ---- */
@@ -269,7 +317,7 @@ object Api {
         val (code, text) = call("POST", "/functions/v1/luna-chat", body, null)
         if (code == 404 || code == 503) throw LunaOffline("Luna is offline right now. The team is bringing her back - try again later.")
         if (code !in 200..299) throw ApiError("Luna could not reply just now ($code). Try again in a bit.")
-        val r = JSONObject(text).optString("reply")
+        val r = JSONObject(text).s("reply")
         if (r.isBlank()) throw ApiError("Luna could not reply just now. Try again in a bit.")
         r
     }
@@ -294,8 +342,8 @@ object Api {
     suspend fun chatClaim(handle: String): JSONObject = withContext(Dispatchers.IO) {
         val j = JSONObject(authed("POST", "/rest/v1/rpc/chat_claim_handle_account", JSONObject().put("p_handle", handle)))
         if (j.optBoolean("ok")) {
-            chatHandle = j.optString("handle").ifBlank { handle }
-            chatToken = j.optString("token")
+            chatHandle = j.s("handle").ifBlank { handle }
+            chatToken = j.s("token")
             prefs.edit().putString("chat_handle", chatHandle).putString("chat_token", chatToken).apply()
         }
         j
@@ -424,7 +472,7 @@ object Api {
         val out = HashMap<String, String>()
         for (i in 0 until rows.length()) {
             val r = rows.getJSONObject(i)
-            out[r.getString("id")] = r.optString("ign").ifBlank { r.optString("username") }.ifBlank { "Player" }
+            out[r.getString("id")] = r.s("ign").ifBlank { r.s("username") }.ifBlank { "Player" }
         }
         out
     }
@@ -490,4 +538,11 @@ fun openExternalUrl(u: String) {
     } catch (t: Throwable) {
         android.widget.Toast.makeText(Api.ctx, "No app on this device can open that link.", android.widget.Toast.LENGTH_SHORT).show()
     }
+}
+
+/* Android's org.json renders JSONObject.NULL as the literal string "null" via optString.
+   Use s() for display/logic so SQL NULL becomes "" instead. */
+fun JSONObject.s(k: String, def: String = ""): String {
+    val v = opt(k)
+    return if (v == null || v == JSONObject.NULL) def else v.toString()
 }
