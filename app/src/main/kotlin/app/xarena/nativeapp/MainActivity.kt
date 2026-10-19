@@ -333,6 +333,11 @@ fun HomeShell(onLogout: () -> Unit) {
         "winner" -> { WinnerScreen(onBack = { feature = null }); return }
         "sponsors" -> { SponsorsScreen(onBack = { feature = null }); return }
         "register" -> { RegisterScreen(onBack = { feature = null }); return }
+        "room" -> { RoomScreen(onBack = { feature = null }); return }
+        "support" -> { SupportScreen(onBack = { feature = null }); return }
+        "sensitivity" -> { SensitivityScreen(onBack = { feature = null }); return }
+        "coaches" -> { CoachesScreen(onBack = { feature = null }); return }
+        "cup" -> { CupScreen(onBack = { feature = null }); return }
     }
     var msgBadge by remember { mutableIntStateOf(0) }
     LaunchedEffect(feature, conv) {
@@ -397,6 +402,11 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("roles", "Team Roles", "Your role and squad formation", Icons.Default.Edit),
         GridItem("winner", "Champions", "Winner celebration - real finals", Icons.Default.FavoriteBorder),
         GridItem("sponsors", "Sponsors", "Real signed partners", Icons.Default.AccountCircle),
+        GridItem("room", "Clan Room", "Your squad's private room", Icons.Default.Home),
+        GridItem("support", "Support", "Ask the owner directly", Icons.Default.Email),
+        GridItem("sensitivity", "Sensitivity", "Share your aim setup", Icons.Default.Settings),
+        GridItem("coaches", "Coaches", "Learn from verified players", Icons.Default.Star),
+        GridItem("cup", "Sponsor a Cup", "Your brand on a real tournament", Icons.Default.ShoppingCart),
         GridItem("settings", "Settings", "App version, activity status, logout", Icons.Default.Settings),
     )
     Column(Modifier.fillMaxSize()) {
