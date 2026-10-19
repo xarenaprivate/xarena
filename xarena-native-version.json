@@ -1,6 +1,7 @@
 {
-  "versionCode": 33,
-  "versionName": "0.15.3-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.15.3-native/xarena-native.apk",
-  "notes": "Fix: live stream embeds in-app again, crash-proof links, themed player."
+  "versionCode": 34,
+  "versionName": "0.15.4-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.15.4-native/xarena-native.apk",
+  "sha256": "673781be51dc111ba9d101aa54da991276f9593dbcb6dadc98f0745f22e5a616",
+  "notes": "In-app updates: download with progress, resume, verified install - no browser needed."
 }
