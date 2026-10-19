@@ -1,6 +1,6 @@
 {
-  "versionCode": 32,
-  "versionName": "0.15.2-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.15.2-native/xarena-native.apk",
-  "notes": "Sponsor Wall poster images (admin-approved). Voice audio untested on device."
+  "versionCode": 33,
+  "versionName": "0.15.3-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.15.3-native/xarena-native.apk",
+  "notes": "Fix: live stream embeds in-app again, crash-proof links, themed player."
 }
