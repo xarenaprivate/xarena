@@ -299,9 +299,9 @@ fun HomeShell(onLogout: () -> Unit) {
     var feature by remember { mutableStateOf<String?>(null) }
     var conv by remember { mutableStateOf<DmConv?>(null) }
     val tabs = listOf(
-        "Tournaments" to Icons.Default.Home, "Board" to Icons.Default.List, "Chat" to Icons.Default.MailOutline,
-        "Luna" to Icons.Default.Face, "Squads" to Icons.Default.AccountBox, "Store" to Icons.Default.ShoppingCart,
-        "Profile" to Icons.Default.Person, "More" to Icons.Default.Menu)
+        "Home" to Icons.Default.Home, "Tournaments" to Icons.Default.Star, "Board" to Icons.Default.List,
+        "Chat" to Icons.Default.MailOutline, "Luna" to Icons.Default.Face, "Squads" to Icons.Default.AccountBox,
+        "Store" to Icons.Default.ShoppingCart, "Profile" to Icons.Default.Person, "More" to Icons.Default.Menu)
     val c = conv
     if (c != null) { BackHandler { conv = null }; ConversationScreen(c.threadId, c.peerId, c.peerName, c.status, c.reqByMe) { conv = null }; return }
     if (feature != null) BackHandler { feature = null }
@@ -332,6 +332,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "roles" -> { RolesScreen(onBack = { feature = null }); return }
         "winner" -> { WinnerScreen(onBack = { feature = null }); return }
         "sponsors" -> { SponsorsScreen(onBack = { feature = null }); return }
+        "register" -> { RegisterScreen(onBack = { feature = null }); return }
     }
     var msgBadge by remember { mutableIntStateOf(0) }
     LaunchedEffect(feature, conv) {
@@ -351,7 +352,7 @@ fun HomeShell(onLogout: () -> Unit) {
         }
         BackHandler(enabled = tab != 0) { tab = 0 }
         Box(Modifier.weight(1f)) {
-            when (tab) { 0 -> TournamentsScreen(); 1 -> LeaderboardScreen(); 2 -> ChatScreen(); 3 -> LunaScreen(); 4 -> SquadsScreen(); 5 -> StoreScreen(); 6 -> ProfileScreen(onLogout); else -> MoreGrid { feature = it } }
+            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> TournamentsScreen(); 2 -> LeaderboardScreen(); 3 -> ChatScreen(); 4 -> LunaScreen(); 5 -> SquadsScreen(); 6 -> StoreScreen(); 7 -> ProfileScreen(onLogout); else -> MoreGrid { feature = it } }
         }
         Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(vertical = 6.dp)) {
             tabs.forEachIndexed { i, (label, icon) ->
