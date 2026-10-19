@@ -118,6 +118,7 @@
         { k: "prize", l: "Prize pool text", t: "text" },
         { k: "slots", l: "Squad slots", t: "number" },
         { k: "reg_open", l: "Registration open", t: "checkbox" },
+        { k: "entry_cost_ap", l: "Entry cost in AP (empty or 0 = free)", t: "number" },
         { k: "format", l: "Format", t: "textarea" },
         { k: "description", l: "Description", t: "textarea" },
         { k: "sort", l: "Sort order", t: "number" }

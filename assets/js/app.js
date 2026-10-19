@@ -360,6 +360,25 @@
     });
   });
 
+  /* optional AP entry cost (additive): free tournaments keep the exact register_squad path */
+  var xrEntryCost = 0;
+  window.addEventListener("load", function () {
+    var rf = document.getElementById("reg-form");
+    if (!rf) return;
+    try {
+      fetch(xrApi.url + "/rest/v1/tournaments?select=entry_cost_ap&id=eq.xr-s1", { headers: { apikey: "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7" } })
+        .then(function (r) { return r.json(); }).then(function (d) {
+          var c = d && d[0] && parseInt(d[0].entry_cost_ap, 10);
+          if (!(c > 0)) return;
+          xrEntryCost = c;
+          var n = document.createElement("div");
+          n.style.cssText = "background:rgba(255,200,60,.08);border:1px solid rgba(255,200,60,.35);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px";
+          n.textContent = "Entry cost: " + c + " AP (Arena Points). It is deducted from your AP balance when you register, and refunded if your registration is rejected or cancelled.";
+          rf.parentNode.insertBefore(n, rf);
+        }).catch(function () {});
+    } catch (e) {}
+  });
+
   bindForm("reg-form", {
     store: "xarena_regs", table: "registrations", prefix: "XR-S1", type: "tournament_registration",
     successId: "reg-success", toast: "Squad registered — save your Registration ID.", btn: "REGISTER SQUAD",
@@ -368,7 +387,7 @@
       var fileInput = el("#proof");
       var file = fileInput && fileInput.files && fileInput.files[0];
       return uploadProof(rec.id, file).then(function (proofPath) {
-        return xrApi.uRpc("register_squad", {
+        return xrApi.uRpc(xrEntryCost > 0 ? "enter_tournament_with_ap" : "register_squad", {
           p_id: rec.id, p_tournament: "xr-s1", p_squad: rec.squad, p_captain: rec.captain,
           p_uid: rec.uid, p_ign: rec.captain, p_phone: rec.phone, p_proof: proofPath,
           p_client: deviceId(), p_ip: null
