@@ -153,7 +153,7 @@ object Api {
 
     suspend fun myProfile(): JSONObject? = withContext(Dispatchers.IO) {
         val u = uid ?: return@withContext null
-        val arr = JSONArray(authed("GET", "/rest/v1/profiles?id=eq.$u&select=username,ign,ff_uid,verified,role,ff_rank,matches,wins,phone,phone_verified,phone_code", null))
+        val arr = JSONArray(authed("GET", "/rest/v1/profiles?id=eq.$u&select=username,ign,ff_uid,verified,role,ff_rank,matches,wins,phone,phone_verified,phone_code,avatar_id,avatar_url", null))
         if (arr.length() > 0) arr.getJSONObject(0) else null
     }
 

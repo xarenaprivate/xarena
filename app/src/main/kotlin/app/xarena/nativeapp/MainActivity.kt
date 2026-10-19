@@ -657,8 +657,12 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
                 item {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(contentAlignment = Alignment.Center) {
+                            val avUrl = p?.s("avatar_url") ?: ""
                             ProfileAvatarRing(name.first().uppercase(), verified)
-                            Text(name.first().uppercase(), color = NeonName, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                            if (avUrl.isNotBlank()) coil.compose.AsyncImage(model = xrImageModel(Api.ctx, avUrl), contentDescription = "avatar",
+                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                modifier = Modifier.size(64.dp).clip(CircleShape))
+                            else Text(name.first().uppercase(), color = NeonName, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
                         }
                         Spacer(Modifier.width(14.dp))
                         Column {
