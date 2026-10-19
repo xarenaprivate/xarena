@@ -12,8 +12,8 @@ android {
         applicationId = "app.xarena.esports.native"
         minSdk = 24
         targetSdk = 34
-        versionCode = 29
-        versionName = "0.14.3-native"
+        versionCode = 30
+        versionName = "0.15.0-native"
     }
     val keyInfo = rootProject.file("keystore/KEY_INFO.txt")
     if (keyInfo.exists()) {
@@ -47,6 +47,8 @@ android {
     packaging { resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}", "META-INF/*.version") }
 }
 dependencies {
+    implementation("io.github.webrtc-sdk:android:150.7871.01")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("androidx.compose.material:material-icons-core:1.6.8")
     implementation(platform("androidx.compose:compose-bom:2024.06.00"))
     implementation("io.coil-kt:coil-compose:2.6.0")
