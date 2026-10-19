@@ -48,12 +48,15 @@ object Api {
     /** Same rule as the website's normPhone(): 10 digits -> "91"+digits, or already 91XXXXXXXXXX. */
     private fun normPhone(v: String): String? {
         val d = v.filter { it.isDigit() }
-        if (Regex("^[0-9]{10}$").matches(d)) return "91" + d
-        if (Regex("^91[0-9]{10}$").matches(d)) return d
+        if (Regex("^[6-9][0-9]{9}$").matches(d)) return "91" + d
+        if (Regex("^91[6-9][0-9]{9}$").matches(d)) return d
         return null
     }
 
-    suspend fun login(identifier: String, password: String) = withContext(Dispatchers.IO) {
+    suspend fun login(identifier: String, password: String) = try { loginInner(identifier, password) }
+        catch (e: java.io.IOException) { throw ApiError("Network problem - check your internet and try again.") }
+
+    private suspend fun loginInner(identifier: String, password: String) = withContext(Dispatchers.IO) {
         val id = identifier.trim()
         val email = if (id.contains("@")) id else {
             val ph = normPhone(id) ?: throw ApiError("Enter your 10-digit phone number or email.")
@@ -68,7 +71,8 @@ object Api {
 
     /** Phone signup identical to the site: phone_available check, then Supabase signup with phone metadata. */
     suspend fun signup(phone: String, password: String) = withContext(Dispatchers.IO) {
-        val ph = normPhone(phone) ?: throw ApiError("Phone number must be 10 digits.")
+        if (password.length < 8) throw ApiError("Password must be at least 8 characters.")
+        val ph = normPhone(phone) ?: throw ApiError("Enter a valid 10-digit Indian mobile number.")
         val (c1, t1) = call("POST", "/rest/v1/rpc/phone_available", JSONObject().put("p_phone", ph), null)
         if (c1 !in 200..299) throw ApiError("Could not check right now. Try again.")
         val chk = JSONObject(t1)
@@ -82,16 +86,16 @@ object Api {
             if (!pc.optBoolean("ok") || (pc.has("available") && !pc.optBoolean("available")))
                 throw ApiError(pc.s("error").ifBlank { pc.s("reason") }.ifBlank { "Sign-up is not allowed from this device right now." })
         }
-        val (c2, t2) = call("POST", "/auth/v1/signup",
-            JSONObject().put("email", "p$ph@phone.xarena").put("password", password)
-                .put("data", JSONObject().put("phone", ph)), null)
-        if (c2 !in 200..299) {
-            val msg = try { JSONObject(t2).s("msg").ifBlank { JSONObject(t2).s("message") } } catch (e: Exception) { "" }
-            throw ApiError(if (msg.isNotBlank()) msg else "Signup failed ($c2).")
-        }
+        val fail = "We could not create an account with these details. If you already signed up, please log in instead."
+        val (c2, t2) = try {
+            call("POST", "/auth/v1/signup",
+                JSONObject().put("email", "p$ph@phone.xarena").put("password", password)
+                    .put("data", JSONObject().put("phone", ph)), null)
+        } catch (e: java.io.IOException) { throw ApiError("Network problem - check your internet and try again.") }
+        if (c2 !in 200..299) throw ApiError(fail)
         val j = JSONObject(t2)
         if (j.has("access_token")) { saveSession(j); bindDevice() }
-        else throw ApiError("Account created. Please log in.")
+        else throw ApiError(fail)
     }
 
     /** One-time profile setup (same RPC the site's account page uses). */

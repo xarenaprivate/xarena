@@ -285,11 +285,11 @@ fun SignupScreen(onDone: () -> Unit, onGoLogin: () -> Unit) {
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), modifier = Modifier.fillMaxWidth())
         Text("This is your login ID. One number = one account.", color = Muted, fontSize = 12.sp)
         Spacer(Modifier.height(10.dp))
-        OutlinedTextField(pw, { pw = it }, label = { Text("Password (6+ chars)") }, singleLine = true, visualTransformation = PasswordVisualTransformation(),
+        OutlinedTextField(pw, { pw = it }, label = { Text("Password (8+ chars)") }, singleLine = true, visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
         err?.let { Spacer(Modifier.height(8.dp)); Text(it, color = ErrRed, fontSize = 13.sp) }
         Spacer(Modifier.height(16.dp))
-        GoldButton(if (busy) "CREATING..." else "SIGN UP", enabled = !busy && phone.isNotBlank() && pw.length >= 6) {
+        GoldButton(if (busy) "CREATING..." else "SIGN UP", enabled = !busy && phone.isNotBlank() && pw.length >= 8) {
             busy = true; err = null
             scope.launch {
                 try { Api.signup(phone, pw); onDone() } catch (e: Exception) { err = e.message ?: "Signup failed." }
