@@ -1962,7 +1962,7 @@
           }).join("") + "</div>";
         }
 
-        html += '<div class="card" style="margin-top:16px"><h3 id="rw-form-title">Add a reward</h3>' +
+        html += '<div class="card" style="margin-top:16px"><h3 id="rw-form-title">Add a reward</h3><p class="muted" style="margin:0 0 8px">Cosmetic only - no cash or real-world value (no money, gift cards, diamonds or recharge). The database rejects such items.</p>' +
           '<input type="hidden" id="rw-edit-id">' +
           '<div class="grid c2"><div class="field"><label>Title</label><input id="rw-title" maxlength="80" placeholder="e.g. Profile shout-out"></div>' +
           '<div class="field"><label>Cost (Arena Points)</label><input id="rw-cost" type="number" min="1" placeholder="e.g. 50"></div></div>' +
@@ -2015,7 +2015,7 @@
         el("#rw-save").addEventListener("click", function () {
           var title = el("#rw-title").value.trim(), cost = parseInt(el("#rw-cost").value || "0", 10), msg = el("#rw-msg");
           if (!title || !(cost > 0)) { msg.textContent = "Title and a positive cost are required."; return; }
-          var row = { title: title, cost: cost, description: el("#rw-desc").value.trim() || null, sort: parseInt(el("#rw-sort").value || "0", 10) || 0, active: el("#rw-active").checked };
+          var row = { title: title, cost: cost, kind: "cosmetic", description: el("#rw-desc").value.trim() || null, sort: parseInt(el("#rw-sort").value || "0", 10) || 0, active: el("#rw-active").checked };
           var eid = el("#rw-edit-id").value;
           var b = el("#rw-save"); b.disabled = true; msg.textContent = "Saving…";
           call(function () { return eid ? api.aPatch("rewards_catalog", "id=eq." + eid, row) : api.aPost("rewards_catalog", row); })
