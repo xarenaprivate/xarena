@@ -1,0 +1,1 @@
+-- undo: re-run players-directory-up.sql (id column stays in the view; harmless)
