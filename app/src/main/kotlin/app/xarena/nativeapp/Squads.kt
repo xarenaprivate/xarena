@@ -29,7 +29,7 @@ import org.json.JSONObject
 
 private data class SquadData(
     val squads: JSONArray,
-    val mySquadId: Long?,
+    val mySquadId: String?,
     val myRole: String?,
     val invites: JSONArray,
     val rankLine: String?,
@@ -40,12 +40,12 @@ private data class SquadData(
 
 private suspend fun loadSquads(): SquadData {
     val squads = Api.squadsPublic()
-    var myId: Long? = null; var myRole: String? = null
+    var myId: String? = null; var myRole: String? = null
     try {
         val uid = Api.uid
         if (uid != null) {
             val m = Api.authedGetArray("/rest/v1/squad_members?user_id=eq.$uid&select=squad_id,role")
-            if (m.length() > 0) { myId = m.getJSONObject(0).optLong("squad_id"); myRole = m.getJSONObject(0).s("role") }
+            if (m.length() > 0) { myId = m.getJSONObject(0).s("squad_id").ifBlank { null }; myRole = m.getJSONObject(0).s("role") }
         }
     } catch (e: Exception) { }
     val invites = try { Api.authedRpc("my_squad_invites", JSONObject()).optJSONArray("invites") ?: JSONArray() } catch (e: Exception) { JSONArray() }
@@ -78,7 +78,7 @@ fun SquadsScreen(onBack: (() -> Unit)? = null) {
                 item {
                     PanelCard {
                         if (d.mySquadId != null) {
-                            val mine = (0 until d.squads.length()).map { d.squads.getJSONObject(it) }.firstOrNull { it.optLong("id") == d.mySquadId }
+                            val mine = (0 until d.squads.length()).map { d.squads.getJSONObject(it) }.firstOrNull { it.s("id") == d.mySquadId }
                             Text("Your squad: " + (mine?.s("name") ?: "Squad") + (mine?.s("tag")?.takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""),
                                 color = Gold2, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                             Text("Role: " + (d.myRole ?: "member"), color = Muted, fontSize = 13.sp)
@@ -100,7 +100,7 @@ fun SquadsScreen(onBack: (() -> Unit)? = null) {
                     }
                 }
                 if (d.mySquadId != null && d.myRole == "captain") item {
-                    CaptainManageCard(d.mySquadId) { notice = it; nonce++ }
+                    CaptainManageCard(d.mySquadId!!) { notice = it; nonce++ }
                 }
                 if (d.invites.length() > 0) item {
                     PanelCard {
@@ -158,12 +158,12 @@ fun SquadsScreen(onBack: (() -> Unit)? = null) {
                                 (m.s("ign").ifBlank { m.s("username") }) + (if (m.s("role") == "captain") " (captain)" else "")
                             }, color = Color.White, fontSize = 12.sp)
                         }
-                        if (d.mySquadId == null && s.has("id") && !s.isNull("id") && s.optInt("member_count", 0) < 6) {
+                        if (d.mySquadId == null && s.s("id").isNotBlank() && s.optInt("member_count", 0) < 6) {
                             Spacer(Modifier.height(8.dp))
                             GoldButton("JOIN THIS SQUAD") {
                                 scope.launch {
                                     try {
-                                        val r = Api.authedRpc("join_squad", JSONObject().put("p_squad", s.optLong("id")))
+                                        val r = Api.authedRpc("join_squad", JSONObject().put("p_squad", s.s("id")))
                                         notice = if (r.optBoolean("ok")) "Joined " + s.s("name") + "!" else r.s("error").ifBlank { "Could not join right now." }
                                     } catch (e: Exception) { notice = e.message ?: "Could not join right now." }
                                     nonce++
@@ -254,7 +254,7 @@ private fun RequestCreatorCard(onDone: (String) -> Unit) {
 }
 
 @Composable
-private fun CaptainManageCard(squadId: Long, onDone: (String) -> Unit) {
+private fun CaptainManageCard(squadId: String, onDone: (String) -> Unit) {
     val scope = rememberCoroutineScope()
     var invite by remember { mutableStateOf("") }
     var showGallery by remember { mutableStateOf(false) }
