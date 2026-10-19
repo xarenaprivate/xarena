@@ -1,45 +1,51 @@
 {
-  "versionCode": 44,
-  "versionName": "0.16.9-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.9-native/xarena-native.apk",
-  "sha256": "540bc2a837f806877623ce630955e6dd2d1afef25cd4d5a576d1c7c2aa01caef",
-  "apkBytes": 31539655,
-  "notes": "Messages now work on every device at once - yours and your friend's. And an update you skip stays skipped.",
-  "patches": [
-    {
-      "from": 39,
-      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.9-native/xarena-native-39to44.patch",
-      "sha256": "b7866fbbcff99de438ddccd2634a02072343887e2b5604f35716d4d4c6af2a24",
-      "bytes": 916671
-    },
-    {
-      "from": 40,
-      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.9-native/xarena-native-40to44.patch",
-      "sha256": "aa176b075c65142698c40be9b7c43cecef42707a46cee3502d740c0d7f7fdfcc",
-      "bytes": 916133
-    },
-    {
-      "from": 41,
-      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.9-native/xarena-native-41to44.patch",
-      "sha256": "6e297d89217722fd6b295b9b5ae26c799c1de65d62a89bc6cb47ce1bbc0678c7",
-      "bytes": 916342
-    },
-    {
-      "from": 42,
-      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.9-native/xarena-native-42to44.patch",
-      "sha256": "a4b4c8ca0dc2b930c5449df6da1b53a67e886301fabea8ac6b5c25d9aa5690b5",
-      "bytes": 916361
-    },
-    {
-      "from": 43,
-      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.9-native/xarena-native-43to44.patch",
-      "sha256": "0df687299fd2da448b2be4e713c67e421eed058a546fc57e1943976730afb557",
-      "bytes": 916060
-    }
-  ],
-  "patch": {
-    "from": 43,
-    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.9-native/xarena-native-43to44.patch",
-    "sha256": "0df687299fd2da448b2be4e713c67e421eed058a546fc57e1943976730afb557"
+ "versionCode": 45,
+ "versionName": "0.17.0-native",
+ "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.0-native/xarena-native.apk",
+ "sha256": "42dfa07484f218f12d6c747c9d809e72c3ee1c1223c2c0f6fc4e07f8e93e1c02",
+ "apkBytes": 31588807,
+ "notes": "Players: full directory + player profiles (level/XP, wins/K-D/matches, badges, highlights, Add Friend + Message, online status). Updater: stale-cache 416 fix.",
+ "patches": [
+  {
+   "from": 39,
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.0-native/p39to45.patch",
+   "sha256": "ae70cff90a8cb60a165bd088930901f1130ff7dc7b0d66809ffe86501a0db5d6",
+   "bytes": 962577
+  },
+  {
+   "from": 40,
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.0-native/p40to45.patch",
+   "sha256": "5d2045bfd06a3ab8422a9a108185c152764c45abacf2b02646b97e4bc84c654d",
+   "bytes": 963132
+  },
+  {
+   "from": 41,
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.0-native/p41to45.patch",
+   "sha256": "ed0c4f81026cdb43cb1cda3bdf643b1922cf712cd4b0aadf31f31cf49691b350",
+   "bytes": 962973
+  },
+  {
+   "from": 42,
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.0-native/p42to45.patch",
+   "sha256": "c74b83576b39f11d6c80245033963196367b571b0d22bdfc4c6f19dcf8992133",
+   "bytes": 962906
+  },
+  {
+   "from": 43,
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.0-native/p43to45.patch",
+   "sha256": "32f944ddaa57e856f568dd2685e09324d6adcbf1a90d731f2750c0bec3d52458",
+   "bytes": 962306
+  },
+  {
+   "from": 44,
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.0-native/p44to45.patch",
+   "sha256": "bbea53bf0868833284c30a17eacc0100f183adcaae1088feef06a3540e3e02a1",
+   "bytes": 961970
   }
+ ],
+ "patch": {
+  "from": 44,
+  "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.0-native/p44to45.patch",
+  "sha256": "bbea53bf0868833284c30a17eacc0100f183adcaae1088feef06a3540e3e02a1"
+ }
 }
