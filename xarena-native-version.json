@@ -1,45 +1,45 @@
 {
-  "versionCode": 43,
-  "versionName": "0.16.8-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.8-native/xarena-native.apk",
-  "sha256": "501e8b8bafd012489a298798faccb0e4b6854686dfa2e165286e382623a86980",
+  "versionCode": 44,
+  "versionName": "0.16.9-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.9-native/xarena-native.apk",
+  "sha256": "540bc2a837f806877623ce630955e6dd2d1afef25cd4d5a576d1c7c2aa01caef",
   "apkBytes": 31539655,
-  "notes": "Messages now explain themselves: if a chat was locked to another device you see exactly that, and one tap on ACTIVATE THIS DEVICE gets new messages flowing again.",
+  "notes": "Messages now work on every device at once - yours and your friend's. And an update you skip stays skipped.",
   "patches": [
     {
-      "from": 38,
-      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.8-native/xarena-native-38to43.patch",
-      "sha256": "bf4da538219b694f7491032b09f2cf479293d3d0be7726842ebbab8fd5fd5f30",
-      "bytes": 910581
-    },
-    {
       "from": 39,
-      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.8-native/xarena-native-39to43.patch",
-      "sha256": "3738cf9b504f2d28b1783b8aad918f50f559874dc88aa2b9a613564bb52fbc17",
-      "bytes": 910669
+      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.9-native/xarena-native-39to44.patch",
+      "sha256": "b7866fbbcff99de438ddccd2634a02072343887e2b5604f35716d4d4c6af2a24",
+      "bytes": 916671
     },
     {
       "from": 40,
-      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.8-native/xarena-native-40to43.patch",
-      "sha256": "561eed1cb5bd85312cc6a50cf1cbc4d0ad80276654f40946df874c6e4d9d04c3",
-      "bytes": 908366
+      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.9-native/xarena-native-40to44.patch",
+      "sha256": "aa176b075c65142698c40be9b7c43cecef42707a46cee3502d740c0d7f7fdfcc",
+      "bytes": 916133
     },
     {
       "from": 41,
-      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.8-native/xarena-native-41to43.patch",
-      "sha256": "da03cdb83fcfda73da830191e642fdc08abfcc04045d83aa40d26e1d3205dbb6",
-      "bytes": 908349
+      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.9-native/xarena-native-41to44.patch",
+      "sha256": "6e297d89217722fd6b295b9b5ae26c799c1de65d62a89bc6cb47ce1bbc0678c7",
+      "bytes": 916342
     },
     {
       "from": 42,
-      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.8-native/xarena-native-42to43.patch",
-      "sha256": "a0155f9bbf55e66284508ecd08ebbd27805273a8e0bcca19eb306f5877ab62dc",
-      "bytes": 908741
+      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.9-native/xarena-native-42to44.patch",
+      "sha256": "a4b4c8ca0dc2b930c5449df6da1b53a67e886301fabea8ac6b5c25d9aa5690b5",
+      "bytes": 916361
+    },
+    {
+      "from": 43,
+      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.9-native/xarena-native-43to44.patch",
+      "sha256": "0df687299fd2da448b2be4e713c67e421eed058a546fc57e1943976730afb557",
+      "bytes": 916060
     }
   ],
   "patch": {
-    "from": 42,
-    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.8-native/xarena-native-42to43.patch",
-    "sha256": "a0155f9bbf55e66284508ecd08ebbd27805273a8e0bcca19eb306f5877ab62dc"
+    "from": 43,
+    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.9-native/xarena-native-43to44.patch",
+    "sha256": "0df687299fd2da448b2be4e713c67e421eed058a546fc57e1943976730afb557"
   }
 }
