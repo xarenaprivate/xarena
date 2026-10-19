@@ -1,6 +1,6 @@
 {
-  "versionCode": 24,
-  "versionName": "0.13.8",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.13.8-native/xarena-native.apk",
-  "notes": "World Chat lobby chips: next match, Leaderboard and Squads one tap away."
+  "versionCode": 26,
+  "versionName": "0.14.0",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.14.0-native/xarena-native.apk",
+  "notes": "Five new pages: Clan Room squad chat, Contact & Support, Sensitivity Share, Coaches, Sponsor a Cup."
 }
