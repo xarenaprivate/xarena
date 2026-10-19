@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "691005588268",
+    "project_id": "xarena-esports-caba6",
+    "storage_bucket": "xarena-esports-caba6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:691005588268:android:6e3af7a366feeebedee289",
+        "android_client_info": {
+          "package_name": "app.xarena.esports"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVjyjz-aulUK5nETBkqeUI7tb1vghqQbs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:691005588268:android:79f3ecc6714bab4fdee289",
+        "android_client_info": {
+          "package_name": "app.xarena.esports.native"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVjyjz-aulUK5nETBkqeUI7tb1vghqQbs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
