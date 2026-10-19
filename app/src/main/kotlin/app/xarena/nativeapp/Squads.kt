@@ -77,6 +77,9 @@ fun SquadsScreen(onBack: (() -> Unit)? = null) {
         LoadState({ loadSquads() }) { d ->
             LazyColumn {
                 item {
+                    SquadWarsBlock(d.mySquadId, d.myRole) { notice = it; nonce++ }
+                }
+                item {
                     PanelCard {
                         if (d.mySquadId != null) {
                             val mine = (0 until d.squads.length()).map { d.squads.getJSONObject(it) }.firstOrNull { it.s("id") == d.mySquadId }
@@ -393,6 +396,108 @@ private fun LogoStoreSheet(squadId: String, onDone: (String?) -> Unit, onClose: 
                                 Text(tier.uppercase(), color = tcol, fontSize = 9.sp)
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+/** Squad Wars + district-wise squad leaderboard (squad_board / squad_war_* RPCs). */
+@Composable
+private fun SquadWarsBlock(mySquadId: String?, myRole: String?, onEvent: (String?) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var scopeIdx by remember { mutableIntStateOf(0) }
+    var tick by remember { mutableIntStateOf(0) }
+    var board by remember { mutableStateOf<JSONArray?>(null) }
+    var wars by remember { mutableStateOf<JSONArray?>(null) }
+    var warMsg by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(scopeIdx, tick) {
+        board = runCatching {
+            withContext(Dispatchers.IO) { Api.publicRpc("squad_board", JSONObject().put("p_scope", listOf("global", "state", "district")[scopeIdx])).optJSONArray("rows") }
+        }.getOrNull()
+        wars = runCatching {
+            withContext(Dispatchers.IO) { Api.publicRpc("wars_board", JSONObject()).optJSONArray("wars") }
+        }.getOrNull()
+    }
+    PanelCard {
+        Text("SQUAD WARS", color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        Text("Squad vs squad - the district board decides who rules.", color = Muted, fontSize = 12.sp)
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf("Global", "State", "District").forEachIndexed { i, l ->
+                val sel = scopeIdx == i
+                Box(Modifier.clip(RoundedCornerShape(8.dp)).background(if (sel) Gold else Color(0xFF120A24))
+                    .border(1.dp, if (sel) Gold else Look.cardBorder, RoundedCornerShape(8.dp))
+                    .clickable { scopeIdx = i }.padding(horizontal = 12.dp, vertical = 6.dp)) {
+                    Text(l, color = if (sel) Ink else Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        val b = board
+        if (b == null) Text("Loading squad board...", color = Muted, fontSize = 12.sp)
+        else if (b.length() == 0) Text(if (scopeIdx == 0) "No squads ranked yet - earn squad XP to open the board." else "No squads from this area ranked yet.", color = Muted, fontSize = 12.sp)
+        else (0 until b.length()).forEach { i ->
+            val q = b.getJSONObject(i)
+            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("#" + q.optInt("rank"), color = Gold, fontSize = 14.sp, fontWeight = FontWeight.Black, modifier = Modifier.width(36.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(q.s("name") + (q.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    Text(listOf(q.optInt("members").toString() + " members", "%,d XP".format(q.optInt("xp")), listOf(q.s("state"), q.s("district")).filter { it.isNotBlank() && it != "null" }.joinToString(" · ")).filter { it.isNotBlank() }.joinToString(" · "),
+                        color = Muted, fontSize = 11.sp)
+                }
+                if (mySquadId != null && myRole == "captain" && q.s("id") != mySquadId) {
+                    Text("War", color = Color(0xFFFF5252), fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(1.dp, Color(0xFFFF5252), RoundedCornerShape(8.dp))
+                            .clickable {
+                                scope.launch {
+                                    warMsg = null
+                                    try {
+                                        val r = withContext(Dispatchers.IO) { Api.authedRpc("squad_war_challenge", JSONObject().put("p_opponent", q.s("id"))) }
+                                        warMsg = if (r.optBoolean("ok")) "War challenge sent to " + q.s("name") else r.s("error").ifBlank { "Could not challenge." }
+                                        tick++
+                                    } catch (e: Exception) { warMsg = e.message }
+                                }
+                            }.padding(horizontal = 10.dp, vertical = 6.dp))
+                }
+            }
+        }
+        warMsg?.let { Text(it, color = Gold2, fontSize = 11.sp) }
+        val w = wars
+        if (w != null && w.length() > 0) {
+            Spacer(Modifier.height(8.dp))
+            Text("WARS", color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            (0 until w.length()).forEach { i ->
+                val x = w.getJSONObject(i)
+                Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(x.s("challenger") + "  vs  " + x.s("opponent"), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(x.s("status") + (x.s("winner").takeIf { it.isNotBlank() && it != "null" }?.let { " · winner: $it" } ?: "") +
+                            (x.s("scheduled_at").takeIf { it.isNotBlank() && it != "null" }?.let { " · " + dmTime(it) } ?: ""), color = Muted, fontSize = 11.sp)
+                    }
+                    if (x.s("status") == "pending") {
+                        Text("Accept", color = Color(0xFF4ADE80), fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clickable {
+                                scope.launch {
+                                    try {
+                                        val r = withContext(Dispatchers.IO) { Api.authedRpc("squad_war_respond", JSONObject().put("p_war", x.optLong("id")).put("p_accept", true)) }
+                                        warMsg = if (r.optBoolean("ok")) "War accepted" else r.s("error").ifBlank { "Could not respond." }
+                                        tick++
+                                    } catch (e: Exception) { warMsg = e.message }
+                                }
+                            }.padding(6.dp))
+                        Text("Decline", color = Color(0xFFFF5252), fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clickable {
+                                scope.launch {
+                                    try {
+                                        val r = withContext(Dispatchers.IO) { Api.authedRpc("squad_war_respond", JSONObject().put("p_war", x.optLong("id")).put("p_accept", false)) }
+                                        warMsg = if (r.optBoolean("ok")) "War declined" else r.s("error").ifBlank { "Could not respond." }
+                                        tick++
+                                    } catch (e: Exception) { warMsg = e.message }
+                                }
+                            }.padding(6.dp))
                     }
                 }
             }

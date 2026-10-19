@@ -364,6 +364,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "store" -> { StoreScreen(onBack = { feature = null }); return }
         "profile" -> { ProfileScreen(onLogout, onBack = { feature = null }); return }
         "play" -> { PlayScreen(onBack = { feature = null }); return }
+        "season" -> { SeasonPassScreen(onBack = { feature = null }); return }
     }
     LaunchedEffect(Unit) { // presence: keeps own last_seen_at fresh (server throttles to 40s) so profile "Online now" is real
         while (true) { runCatching { Api.presencePing() }; kotlinx.coroutines.delay(60_000) }
@@ -422,6 +423,7 @@ fun MoreGrid(onOpen: (String) -> Unit) {
     produceState<org.json.JSONObject?>(null) { value = runCatching { RemoteConfig.get() }.getOrNull() }.value
     val itemsAll = listOf(
         GridItem("play", "Play", "Daily spin and quizzes - real XP, free", Icons.Default.Star),
+        GridItem("season", "Season Pass", "Free track - unlock badges, frames, AP with EXP", Icons.Default.Star),
         GridItem("chat", "Chat", "World chat lobby", Icons.Default.MailOutline),
         GridItem("luna", "Luna", "AI analyst and caster", Icons.Default.Face),
         GridItem("squads", "Squads", "Find or build your squad", Icons.Default.AccountBox),

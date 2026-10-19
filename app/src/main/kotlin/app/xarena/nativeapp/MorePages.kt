@@ -19,7 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -237,17 +239,72 @@ fun LiveScreen(onBack: () -> Unit) {
 /* ============ Scrims (LFG board) ============ */
 @Composable
 fun ScrimsScreen(onBack: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var tick by remember { mutableIntStateOf(0) }
+    var day by remember { mutableStateOf("") }
+    var time by remember { mutableStateOf("") }
+    var note by remember { mutableStateOf("") }
+    var msg by remember { mutableStateOf<String?>(null) }
+    var captain by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxSize().background(Ink)) {
-        PageHeader("Scrims", "Looking-for-game board", onBack)
-        LoadState2(0, { Api.authedRpc("lfg_list", JSONObject()) }) { r ->
-            val list = r.optJSONArray("posts") ?: r.optJSONArray("list") ?: r.optJSONArray("items") ?: JSONArray()
-            LazyColumn {
-                if (list.length() == 0) item { Text("No LFG posts right now.", color = Muted, fontSize = 14.sp, modifier = Modifier.padding(24.dp)) }
-                items((0 until list.length()).map { list.getJSONObject(it) }) { p ->
+        PageHeader("Scrim Finder", "Post a scrim slot, find same-area squads", onBack)
+        LoadState2(tick, { withContext(Dispatchers.IO) { Api.authedRpc("scrim_find", JSONObject()) } }) { r ->
+            val rows = r.optJSONArray("rows") ?: r.optJSONArray("scrims") ?: JSONArray()
+            LazyColumn(Modifier.fillMaxSize()) {
+                item {
+                    PanelCard {
+                        Text("POST A SCRIM", color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("Captains only - your squad appears on this board.", color = Muted, fontSize = 11.sp)
+                        OutlinedTextField(day, { day = it }, placeholder = { Text("Day (e.g. tonight, Sat 7 PM)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(time, { time = it }, placeholder = { Text("Time (e.g. 9 PM IST)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        OutlinedTextField(note, { note = it }, placeholder = { Text("Note (rules, map, skill level)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                        Spacer(Modifier.height(6.dp))
+                        GoldButton("POST", enabled = day.isNotBlank()) {
+                            scope.launch {
+                                msg = null
+                                try {
+                                    val x = withContext(Dispatchers.IO) { Api.authedRpc("scrim_post", JSONObject().put("p_day", day.trim()).put("p_time", time.trim()).put("p_note", note.trim())) }
+                                    if (x.optBoolean("ok")) { day = ""; time = ""; note = ""; msg = "Posted - squads can reach you now."; tick++ }
+                                    else msg = x.s("error").ifBlank { "Could not post." }
+                                } catch (e: Exception) { msg = e.message }
+                            }
+                        }
+                        msg?.let { Text(it, color = if (it.startsWith("Posted")) Color(0xFF4ADE80) else ErrRed, fontSize = 12.sp) }
+                    }
+                    captain?.let {
+                        PanelCard {
+                            Text("Captain: " + it, color = Gold2, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text("Open Messages and DM them to lock the scrim.", color = Muted, fontSize = 12.sp)
+                        }
+                    }
+                }
+                if (rows.length() == 0) item { EmptyNote("No scrims posted yet", "When a squad posts a slot it shows up here - real posts only.") }
+                items((0 until rows.length()).map { rows.getJSONObject(it) }) { p ->
                     SmallCard {
-                        Text(p.s("ign").ifBlank { p.s("author").ifBlank { "Player" } }, color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                        Text(p.s("note").ifBlank { p.s("body") }, color = Color.White, fontSize = 13.sp)
-                        Text(dmTime(p.s("created_at").ifBlank { p.s("at") }), color = Muted, fontSize = 11.sp)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(p.s("squad") + (p.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""), color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                                Text(listOf(p.s("day"), p.s("time")).filter { it.isNotBlank() }.joinToString(" · "), color = Color.White, fontSize = 13.sp)
+                                if (p.s("note").isNotBlank()) Text(p.s("note"), color = Muted, fontSize = 12.sp)
+                            }
+                            if (p.optBoolean("mine")) Text("Close", color = Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clickable {
+                                    scope.launch {
+                                        runCatching { withContext(Dispatchers.IO) { Api.authedRpc("scrim_close", JSONObject().put("p_id", p.s("id"))) } }
+                                        tick++
+                                    }
+                                }.padding(6.dp))
+                            else Text("Reach out", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(1.dp, Gold, RoundedCornerShape(8.dp)).clickable {
+                                    scope.launch {
+                                        captain = null
+                                        try {
+                                            val x = withContext(Dispatchers.IO) { Api.authedRpc("scrim_reach", JSONObject().put("p_id", p.s("id"))) }
+                                            if (x.optBoolean("ok")) captain = x.s("captain") else msg = x.s("error").ifBlank { "Could not reach." }
+                                        } catch (e: Exception) { msg = e.message }
+                                    }
+                                }.padding(horizontal = 10.dp, vertical = 6.dp))
+                        }
                     }
                 }
             }

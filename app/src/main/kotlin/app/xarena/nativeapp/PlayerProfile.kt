@@ -1,6 +1,7 @@
 package app.xarena.nativeapp
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -151,17 +152,25 @@ fun PlayerProfileScreen(playerId: String, onBack: () -> Unit, onOpenConv: (Strin
                     }
                     actionErr?.let { Text(it, color = ErrRed, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp)) }
                     var reportMsg by remember { mutableStateOf<String?>(null) }
+                    var reportOpen by remember { mutableStateOf(false) }
                     Text("Report player", color = Muted, fontSize = 12.sp,
-                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp).clickable(enabled = !actionBusy) {
-                            scope.launch {
-                                actionBusy = true; reportMsg = null
-                                try {
-                                    val r = Api.authedRpc("cheat_report", JSONObject().put("p_name", name).put("p_reason", "Player report from profile"))
-                                    reportMsg = if (r.optBoolean("ok")) "Report sent - the team reviews every report." else r.s("error").ifBlank { "Could not send report." }
-                                } catch (e: Exception) { reportMsg = e.message }
-                                actionBusy = false
-                            }
-                        })
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp).clickable { reportOpen = !reportOpen })
+                    if (reportOpen) Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp).horizontalScroll(androidx.compose.foundation.rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf("cheating", "abuse", "spam", "fake_account", "other").forEach { reason ->
+                            Text(reason.replace('_', ' '), color = Color(0xFFFF5252), fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(1.dp, Color(0xFFFF5252), RoundedCornerShape(8.dp))
+                                    .clickable(enabled = !actionBusy) {
+                                        scope.launch {
+                                            actionBusy = true; reportMsg = null; reportOpen = false
+                                            try {
+                                                val r = Api.authedRpc("report_player", JSONObject().put("p_username", p.s("username").ifBlank { name }).put("p_reason", reason).put("p_details", ""))
+                                                reportMsg = if (r.optBoolean("ok")) "Report sent - the team reviews every report." else r.s("error").ifBlank { "Could not send report." }
+                                            } catch (e: Exception) { reportMsg = e.message }
+                                            actionBusy = false
+                                        }
+                                    }.padding(horizontal = 10.dp, vertical = 6.dp))
+                        }
+                    }
                     reportMsg?.let { Text(it, color = if (it.startsWith("Report sent")) Color(0xFF4ADE80) else ErrRed, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 20.dp)) }
                 }
                 item {

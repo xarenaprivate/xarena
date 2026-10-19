@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import org.json.JSONArray
 import org.json.JSONObject
 
 /* Play - real mini-games from the site's play page: daily spin + quizzes (daily check-in lives in Streak).
@@ -36,44 +37,48 @@ fun PlayScreen(onBack: () -> Unit) {
         PageHeader("Play", "Spin and quiz - real XP, free", onBack)
         LazyColumn(Modifier.fillMaxSize()) {
             item {
-                var claimBusy by remember { mutableStateOf(false) }
+                var claimBusy by remember { mutableStateOf<String?>(null) }
                 var claimMsg by remember { mutableStateOf<String?>(null) }
                 var mission by remember { mutableStateOf<JSONObject?>(null) }
                 LaunchedEffect(tick) {
                     mission = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                        runCatching { Api.authedRpc("daily_mission", JSONObject()) }.getOrNull()
+                        runCatching { Api.authedRpc("daily_missions_v2", JSONObject()) }.getOrNull()
                     }
                 }
                 SmallCard {
                     Text("DAILY MISSIONS", color = Gold, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                    Text("Three real tasks a day. Finish all three, claim +" + (mission?.optInt("reward", 15) ?: 15) + " AP.", color = Muted, fontSize = 12.sp)
+                    Text("Three real tasks a day - checked on the server, no fake completion.", color = Muted, fontSize = 12.sp)
                     Spacer(Modifier.height(8.dp))
                     val m = mission
                     if (m == null || !m.optBoolean("ok")) {
                         Text(if (m == null) "Loading today's missions..." else "Log in to see today's missions.", color = Muted, fontSize = 12.sp)
                     } else {
-                        listOf("Daily check-in" to m.optBoolean("checkin"), "Free spin" to m.optBoolean("spin"), "Answer a quiz" to m.optBoolean("quiz")).forEach { (label, doneIt) ->
+                        val arr = m.optJSONArray("missions") ?: JSONArray()
+                        (0 until arr.length()).forEach { i ->
+                            val mi = arr.getJSONObject(i)
+                            val doneIt = mi.optBoolean("done"); val claimedIt = mi.optBoolean("claimed")
                             Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(if (doneIt) "✓" else "•", color = if (doneIt) Color(0xFF4ADE80) else Muted, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(18.dp))
-                                Text(label, color = if (doneIt) Color.White else Muted, fontSize = 13.sp, fontWeight = if (doneIt) FontWeight.Bold else FontWeight.Normal)
-                                Spacer(Modifier.weight(1f))
-                                Text(if (doneIt) "DONE" else "PENDING", color = if (doneIt) Color(0xFF4ADE80) else Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                        Spacer(Modifier.height(6.dp))
-                        when {
-                            m.optBoolean("claimed") -> Text("Claimed for today - new missions at midnight.", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            m.optBoolean("done") -> GoldButton(if (claimBusy) "CLAIMING..." else "CLAIM +" + m.optInt("reward", 15) + " AP", enabled = !claimBusy) {
-                                claimBusy = true; claimMsg = null
-                                scope.launch {
-                                    try {
-                                        val r = Api.authedRpc("daily_mission_claim", JSONObject())
-                                        if (r.optBoolean("ok")) tick++ else claimMsg = r.s("error").ifBlank { "Could not claim - try again." }
-                                    } catch (e: Exception) { claimMsg = e.message }
-                                    claimBusy = false
+                                Text(if (doneIt) "\u2713" else "\u2022", color = if (doneIt) Color(0xFF4ADE80) else Muted, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(18.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(mi.s("title").ifBlank { mi.s("kind") }, color = if (doneIt) Color.White else Muted, fontSize = 13.sp, fontWeight = if (doneIt) FontWeight.Bold else FontWeight.Normal)
+                                    Text("+" + mi.optInt("reward") + " AP", color = Gold2, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                }
+                                when {
+                                    claimedIt -> Text("CLAIMED", color = Gold2, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                    doneIt -> Text(if (claimBusy == mi.s("kind")) "..." else "CLAIM", color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Gold).clickable(claimBusy == null) {
+                                            claimBusy = mi.s("kind"); claimMsg = null
+                                            scope.launch {
+                                                try {
+                                                    val r = Api.authedRpc("claim_mission_v2", JSONObject().put("p_kind", mi.s("kind")))
+                                                    if (r.optBoolean("ok")) tick++ else claimMsg = r.s("error").ifBlank { "Could not claim - try again." }
+                                                } catch (e: Exception) { claimMsg = e.message }
+                                                claimBusy = null
+                                            }
+                                        }.padding(horizontal = 10.dp, vertical = 5.dp))
+                                    else -> Text("PENDING", color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
-                            else -> Text("Finish all three to unlock the claim.", color = Muted, fontSize = 12.sp)
                         }
                         claimMsg?.let { Text(it, color = ErrRed, fontSize = 12.sp) }
                     }

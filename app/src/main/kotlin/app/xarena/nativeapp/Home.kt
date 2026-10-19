@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -72,6 +73,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                     }
                 }
             }
+            item { WeeklyClipCard() }
             item {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("LIVE NOW", color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
@@ -163,5 +165,47 @@ private fun LiveMatchCard(m: JSONObject, onOpen: () -> Unit) {
         val teams = listOf(m.s("team_a"), m.s("team_b")).filter { it.isNotBlank() }
         if (teams.isNotEmpty()) Text(teams.joinToString("  VS  "), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Medium, maxLines = 1)
         Text(dmTime(m.s("starts_at")), color = Muted, fontSize = 11.sp)
+    }
+}
+
+
+/** Clip of the week - from the real approved-clips feed; renders nothing when there is no winner yet. */
+@Composable
+fun WeeklyClipCard() {
+    var clip by remember { mutableStateOf<org.json.JSONObject?>(null) }
+    var loaded by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        clip = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            runCatching { Api.publicRpc("weekly_top_clip", org.json.JSONObject()).optJSONObject("clip") }.getOrNull()
+        }
+        loaded = true
+    }
+    val c = clip ?: return
+    val url = feedMediaUrl(c) ?: return
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg)
+        .border(1.dp, Gold.copy(alpha = .5f), RoundedCornerShape(Look.cardRadius))) {
+        Column(Modifier.padding(12.dp)) {
+            Text("CLIP OF THE WEEK", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Black)
+            Text(c.s("name").ifBlank { c.s("username") } + (if (c.optInt("likes") > 0) " · " + c.optInt("likes") + " likes" else ""), color = Muted, fontSize = 11.sp)
+            if (c.s("caption").isNotBlank()) Text(c.s("caption"), color = Color.White, fontSize = 13.sp, maxLines = 2)
+        }
+        if (c.s("kind") == "clip") {
+            var muted by remember { mutableStateOf(true) }
+            var player by remember { mutableStateOf<android.media.MediaPlayer?>(null) }
+            LaunchedEffect(muted) { player?.setVolume(if (muted) 0f else 1f, if (muted) 0f else 1f) }
+            Box(Modifier.fillMaxWidth().height(200.dp)) {
+                androidx.compose.ui.viewinterop.AndroidView(factory = { ctx ->
+                    xrVideoView(ctx, url).apply {
+                        setOnPreparedListener { mp -> player = mp; mp.isLooping = true; mp.setVolume(0f, 0f); mp.start() }
+                    }
+                }, modifier = Modifier.fillMaxSize(), onRelease = { it.stopPlayback() })
+                Text(if (muted) "\ud83d\udd07" else "\ud83d\udd0a", color = Color.White, fontSize = 16.sp,
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp).clip(CircleShape)
+                        .background(Color(0x88000000)).clickable { muted = !muted }.padding(horizontal = 10.dp, vertical = 6.dp))
+            }
+        } else {
+            coil.compose.AsyncImage(model = xrImageModel(Api.ctx, url), contentDescription = c.s("caption"),
+                modifier = Modifier.fillMaxWidth().height(200.dp), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+        }
     }
 }
