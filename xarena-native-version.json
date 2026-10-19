@@ -1,52 +1,52 @@
 {
- "versionCode": 48,
- "versionName": "0.17.3-native",
- "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.3-native/xarena-native.apk",
- "sha256": "9da6cdeadf5cd6903e815d4b7c7566bd0d3ad48e0421e190f97f4c739e9be5cc",
+ "versionCode": 49,
+ "versionName": "0.17.4-native",
+ "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.4-native/xarena-native.apk",
+ "sha256": "c7985d7b54338887850cd20dda0ecb5147e4b61a460b170adc547621ff6603de",
  "apkBytes": 31588807,
- "notes": "Fix: live player black box - direct YouTube embed with nocookie/watch-page fallback. Live + feed clips still autoplay muted.",
+ "notes": "Fix: live player error 153 - stream now embeds via xarenaprivate.github.io host page; nocookie/watch fallbacks + Open in YouTube kept.",
  "patches": [
   {
-   "from": 42,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.3-native/p42to48.patch",
-   "sha256": "970d563563178ad9a4851dfdbce6c843af3a1591c8afc9609ee4d5ddbe8484c5",
-   "bytes": 972265
-  },
-  {
    "from": 43,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.3-native/p43to48.patch",
-   "sha256": "7d2061bdaabf3f26041f48794323d27cb10c606644387765c6b431e230d2cc68",
-   "bytes": 971597
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.4-native/p43to49.patch",
+   "sha256": "c019ac43b386d3f194d88908659fcca118b76c397d9857c90360a03d17df6c12",
+   "bytes": 971271
   },
   {
    "from": 44,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.3-native/p44to48.patch",
-   "sha256": "eca457117b1ad2a949917ccff180c55539a4e19076cff5a2e9b3ac8cde520bbc",
-   "bytes": 969053
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.4-native/p44to49.patch",
+   "sha256": "993e49f8c9723c6846c0fb93290f60ec772753f37b9a786a51a35169464feecd",
+   "bytes": 971417
   },
   {
    "from": 45,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.3-native/p45to48.patch",
-   "sha256": "07057b2077412f8f83fdfd810ba1abd57b4c604d73ded0b1f4c336409170d100",
-   "bytes": 969371
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.4-native/p45to49.patch",
+   "sha256": "b064b2167030455b9146bf6f120a9de3905a91e05660c0e75ec564b857134192",
+   "bytes": 970079
   },
   {
    "from": 46,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.3-native/p46to48.patch",
-   "sha256": "04285f512657ff76dd14428ce3b4874b6578b5561872823f57cd3c750a040579",
-   "bytes": 967780
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.4-native/p46to49.patch",
+   "sha256": "b245c988e73ba5fc8cfd2e2d8e6e07fe4375f01147bdcf271823bcf06ce3fd02",
+   "bytes": 967770
   },
   {
    "from": 47,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.3-native/p47to48.patch",
-   "sha256": "0aafca6545e5112f37e1690597561e019cb1aacfcec21a208771afd3db2c31cd",
-   "bytes": 951304
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.4-native/p47to49.patch",
+   "sha256": "5c5c65e081be4ca11c885c6b412d926b066aa6acc72ae1500185512af9bacb2a",
+   "bytes": 945923
+  },
+  {
+   "from": 48,
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.4-native/p48to49.patch",
+   "sha256": "4a0d199139bc90a7fa58663cf6b7df0c45ba1b4b9e3a1305f758a8e3b0e35b15",
+   "bytes": 948562
   }
  ],
  "patch": {
-  "from": 47,
-  "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.3-native/p47to48.patch",
-  "sha256": "0aafca6545e5112f37e1690597561e019cb1aacfcec21a208771afd3db2c31cd",
-  "bytes": 951304
+  "from": 48,
+  "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.4-native/p48to49.patch",
+  "sha256": "4a0d199139bc90a7fa58663cf6b7df0c45ba1b4b9e3a1305f758a8e3b0e35b15",
+  "bytes": 948562
  }
 }
