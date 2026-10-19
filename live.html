@@ -27,7 +27,7 @@
 <link rel="icon" type="image/png" href="assets/favicon-64.png">
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/app-shell.css">
-</head>
+<script>function xrYtId(s){s=String(s||"").trim();if(!s)return"";var m=s.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#]*&)?v=|live\/|embed\/|shorts\/|v\/))([A-Za-z0-9_-]{11})/i);if(m)return m[1];m=s.match(/^[A-Za-z0-9_-]{11}$/);return m?m[0]:"";}</script></head>
 <body>
 <style>
 #xr-splash{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;transition:opacity .3s ease;overflow:hidden}
@@ -126,12 +126,12 @@ window.addEventListener("load", function () {
   var esc = function (t) { return String(t == null ? "" : t).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   xrApi.get("site_settings", "?key=eq.youtube_live&select=value").then(function (rows) {
     var v = rows && rows[0] && rows[0].value, box = document.getElementById("live-now");
-    if (v && v.active && v.video_id) {
+    if (v && v.active && xrYtId(v.video_id)) {
       box.innerHTML = '<div class="card" style="border-color:rgba(225,6,0,.55)">' +
         '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="badge live">LIVE</span><h3 style="margin:0">' + esc(v.title || "XARENA live stream") + '</h3>' +
-        '<a class="btn btn-ghost btn-sm" style="margin-left:auto" href="https://www.youtube.com/watch?v=' + encodeURIComponent(v.video_id) + '" target="_blank" rel="noopener">Open in YouTube</a></div>' +
+        '<a class="btn btn-ghost btn-sm" style="margin-left:auto" href="https://www.youtube.com/watch?v=' + encodeURIComponent(xrYtId(v.video_id)) + '" target="_blank" rel="noopener">Open in YouTube</a></div>' +
         '<div style="position:relative;padding-top:56.25%;margin-top:12px;border-radius:12px;overflow:hidden;background:#000">' +
-        '<iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(v.video_id) + '" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div></div>';
+        '<iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(xrYtId(v.video_id)) + '" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen loading="lazy"></iframe></div></div>';
     } else {
       box.innerHTML = '<div class="card"><h3>Live now</h3><div class="empty" style="margin-top:6px"><div class="big">No stream live right now</div><p>When the owner starts a tournament stream it appears here automatically - real streams only, never reruns marked live.</p></div></div>';
     }

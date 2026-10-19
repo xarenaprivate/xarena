@@ -1740,18 +1740,19 @@
     render();
   }
 
+  function xrYtId(s){s=String(s||"").trim();if(!s)return"";var m=s.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^#]*&)?v=|live\/|embed\/|shorts\/|v\/))([A-Za-z0-9_-]{11})/i);if(m)return m[1];m=s.match(/^[A-Za-z0-9_-]{11}$/);return m?m[0]:"";}
   function renderLivestream() {
     var body = el("#admin-body");
     call(function () { return api.aGet("site_settings", "?key=eq.youtube_live&select=value"); }).then(function (rows) {
       var v = (rows && rows[0] && rows[0].value) || {};
       body.innerHTML = '<div class="card"><h3>YouTube live stream</h3>' +
-        '<p style="font-size:13px">When active, a LIVE card with the stream appears at the top of the home page. Paste the YouTube video or live ID (the part after watch?v=).</p>' +
-        '<div class="field" style="margin-top:10px"><label>Video / live ID</label><input id="lv-id" maxlength="20" value="' + esc(v.video_id || "") + '" placeholder="e.g. dQw4w9WgXcQ"></div>' +
+        '<p style="font-size:13px">When active, a LIVE card with the stream appears at the top of the home page. Paste the full YouTube link (watch, live, youtu.be, shorts or embed) or just the 11-character ID.</p>' +
+        '<div class="field" style="margin-top:10px"><label>Video / live ID</label><input id="lv-id" value="' + esc(v.video_id || "") + '" placeholder="e.g. dQw4w9WgXcQ"></div>' +
         '<div class="field"><label>Title</label><input id="lv-title" maxlength="80" value="' + esc(v.title || "") + '" placeholder="e.g. XARENA Season 1 Finals - LIVE"></div>' +
         '<label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:8px 0"><input type="checkbox" id="lv-active"' + (v.active ? " checked" : "") + "> Show the LIVE card on the home page</label>" +
         '<button class="btn btn-red btn-sm" id="lv-save">Save</button> <span id="lv-msg" style="font-size:13px"></span></div>';
       el("#lv-save", body).addEventListener("click", function () {
-        var data = { video_id: el("#lv-id", body).value.trim(), title: el("#lv-title", body).value.trim(), active: el("#lv-active", body).checked };
+        var rawId = el("#lv-id", body).value.trim(); var vid = rawId ? xrYtId(rawId) : ""; if (rawId && !vid) { el("#lv-msg", body).textContent = "Could not find a YouTube video ID in that link."; return; } var data = { video_id: vid, title: el("#lv-title", body).value.trim(), active: el("#lv-active", body).checked };
         call(function () { return api.aPatch("site_settings", "key=eq.youtube_live", { value: data, updated_at: new Date().toISOString() }); })
           .then(function (r) {
             if (Array.isArray(r) && r.length) return;
