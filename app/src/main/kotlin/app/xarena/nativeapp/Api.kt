@@ -456,3 +456,11 @@ object Api {
     }
 
 }
+
+// Display helper: my_stats values can be arrays/objects (e.g. xp_days) - never print raw JSON.
+fun statDisplay(v: Any?): String = when (v) {
+    null, JSONObject.NULL -> "-"
+    is JSONArray -> v.length().toString()
+    is JSONObject -> v.length().toString()
+    else -> v.toString()
+}

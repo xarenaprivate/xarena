@@ -116,7 +116,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                         else Row(Modifier.fillMaxWidth()) {
                             shown.forEach { k ->
                                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(s.opt(k)?.toString() ?: "-", color = Gold2, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                    Text(statDisplay(s.opt(k)), color = Gold2, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                                     Text(k.replace("_", " ").replace("kd", "K/D", true), color = Muted, fontSize = 11.sp)
                                 }
                             }

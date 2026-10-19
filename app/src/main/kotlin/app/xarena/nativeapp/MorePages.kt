@@ -112,7 +112,7 @@ fun StatsScreen(onBack: () -> Unit) {
                         keys.forEach { k ->
                             Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                                 Text(k.replace("_", " "), color = Muted, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                                Text(mine.opt(k)?.toString() ?: "-", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                Text(statDisplay(mine.opt(k)), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -125,7 +125,7 @@ fun StatsScreen(onBack: () -> Unit) {
                         plat.keys().asSequence().filter { it !in skip }.forEach { k ->
                             Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                                 Text(k.replace("_", " "), color = Muted, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                                Text(plat.opt(k)?.toString() ?: "-", color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                                Text(statDisplay(plat.opt(k)), color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }

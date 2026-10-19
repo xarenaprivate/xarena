@@ -299,7 +299,7 @@ fun HomeShell(onLogout: () -> Unit) {
     var feature by remember { mutableStateOf<String?>(null) }
     var conv by remember { mutableStateOf<DmConv?>(null) }
     val tabs = listOf(
-        "Home" to Icons.Default.Home, "Tournaments" to Icons.Default.Star, "Board" to Icons.Default.List,
+        "Home" to Icons.Default.Home, "Live" to Icons.Default.PlayArrow, "Tournaments" to Icons.Default.Star, "Board" to Icons.Default.List,
         "Chat" to Icons.Default.MailOutline, "Luna" to Icons.Default.Face, "Squads" to Icons.Default.AccountBox,
         "Store" to Icons.Default.ShoppingCart, "Profile" to Icons.Default.Person, "More" to Icons.Default.Menu)
     val c = conv
@@ -361,7 +361,7 @@ fun HomeShell(onLogout: () -> Unit) {
         }
         BackHandler(enabled = tab != 0) { tab = 0 }
         Box(Modifier.weight(1f)) {
-            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> TournamentsScreen(); 2 -> LeaderboardScreen(); 3 -> ChatScreen(onGoTab = { tab = it }); 4 -> LunaScreen(); 5 -> SquadsScreen(); 6 -> StoreScreen(); 7 -> ProfileScreen(onLogout); else -> MoreGrid { feature = it } }
+            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> LiveScreen(onBack = { tab = 0 }); 2 -> TournamentsScreen(); 3 -> LeaderboardScreen(); 4 -> ChatScreen(onGoTab = { tab = it }); 5 -> LunaScreen(); 6 -> SquadsScreen(); 7 -> StoreScreen(); 8 -> ProfileScreen(onLogout); else -> MoreGrid { feature = it } }
         }
         Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(vertical = 6.dp)) {
             tabs.forEachIndexed { i, (label, icon) ->
@@ -392,8 +392,8 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("rules", "Rules", "Tournament and squad rules", Icons.Default.Menu),
         GridItem("notifications", "Notifications", "Your alerts", Icons.Default.Notifications),
         GridItem("stories", "Stories", "24-hour highlights from players", Icons.Default.Face),
-        GridItem("feed", "Feed", "Player highlights - post, like, comment, save", Icons.Default.Home),
         GridItem("clips", "Clips", "Approved community clips", Icons.Default.PlayArrow),
+        GridItem("feed", "Feed", "Player highlights - post, like, comment, save", Icons.Default.FavoriteBorder),
         GridItem("live", "Live", "Streams and match schedule", Icons.Default.Share),
         GridItem("winners", "Winners", "Hall of fame and awards", Icons.Default.Star),
         GridItem("stats", "Stats", "Your numbers and platform numbers", Icons.Default.List),
