@@ -8,7 +8,7 @@
   "url": "https://github.com/xarenaprivate/xarena/releases/latest/download/xarena.apk",
   "updated": "2026-10-18T13:42:53.819460+00:00",
   "released": "October 18, 2026",
-  "notes": "Stability release: simpler, safer app shell, new XARENA logo. If you have an older XARENA installed, uninstall it first (this build uses a new signing key).",
+  "notes": "Stability release with a new signing key. If the install says \"App not installed\" or keeps asking to update: long-press the XARENA icon > App info > Uninstall, then install this file again. Your account and data are safe on the server.",
   "changes": [
     "New XARENA logo",
     "Safer app shell to stop random closing",
