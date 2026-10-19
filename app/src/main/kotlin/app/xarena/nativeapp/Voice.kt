@@ -43,30 +43,49 @@ private class PhoenixChannel(
 ) {
     private var ws: okhttp3.WebSocket? = null
     private var ref = 0
+    private var joinRef: String? = null
     private val client = okhttp3.OkHttpClient()
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
     @Volatile var open = false
         private set
+    @Volatile var closedByUser = false
+    private var retries = 0
+    private val heartbeat = object : Runnable {
+        override fun run() {
+            if (open) {
+                ref++
+                ws?.send(JSONArray().put(JSONObject.NULL).put(ref.toString()).put("phoenix").put("heartbeat").put(JSONObject()).toString())
+                handler.postDelayed(this, 25000)
+            }
+        }
+    }
 
     fun connect() {
-        val url = Api.BASE + "/realtime/v1/websocket?apikey=" + Api.KEY + "&vsn=1.0.0"
+        val url = Api.BASE + "/realtime/v1/websocket?apikey=" + Api.KEY + "&vsn=2.0.0"
         onState("connecting")
         ws = client.newWebSocket(okhttp3.Request.Builder().url(url).build(), object : okhttp3.WebSocketListener() {
             override fun onOpen(webSocket: okhttp3.WebSocket, response: okhttp3.Response) {
+                ref = 1; joinRef = "1"
                 send("phx_join", JSONObject().put("config", JSONObject()
                     .put("broadcast", JSONObject().put("ack", false).put("self", false))
-                    .put("presence", JSONObject().put("key", presenceKey))))
-                // Auth for RLS-gated channels
-                Api.access?.let { send("access_token", JSONObject().put("access_token", it)) }
+                    .put("presence", JSONObject().put("key", presenceKey).put("enabled", false))
+                    .put("postgres_changes", JSONArray())
+                    .put("private", false)))
             }
             override fun onMessage(webSocket: okhttp3.WebSocket, text: String) {
                 try {
                     val arr = JSONArray(text)
+                    val refStr = arr.optString(1)
                     val event = arr.getString(3)
                     val payload = arr.getJSONObject(4)
                     when (event) {
                         "phx_reply" -> {
-                            if (payload.s("status") == "ok") { open = true; onState("joined"); onJoined() }
-                            else onState("join failed: " + payload.toString().take(80))
+                            if (refStr == joinRef) {
+                                if (payload.s("status") == "ok") {
+                                    open = true; retries = 0; onState("joined"); onJoined()
+                                    handler.postDelayed(heartbeat, 25000)
+                                } else onState("join failed: " + payload.toString().take(80))
+                            }
                         }
                         "presence_state" -> onJoins(parsePresences(payload.optJSONObject("presences") ?: JSONObject()))
                         "presence_diff" -> {
@@ -78,12 +97,19 @@ private class PhoenixChannel(
                 } catch (e: Exception) { }
             }
             override fun onFailure(webSocket: okhttp3.WebSocket, t: Throwable, response: okhttp3.Response?) {
-                open = false; onState("disconnected: " + (t.message ?: "network"))
+                open = false; onState("disconnected: " + (t.message ?: "network")); retry()
             }
             override fun onClosed(webSocket: okhttp3.WebSocket, code: Int, reason: String) {
-                open = false; onState("disconnected")
+                open = false; onState("disconnected"); retry()
             }
         })
+    }
+
+    private fun retry() {
+        if (closedByUser || retries >= 5) return
+        retries++
+        onState("reconnecting (" + retries + "/5)...")
+        handler.postDelayed({ if (!closedByUser && !open) connect() }, 3000)
     }
 
     private fun parsePresences(presences: JSONObject): Map<String, JSONObject> {
@@ -99,7 +125,7 @@ private class PhoenixChannel(
 
     @Synchronized private fun send(event: String, payload: JSONObject) {
         ref++
-        val msg = JSONArray().put(JSONObject.NULL).put(ref.toString()).put(topic).put(event).put(payload)
+        val msg = JSONArray().put(joinRef ?: JSONObject.NULL).put(ref.toString()).put(topic).put(event).put(payload)
         ws?.send(msg.toString())
     }
 
@@ -108,14 +134,17 @@ private class PhoenixChannel(
     }
 
     fun track(data: JSONObject) {
-        send("presence", JSONObject().put("type", "presence").put("event", "track")
-            .put("payload", JSONObject().put("type", "presence").put("event", "track").put("payload", data)))
+        send("presence", JSONObject().put("type", "presence").put("event", "track").put("payload", data))
     }
 
-    fun close() { ws?.close(1000, "bye"); client.dispatcher.executorService.shutdown() }
+    fun close() {
+        closedByUser = true; open = false
+        handler.removeCallbacksAndMessages(null)
+        ws?.close(1000, "bye"); client.dispatcher.executorService.shutdown()
+    }
 }
 
-private data class VoicePeer(val id: String, val handle: String, val muted: Boolean, val speaking: Boolean = false)
+private data class VoicePeer(val id: String, val handle: String, val muted: Boolean, val conn: String = "")
 
 private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (String) -> Unit) {
     private val myId = UUID.randomUUID().toString()
@@ -125,12 +154,19 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
     private var audioSource: org.webrtc.AudioSource? = null
     private var audioTrack: org.webrtc.AudioTrack? = null
     private val pcs = HashMap<String, org.webrtc.PeerConnection>()
+    private val pendingIce = HashMap<String, MutableList<org.webrtc.IceCandidate>>()
+    private val remoteSet = HashSet<String>()
     private val roster = HashMap<String, VoicePeer>()
     var muted = false
         private set
 
     fun join(handle: String) {
         if (handle.isNotBlank()) myHandle = handle
+        try {
+            val am = Api.ctx.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+            am.mode = android.media.AudioManager.MODE_IN_COMMUNICATION
+            am.isSpeakerphoneOn = true
+        } catch (e: Exception) { }
         val egl = org.webrtc.EglBase.create()
         val initOpts = org.webrtc.PeerConnectionFactory.InitializationOptions.builder(Api.ctx).createInitializationOptions()
         org.webrtc.PeerConnectionFactory.initialize(initOpts)
@@ -160,6 +196,7 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
     private fun onLeavesUpdate(leaves: Map<String, JSONObject>) {
         for ((id, _) in leaves) {
             pcs.remove(id)?.close()
+            pendingIce.remove(id); remoteSet.remove(id)
             roster.remove(id)
         }
         onPeers(roster.values.sortedBy { it.handle })
@@ -180,7 +217,9 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
         when (p.s("kind")) {
             "offer" -> {
                 val pc = peerFor(from)
-                pc.setRemoteDescription(SimpleObserver(), org.webrtc.SessionDescription(org.webrtc.SessionDescription.Type.OFFER, p.optJSONObject("data")?.s("sdp") ?: return))
+                pc.setRemoteDescription(object : SimpleObserver() {
+                    override fun onSetSuccess() { flushIce(from) }
+                }, org.webrtc.SessionDescription(org.webrtc.SessionDescription.Type.OFFER, p.optJSONObject("data")?.s("sdp") ?: return))
                 pc.createAnswer(object : SimpleSdpObserver() {
                     override fun onCreateSuccess(desc: org.webrtc.SessionDescription) {
                         pc.setLocalDescription(SimpleObserver(), desc)
@@ -189,12 +228,21 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
                     }
                 }, org.webrtc.MediaConstraints())
             }
-            "answer" -> pcs[from]?.setRemoteDescription(SimpleObserver(), org.webrtc.SessionDescription(org.webrtc.SessionDescription.Type.ANSWER, p.optJSONObject("data")?.s("sdp") ?: return))
+            "answer" -> pcs[from]?.setRemoteDescription(object : SimpleObserver() {
+                override fun onSetSuccess() { flushIce(from) }
+            }, org.webrtc.SessionDescription(org.webrtc.SessionDescription.Type.ANSWER, p.optJSONObject("data")?.s("sdp") ?: return))
             "ice" -> {
                 val d = p.optJSONObject("data") ?: return
-                pcs[from]?.addIceCandidate(org.webrtc.IceCandidate(d.s("sdpMid"), d.optInt("sdpMLineIndex"), d.s("candidate")))
+                val c = org.webrtc.IceCandidate(d.s("sdpMid"), d.optInt("sdpMLineIndex"), d.s("candidate"))
+                if (remoteSet.contains(from)) pcs[from]?.addIceCandidate(c)
+                else pendingIce.getOrPut(from) { ArrayList() }.add(c)
             }
         }
+    }
+
+    private fun flushIce(id: String) {
+        remoteSet.add(id)
+        pendingIce.remove(id)?.forEach { pcs[id]?.addIceCandidate(it) }
     }
 
     private fun offerTo(id: String) {
@@ -210,7 +258,10 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
 
     private fun peerFor(id: String): org.webrtc.PeerConnection {
         pcs[id]?.let { return it }
-        val ice = listOf(org.webrtc.PeerConnection.IceServer.builder(listOf("stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302")).createIceServer())
+        val ice = listOf(
+            org.webrtc.PeerConnection.IceServer.builder(listOf("stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302")).createIceServer(),
+            org.webrtc.PeerConnection.IceServer.builder(listOf("turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turns:openrelay.metered.ca:443"))
+                .setUsername("openrelayproject").setPassword("openrelayproject").createIceServer())
         val pc = factory!!.createPeerConnection(org.webrtc.PeerConnection.RTCConfiguration(ice), object : org.webrtc.PeerConnection.Observer {
             override fun onIceCandidate(c: org.webrtc.IceCandidate) {
                 chan?.broadcast("sig", JSONObject().put("kind", "ice").put("from", myId).put("to", id)
@@ -220,7 +271,19 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
                 (receiver.track() as? org.webrtc.AudioTrack)?.setEnabled(true)
             }
             override fun onSignalingChange(s: org.webrtc.PeerConnection.SignalingState?) {}
-            override fun onIceConnectionChange(s: org.webrtc.PeerConnection.IceConnectionState?) {}
+            override fun onIceConnectionChange(st: org.webrtc.PeerConnection.IceConnectionState?) {
+                val label = when (st) {
+                    org.webrtc.PeerConnection.IceConnectionState.CONNECTED, org.webrtc.PeerConnection.IceConnectionState.COMPLETED -> "connected"
+                    org.webrtc.PeerConnection.IceConnectionState.CHECKING, org.webrtc.PeerConnection.IceConnectionState.NEW -> "connecting"
+                    org.webrtc.PeerConnection.IceConnectionState.FAILED -> "failed"
+                    org.webrtc.PeerConnection.IceConnectionState.DISCONNECTED -> "reconnecting"
+                    else -> ""
+                }
+                main {
+                    roster[id]?.let { roster[id] = it.copy(conn = label); onPeers(roster.values.sortedBy { p -> p.handle }) }
+                    if (st == org.webrtc.PeerConnection.IceConnectionState.FAILED) onState("a peer connection failed - rejoin to retry")
+                }
+            }
             override fun onIceConnectionReceivingChange(b: Boolean) {}
             override fun onIceGatheringChange(s: org.webrtc.PeerConnection.IceGatheringState?) {}
             override fun onIceCandidatesRemoved(cs: Array<out org.webrtc.IceCandidate>?) {}
@@ -243,6 +306,12 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
 
     fun leave() {
         pcs.values.forEach { it.close() }; pcs.clear()
+        pendingIce.clear(); remoteSet.clear()
+        try {
+            val am = Api.ctx.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+            am.isSpeakerphoneOn = false
+            am.mode = android.media.AudioManager.MODE_NORMAL
+        } catch (e: Exception) { }
         chan?.close(); chan = null
         audioTrack?.dispose(); audioSource?.dispose(); factory?.dispose()
         roster.clear(); onPeers(emptyList())
@@ -312,7 +381,10 @@ fun VoiceScreen(onBack: () -> Unit) {
                         }
                         Spacer(Modifier.width(10.dp))
                         Text(p.handle, color = Color.White, fontSize = 15.sp, modifier = Modifier.weight(1f))
-                        Text(if (p.muted) "muted" else "● live", color = if (p.muted) Muted else Color(0xFF22C55E), fontSize = 12.sp)
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(if (p.muted) "muted" else "● live", color = if (p.muted) Muted else Color(0xFF22C55E), fontSize = 12.sp)
+                            if (p.conn.isNotBlank()) Text(p.conn, color = if (p.conn == "connected") Color(0xFF22C55E) else if (p.conn == "failed") ErrRed else Muted, fontSize = 10.sp)
+                        }
                     }
                 }
             }
