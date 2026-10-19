@@ -342,6 +342,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "teams" -> { SearchScreen(onBack = { feature = null }, initialTab = 0, title = "Teams & Roster"); return }
         "players" -> { SearchScreen(onBack = { feature = null }, initialTab = 1, title = "Players"); return }
         "howto" -> { HowToPlayScreen(onBack = { feature = null }); return }
+        "voice" -> { VoiceScreen(onBack = { feature = null }); return }
     }
     var msgBadge by remember { mutableIntStateOf(0) }
     LaunchedEffect(feature, conv) {
@@ -415,6 +416,7 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("teams", "Teams", "Registered squads", Icons.Default.AccountBox),
         GridItem("players", "Players", "Verified player profiles", Icons.Default.Person),
         GridItem("howto", "How to Play", "3 steps to your first match", Icons.Default.Info),
+        GridItem("voice", "Voice Lobby", "Talk live - peer to peer", Icons.Default.Notifications),
         GridItem("settings", "Settings", "App version, activity status, logout", Icons.Default.Settings),
     )
     Column(Modifier.fillMaxSize()) {
