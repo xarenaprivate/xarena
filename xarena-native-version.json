@@ -1,6 +1,6 @@
 {
-  "versionCode": 15,
-  "versionName": "0.12.3",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.12.3-native/xarena-native.apk",
-  "notes": "Back button now goes back one screen instead of closing the app. Icons on every tab, header button and More-grid button."
+  "versionCode": 16,
+  "versionName": "0.13.0",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.13.0-native/xarena-native.apk",
+  "notes": "New: Ping & Device Check (real measurements), Refer & Earn (invite code, share, apply code). Back button fixed, icons everywhere."
 }
