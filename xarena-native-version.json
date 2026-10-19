@@ -1,12 +1,12 @@
 {
-  "versionCode": 36,
-  "versionName": "0.16.1-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.1-native/xarena-native.apk",
-  "sha256": "bd6af62c0e12b5c60e60f7640cb7d14a48d2e20f8ea9439d0d6bad36c6cbe3c0",
-  "notes": "Fixes: role save, squads list, null text, Fan Vote crash, Live video playback. New: in-app gallery picker for feed posts.",
+  "versionCode": 37,
+  "versionName": "0.16.2-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.2-native/xarena-native.apk",
+  "sha256": "c778599e613eca47f84c012b3086813497452febfc4c3cb70f84690e4fe3004b",
+  "notes": "Quick updates fixed for real (873 KB this time). Create your squad, captain tools with team logo, squad logos, Live video fixes, true update size shown.",
   "patch": {
-    "from": 35,
-    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.1-native/xarena-native-35to36.patch",
-    "sha256": "e487553ce2a1a1e1765bb6d7474c119c00a81464ab3379c5a77bc384e1cc6d63"
+    "from": 36,
+    "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.16.2-native/xarena-native-36to37.patch",
+    "sha256": "165c881e511eb1acbc148376fee9d8c1cf84de633ff14b941c1711f899da8632"
   }
 }
