@@ -146,7 +146,8 @@ window.addEventListener("load", function () {
   var list = document.getElementById("sponsor-list");
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   if (!window.xrApi) { list.innerHTML = '<p style="color:#ff6b6b">Backend not connected - check your connection.</p>'; return; }
-  window.xrApi.get("sponsors", "?select=name,tier,url&active=eq.true&order=id.asc").then(function (rows) {
+  var POSTERS = {};
+  fetch("assets/sponsor-posters.json").then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; }).then(function (p) { POSTERS = p || {}; return window.xrApi.get("sponsors", "?select=name,tier,url&active=eq.true&order=id.asc"); }).then(function (rows) {
     if (!rows || !rows.length) {
       list.innerHTML = '<div class="swn-grid"><article class="swn-card swn-open"><svg viewBox="0 0 48 48" fill="none" stroke="#ffd23f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 36h32M10 36V16l8 8 6-13 6 13 8-8v20Z"/></svg><h3>Title Partner</h3><p>Slot open - Season 1</p></article><article class="swn-card swn-open"><svg viewBox="0 0 48 48" fill="none" stroke="#ffd23f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="20" r="11"/><path d="M18 29l-4 12 10-6 10 6-4-12"/></svg><h3>Gold Partner</h3><p>Slot open - Season 1</p></article></div><p class="swn-real" style="text-align:center;margin-top:14px">No partners signed yet - these walls fill only with real deals.</p>';
       return;
@@ -159,7 +160,10 @@ window.addEventListener("load", function () {
     list.innerHTML = '<div class="swn-grid">' + rows.map(function (s) {
       var t = (s.tier || "partner").toLowerCase();
       var icon = ICONS[t] || ICONS.partner;
-      var inner = '<article class="swn-card">' + icon + '<h3>' + esc(s.name) + '</h3><p>' + esc(s.tier) + ' Partner</p></article>';
+      var poster = POSTERS[s.name];
+      var inner = poster
+        ? '<article class="swn-card" style="grid-column:1/-1;padding:10px"><img src="' + esc(poster) + '" alt="' + esc(s.name) + '" style="width:100%;max-width:420px;border-radius:12px;display:block;margin:0 auto" loading="lazy"><h3 style="margin-top:10px">' + esc(s.name) + '</h3><p>' + esc(s.tier) + ' Partner</p></article>'
+        : '<article class="swn-card">' + icon + '<h3>' + esc(s.name) + '</h3><p>' + esc(s.tier) + ' Partner</p></article>';
       return s.url ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">' + inner + "</a>" : inner;
     }).join("") + "</div>";
   }).catch(function () { list.innerHTML = '<p style="color:#ff6b6b">Could not load partners.</p>'; });
