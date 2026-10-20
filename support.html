@@ -77,7 +77,7 @@
 <li><a href="players.html">Players</a></li>
 <li><a href="squads.html">Squads</a></li>
 <li><a href="creator.html">Creator</a></li>
-<li><a href="support.html">Support</a></li>
+<li><a href="support.html"><img src="assets/support-logo-96.png" alt="" width="16" height="16" style="vertical-align:-3px;margin-right:5px;border-radius:4px">Support</a></li>
 <li><a href="tasks.html">Tasks</a></li>
 <li><a href="play.html">Play</a></li>
 <li><a href="vote.html">Vote</a></li>
@@ -110,7 +110,7 @@ body.sp-page header.nav,body.sp-page .nav{background:#0a0a0a !important;border-b
 .spp{font-family:Rajdhani,system-ui,sans-serif;color:#e9dcc0;padding-bottom:96px}
 .spg-frame{padding:3px;border-radius:22px;background:linear-gradient(135deg,#f6d77a,#9a6f12 35%,#f6d77a 55%,#7a550d 80%,#f6d77a);box-shadow:0 0 28px rgba(212,160,23,.25)}
 .spg-in{background:#0b0b0b;border-radius:19px;padding:20px 16px 18px;text-align:center;border:1px solid #2a2008}
-.spg-crown{width:56px;height:40px;display:block;margin:0 auto 4px}
+.spg-crown{width:88px;height:88px;display:block;margin:0 auto 4px}
 .spg-t{font:900 22px Orbitron,system-ui,sans-serif;letter-spacing:3px;color:#f2c94c;margin:2px 0}
 .spg-s{font:600 14px Rajdhani,sans-serif;color:#cdb77a;letter-spacing:1px;margin:0 0 10px}
 .spg-scan{font:800 16px Orbitron,sans-serif;letter-spacing:3px;color:#f2c94c;margin:14px 0 8px}
@@ -133,7 +133,7 @@ body.sp-page header.nav,body.sp-page .nav{background:#0a0a0a !important;border-b
   var KEY="sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7",URLB="https://oskccuajgbyabogbvedj.supabase.co",root=document.getElementById("sp-app");
   function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
   var CROWN='<svg class="spg-crown" viewBox="0 0 56 40" aria-hidden="true"><defs><linearGradient id="gc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6d77a"/><stop offset="1" stop-color="#b8860b"/></linearGradient></defs><path d="M4 32 L8 10 L19 22 L28 5 L37 22 L48 10 L52 32 Z" fill="url(#gc)" stroke="#7a550d" stroke-width="1.5"/><rect x="5" y="33" width="46" height="5" rx="2" fill="url(#gc)" stroke="#7a550d" stroke-width="1.2"/><circle cx="8" cy="9" r="2.6" fill="#f6d77a"/><circle cx="28" cy="4" r="2.6" fill="#f6d77a"/><circle cx="48" cy="9" r="2.6" fill="#f6d77a"/></svg>';
-  var HEAD=CROWN+'<div class="spg-t">XARENA ESPORTS</div><div class="spg-s">Support the Team</div>';
+  var HEAD='<img class="spg-crown" src="assets/support-logo-512.png" alt="XARENA Support" width="96" height="96">'+'<div class="spg-t">XARENA ESPORTS</div><div class="spg-s">Support the Team</div>';
   var NOTE='<p class="spg-note">Voluntary support for XARENA. No rewards, no refunds, not linked to any tournament prize. Payment happens in your own UPI app; XARENA does not see or store payment details.</p>';
   function ackForm(){return '<div class="spg-ack" id="sp-ack"><h2>I PAID (OPTIONAL)</h2><p>Paid already? You can send a screenshot so we know it arrived. This is optional and gives no reward or benefit.</p><p class="spg-warn">Hide your phone number and UPI id in the screenshot if you can.</p><div id="sp-ack-body">Checking login…</div></div>'}
   function wireAck(){
