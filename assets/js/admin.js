@@ -81,6 +81,7 @@
     supportqr: { title: "Support QR", custom: renderSupportQr },
     pinned: { title: "Pinned notice", custom: renderPinned },
     tips: { title: "Aaj ka tip", custom: renderTips },
+    control: { title: "Control", custom: renderControl },
     spotlights: { title: "Spotlights", custom: renderSpot },
     notices: { title: "Notice board", custom: renderNotices },
     feedback: { title: "Feedback", custom: renderFeedback },
@@ -1867,6 +1868,67 @@
         call(function () { return api.aUpsert("site_settings", { key: "tips", value: { items: list }, updated_at: new Date().toISOString() }, "key"); })
           .then(function () { return api.audit("tips_set", { n: list.length }); })
           .then(function () { el("#tp-m", body).textContent = "Saved " + list.length + " tips."; }).catch(function (e) { el("#tp-m", body).textContent = "Failed: " + e.message; });
+      });
+    });
+  }
+
+  function renderControl() {
+    var body = el("#admin-body");
+    body.innerHTML = '<p style="color:var(--muted)">Loading…</p>';
+    var since = new Date(Date.now() - 86400000).toISOString();
+    Promise.all([
+      call(function () { return api.aGet("tournaments", "?select=id,name,status,reg_open,slots&order=sort.asc"); }),
+      call(function () { return api.aGet("registrations", "?select=id,tournament_id,squad,ign,status,verified,hold,created_at&order=created_at.desc&limit=1000"); }),
+      call(function () { return api.aGet("match_checkins", "?select=match_id,checked_in_at&checked_in_at=gte." + since); }).catch(function () { return []; }),
+      call(function () { return api.aGet("support_acks", "?select=id,status&status=eq.pending"); }).catch(function () { return []; }),
+      call(function () { return api.aGet("matches", "?select=id,title,starts_at&order=created_at.desc&limit=20"); }).catch(function () { return []; })
+    ]).then(function (r) {
+      var ts = r[0] || [], regs = r[1] || [], chk = r[2] || [], acks = Array.isArray(r[3]) ? r[3] : [], ms = r[4] || [];
+      var today = regs.filter(function (x) { return x.created_at >= since; }).length;
+      var pend = regs.filter(function (x) { return x.status === "pending"; }).length;
+      var h = '<div class="grid c3"><div class="card"><h3>' + today + '</h3><p>Registrations, last 24h</p></div><div class="card"><h3>' + chk.length + '</h3><p>Match check-ins, last 24h</p></div><div class="card"><h3>' + (pend + acks.length) + '</h3><p>Pending approvals (' + pend + ' registrations, ' + acks.length + ' support)</p></div></div>';
+      h += '<div class="card" style="margin-top:14px"><h3>Quick actions</h3>' + (ts.map(function (t) {
+        var n = regs.filter(function (x) { return x.tournament_id === t.id && !/rejected|cancelled|declined/.test(x.status); }).length;
+        return '<div style="padding:8px 0;border-bottom:1px solid #8883"><b>' + esc(t.name) + "</b> · " + n + "/" + t.slots + " squads · status <b>" + esc(t.status) + "</b> · registration <b>" + (t.reg_open ? "OPEN" : "CLOSED") + '</b><br>' +
+          '<button class="btn btn-sm" data-reg="' + esc(t.id) + '" data-v="' + (t.reg_open ? "0" : "1") + '">' + (t.reg_open ? "Close" : "Open") + ' registration</button> ' +
+          '<button class="btn btn-sm" data-st="' + esc(t.id) + '" data-v="upcoming">Set upcoming</button> <button class="btn btn-sm" data-st="' + esc(t.id) + '" data-v="live">Set live</button></div>';
+      }).join("") || "No tournaments.") + '<div id="qa-m" style="margin-top:8px"></div></div>';
+      h += '<div class="card" style="margin-top:14px"><h3>Registrations</h3><input id="rg-q" placeholder="Search squad or IGN" style="width:100%"> <select id="rg-s"><option value="">All statuses</option><option>pending</option><option>approved</option><option>rejected</option></select> <button class="btn btn-sm" id="rg-csv">Export CSV (no phone/UID)</button><div id="rg-l"></div></div>';
+      h += '<div class="card" style="margin-top:14px"><h3>Match wizard</h3><p style="font-size:13px">Creates 3 qualifier lobbies and 1 final for a tournament. Room ID and password stay empty here: add them in Match Results when ready (players see them only after the reveal time).</p><select id="mw-t">' + ts.map(function (t) { return '<option value="' + esc(t.id) + '">' + esc(t.name) + "</option>"; }).join("") + '</select> <input type="datetime-local" id="mw-d"> <input type="number" id="mw-g" value="45" min="10" max="240" style="width:90px"> min apart <button class="btn btn-red btn-sm" id="mw-go">Create 4 matches</button> <span id="mw-m"></span><p style="font-size:12px">Existing: ' + ms.map(function (m) { return esc(m.title); }).join(", ") + '</p></div>';
+      h += '<div class="card" style="margin-top:14px"><h3>Backup / data export</h3><p style="font-size:13px">Downloads a JSON of tournaments, matches, results, hall of fame, spotlights, notices, news (no phones, UIDs, devices or passwords).</p><button class="btn btn-sm" id="bk-go">Download backup</button></div>';
+      h += '<div class="card" style="margin-top:14px"><h3>Feature flags</h3><div id="fl"></div></div>';
+      body.innerHTML = h;
+      function msg(t) { el("#qa-m", body).textContent = t; }
+      body.querySelectorAll("[data-reg]").forEach(function (b) { b.addEventListener("click", function () { if (!confirm((b.dataset.v === "1" ? "Open" : "Close") + " registration?")) return; call(function () { return api.aPatch("tournaments", "id=eq." + b.dataset.reg, { reg_open: b.dataset.v === "1" }); }).then(function () { return api.audit("reg_open_set", { id: b.dataset.reg, open: b.dataset.v === "1" }); }).then(renderControl).catch(function (e) { msg("Failed: " + e.message); }); }); });
+      body.querySelectorAll("[data-st]").forEach(function (b) { b.addEventListener("click", function () { if (!confirm("Set status to " + b.dataset.v + "?")) return; call(function () { return api.aPatch("tournaments", "id=eq." + b.dataset.st, { status: b.dataset.v }); }).then(function () { return api.audit("tournament_status_set", { id: b.dataset.st, status: b.dataset.v }); }).then(renderControl).catch(function (e) { msg("Failed: " + e.message); }); }); });
+      function paint() {
+        var q = el("#rg-q", body).value.toLowerCase(), s = el("#rg-s", body).value;
+        var f = regs.filter(function (x) { return (!s || x.status === s) && (!q || (x.squad + " " + x.ign).toLowerCase().indexOf(q) >= 0); });
+        el("#rg-l", body).innerHTML = f.length ? f.slice(0, 100).map(function (x) { return "<div style='padding:4px 0;border-bottom:1px solid #8882'>" + esc(x.squad) + " · " + esc(x.ign) + " · " + esc(x.status) + (x.verified ? " · verified" : "") + (x.hold ? " · HOLD" : "") + "</div>"; }).join("") : "<p>No registrations match.</p>";
+        return f;
+      }
+      el("#rg-q", body).addEventListener("input", paint); el("#rg-s", body).addEventListener("change", paint); paint();
+      function dl(name, text, type) { var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type: type })); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+      el("#rg-csv", body).addEventListener("click", function () {
+        var f = paint(), cell = function (v) { v = String(v == null ? "" : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+        dl("registrations.csv", "tournament,squad,ign,status,verified,hold,created_at\n" + f.map(function (x) { return [x.tournament_id, x.squad, x.ign, x.status, x.verified, x.hold, x.created_at].map(cell).join(","); }).join("\n"), "text/csv");
+      });
+      el("#mw-go", body).addEventListener("click", function () {
+        var d = el("#mw-d", body).value, g = +el("#mw-g", body).value || 45, m = el("#mw-m", body), t = el("#mw-t", body).value;
+        if (!d || !t) { m.textContent = "Pick a tournament and a start time."; return; }
+        if (!confirm("Create 4 matches?")) return;
+        var base = new Date(d).getTime(), names = [["Qualifier Lobby A", "Qualifier"], ["Qualifier Lobby B", "Qualifier"], ["Qualifier Lobby C", "Qualifier"], ["Grand Final", "Final"]];
+        var rows = names.map(function (n, i) { var s = new Date(base + i * g * 60000).toISOString(); return { tournament_id: t, title: n[0], stage: n[1], starts_at: s, played_at: s, reveal_minutes: 15 }; });
+        call(function () { return api.aPost("matches", rows); }).then(function () { return api.audit("match_wizard", { t: t, n: 4 }); }).then(function () { m.textContent = "Created 4 matches."; }).catch(function (e) { m.textContent = "Failed: " + e.message; });
+      });
+      el("#bk-go", body).addEventListener("click", function () {
+        var T = [["tournaments", "?select=*"], ["matches", "?select=id,tournament_id,title,stage,starts_at,status"], ["lb_entries", "?select=*"], ["hall_of_fame", "?select=*"], ["spotlights", "?select=*"], ["notices", "?select=*"], ["news", "?select=*"]];
+        Promise.all(T.map(function (x) { return call(function () { return api.aGet(x[0], x[1]); }).catch(function () { return []; }); })).then(function (all) { var o = { exported_at: new Date().toISOString() }; T.forEach(function (x, i) { o[x[0]] = all[i]; }); dl("xarena-backup.json", JSON.stringify(o, null, 1), "application/json"); });
+      });
+      call(function () { return api.aGet("site_settings", "?key=eq.flags&select=value"); }).then(function (fr) {
+        var v = (fr && fr[0] && fr[0].value) || {}, ks = ["live_thread", "mini_cup", "spectator", "dup_check", "waitlist"];
+        el("#fl", body).innerHTML = '<p style="font-size:13px">Risky features stay OFF until tested. Turning one ON is your decision.</p>' + ks.map(function (k) { return '<label style="display:block;padding:4px 0"><input type="checkbox" data-f="' + k + '"' + (v[k] ? " checked" : "") + "> " + k + "</label>"; }).join("");
+        body.querySelectorAll("[data-f]").forEach(function (c) { c.addEventListener("change", function () { v[c.dataset.f] = c.checked; call(function () { return api.aUpsert("site_settings", { key: "flags", value: v, updated_at: new Date().toISOString() }, "key"); }).then(function () { return api.audit("flag_set", { k: c.dataset.f, on: c.checked }); }); }); });
       });
     });
   }
