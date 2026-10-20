@@ -124,6 +124,11 @@
       root.querySelector("#q-host").addEventListener("click", function () { hostForm(root.querySelector("#cr-form"), load); });
       root.querySelector("#q-spons").addEventListener("click", function () { sponsorsPanel(root.querySelector("#cr-form")); });
       root.querySelector("#q-city").addEventListener("click", function () { cityPanel(root.querySelector("#cr-form"), true); });
+      var bx = document.createElement("div"); bx.className = "cr-card";
+      bx.innerHTML = '<div class="cr-t" style="margin-top:0">MY PUBLIC BIO</div><textarea class="cr-in" id="bio-t" maxlength="300" rows="3" placeholder="Tell players about your channel (no phone numbers or personal info)"></textarea><button class="cr-btn" id="bio-go">Save bio</button><div class="cr-msg" id="bio-m"></div><a href="more.html?creator=' + encodeURIComponent(me.id) + '#creator">View my public profile</a>';
+      root.querySelector("#cr-mine").parentNode.insertBefore(bx, root.querySelector("#cr-mine").previousElementSibling);
+      rpc("creator_profile", { p_id: me.id }).then(function (c) { if (c && c.bio) bx.querySelector("#bio-t").value = c.bio; });
+      bx.querySelector("#bio-go").addEventListener("click", function () { var m = bx.querySelector("#bio-m"); m.textContent = "Saving..."; rpc("creator_set_bio", { p_bio: bx.querySelector("#bio-t").value }).then(function (r) { m.textContent = r && r.ok ? "Saved." : ((r && r.error) || "Failed."); }); });
       var mine = root.querySelector("#cr-mine");
       get("creator_events_public?select=*&host=eq." + me.id + "&order=starts_at.desc&limit=30").then(function (l) { mine.innerHTML = events(l, true); wire(mine, load); });
       publicList(root.querySelector("#cr-pub")); cityList(root.querySelector("#cr-city")); return;

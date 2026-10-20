@@ -34,3 +34,7 @@ points_table {p_tournament}, head_to_head {p_a,p_b}, squad_profile {p_squad}, cr
 - `creator_profile(p_id uuid)` (anon ok) -> {name, tier, avatar_url, channel_url, bio, joined, posts:[{caption, at}]} or null if not an active creator. No phone/UID/IG login.
 - `creator_set_bio(p_bio text)` (auth, creator only, max 300 chars) -> {ok} or {ok:false,error}.
 - `creator_board()` now also returns user_id per row.
+
+## Squad invite link + match recap card data (v0.17.17)
+- Squad invite / share link: `https://xarenaprivate.github.io/xarena/more.html?squad=<squad_id>#squad` (web profile; native may deep-link it or call `squad_profile(p_squad)` for the data). Share text: "<squad name> on XARENA - <link>". The squad_id is the registration id (e.g. XR-1234), never a phone or UID.
+- Match/result recap card data: `points_table(p_tournament text|null)` -> array of {squad, matches, points, kills, ...} sorted by points (empty array = no results yet, show empty state). Top fragger: `GET lb_entries?select=player_name,kills&order=kills.desc&limit=1` (show only if kills > 0). Season totals: `tournament_reg_counts()` -> [{tournament_id, slots, registered, waitlist}]. The web card draws kicker, title, up to 4 lines and the footer "Free Fire tournaments - free forever". Real data only; no fake numbers.
