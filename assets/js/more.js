@@ -7,7 +7,7 @@
   function prpc(n, a) { return fetch(URLB + "/rest/v1/rpc/" + n, { method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" }, body: JSON.stringify(a || {}) }).then(function (r) { return r.json(); }); }
   function safe(u) { u = String(u || ""); return /^https:\/\//.test(u) ? u : ""; }
   var body = document.getElementById("hub-body"), tabs = document.getElementById("hub-tabs");
-  var T = [["points", "Points table"], ["history", "History"], ["spot", "Spotlights"], ["notices", "Notice board"], ["h2h", "Head to head"], ["squad", "Squad profile"], ["feedback", "Feedback"]];
+  var T = [["points", "Points table"], ["history", "History"], ["spot", "Spotlights"], ["notices", "Notice board"], ["h2h", "Head to head"], ["squad", "Squad profile"], ["guide", "Guide & checklist"], ["faq", "FAQ"], ["feedback", "Feedback"]];
   function empty(t) { return '<div class="hub-c hub-e">' + t + "</div>"; }
   var V = {
     points: function () {
@@ -68,6 +68,17 @@
       if (id) { show(id); return; }
       get("squads_public?select=id,name&order=name.asc&limit=200").then(function (sq) {
         body.innerHTML = !sq || !sq.length ? empty("No squads yet.") : sq.map(function (s) { return '<div class="hub-c"><a href="more.html?squad=' + esc(s.id) + '#squad">' + esc(s.name) + "</a></div>"; }).join("");
+      });
+    },
+    guide: function () {
+      var steps = ["Create your account and log in.", "Add your Free Fire IGN in your profile. Never share your UID, phone or password with anyone.", "Verify your phone through the Instagram / in-app code (manual, by the owner).", "Open Tournaments, pick the Ignition Cup and tap Register your squad. Entry is free.", "Make sure all 4 squad members use their real IGN.", "On match day, Room ID and password unlock 15 minutes before start, only for registered players. Never share them."];
+      var chk = ["Free Fire is updated to the latest version", "Stable internet (Wi-Fi or good 4G)", "Phone charged above 50% or on charger", "Squad members are all online", "Check-in done on the match page", "Screenshot ready for result proof (end of match screen)", "No hacks or third-party tools. Fair play only"];
+      body.innerHTML = '<div class="hub-c"><h3>Beginner guide (Hinglish)</h3><p>Pehli baar aaye ho? Ye 6 steps follow karo:</p><ol>' + steps.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + '</ol><p>Koi sawal ho to FAQ tab dekho ya Feedback me likho. Entry free hai, koi paisa nahi lagta.</p></div><div class="hub-c"><h3>Pre-match checklist</h3>' + chk.map(function (x, i) { return '<label style="display:block;padding:4px 0"><input type="checkbox" data-c="' + i + '" style="width:auto"> ' + esc(x) + "</label>"; }).join("") + "</div>";
+      body.querySelectorAll("[data-c]").forEach(function (c) { try { c.checked = localStorage.getItem("xr_chk" + c.dataset.c) === "1"; } catch (e) {} c.addEventListener("change", function () { try { localStorage.setItem("xr_chk" + c.dataset.c, c.checked ? "1" : "0"); } catch (e) {} }); });
+    },
+    faq: function () {
+      get("faq?select=question,answer&order=id.asc").then(function (r) {
+        body.innerHTML = Array.isArray(r) && r.length ? r.map(function (f) { return '<details class="hub-c"><summary><b>' + esc(f.question) + "</b></summary><p>" + esc(f.answer) + "</p></details>"; }).join("") + '<p><a href="rules.html">Full rules and fair play</a></p>' : empty("No FAQ yet.");
       });
     },
     feedback: function () {
