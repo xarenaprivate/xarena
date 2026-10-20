@@ -211,6 +211,27 @@ private fun FriendsPane(friends: JSONArray?, names: Map<String, String>, changed
                     }.padding(horizontal = 14.dp, vertical = 10.dp))
             }
             msg?.let { Text(it, color = ErrRed, fontSize = 12.sp) }
+            // direct add by exact username/IGN (web contract: friend_request_by_name)
+            var exact by remember { mutableStateOf("") }
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
+                BasicTextField(exact, { exact = it }, modifier = Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).background(Card).padding(12.dp),
+                    textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 14.sp),
+                    decorationBox = { inner -> if (exact.isEmpty()) Text("Exact username or IGN", color = Muted, fontSize = 14.sp); inner() })
+                Spacer(Modifier.width(8.dp))
+                Text("+ Add by name", color = Gold, fontWeight = FontWeight.Bold, fontSize = 13.sp,
+                    modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp)).clickable {
+                        if (exact.trim().length < 2) { msg = "Type the exact name."; return@clickable }
+                        scope.launch {
+                            val r = runCatching { Api.authedRpc("friend_request_by_name", JSONObject().put("p_name", exact.trim())) }.getOrNull()
+                            msg = when {
+                                r == null -> "Could not send - try again."
+                                r.optBoolean("ok") || r.optBoolean("accepted") -> { exact = ""; if (r.optBoolean("accepted")) "You are friends now." else "Request sent." }
+                                else -> r.s("error").ifBlank { "Could not send." }
+                            }
+                            changed()
+                        }
+                    }.padding(horizontal = 14.dp, vertical = 10.dp))
+            }
         }
         results?.let { rs ->
             item { Text("RESULTS", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 6.dp)) }
