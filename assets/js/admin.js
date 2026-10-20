@@ -79,6 +79,7 @@
     suspicious: { title: "Suspicious Accounts", custom: renderSuspicious },
     creators: { title: "Creators", custom: renderCreators },
     supportqr: { title: "Support QR", custom: renderSupportQr },
+    pinned: { title: "Pinned notice", custom: renderPinned },
     sponsors: {
       title: "Sponsors", table: "sponsors", order: "id.asc",
       cols: [
@@ -103,6 +104,7 @@
         { k: "category", l: "Category (Champion / MVP / Top Fragger)", t: "text", req: true },
         { k: "name", l: "Squad or player name", t: "text", req: true },
         { k: "detail", l: "Detail (score, prize, note)", t: "text" },
+        { k: "logo_url", l: "Logo image link (https, optional)", t: "text" },
         { k: "sort", l: "Sort order", t: "number" }
       ],
       rowTitle: function (r) { return r.name; },
@@ -1848,6 +1850,30 @@
       });
     }
     load();
+  }
+
+  function renderPinned() {
+    var body = el("#admin-body");
+    call(function () { return api.aGet("site_settings", "?key=eq.pinned&select=value"); }).then(function (rows) {
+      var v = (rows && rows[0] && rows[0].value) || {};
+      body.innerHTML = '<div class="card"><h3>Pinned notice (home page)</h3><p style="font-size:13px">One notice shown at the top of the home page "Today" section. Leave it off when there is nothing to say.</p>' +
+        '<div class="field"><label>Title</label><input id="pn-t" maxlength="80" value="' + esc(v.title || "") + '"></div>' +
+        '<div class="field"><label>Text (optional)</label><input id="pn-x" maxlength="240" value="' + esc(v.text || "") + '"></div>' +
+        '<div class="field"><label>Link (optional: https://... or a page like tournaments.html)</label><input id="pn-l" maxlength="200" value="' + esc(v.link || "") + '"></div>' +
+        '<div class="field"><label>Hide after (optional, your local time)</label><input type="datetime-local" id="pn-e" value="' + esc(v.expires_at ? new Date(v.expires_at).toISOString().slice(0, 16) : "") + '"></div>' +
+        '<label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:8px 0"><input type="checkbox" id="pn-a"' + (v.active ? " checked" : "") + "> Show on the home page</label>" +
+        '<button class="btn btn-red btn-sm" id="pn-s">Save</button> <span id="pn-m" style="font-size:13px"></span></div>';
+      el("#pn-s", body).addEventListener("click", function () {
+        var link = el("#pn-l", body).value.trim(), m = el("#pn-m", body);
+        if (link && !/^https:\/\//.test(link) && !/^[a-z0-9-]+\.html(#[a-z0-9-]*)?$/i.test(link)) { m.textContent = "Link must start with https:// or be a site page like tournaments.html."; return; }
+        var ex = el("#pn-e", body).value;
+        var data = { title: el("#pn-t", body).value.trim(), text: el("#pn-x", body).value.trim(), link: link, active: el("#pn-a", body).checked, expires_at: ex ? new Date(ex).toISOString() : null };
+        if (data.active && !data.title) { m.textContent = "Add a title first."; return; }
+        call(function () { return api.aUpsert("site_settings", { key: "pinned", value: data, updated_at: new Date().toISOString() }, "key"); })
+          .then(function () { return api.audit("pinned_set", { active: data.active }); })
+          .then(function () { m.textContent = "Saved."; }).catch(function (e) { m.textContent = "Failed: " + e.message; });
+      });
+    });
   }
 
   function renderSupportAcks(host) {

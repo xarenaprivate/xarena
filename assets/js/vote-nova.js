@@ -9,7 +9,7 @@ function boot(){
  api.uRpc('active_polls',{}).then(function(polls){
   var anchor=document.querySelector('main')||document.body;
   var root=document.createElement('div');root.id='vote-nova';
-  var hero=document.querySelector('.hero')||anchor.firstChild;
+  var hero=document.getElementById('today')||document.querySelector('.hero')||anchor.firstChild;
   if(hero&&hero.nextSibling)anchor.insertBefore(root,hero.nextSibling);else anchor.insertBefore(root,anchor.firstChild);
   if(!Array.isArray(polls)||!polls.length){root.innerHTML='<div class="xvt"><div class="xvt-head">'+IC_VOTE+'<h3>Fan Vote</h3></div><p class="xvt-empty">No vote is open right now - the next one lands here.</p></div>';return;}
   var poll=polls[0],res=null;

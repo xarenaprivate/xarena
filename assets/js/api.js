@@ -118,7 +118,8 @@
       scrims: api.get("scrims", "?select=*&active=eq.true&order=created_at.asc"),
       leaderboard: api.get("v_leaderboard", "?select=*"),
       teams: api.get("teams", "?select=*&order=created_at.asc"),
-      players: api.get("players", "?select=*,teams(name,tag)&active=eq.true&order=created_at.asc")
+      players: api.get("players", "?select=*,teams(name,tag)&active=eq.true&order=created_at.asc"),
+      regcounts: api.rpc("tournament_reg_counts", {})
     };
     var cache = {};
     try { cache = JSON.parse(localStorage.getItem("xr_cache_public") || "{}").data || {}; } catch (e) { cache = {}; }
@@ -142,6 +143,7 @@
           if (k === "teams") D.teams = v;
           if (k === "players") D.players = v;
         });
+        pairs.forEach(function (p) { if (p[0] === "regcounts" && Array.isArray(p[1])) (D.tournaments || []).forEach(function (t) { var c = p[1].filter(function (r) { return r.tournament_id === t.id; })[0]; if (c) t.registered = c.registered; }); });
         api.connected = true;
         if (window.XR && window.XR.render) window.XR.render();
         document.dispatchEvent(new CustomEvent("xr-backend-live"));
