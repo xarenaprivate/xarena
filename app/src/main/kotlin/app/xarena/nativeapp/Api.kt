@@ -470,8 +470,15 @@ object Api {
         path
     }
 
-    suspend fun supportAckSubmit(path: String, txn: String, name: String): JSONObject = withContext(Dispatchers.IO) {
-        authedRpc("support_ack_submit", JSONObject().put("p_path", path).put("p_txn", txn).put("p_name", name))
+    suspend fun supportAckSubmit(path: String, txn: String, name: String, consent: Boolean): JSONObject = withContext(Dispatchers.IO) {
+        authedRpc("support_ack_submit", JSONObject().put("p_path", path).put("p_txn", txn).put("p_name", name).put("p_consent", consent))
+    }
+
+    /** Public supporters wall: [{name, date}] newest first (amount intentionally not shown in-app). */
+    suspend fun supportSupporters(): JSONArray = withContext(Dispatchers.IO) {
+        val (code, text) = call("POST", "/rest/v1/rpc/support_supporters", JSONObject(), null)
+        if (code !in 200..299) throw ApiError("Could not load data ($code).")
+        JSONArray(text)
     }
 
     suspend fun myStats(): JSONObject? = withContext(Dispatchers.IO) {

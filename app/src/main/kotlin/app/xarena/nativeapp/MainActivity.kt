@@ -22,6 +22,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -443,7 +445,7 @@ fun HomeShell(onLogout: () -> Unit) {
             }
             Spacer(Modifier.width(8.dp))
             Box(Modifier.size(30.dp).clickable { feature = "donate" }, contentAlignment = Alignment.Center) {
-                CrownIcon(Gold, 19.dp)
+                Image(painter = painterResource(R.drawable.support_logo), contentDescription = "Support", modifier = Modifier.size(24.dp))
             }
             Spacer(Modifier.width(8.dp))
             Text("XARENA", color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))

@@ -7,7 +7,6 @@ package app.xarena.nativeapp
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,12 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -38,25 +32,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** XARENA's own support-crown art (same crown shape as the web Support page header). Text-less top-bar Support button. */
-@Composable
-fun CrownIcon(color: Color, size: Dp) {
-    Canvas(Modifier.size(size)) {
-        val w = this.size.width; val h = this.size.height
-        fun px(x: Float) = x / 56f * w
-        fun py(y: Float) = y / 40f * h
-        val p = Path().apply {
-            moveTo(px(4f), py(32f)); lineTo(px(8f), py(10f)); lineTo(px(19f), py(22f)); lineTo(px(28f), py(5f))
-            lineTo(px(37f), py(22f)); lineTo(px(48f), py(10f)); lineTo(px(52f), py(32f)); close()
-        }
-        drawPath(p, color)
-        drawRoundRect(color, Offset(px(5f), py(33f)), Size(px(46f), py(5f)), CornerRadius(px(2f)))
-        drawCircle(color, px(2.6f), Offset(px(8f), py(9f)))
-        drawCircle(color, px(2.6f), Offset(px(28f), py(4f)))
-        drawCircle(color, px(2.6f), Offset(px(48f), py(9f)))
-    }
-}
-
 private val SpGold = Color(0xFFF2C94C)
 private val SpGoldSoft = Color(0xFF5C4513)
 private val SpBlack = Color(0xFF0B0B0B)
@@ -67,8 +42,15 @@ fun DonateScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
     var cfg by remember { mutableStateOf<org.json.JSONObject?>(null) }
+    var supporters by remember { mutableStateOf<List<org.json.JSONObject>>(emptyList()) }
     var loaded by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { cfg = Api.supportConfig(); loaded = true }
+    LaunchedEffect(Unit) {
+        cfg = Api.supportConfig()
+        supporters = try {
+            val a = Api.supportSupporters(); (0 until a.length()).map { a.getJSONObject(it) }
+        } catch (e: Exception) { emptyList() }
+        loaded = true
+    }
 
     Column(Modifier.fillMaxSize().background(Color(0xFF050505))) {
         PageHeader("Support the Team", "Voluntary - keeps XARENA free", onBack)
@@ -110,6 +92,19 @@ fun DonateScreen(onBack: () -> Unit) {
                     Spacer(Modifier.height(16.dp))
                     SupportAckCard()
                 }
+                Spacer(Modifier.height(16.dp))
+                Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).border(1.dp, SpGoldSoft, RoundedCornerShape(16.dp)).background(SpBlack).padding(14.dp)) {
+                    Text("SUPPORTERS", color = SpGold, fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+                    Text("Newest first. Only payments checked by XARENA admins are listed.", color = SpCream, fontSize = 11.sp)
+                    Spacer(Modifier.height(8.dp))
+                    if (supporters.isEmpty()) Text("No supporters listed yet.", color = SpCream, fontSize = 13.sp)
+                    supporters.take(30).forEach { sp ->
+                        Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Text(sp.s("name").ifBlank { "Anonymous" }, color = Color(0xFFF3E9CF), fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                            Text(fmtCr(sp.s("date") + "T00:00:00Z").substringBefore(","), color = SpCream, fontSize = 12.sp)
+                        }
+                    }
+                }
             }
         }
     }
@@ -121,6 +116,7 @@ private fun SupportAckCard() {
     var picked by remember { mutableStateOf<ByteArray?>(null) }
     var txn by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
+    var consent by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var msg by remember { mutableStateOf<String?>(null) }
     var done by remember { mutableStateOf(false) }
@@ -142,13 +138,13 @@ private fun SupportAckCard() {
     }
 
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).border(1.dp, SpGoldSoft, RoundedCornerShape(16.dp)).background(SpBlack).padding(14.dp)) {
-        Text("I PAID (OPTIONAL)", color = SpGold, fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
+        Text("PAYMENT VERIFICATION (OPTIONAL)", color = SpGold, fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 2.sp)
         Spacer(Modifier.height(4.dp))
         Text("Paid already? You can send a screenshot so we know it arrived. This is optional and gives no reward or benefit.", color = SpCream, fontSize = 12.sp, lineHeight = 16.sp)
         Text("Hide your phone number and UPI id in the screenshot if you can.", color = SpGold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(10.dp))
         if (done) {
-            Text("Thanks, received.", color = SpGold, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            Text("Thank you for supporting the XARENA community.", color = SpGold, fontSize = 15.sp, fontWeight = FontWeight.Bold)
         } else {
             Box(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).border(1.dp, SpGoldSoft, RoundedCornerShape(10.dp))
                 .clickable(enabled = !busy) { picker.launch(arrayOf("image/jpeg", "image/png")) }.padding(11.dp)) {
@@ -161,6 +157,15 @@ private fun SupportAckCard() {
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(name, { name = it.take(40) }, placeholder = { Text("Name (optional)", fontSize = 13.sp) },
                 modifier = Modifier.fillMaxWidth(), singleLine = true)
+            Spacer(Modifier.height(8.dp))
+            Row(Modifier.fillMaxWidth().clickable { consent = !consent }.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(18.dp).clip(RoundedCornerShape(4.dp)).border(1.dp, SpGold, RoundedCornerShape(4.dp))
+                    .background(if (consent) SpGold else Color.Transparent), contentAlignment = Alignment.Center) {
+                    if (consent) Text("✓", color = Color(0xFF1A1200), fontSize = 12.sp, fontWeight = FontWeight.Black)
+                }
+                Spacer(Modifier.width(8.dp))
+                Text("Show my name publicly on the supporters list. If unticked, you appear as Anonymous.", color = SpCream, fontSize = 12.sp, lineHeight = 15.sp)
+            }
             Spacer(Modifier.height(10.dp))
             Box(Modifier.clip(RoundedCornerShape(10.dp))
                 .background(if (picked != null && !busy) SpGold else Color(0xFF3A3018))
@@ -170,7 +175,7 @@ private fun SupportAckCard() {
                     scope.launch {
                         try {
                             val path = Api.uploadSupportProof(bytes)
-                            val r = Api.supportAckSubmit(path, txn.trim(), name.trim())
+                            val r = Api.supportAckSubmit(path, txn.trim(), name.trim(), consent)
                             if (r.optBoolean("ok")) done = true
                             else { msg = r.s("error").ifBlank { "Could not send." } }
                         } catch (e: Exception) { msg = e.message ?: "Failed." }
