@@ -78,6 +78,7 @@
     playerreports: { title: "Player Reports", custom: renderPlayerReports },
     suspicious: { title: "Suspicious Accounts", custom: renderSuspicious },
     creators: { title: "Creators", custom: renderCreators },
+    supportqr: { title: "Support QR", custom: renderSupportQr },
     sponsors: {
       title: "Sponsors", table: "sponsors", order: "id.asc",
       cols: [
@@ -1847,6 +1848,34 @@
       });
     }
     load();
+  }
+
+  function renderSupportQr() {
+    var body = el("#admin-body");
+    call(function () { return api.aGet("site_settings", "?key=eq.support&select=value"); }).then(function (rows) {
+      var v = (rows && rows[0] && rows[0].value) || {};
+      body.innerHTML = '<div class="card"><h3>Support / Donation QR</h3><p style="font-size:13px">Upload ONE payment QR image (screenshot of your UPI QR, max 5 MB). It shows on the public Support page. No UPI id or phone number is shown as text; payment happens in the donor\'s own UPI app.</p>' +
+        (v.image_url ? '<p>Current QR:</p><img src="' + esc(v.image_url) + '" alt="" style="max-width:220px;background:#fff;padding:6px;border-radius:8px">' : "<p>No QR uploaded yet. The Support page says Coming soon.</p>") +
+        '<div style="margin:10px 0"><input type="file" id="sq-file" accept="image/*"></div><input id="sq-text" maxlength="120" placeholder="Optional short text under the QR" value="' + esc(v.text || "") + '" style="width:100%;margin-bottom:8px"><button class="btn btn-sm" id="sq-save">Save</button> ' + (v.image_url ? '<button class="btn btn-red btn-sm" id="sq-del">Remove QR</button>' : "") + '<div id="sq-msg" style="margin-top:8px;font-size:13px"></div></div>';
+      var msg = el("#sq-msg", body);
+      function save(data) { return call(function () { return api.aUpsert("site_settings", { key: "support", value: data, updated_at: new Date().toISOString() }, "key"); }).then(function () { return api.audit("support_qr", {}); }).then(renderSupportQr).catch(function (e) { msg.textContent = "Failed: " + e.message; }); }
+      el("#sq-save", body).addEventListener("click", function () {
+        var file = el("#sq-file", body).files[0];
+        if (!file) { save({ image_url: v.image_url || null, text: el("#sq-text", body).value.trim() }); return; }
+        if (file.type.indexOf("image/") !== 0) { msg.textContent = "Only images."; return; }
+        if (file.size > 5 * 1024 * 1024) { msg.textContent = "Image too large (max 5 MB)."; return; }
+        msg.textContent = "Uploading…";
+        call(function () { return api.userToken(); }).then(function (tok) {
+          return fetch(api.url + "/functions/v1/cloudinary-sign", { method: "POST", headers: { "apikey": api.key, "Authorization": "Bearer " + tok, "Content-Type": "application/json" }, body: "{}" });
+        }).then(function (r) { return r.json(); }).then(function (sig) {
+          if (!sig || !sig.cloud) throw new Error("Upload unavailable.");
+          var fd = new FormData(); fd.append("file", file); fd.append("api_key", sig.key); fd.append("timestamp", sig.timestamp); fd.append("folder", sig.folder); fd.append("signature", sig.signature);
+          return fetch("https://api.cloudinary.com/v1_1/" + sig.cloud + "/image/upload", { method: "POST", body: fd }).then(function (r) { return r.json(); });
+        }).then(function (up) { if (!up || !up.secure_url) throw new Error("Upload failed."); return save({ image_url: up.secure_url, text: el("#sq-text", body).value.trim() }); })
+          .catch(function (e) { msg.textContent = "Failed: " + e.message; });
+      });
+      var d = el("#sq-del", body); if (d) d.addEventListener("click", function () { if (confirm("Remove the QR? The page goes back to Coming soon.")) save({ image_url: null, text: "" }); });
+    });
   }
 
   function renderLivestream() {
