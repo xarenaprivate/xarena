@@ -11,3 +11,5 @@ Status: SHIPPED / EXISTED / NEXT (next release) / POST-OCT-24
 ## Creator 9, Organizer 8, Admin 10: NEXT (creator mini-cup POST-OCT-24; register_squad changes only after regression tests)
 
 ## Update 9:15 PM (bundle1, more.html Arena Hub): SHIPPED = points table (reads lb_entries via admin Match Results), tournament history, spotlights (MVP match/week, Squad of Week, Player of Day, clip of week), notice board (scheduled + pinned), head-to-head, squad profile + share link, feedback box, feature flags row (all OFF), Aaj ka tip, data saver, creator spotlight.
+
+## Update 9:25 PM: SHIPPED = admin Control tab (dashboard, quick actions, registrations search/CSV, match wizard, backup, flags), matches RLS fix, 25=stats card+share EXISTED (profile.html), 23 Dark Gold look (old looks kept), 24 Hinglish label toggle, surge.sh text removed. NEXT: Rules/FAQ upgrade, store tab, creator list, helper-admin role, referral count, reminders UI, offline cache, squad invite link UI, challenge squad UI, pre-match checklist, season recap, calendar page, flagged features (thread, mini-cup, spectator, dup check, waitlist).

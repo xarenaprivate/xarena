@@ -20,3 +20,4 @@ body.look-gold .news-item{border-left-color:#d4a017;background:linear-gradient(9
 body.look-gold .field input,body.look-gold .field select,body.look-gold .field textarea{background:#0c0a05;color:var(--text);border-color:rgba(212,160,23,.3)}
 body.look-gold a{color:#f2cf6b}
 body.look-gold .td-n,body.look-gold .td-t{color:#d9c58a}
+body.look-gold .td-btn:not(.td-ghost),body.look-gold .td-reg-btn,body.look-gold #today .btn-red,body.look-gold #today a.td-btn{color:#1a1202 !important;font-weight:800}
