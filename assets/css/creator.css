@@ -35,3 +35,16 @@
 .cr .cr-go.g{background:rgba(24,13,7,.9) !important;color:#ff9a4d !important}
 .cr .cr-in{color:#fff !important;background:#0d0907 !important}
 #cr-app{padding-bottom:96px}
+/* opaque dark theme for the creator page (no see-through gradients over the light page) */
+body.cr-page,body.cr-page main,body.cr-page .section{background:#0b0705 !important}
+body.cr-page .cr-card{background:#1a120c !important;border:1px solid #ff7a1a !important}
+body.cr-page .cr .cr-btn{background:#241810 !important;border:1.5px solid #ff7a1a !important;color:#fff !important}
+body.cr-page .cr .cr-btn small{color:#e6d3bf !important}
+body.cr-page .cr .cr-btn[disabled]{background:#1a120c !important;color:#f1e4d6 !important;border-color:#a8581a !important}
+body.cr-page .cr .cr-btn[disabled] small{color:#cdb79f !important}
+body.cr-page .cr-ev{background:#1a120c !important;border-color:#a8581a !important}
+body.cr-page .cr-e{background:#150e09 !important;color:#d8c6b3 !important}
+body.cr-page .cr-live{background:#2a0f0a !important}
+body.cr-page .cr,body.cr-page .cr-t,body.cr-page .cr-note{color:#e6d3bf}
+body.cr-page .cr-h{color:#ff7a1a}
+body.cr-page .cr-t{color:#d9a56e !important}

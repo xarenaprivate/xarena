@@ -2,7 +2,7 @@
 (function () {
   "use strict";
   var KEY = "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7", URLB = "https://oskccuajgbyabogbvedj.supabase.co";
-  var root = document.getElementById("cr-app"); if (!root) return;
+  var root = document.getElementById("cr-app"); if (!root) return; document.body.classList.add("cr-page");
   var CHECK = '<svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 1l3 2.2 3.7-.2 1.2 3.5 3 2.2-1.2 3.5 1.2 3.5-3 2.2-1.2 3.5-3.7-.2L12 23l-3-2.2-3.7.2-1.2-3.5-3-2.2L2.3 12 1.1 8.5l3-2.2 1.2-3.5L9 3z"/><path fill="#1a0a00" d="M10.5 15.5l-3-3 1.4-1.4 1.6 1.6 4.6-4.6 1.4 1.4z"/></svg>';
   var NOTE = '<div class="cr-note">Free entry only. No cash, no wallet. Prizes, if any, are arranged by the creator, not XARENA. Follower counts are self-reported by the creator.</div>';
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
