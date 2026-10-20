@@ -72,6 +72,44 @@
     });
   }
 
+
+  function sponsorsPanel(box) {
+    box.innerHTML = '<div class="cr-card"><div class="cr-t" style="margin-top:0">PARTNER BRANDS</div><div id="sp-l">Loading…</div><div class="cr-note">Send a short pitch. XARENA admin reviews it and introduces you. No contact details are shared automatically.</div></div>';
+    get("sponsors_public?select=*&order=id.asc").then(function (l) {
+      var h = box.querySelector("#sp-l");
+      if (!Array.isArray(l) || !l.length) { h.innerHTML = '<div class="cr-e">No partner brands listed yet.</div>'; return; }
+      h.innerHTML = l.map(function (x) { return '<div class="cr-ev"><h4>' + (x.image_url ? '<img src="' + esc(x.image_url) + '" alt="" style="height:28px;vertical-align:middle;border-radius:6px;margin-right:8px">' : "") + esc(x.name) + ' <span class="cr-pill">' + esc(x.tier) + '</span></h4><div class="cr-row"><button class="cr-go" data-sp="' + x.id + '">Request intro</button></div><div class="cr-msg" data-m></div></div>'; }).join("");
+      h.querySelectorAll("[data-sp]").forEach(function (b) { b.addEventListener("click", function () { var pitch = prompt("Short pitch (10-400 characters, no phone numbers or money wording)"); if (!pitch) return; var m = b.closest(".cr-ev").querySelector("[data-m]"); rpc("creator_sponsor_request", { p_sponsor: parseInt(b.getAttribute("data-sp"), 10), p_pitch: pitch }).then(function (r) { m.textContent = r && r.ok ? "Sent. Admin will review." : ((r && r.error) || "Failed."); }); }); });
+    });
+  }
+  function cityPanel(box, host) {
+    box.innerHTML = '<div class="cr-card"><div class="cr-t" style="margin-top:0">BUILD MY CITY TEAM</div><input class="cr-in" id="c-n" maxlength="40" placeholder="Squad name"><input class="cr-in" id="c-c" maxlength="40" placeholder="City"><input class="cr-in" id="c-s" maxlength="40" placeholder="State"><input class="cr-in" id="c-d" maxlength="300" placeholder="Who are you looking for?"><input class="cr-in" id="c-k" type="number" min="1" max="50" value="4" placeholder="Open slots"><button class="cr-go" id="c-go">Open recruiting</button><div class="cr-msg" id="c-msg"></div><div class="cr-t">MY CITY SQUADS</div><div id="c-mine"></div><div class="cr-note">Applicants show in-game stats only. No phone numbers or IDs are shared. No money, salary or fees.</div></div>';
+    box.querySelector("#c-go").addEventListener("click", function () {
+      var m = box.querySelector("#c-msg");
+      rpc("city_squad_create", { p_name: box.querySelector("#c-n").value, p_city: box.querySelector("#c-c").value, p_state: box.querySelector("#c-s").value, p_desc: box.querySelector("#c-d").value, p_slots: parseInt(box.querySelector("#c-k").value, 10) || 4 }).then(function (r) { m.textContent = r && r.ok ? "Recruiting is open." : ((r && r.error) || "Failed."); if (r && r.ok) mineSquads(); });
+    });
+    function mineSquads() {
+      var mb = box.querySelector("#c-mine");
+      get("city_squads_public?select=*&creator=eq." + me.id + "&order=id.desc").then(function (l) {
+        mb.innerHTML = Array.isArray(l) && l.length ? l.map(function (q) { return '<div class="cr-ev" data-q="' + q.id + '"><h4>' + esc(q.name) + ' <span class="cr-pill">' + esc(q.status) + '</span></h4><p>' + esc(q.city) + " &middot; " + q.members + "/" + q.slots + ' members</p><div class="cr-row"><button class="cr-go g" data-ap="1">Applicants</button>' + (q.status === "open" ? '<button class="cr-go r" data-cl="1">Close</button>' : "") + '</div><div class="cr-msg" data-m></div></div>'; }).join("") : '<div class="cr-e">No city squads yet.</div>';
+        mb.querySelectorAll("[data-ap]").forEach(function (b) { b.addEventListener("click", function () { var c = b.closest(".cr-ev"), id = parseInt(c.getAttribute("data-q"), 10), m = c.querySelector("[data-m]");
+          rpc("city_squad_applicants", { p_squad: id }).then(function (r) { if (!r || !r.ok) { m.textContent = (r && r.error) || "Failed."; return; }
+            m.innerHTML = r.applicants.length ? r.applicants.map(function (a) { return esc(a.name) + " &middot; K/D " + (a.kd == null ? "-" : a.kd) + " &middot; " + a.matches + " matches &middot; " + a.wins + " wins" + (a.rank ? " &middot; " + esc(a.rank) : "") + " (" + a.status + ")" + (a.note ? "<br><i>" + esc(a.note) + "</i>" : "") + (a.status === "pending" ? ' <a href="#" data-y="' + a.id + '">accept</a> <a href="#" data-n="' + a.id + '">reject</a>' : ""); }).join("<br>") : "No applicants yet.";
+            m.querySelectorAll("[data-y],[data-n]").forEach(function (x) { x.addEventListener("click", function (ev) { ev.preventDefault(); rpc("city_squad_decide", { p_app: parseInt(x.getAttribute("data-y") || x.getAttribute("data-n"), 10), p_accept: !!x.getAttribute("data-y") }).then(function () { b.click(); }); }); }); }); }); });
+        mb.querySelectorAll("[data-cl]").forEach(function (b) { b.addEventListener("click", function () { var id = parseInt(b.closest(".cr-ev").getAttribute("data-q"), 10); rpc("city_squad_close", { p_squad: id }).then(mineSquads); }); });
+      });
+    }
+    mineSquads();
+  }
+  function cityList(host) {
+    get("city_squads_public?select=*&status=eq.open&order=id.desc&limit=30").then(function (l) {
+      host.innerHTML = Array.isArray(l) && l.length ? l.map(function (q) { return '<div class="cr-ev" data-q="' + q.id + '"><h4>' + esc(q.name) + '</h4><p class="cr-badge">' + CHECK + " " + esc(q.host_ign || q.host_username) + " &middot; " + esc(q.city) + (q.state ? ", " + esc(q.state) : "") + " &middot; " + q.members + "/" + q.slots + ' members</p>' + (q.description ? "<p>" + esc(q.description) + "</p>" : "") + '<div class="cr-row"><button class="cr-go" data-apply="1">Apply</button></div><div class="cr-msg" data-m></div></div>'; }).join("") : '<div class="cr-e">No city squads are recruiting yet.</div>';
+      host.querySelectorAll("[data-apply]").forEach(function (b) { b.addEventListener("click", function () { var c = b.closest(".cr-ev"), m = c.querySelector("[data-m]"); if (!me) { m.textContent = "Log in first (Account page)."; return; }
+        var note = prompt("Short note: your role, experience (no phone numbers)"); if (note === null) return;
+        rpc("city_squad_apply", { p_squad: parseInt(c.getAttribute("data-q"), 10), p_note: note }).then(function (r) { m.textContent = r && r.ok ? "Applied. The host will review." : ((r && r.error) || "Failed."); }); }); });
+    }).catch(function () { host.innerHTML = '<div class="cr-e">Could not load.</div>'; });
+  }
+
   function render() {
     var h = '<div class="cr-h">CREATOR MODE</div>';
     if (!me) { root.innerHTML = h + '<div class="cr-card">Log in to apply as a creator or join creator tournaments. <br><br><a class="cr-go" href="account.html">Log in / Sign up</a></div>' + NOTE + '<div class="cr-t">CREATOR TOURNAMENTS</div><div id="cr-pub"></div>'; publicList(root.querySelector("#cr-pub")); return; }
@@ -80,13 +118,15 @@
       h += '<div class="cr-card"><div class="cr-prof"><div class="cr-av">' + (d.avatar_url ? '<img src="' + esc(d.avatar_url) + '" alt="">' : esc(String(nm).charAt(0).toUpperCase())) + '</div><div><div class="cr-nm">' + esc(nm) + '</div><div class="cr-sub"><span class="cr-badge">' + CHECK + " VERIFIED CREATOR</span> &middot; " + esc(d.tier) + '</div></div></div><div class="cr-stats"><div><b>' + num(d.self_reported_followers) + '</b><span>Followers (self-reported)</span></div><div><b>' + d.tournaments_hosted + '</b><span>Tournaments</span></div><div><b>' + d.wins + '</b><span>Wins</span></div></div></div>' +
         '<div class="cr-live"><i class="cr-dot"></i> LIVE NOW: ' + d.live_now + " creator tournament" + (d.live_now === 1 ? "" : "s") + " running</div><div class=\"cr-t\">QUICK ACTIONS</div>" +
         '<button class="cr-btn" id="q-host">Host Free Tournament<small>Create and manage your own free-entry event</small></button>' +
-        '<button class="cr-btn" disabled>Find Sponsors<small>Coming soon</small></button><button class="cr-btn" disabled>Build My City Team<small>Coming soon</small></button><div id="cr-form"></div>' +
-        '<div class="cr-t">MY TOURNAMENTS</div><div id="cr-mine"></div>' + NOTE + '<div class="cr-t">ALL CREATOR TOURNAMENTS</div><div id="cr-pub"></div>';
+        '<button class="cr-btn" id="q-spons">Find Sponsors<small>Browse partner brands and ask XARENA admin for an intro</small></button><button class="cr-btn" id="q-city">Build My City Team<small>Recruit players from your city</small></button><div id="cr-form"></div>' +
+        '<div class="cr-t">MY TOURNAMENTS</div><div id="cr-mine"></div>' + NOTE + '<div class="cr-t">ALL CREATOR TOURNAMENTS</div><div id="cr-pub"></div><div class="cr-t">CITY SQUADS RECRUITING</div><div id="cr-city"></div>';
       root.innerHTML = h;
       root.querySelector("#q-host").addEventListener("click", function () { hostForm(root.querySelector("#cr-form"), load); });
+      root.querySelector("#q-spons").addEventListener("click", function () { sponsorsPanel(root.querySelector("#cr-form")); });
+      root.querySelector("#q-city").addEventListener("click", function () { cityPanel(root.querySelector("#cr-form"), true); });
       var mine = root.querySelector("#cr-mine");
       get("creator_events_public?select=*&host=eq." + me.id + "&order=starts_at.desc&limit=30").then(function (l) { mine.innerHTML = events(l, true); wire(mine, load); });
-      publicList(root.querySelector("#cr-pub")); return;
+      publicList(root.querySelector("#cr-pub")); cityList(root.querySelector("#cr-city")); return;
     }
     var app = st && st.application_status;
     if (app === "pending") h += '<div class="cr-card"><b>Application pending.</b><br>The admin will review your channel. You will be able to host as soon as it is approved.</div>';
@@ -94,8 +134,8 @@
       h += '<div class="cr-card"><div class="cr-t" style="margin-top:0">BECOME A VERIFIED CREATOR</div>' + (app === "rejected" || app === "revoked" ? '<div class="cr-msg">Your last application was ' + esc(app) + ". You can apply again.</div>" : "") +
         '<input class="cr-in" id="a-c" placeholder="YouTube or Instagram channel link (https://...)"><input class="cr-in" id="a-f" type="number" min="0" placeholder="Followers (self-reported)"><input class="cr-in" id="a-n" maxlength="300" placeholder="Why do you want to host? (optional)"><button class="cr-go" id="a-go">Apply</button><div class="cr-msg" id="a-msg"></div>' + NOTE + "</div>";
     }
-    h += '<div class="cr-t">CREATOR TOURNAMENTS</div><div id="cr-pub"></div>';
-    root.innerHTML = h;
+    h += '<div class="cr-t">CREATOR TOURNAMENTS</div><div id="cr-pub"></div><div class="cr-t">CITY SQUADS RECRUITING</div><div id="cr-city"></div>';
+    root.innerHTML = h; cityList(root.querySelector("#cr-city"));
     var go = root.querySelector("#a-go");
     if (go) go.addEventListener("click", function () {
       var m = root.querySelector("#a-msg"); m.textContent = "Sending…";
