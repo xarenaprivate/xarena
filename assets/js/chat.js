@@ -12,7 +12,7 @@
   var EMOJIS = "😀 😂 🤣 😊 😍 😎 🤩 😜 🫡 😤 😭 😅 😉 🙃 😇 🥳 😴 🤯 🥵 😡 👍 👎 🙏 👏 🔥 💯 ⚡ 🎮 🏆 🎯 💜 ❤️ 🖤 💛 ✨ ⭐ 👑 🦁 🐺 🦅 🇮🇳 ☠️ 🤝 💪 🎉".split(" ");
   var AV_COLORS = ["#e10600","#8b3dff","#f5b301","#0aa5ff","#3ddc84","#ff4fa3","#ff7a1a","#00c2b8"];
 
-  var sb = null, channel = null, handle = null, token = null;
+  var sb = null, channel = null, handle = null, token = null, room = "general", roomLabel = "General";
   var logEl, inputEl, sendBtn, typingEl, onlineEl;
   var lastId = 0, sending = false, typingSentAt = 0, emojiOpen = false;
   var typingTimers = {};
@@ -139,7 +139,7 @@
 
   /* ---------- history + realtime ---------- */
   function loadHistory() {
-    return rest("/rest/v1/chat_messages?select=id,handle,body,created_at&order=id.desc&limit=80")
+    return rest("/rest/v1/chat_messages?select=id,handle,body,created_at&room=eq." + encodeURIComponent(room) + "&order=id.desc&limit=80")
       .then(function (r) {
         if (!r.ok) throw new Error("no table");
         return r.json();
@@ -151,10 +151,10 @@
   }
 
   function connectRealtime() {
-    channel = sb.channel("world-chat", { config: { presence: { key: handle } } });
-    channel.on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" }, function (p) {
+    channel = sb.channel("world-chat:" + room, { config: { presence: { key: handle } } });
+    channel.on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: "room=eq." + room }, function (p) {
       var m = p.new;
-      if (!m || m.id <= lastId) return;
+      if (!m || m.id <= lastId || (m.room && m.room !== room)) return;
       var stick = nearBottom();
       addMsg(m);
       clearTyping(m.handle);
@@ -326,7 +326,13 @@
     $("#chat-main").style.display = "";
     if (!sb) sb = supabase.createClient(SUPA_URL, SUPA_KEY);
     wireLookToggle(); loadChips();
-    fetchAvatars(true).then(loadHistory).then(function () {
+    fetchAvatars(true).then(function () {
+      /* regional room: the server picks it from the account's coarse state (no exact location); no area = General */
+      return rpc("chat_my_room", { p_handle: handle, p_token: token }).then(function (r) {
+        if (r && r.ok && r.data && r.data.room) { room = String(r.data.room); roomLabel = r.data.label || "General"; }
+      }).catch(function () {});
+    }).then(loadHistory).then(function () {
+      sysMsg(room === "general" ? "Room: General. Set your area in Account to join your state room. Chat resets every few hours." : "Room: " + roomLabel + ". Chat resets every few hours.");
       connectRealtime();
     }).catch(function () {
       logEl.innerHTML = "";

@@ -7,6 +7,14 @@
   var SUPA_URL = "https://oskccuajgbyabogbvedj.supabase.co";
   var SUPA_KEY = "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7";
   var ROOM = "voice:arena-lobby";
+  var vroom = ROOM; /* regional voice lobby: voice:<room> from chat_my_room (coarse state), General if no area */
+  try {
+    var _h = localStorage.getItem("xr_chat_handle"), _t = localStorage.getItem("xr_chat_token");
+    if (_h && _t) {
+      fetch(SUPA_URL + "/rest/v1/rpc/chat_my_room", { method: "POST", headers: { "apikey": SUPA_KEY, "Authorization": "Bearer " + SUPA_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ p_handle: _h, p_token: _t }) })
+        .then(function (r) { return r.json(); }).then(function (j) { if (j && j.room && j.room !== "general") vroom = "voice:" + j.room; }).catch(function () {});
+    }
+  } catch (e) {}
   var RTC_CFG = { iceServers: [{ urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] }] };
 
   var $ = function (s) { return document.querySelector(s); };
@@ -188,7 +196,7 @@
         sb = sb || supabase.createClient(SUPA_URL, SUPA_KEY);
         myId = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + "-" + Math.random().toString(36).slice(2, 8));
         myHandle = pickHandle();
-        chan = sb.channel(ROOM, { config: { presence: { key: myId } } });
+        chan = sb.channel(vroom, { config: { presence: { key: myId } } });
         chan.on("presence", { event: "sync" }, function () {
           var state = chan.presenceState();
           var next = {};
