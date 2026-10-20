@@ -63,11 +63,13 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                 if (d.cup == null) {
                     PanelCard { Text("No tournaments yet", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         Text("Tournaments appear here as soon as the admin creates them.", color = Muted, fontSize = 13.sp) }
-                } else CupHeroCard(d.cup, d.slotsTaken) { onOpenFeature("register") }
+                } else Rise3D { CupHeroCard(d.cup, d.slotsTaken) { onOpenFeature("register") } }
                 AajKyaHaiCard(d.matches) { onOpenFeature("live") }
                 CheckinHomeCard { onOpenFeature("streak") }
                 FanVoteHomeCard { onOpenFeature("vote") }
                 DailyAvatarHomeCard()
+                TipHomeCard()
+                CreatorSpotlightCard { onOpenFeature("creator") }
             }
             item { WinnersStrip { onOpenFeature("winners") } }
             item { TopSquadsCard { onGoTab(5) } }

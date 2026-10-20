@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -323,4 +324,65 @@ fun WalkthroughOnce() {
             GoldButton("GOT IT") { prefs.edit().putBoolean("seen_walkthrough", true).apply(); show = false }
         }
     }
+}
+
+/** Aaj ka tip - one tip per day from site_settings key "tips" (IST day rotation), hidden when empty. */
+@Composable
+fun TipHomeCard() {
+    LoadState2(0, {
+        runCatching { Api.publicGet("/rest/v1/site_settings?key=eq.tips&select=value") }.getOrElse { JSONArray() }
+    }) { rows ->
+        if (rows.length() == 0) return@LoadState2
+        val items = rows.getJSONObject(0).optJSONObject("value")?.optJSONArray("items") ?: return@LoadState2
+        if (items.length() == 0) return@LoadState2
+        val dayIdx = ((System.currentTimeMillis() + 19800000L) / 86400000L % items.length()).toInt()
+        PanelCard {
+            Text("AAJ KA TIP", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(4.dp))
+            Text(items.optString(dayIdx), color = Color.White, fontSize = 14.sp)
+        }
+    }
+}
+
+/** Creator spotlight - one verified creator per day (same IST rotation as web), hidden when none. */
+@Composable
+fun CreatorSpotlightCard(onOpenCreator: () -> Unit) {
+    LoadState2(0, {
+        runCatching { Api.publicGet("/rest/v1/creators_public?select=username,ign,avatar_url,tier,self_followers,channel_url,verified_creator") }.getOrElse { JSONArray() }
+    }) { rows ->
+        if (rows.length() == 0) return@LoadState2
+        val idx = ((System.currentTimeMillis() + 19800000L) / 86400000L % rows.length()).toInt()
+        val c = rows.getJSONObject(idx)
+        PanelCard {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (c.s("avatar_url").isNotBlank()) coil.compose.AsyncImage(model = xrImageModel(Api.ctx, c.s("avatar_url")), contentDescription = c.s("ign"),
+                    modifier = Modifier.width(52.dp).height(52.dp).clip(RoundedCornerShape(26.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("CREATOR SPOTLIGHT", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(c.s("ign").ifBlank { c.s("username") } + (if (c.optBoolean("verified_creator")) " ✓" else ""), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text(listOf(c.s("tier").uppercase().takeIf { it.isNotBlank() } ?: "", if (c.optInt("self_followers") > 0) c.optInt("self_followers").toString() + " followers" else "").filter { it.isNotBlank() }.joinToString(" · "),
+                        color = Muted, fontSize = 11.sp)
+                }
+                Text("VIEW", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
+                        .clickable { onOpenCreator() }.padding(horizontal = 14.dp, vertical = 8.dp))
+            }
+        }
+    }
+}
+
+/** 3D-rise entrance wrapper - subtle depth (slide up + tilt + fade). Off when Data Saver is on. */
+@Composable
+fun Rise3D(content: @Composable () -> Unit) {
+    if (DataSaver.on) { content(); return }
+    var shown by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { shown = true }
+    val p by androidx.compose.animation.core.animateFloatAsState(if (shown) 1f else 0f, label = "rise")
+    androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.graphicsLayer {
+        alpha = p
+        translationY = (1f - p) * 60f
+        rotationX = (1f - p) * -12f
+        cameraDistance = 16f * density
+    }) { content() }
 }

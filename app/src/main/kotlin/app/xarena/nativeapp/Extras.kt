@@ -76,6 +76,11 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
             Spacer(Modifier.height(4.dp))
             XPanelSwitchRow()
             Spacer(Modifier.height(14.dp))
+            Text("Data Saver", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text("For 2GB phones and slow networks.", color = Muted, fontSize = 12.sp)
+            Spacer(Modifier.height(4.dp))
+            DataSaverSwitchRow()
+            Spacer(Modifier.height(14.dp))
             Text("Screen Recorder", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Text("Records your screen to this phone only (Movies > XARENA). Nothing is uploaded.", color = Muted, fontSize = 12.sp)
             Spacer(Modifier.height(4.dp))
@@ -271,6 +276,22 @@ fun PlayerCardScreen(onBack: () -> Unit, onOpenConv: (String?, String, String) -
     }
 }
 
+/* ---- Data saver (low-data / low-FX mode for 2GB phones) ---- */
+object DataSaver {
+    private val p get() = Api.ctx.getSharedPreferences("xr_prefs", 0)
+    var on: Boolean get() = p.getBoolean("data_saver", false); set(v) = p.edit().putBoolean("data_saver", v).apply()
+}
+
+@Composable
+fun DataSaverSwitchRow() {
+    var on by remember { mutableStateOf(DataSaver.on) }
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(if (on) "On - animations, 3D effects and autoplay videos are off (saves data and battery)"
+        else "Off - full animations and effects", color = if (on) Color(0xFF4ADE80) else Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
+        Switch(checked = on, onCheckedChange = { on = it; DataSaver.on = it })
+    }
+}
+
 /* ---- X-Panel + Screen Recorder controls (shared by Settings and the More-menu screens) ---- */
 
 @Composable
@@ -290,7 +311,7 @@ fun XPanelSwitchRow() {
     }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(when {
-            panelOn && overlayOk -> "On - drag the X ball, or swipe the right edge of your screen"
+            panelOn && overlayOk -> "On - swipe the right edge of your screen to open the panel"
             overlayOk -> "Off"
             panelOn -> "Almost there - allow 'Display over other apps' and come back"
             else -> "Off - switch on to allow the overlay permission"
