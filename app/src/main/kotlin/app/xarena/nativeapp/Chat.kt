@@ -150,9 +150,26 @@ fun ChatRoom() {
             addRows(rev, toFront = false)
             loadErr = null
         } catch (e: Exception) { loadErr = e.message ?: "Could not load chat." }
+        var ticks = 0
         while (isActive) {
             delay(10_000)
-            try { if (lastId > 0) addRows(Api.chatSince(lastId), toFront = false) } catch (e: Exception) { /* keep polling */ }
+            ticks++
+            try {
+                if (ticks % 18 == 0 || lastId == 0L) {
+                    // Full resync every ~3 min: world chat is purged every few hours server-side,
+                    // and a purge can restart ids - an append-only lastId poll would freeze forever.
+                    val hist = Api.chatHistory()
+                    val rev = org.json.JSONArray()
+                    for (i in hist.length() - 1 downTo 0) rev.put(hist.getJSONObject(i))
+                    val fresh = (0 until rev.length()).map { rev.getJSONObject(it) }
+                        .map { ChatMsg(it.optLong("id"), it.s("handle"), it.s("body"), it.s("created_at")) }
+                        .filter { it.id > 0 }
+                    msgs = fresh
+                    lastId = fresh.maxOfOrNull { it.id } ?: 0L
+                } else {
+                    addRows(Api.chatSince(lastId), toFront = false)
+                }
+            } catch (e: Exception) { /* keep polling */ }
         }
     }
 
@@ -193,6 +210,8 @@ fun ChatRoom() {
             }
         }
         notice?.let { Text(it, color = Gold2, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp)) }
+        Text("World chat refreshes every few hours - old messages get cleared.", color = Muted, fontSize = 11.sp,
+            modifier = Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(horizontal = 12.dp, vertical = 2.dp))
         Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(input, { input = it }, placeholder = { Text("Message World Chat...") },
                 modifier = Modifier.weight(1f), maxLines = 3)
