@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.offset
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -402,6 +405,8 @@ fun HomeShell(onLogout: () -> Unit) {
         "players" -> { SearchScreen(onBack = { feature = null }, initialTab = 1, title = "Players", onOpenPlayer = { playerId = it }); return }
         "howto" -> { HowToPlayScreen(onBack = { feature = null }); return }
         "voice" -> { VoiceScreen(onBack = { feature = null }); return }
+        "creator" -> { CreatorScreen(onBack = { feature = null }); return }
+        "donate" -> { DonateScreen(onBack = { feature = null }); return }
         "chat" -> { ChatScreen(onGoTab = { i -> when (i) { 1 -> { feature = null; tab = 4 }; 2 -> { feature = null; tab = 5 }; else -> feature = "squads" } }, onBack = { feature = null }); return }
         "luna" -> { LunaScreen(onBack = { feature = null }); return }
         "squads" -> { SquadsScreen(onBack = { feature = null }); return }
@@ -423,6 +428,24 @@ fun HomeShell(onLogout: () -> Unit) {
     }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            var hdrAv by remember { mutableStateOf<String?>(null) }
+            var hdrName by remember { mutableStateOf("") }
+            LaunchedEffect(Unit) {
+                val p = runCatching { Api.myProfile() }.getOrNull()
+                hdrAv = p?.s("avatar_url"); hdrName = (p?.s("name") ?: "").ifBlank { p?.s("username") ?: "" }
+            }
+            Box(Modifier.size(30.dp).clip(CircleShape).border(1.dp, Gold, CircleShape).background(Card)
+                .clickable { feature = "profile" }, contentAlignment = Alignment.Center) {
+                val av = hdrAv
+                if (!av.isNullOrBlank()) AsyncImage(model = xrImageModel(LocalContext.current, av), contentDescription = "Profile",
+                    modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                else Text(hdrName.firstOrNull()?.uppercase() ?: "?", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(Modifier.width(8.dp))
+            Box(Modifier.size(30.dp).clickable { feature = "donate" }, contentAlignment = Alignment.Center) {
+                CrownIcon(Gold, 19.dp)
+            }
+            Spacer(Modifier.width(8.dp))
             Text("XARENA", color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             var hdrExp by remember { mutableStateOf<Int?>(null) }
             var hdrAp by remember { mutableStateOf<Int?>(null) }
@@ -470,6 +493,7 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("play", "Play", "Daily spin and quizzes - real XP, free", Icons.Default.Star),
         GridItem("season", "Season Pass", "Free track - unlock badges, frames, AP with EXP", Icons.Default.Star),
         GridItem("chat", "Chat", "World chat lobby", Icons.Default.MailOutline),
+        GridItem("creator", "Creator", "Host free tournaments, sponsors, city team", Icons.Default.Star),
         GridItem("luna", "Luna", "AI analyst and caster", Icons.Default.Face),
         GridItem("squads", "Squads", "Find or build your squad", Icons.Default.AccountBox),
         GridItem("store", "Store", "Spend AP on real rewards", Icons.Default.ShoppingCart),

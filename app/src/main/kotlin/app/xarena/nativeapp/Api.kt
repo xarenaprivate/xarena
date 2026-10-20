@@ -422,6 +422,58 @@ object Api {
         } catch (e: Exception) { null }
     }
 
+    /* ---------- Creator Mode (free entry only, no money anywhere) ---------- */
+    suspend fun creatorStatus(): JSONObject? = try { authedRpc("creator_status", JSONObject()) } catch (e: Exception) { null }
+    suspend fun creatorDashboard(): JSONObject? = try { authedRpc("creator_dashboard", JSONObject()) } catch (e: Exception) { null }
+    suspend fun creatorEventsPublic(): JSONArray = try {
+        publicGet("/rest/v1/creator_events_public?select=*&status=in.(scheduled,live)&order=starts_at.asc&limit=30")
+    } catch (e: Exception) { JSONArray() }
+    suspend fun sponsorsPublic(): JSONArray = try {
+        publicGet("/rest/v1/sponsors_public?select=id,name,tier,url,image_url&order=id.asc")
+    } catch (e: Exception) { JSONArray() }
+    suspend fun citySquadsOpen(): JSONArray = try {
+        publicGet("/rest/v1/city_squads_public?select=*&status=eq.open&order=id.desc&limit=30")
+    } catch (e: Exception) { JSONArray() }
+    suspend fun myCitySquads(): JSONArray = try {
+        publicGet("/rest/v1/city_squads_public?select=*&creator=eq." + uid + "&order=id.desc")
+    } catch (e: Exception) { JSONArray() }
+    suspend fun isVerifiedCreator(userId: String): Boolean = try {
+        publicGet("/rest/v1/creators_public?select=user_id&user_id=eq." + userId + "&limit=1").length() > 0
+    } catch (e: Exception) { false }
+    suspend fun playerStatsCard(username: String): JSONObject? = try {
+        val r = authedRpc("player_stats_card", JSONObject().put("p_username", username))
+        if (r.has("username")) r else null
+    } catch (e: Exception) { null }
+
+    /* ---------- Support the Team (voluntary donation QR + optional ack) ---------- */
+    /** site_settings key "support": {image_url: https..., text?: ...} or null when not configured. */
+    suspend fun supportConfig(): JSONObject? = try {
+        val a = publicGet("/rest/v1/site_settings?key=eq.support&select=value")
+        if (a.length() == 0) null else a.getJSONObject(0).optJSONObject("value")
+    } catch (e: Exception) { null }
+
+    /** Screenshot to the private support-proofs bucket with the user's JWT (bucket policy enforces 3/day). Returns the stored path. */
+    suspend fun uploadSupportProof(jpeg: ByteArray): String = withContext(Dispatchers.IO) {
+        val path = uid + "/" + System.currentTimeMillis() + ".jpg"
+        val c = java.net.URL(BASE + "/storage/v1/object/support-proofs/" + path).openConnection() as java.net.HttpURLConnection
+        c.requestMethod = "POST"
+        c.connectTimeout = 15000; c.readTimeout = 30000
+        c.setRequestProperty("apikey", KEY)
+        c.setRequestProperty("Authorization", "Bearer " + (access ?: KEY))
+        c.setRequestProperty("Content-Type", "image/jpeg")
+        c.setRequestProperty("x-upsert", "false")
+        c.doOutput = true
+        c.outputStream.use { it.write(jpeg) }
+        val code = c.responseCode
+        if (code == 400 || code == 403) throw ApiError("Limit reached (3 per day) or upload not allowed.")
+        if (code !in 200..299) throw ApiError("Upload failed ($code). Check your connection and try again.")
+        path
+    }
+
+    suspend fun supportAckSubmit(path: String, txn: String, name: String): JSONObject = withContext(Dispatchers.IO) {
+        authedRpc("support_ack_submit", JSONObject().put("p_path", path).put("p_txn", txn).put("p_name", name))
+    }
+
     suspend fun myStats(): JSONObject? = withContext(Dispatchers.IO) {
         try { JSONObject(authed("POST", "/rest/v1/rpc/my_game_stats", JSONObject())) } catch (e: Exception) { null }
     }

@@ -59,8 +59,8 @@ private fun lastSeenText(iso: String): String? {
 
 data class PlayerProfileData(
     val profile: JSONObject, val badges: List<JSONObject>, val highlights: List<JSONObject>,
-    val friendState: String, val friendRequestId: String?
-)
+    val friendState: String, val friendRequestId: String?,
+    val creatorTier: String? = null, val statsCard: JSONObject? = null)
 
 @Composable
 fun PlayerProfileScreen(playerId: String, onBack: () -> Unit, onOpenConv: (String, String, String, String, Boolean) -> Unit) {
@@ -78,7 +78,11 @@ fun PlayerProfileScreen(playerId: String, onBack: () -> Unit, onOpenConv: (Strin
             val br = Api.playerBadges(playerId); val badges = (0 until br.length()).map { br.getJSONObject(it) }
             val hr = Api.playerHighlights(playerId); val hl = (0 until hr.length()).map { hr.getJSONObject(it) }
             val fs = Api.friendStateWith(playerId)
-            PlayerProfileData(p, badges, hl, fs.s("state"), if (fs.has("request_id")) fs.s("request_id") else null)
+            // Creator verified badge + game stats card (v2 contract): stats card first, creators_public fallback
+            val card = if (p.s("username").isNotBlank()) runCatching { Api.playerStatsCard(p.s("username")) }.getOrNull() else null
+            val verifiedCreator = card?.optBoolean("verified_creator") ?: runCatching { Api.isVerifiedCreator(playerId) }.getOrDefault(false)
+            val cTier = if (verifiedCreator) (card?.s("tier") ?: "") else null
+            PlayerProfileData(p, badges, hl, fs.s("state"), if (fs.has("request_id")) fs.s("request_id") else null, cTier, card)
         }) { d ->
             val p = d.profile
             val name = p.s("ign").ifBlank { p.s("username") }.ifBlank { "Player" }
@@ -107,6 +111,11 @@ fun PlayerProfileScreen(playerId: String, onBack: () -> Unit, onOpenConv: (Strin
                                     Spacer(Modifier.width(8.dp))
                                     Text("VERIFIED", color = Gold2, fontSize = 9.sp, fontWeight = FontWeight.Bold,
                                         modifier = Modifier.clip(RoundedCornerShape(4.dp)).border(1.dp, Gold2, RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp))
+                                }
+                                val ct = d.creatorTier
+                                if (ct != null) {
+                                    Spacer(Modifier.width(6.dp))
+                                    CreatorVerifiedPill(ct)
                                 }
                             }
                             if (p.s("username").isNotBlank()) Text("@" + p.s("username"), color = Muted, fontSize = 14.sp)
@@ -199,6 +208,31 @@ fun PlayerProfileScreen(playerId: String, onBack: () -> Unit, onOpenConv: (Strin
                                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(label, color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                                     Text(value, color = Gold, fontSize = 22.sp, fontWeight = FontWeight.Black)
+                                }
+                            }
+                        }
+                    }
+                }
+                d.statsCard?.let { c ->
+                    item {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp).clip(RoundedCornerShape(14.dp)).background(Card).border(1.dp, CrOrange.copy(alpha = .35f), RoundedCornerShape(14.dp)).padding(14.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("GAME STATS", color = CrOrange, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp, modifier = Modifier.weight(1f))
+                                if (c.s("role").isNotBlank()) Text(c.s("role").uppercase(), color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                if (c.optInt("level") > 0) Text(" · LV " + c.optInt("level"), color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Spacer(Modifier.height(10.dp))
+                            Row(Modifier.fillMaxWidth()) {
+                                listOf(
+                                    ("K/D" to (if (c.has("kd") && !c.isNull("kd")) c.optString("kd") else "-")),
+                                    ("MATCHES" to (if (c.has("matches")) c.optInt("matches").toString() else "-")),
+                                    ("WINS" to (if (c.has("wins")) c.optInt("wins").toString() else "-")),
+                                    ("RANK" to c.s("rank").ifBlank { "-" })
+                                ).forEach { (label, value) ->
+                                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(value, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                                        Text(label, color = Muted, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                                    }
                                 }
                             }
                         }
