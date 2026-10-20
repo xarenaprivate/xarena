@@ -9,17 +9,17 @@ Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backen
 5 Aaj kya hai card: DONE
 6 Squad of the Week wall: DONE (spotlights table, SpotlightsRow on Home)
 7 Clips wall: SHIP (clips screen exists)
-8 Practice scrim list: BACK
+8 Practice scrim list: SHIP (ScrimsScreen on scrim_find - RPC live-verified, auth-gated)
 9 Roz naya avatar/frame: DONE (daily_avatar card)
 10 Achievement badges: streak badges DONE (+ animated pulse); match badges BACK
 11 Match check-in: SHIP (MatchCenter match_checkin)
 12 Points table: DONE (points_table RPC live)
 13 Live bracket/lobby: GATE (post Oct 24)
-14 "1 hour pehle" reminder: BACK-HALF (server pushes 1h+15min before via set_match_reminder; native toggle NEXT)
+14 "1 hour pehle" reminder: DONE (MatchReminderRow toggle per tournament; my_match_reminders opted_out; server pushes 1h+15min)
 15 Winners squad photo/logo: DONE (hall_of_fame strip w/ logos)
 16 Team Finder: DONE (TeamFinderScreen: lfg_list/create/join/leave/set_role)
-17 Squad chat room: SHIP (clan room in X-Panel); in-app room NEXT
-18 Friends + invite link: BACK
+17 Squad chat room: SHIP (clan room + Squads room screen)
+18 Friends + invite: DONE (friend_request/_by_name/respond/remove + referral code share; invite LINK format BACK)
 19 City leaderboard: SHIP (Leaderboard state/district scopes)
 20 Pinned announcements: SHIP (RemoteConfig) + tips/pinned keys DONE
 21 Share button: DONE (hero share)
@@ -31,15 +31,15 @@ Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backen
 ## Home 9: ALL DONE (hero countdown, X/48 bar, aaj kya hai, room ID line, check-in, winners strip, top-3, fan vote up, register CTA + hero=Ignition)
 
 ## Extras 10
-1 Share my squad link: BACK | 2 IG story poster: NEXT | 3 Squad profile page: DONE (squad_profile RPC + taps from Top Squads) | 4 Player card+share: NEXT | 5 Match recap card: BACK | 6 "match tonight" push: BACK | 7 Rules/FAQ: SHIP (rules) + Match Checklist DONE | 8 Report/feedback box: DONE (feedback_submit) | 9 Referral count: BACK | 10 Hall of fame: DONE
+1 Share my squad link: BACK (no link contract; by-name squad_invite exists) | 2 IG story poster: NEXT | 3 Squad profile page: DONE (squad_profile RPC + taps from Top Squads) | 4 Player card+share: NEXT | 5 Match recap card: BACK | 6 "match tonight" push: DONE (per-tournament MatchReminderRow on Tournaments; server pushes 1h+15min before to registered squads) | 7 Rules/FAQ: SHIP (rules) + Match Checklist DONE | 8 Report/feedback box: DONE (feedback_submit) | 9 Referral count: SHIP (ReferScreen on my_referral code/count/earned) | 10 Hall of fame: DONE
 
 ## 12 ideas
-1 Tournament history: SHIP (Winners/Hall of Fame) | 2 H2H squads: DONE (head_to_head RPC) | 3 MVP of match/week: DONE (hall_of_fame categories) | 4 Highlight reel wall: NEXT | 5 Creator spotlight: DONE | 6 Scrim schedule: BACK | 7 Aaj ka tip: DONE | 8 Notice board: DONE (pinned) | 9 Squad invite link: BACK | 10 Per-tournament reminder toggle: BACK | 11 Low-data mode: DONE (Data Saver) | 12 Offline cache: DONE (last-good cache on public GETs)
+1 Tournament history: SHIP (Winners/Hall of Fame) | 2 H2H squads: DONE (head_to_head RPC) | 3 MVP of match/week: DONE (hall_of_fame categories) | 4 Highlight reel wall: SHIP (ClipsScreen = approved clip posts, same query as site) | 5 Creator spotlight: DONE | 6 Scrim schedule: BACK | 7 Aaj ka tip: DONE | 8 Notice board: DONE (pinned) | 9 Squad invite: DONE by-name (squad_invite/my_squad_invites/respond in Squads); shareable LINK format BACK (no contract) | 10 Per-tournament reminder toggle: DONE | 11 Low-data mode: DONE (Data Saver) | 12 Offline cache: DONE (last-good cache on public GETs)
 
 ## 8 picks
 1 Weekly mini-tournament: GATE-OFF-READY (MiniCupScreen built, flag mini_cup=false so hidden; shows real mini tournaments when flag flips) | 2 Rank/level: SHIP (my_header/levelFromXp) | 3 Live match thread: GATE-OFF-READY (LiveThreadScreen on thread_list/thread_post/thread_report, flag-gated hidden; server ok:false while flag off) | 4 Spectator room page: GATE-OFF-READY (SpectatorScreen on spectator_info contract - strips room_id/pass defensively; flag hidden) | 5 Player of the Day: DONE (spotlights kind player_day in SpotlightsRow) | 6 Meme/clip voting: DONE (poll infra reusable) | 7 Sound/haptics+anims: DONE part (Rise3D, Data Saver gate); haptics/sound toggle NEXT | 8 (logo maker not picked)
 
-## 7 ideas: squad mini-page DONE (SquadProfileScreen) | challenge squad BACK | pre-match checklist DONE | season recap DONE (ShareCard.buildRecap + share button on Streak page) | Hinglish guide DONE | calendar SHIP (grid) | feedback box DONE (feedback_submit)
+## 7 ideas: squad mini-page DONE (SquadProfileScreen) | challenge squad SHIP (challenge_create/respond in Leaderboard) | pre-match checklist DONE | season recap DONE (ShareCard.buildRecap + share button on Streak page) | Hinglish guide DONE | calendar SHIP (grid) | feedback box DONE (feedback_submit)
 
 ## Store: cosmetic Store tab (user-confirmed): SHIP (Store.kt full: points_balance, rewards_catalog, avatar_catalog, logo shop - verified tonight; AP cosmetic-only)
 
