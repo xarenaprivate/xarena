@@ -29,3 +29,8 @@ points_table {p_tournament}, head_to_head {p_a,p_b}, squad_profile {p_squad}, cr
 ## Not built yet (flags OFF): live match thread, spectator page, mini-cup.
 - live thread + spectator RPCs (bundle5): thread_post {p_match,p_body}, thread_list {p_match,p_limit}, thread_report {p_post,p_reason}, spectator_info {p_tournament}; all return ok:false while flags live_thread/spectator are OFF. No Room ID. Auto-hide at 3 reports.
 - helper-admin (staff only): is_helper(), helper_matches(), helper_set_room {p_match,p_room_id,p_room_pass}, helper_add_result {p_match,p_player,p_squad,p_kills,p_placement,p_points}, helper_registrations {p_tournament} (no phone/UID/IP). Owner: admin_add_helper {p_username}, admin_remove_helper {p_user}, admin_list_helpers {}.
+
+## Creator profile
+- `creator_profile(p_id uuid)` (anon ok) -> {name, tier, avatar_url, channel_url, bio, joined, posts:[{caption, at}]} or null if not an active creator. No phone/UID/IG login.
+- `creator_set_bio(p_bio text)` (auth, creator only, max 300 chars) -> {ok} or {ok:false,error}.
+- `creator_board()` now also returns user_id per row.
