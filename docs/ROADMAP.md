@@ -16,3 +16,11 @@ Status: SHIPPED / EXISTED / NEXT (next release) / POST-OCT-24
 
 ## Update 9:32 PM: web registration target = xr-5oar via site_settings.reg_tournament (tested live). waitlist flag ON, dup_check OFF. Guide/FAQ/Creators tabs, result recap share SHIPPED.
 REMAINING (NEXT): live match thread, spectator page, mini-cup (flagged OFF), helper-admin role, offline cache, squad invite + challenge UI wiring, season recap card, calendar LIVE tag, reminder toggle, share-squad link after registration, Store tab UI (native), 8PM reminder notification (cron exists), referral count UI.
+
+## Update 10:02 PM (current truth)
+SHIPPED + live-tested: Home Today, data saver, tip, creator spotlight, Dark Gold look, Hinglish toggle, offline cache, Arena Hub (points, history, spotlights, notices, H2H, squad profile, watch, creators, guide, FAQ, feedback), admin Control/Spotlights/Notices/Feedback/Tip/Thread/Helpers, registration -> xr-5oar, waitlist ON, match_room security fix, reminders opt-out RPCs, LFG role filter RPC, matches admin write policy.
+SHIPPED, NOT BROWSER-TESTED: helper.html, share-my-squad button, thread with real posts.
+BUILT, FLAG OFF: live_thread, spectator, dup_check (waitlist ON).
+NEXT RELEASE: season recap card, creator profile page, creator invite-count UI, web Store view.
+AFTER OCT 24: mini-cup (flag OFF), weekly mini-tournament.
+Native-side items: see NATIVE_CONTRACTS.md.
