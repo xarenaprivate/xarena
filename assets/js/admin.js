@@ -77,6 +77,7 @@
     livestream: { title: "Live Stream", custom: renderLivestream },
     playerreports: { title: "Player Reports", custom: renderPlayerReports },
     suspicious: { title: "Suspicious Accounts", custom: renderSuspicious },
+    creators: { title: "Creators", custom: renderCreators },
     sponsors: {
       title: "Sponsors", table: "sponsors", order: "id.asc",
       cols: [
@@ -1819,6 +1820,26 @@
             call(function () { return api.rpc("admin_handle_abuse_flag", { p_id: parseInt(b.getAttribute("data-af"), 10), p_status: b.getAttribute("data-st"), p_note: note }, true); }).then(load);
           });
         });
+      });
+    }
+    load();
+  }
+
+  function renderCreators() {
+    var body = el("#admin-body");
+    function load() {
+      call(function () { return api.rpc("admin_creator_queue", {}, true); }).then(function (r) {
+        if (!r || !r.ok) { body.innerHTML = '<div class="card">' + esc((r && r.error) || "Could not load.") + "</div>"; return; }
+        var h = '<div class="card"><h3>Creator applications</h3><p style="font-size:13px">Approve to give the verified creator badge and let them host FREE-entry events. Followers are self-reported, not verified.</p>' +
+          (r.pending.length ? r.pending.map(function (a) { return '<div style="padding:10px 0;border-top:1px solid rgba(255,255,255,.08)"><b>' + esc(a.name) + "</b> &middot; " + esc(a.self_followers) + " followers (self-reported)<br><a href=\"" + esc(a.channel_url) + '" target="_blank" rel="noopener noreferrer">' + esc(a.channel_url) + "</a>" + (a.note ? "<br>" + esc(a.note) : "") + '<br><button class="btn btn-sm" data-ap="' + a.id + '" data-y="1">Approve</button> <button class="btn btn-ghost btn-sm" data-ap="' + a.id + '" data-y="0">Reject</button></div>'; }).join("") : "<p>No pending applications.</p>") + "</div>";
+        h += '<div class="card"><h3>Grant a creator directly</h3><input id="cg-u" placeholder="username" style="margin:4px 0"> <input id="cg-f" type="number" placeholder="followers (self-reported)" style="margin:4px 0"> <button class="btn btn-sm" id="cg-go">Grant</button><div id="cg-m" style="font-size:13px;margin-top:6px"></div></div>';
+        h += '<div class="card"><h3>Approved creators</h3>' + (r.creators.length ? r.creators.map(function (c) { return '<div style="padding:8px 0;border-top:1px solid rgba(255,255,255,.08)">' + esc(c.name) + " &middot; " + esc(c.tier) + " &middot; " + esc(c.self_followers) + (c.active ? "" : " &middot; revoked") + (c.active ? ' <button class="btn btn-red btn-sm" data-rv="' + c.user_id + '">Revoke</button>' : "") + "</div>"; }).join("") : "<p>None yet.</p>") + "</div>";
+        h += '<div class="card"><h3>Creator events</h3>' + (r.events.length ? r.events.map(function (e) { return '<div style="padding:8px 0;border-top:1px solid rgba(255,255,255,.08)">' + esc(e.title) + " &middot; " + esc(e.host) + " &middot; " + esc(e.status) + " &middot; " + String(e.starts_at).slice(0, 16).replace("T", " ") + (e.reports ? " &middot; <b>" + e.reports + " report(s)</b>" : "") + ((e.status === "scheduled" || e.status === "live") ? ' <button class="btn btn-red btn-sm" data-ce="' + e.id + '">Cancel</button>' : "") + "</div>"; }).join("") : "<p>No events.</p>") + "</div>";
+        body.innerHTML = h;
+        body.querySelectorAll("[data-ap]").forEach(function (b) { b.addEventListener("click", function () { call(function () { return api.rpc("admin_creator_review", { p_id: parseInt(b.getAttribute("data-ap"), 10), p_approve: b.getAttribute("data-y") === "1" }, true); }).then(load); }); });
+        body.querySelectorAll("[data-rv]").forEach(function (b) { b.addEventListener("click", function () { if (confirm("Revoke this creator? Their open events are cancelled.")) call(function () { return api.rpc("admin_creator_revoke", { p_user: b.getAttribute("data-rv") }, true); }).then(load); }); });
+        body.querySelectorAll("[data-ce]").forEach(function (b) { b.addEventListener("click", function () { if (confirm("Cancel this event?")) call(function () { return api.rpc("creator_event_manage", { p_event: b.getAttribute("data-ce"), p_action: "cancel" }, true); }).then(load); }); });
+        el("#cg-go", body).addEventListener("click", function () { call(function () { return api.rpc("admin_creator_grant", { p_username: el("#cg-u", body).value, p_followers: parseInt(el("#cg-f", body).value, 10) || 0 }, true); }).then(function (x) { if (x && x.ok) load(); else el("#cg-m", body).textContent = (x && x.error) || "Failed."; }); });
       });
     }
     load();
