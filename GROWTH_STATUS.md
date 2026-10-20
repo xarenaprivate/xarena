@@ -59,3 +59,8 @@ Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backen
 - Waitlist states added per web contract: response waitlist:true -> "You are on the waitlist" note; my_registrations status "waitlist" -> "WAITLIST - you are in line if a slot opens". tournament_reg_counts now returns waitlist field (live-verified, currently 0).
 - Registration logic otherwise untouched (parent constraint).
 - TEST: throwaway account p919000000010@phone.xarena (uuid cb786fdb-f77f-44c8-af9f-efa2c759ec57). my_registrations empty OK; register_squad params accepted, blocked at server phone-verification gate (manual Instagram verification by owner) - so no registration row was created, nothing to roll back in registrations. THROWAWAY AUTH USER REMAINS - web builder asked to purge it (service key needed).
+
+## SHIPPED v0.17.16-native (61) - Oct 20 ~10:12 PM
+- Release: https://github.com/xarenaprivate/xarena/releases/tag/v0.17.16-native (prerelease, xarena-native.apk 28,833,160 B, sha 355bc92df48ded7d941dfa37ff5e03491be326481f09a8921b0980eec249348a)
+- 13 patch bases (47-52, 54-60) all PatchCheck-verified byte-identical; manifest vc 61 live on CDN; /releases/latest untouched (app-v7.22.1).
+- Rides v0.17.17: shareable squad-invite link format, match recap card, remaining web batches.
