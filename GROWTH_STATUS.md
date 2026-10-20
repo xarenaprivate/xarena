@@ -24,7 +24,7 @@ Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backen
 20 Pinned announcements: SHIP (RemoteConfig) + tips/pinned keys DONE
 21 Share button: DONE (hero share)
 22 3-step walkthrough: DONE
-23 Dark/gold theme toggle: NEXT (extra theme, old stays) - moderate risk
+23 Theme toggle: DONE (Look palettes existed, now exposed in Settings: Liquid/Classic + Gold/Red-Gold)
 24 Language toggle: NEXT - high risk, large surface
 25 Profile stats card + share image: SHIP (ShareCard.kt)
 
@@ -34,7 +34,7 @@ Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backen
 1 Share my squad link: BACK | 2 IG story poster: NEXT | 3 Squad profile page: DONE (squad_profile RPC + taps from Top Squads) | 4 Player card+share: NEXT | 5 Match recap card: BACK | 6 "match tonight" push: BACK | 7 Rules/FAQ: SHIP (rules) + Match Checklist DONE | 8 Report/feedback box: DONE (feedback_submit) | 9 Referral count: BACK | 10 Hall of fame: DONE
 
 ## 12 ideas
-1 Tournament history: SHIP (Winners/Hall of Fame) | 2 H2H squads: DONE (head_to_head RPC) | 3 MVP of match/week: DONE (hall_of_fame categories) | 4 Highlight reel wall: NEXT | 5 Creator spotlight: DONE | 6 Scrim schedule: BACK | 7 Aaj ka tip: DONE | 8 Notice board: DONE (pinned) | 9 Squad invite link: BACK | 10 Per-tournament reminder toggle: BACK | 11 Low-data mode: DONE (Data Saver) | 12 Offline cache: NEXT (medium risk)
+1 Tournament history: SHIP (Winners/Hall of Fame) | 2 H2H squads: DONE (head_to_head RPC) | 3 MVP of match/week: DONE (hall_of_fame categories) | 4 Highlight reel wall: NEXT | 5 Creator spotlight: DONE | 6 Scrim schedule: BACK | 7 Aaj ka tip: DONE | 8 Notice board: DONE (pinned) | 9 Squad invite link: BACK | 10 Per-tournament reminder toggle: BACK | 11 Low-data mode: DONE (Data Saver) | 12 Offline cache: DONE (last-good cache on public GETs)
 
 ## 8 picks
 1 Weekly mini-tournament: GATE | 2 Rank/level: SHIP (my_header/levelFromXp) | 3 Live match thread: GATE | 4 Spectator room page: GATE | 5 Player of the Day: BACK | 6 Meme/clip voting: DONE (poll infra reusable) | 7 Sound/haptics+anims: DONE part (Rise3D, Data Saver gate); haptics/sound toggle NEXT | 8 (logo maker not picked)
@@ -47,6 +47,6 @@ Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backen
 
 ## Admin 8: web/admin-owned; register_squad NOT touched; dup-check GATE
 
-## Look/feel 10: Rise3D entrance DONE; parallax/tilt NEXT; splash anim NEXT; confetti NEXT; neon theme NEXT (extra option); pull-refresh NEXT; skeleton NEXT; haptics+sounds NEXT; animated badges NEXT; LIVE pulse NEXT; widget DONE
+## Look/feel 10: Rise3D entrance DONE; parallax/tilt NEXT; splash anim NEXT; confetti NEXT; neon theme NEXT (extra option); pull-refresh NEXT; skeleton DONE; haptics+sounds NEXT; animated badges NEXT; LIVE pulse NEXT; widget DONE
 
 ## 3D effects: DONE (Rise3D, gated by Data Saver)
