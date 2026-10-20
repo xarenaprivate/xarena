@@ -6,7 +6,11 @@
   var AVB = "https://xarenaprivate.github.io/xarena/assets/avatars/";
   var MONTHS = { january: 0, february: 1, march: 2, april: 3, may: 4, june: 5, july: 6, august: 7, september: 8, october: 9, november: 10, december: 11 };
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
-  function get(path) { return fetch(URLB + "/rest/v1/" + path, { headers: { apikey: KEY } }).then(function (r) { return r.json(); }); }
+  function get(path) {
+    var ck = "xr_oc_" + path.slice(0, 120);
+    return fetch(URLB + "/rest/v1/" + path, { headers: { apikey: KEY } }).then(function (r) { if (!r.ok) throw new Error("http"); return r.json(); }).then(function (d) { try { localStorage.setItem(ck, JSON.stringify(d)); } catch (e) {} return d; })
+      .catch(function (e) { var c = null; try { c = JSON.parse(localStorage.getItem(ck) || "null"); } catch (x) {} if (c != null) { root.setAttribute("data-offline", "1"); return c; } throw e; });
+  }
   function rpc(n, a) { return window.xrApi ? window.xrApi.uRpc(n, a || {}) : Promise.resolve(null); }
   function el(id) { return document.getElementById(id); }
   function safeLink(u) { u = String(u || ""); return /^https:\/\//.test(u) || /^[a-z0-9-]+\.html(#[a-z0-9-]*)?$/i.test(u) ? u : ""; }

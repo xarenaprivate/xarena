@@ -85,6 +85,7 @@
     spotlights: { title: "Spotlights", custom: renderSpot },
     notices: { title: "Notice board", custom: renderNotices },
     feedback: { title: "Feedback", custom: renderFeedback },
+    thread: { title: "Match thread", custom: renderThread },
     sponsors: {
       title: "Sponsors", table: "sponsors", order: "id.asc",
       cols: [
@@ -1934,6 +1935,17 @@
     });
   }
 
+  function renderThread() {
+    var body = el("#admin-body");
+    function load() {
+      Promise.all([call(function () { return api.aGet("match_thread_posts", "?select=id,body,hidden,created_at,match_id&order=id.desc&limit=80"); }), call(function () { return api.aGet("match_thread_reports", "?select=post_id"); })]).then(function (r) {
+        var rows = r[0] || [], rep = {}; (r[1] || []).forEach(function (x) { rep[x.post_id] = (rep[x.post_id] || 0) + 1; });
+        body.innerHTML = '<div class="card"><h3>Match thread moderation</h3><p style="font-size:13px">Newest first. Posts auto-hide at 3 reports. The thread is open only when the live_thread flag is ON (Control tab).</p>' + (rows.map(function (x) { return '<div style="padding:5px 0;border-bottom:1px solid #8882">' + (x.hidden ? "[hidden] " : "") + esc(x.body) + " <small>(" + (rep[x.id] || 0) + ' reports)</small> <button class="btn btn-sm" data-h="' + x.id + '" data-v="' + (x.hidden ? "0" : "1") + '">' + (x.hidden ? "Unhide" : "Hide") + "</button></div>"; }).join("") || "No posts yet.") + "</div>";
+        body.querySelectorAll("[data-h]").forEach(function (b) { b.addEventListener("click", function () { call(function () { return api.rpc("admin_thread_hide", { p_post: +b.dataset.h, p_hidden: b.dataset.v === "1" }, true); }).then(load); }); });
+      });
+    }
+    load();
+  }
   function renderSpot() {
     var body = el("#admin-body"), KINDS = { mvp_match: "MVP of the match", mvp_week: "MVP of the week", squad_week: "Squad of the Week", player_day: "Player of the Day", clip_week: "Clip of the week" };
     function load() {
