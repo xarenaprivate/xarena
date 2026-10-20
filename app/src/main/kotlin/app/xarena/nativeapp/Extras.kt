@@ -318,6 +318,7 @@ fun RecorderControls() {
         else Api.ctx.startActivity(android.content.Intent(Api.ctx, RecorderActivity::class.java).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
     }
     if (rec) Text("Recording " + secs + "s - saved on this phone only (Movies > XARENA)", color = Color(0xFF4ADE80), fontSize = 12.sp)
+    if (!rec && RecStore.lastError != null) Text("Last try failed: " + RecStore.lastError, color = Color(0xFFFF8A80), fontSize = 11.sp)
 }
 
 @Composable
@@ -330,7 +331,7 @@ fun XPanelScreen(onBack: () -> Unit) {
         item { PanelCard {
             Text("Floating tools over your game", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             Spacer(Modifier.height(4.dp))
-            Text("A small gold X ball floats over other apps. Drag it anywhere, or swipe the right edge of your screen to open the full panel.",
+            Text("Swipe in from the small gold handle on the right edge of your screen to open the full panel - over any app.",
                 color = Muted, fontSize = 12.sp)
             Spacer(Modifier.height(8.dp))
             XPanelSwitchRow()
@@ -374,7 +375,7 @@ fun RecorderScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(4.dp))
             listOf(
                 "Android asks for permission every time you start - that is normal and keeps you in control",
-                "720p quality, 30 frames per second, with sound",
+                "Clear quality (up to 1280 px), 30 frames per second, with sound if you allowed the mic",
                 "On a 2GB phone, recording while gaming can lower your FPS - close other apps first",
                 "Stop from the notification, from here, or from the X-Panel"
             ).forEach { Text("- " + it, color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(vertical = 2.dp)) }

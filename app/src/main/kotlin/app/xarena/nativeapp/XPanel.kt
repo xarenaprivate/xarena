@@ -27,13 +27,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.Executors
 
-/** X-Panel: Poco Game Turbo-style edge handle + draggable ball over other apps (SYSTEM_ALERT_WINDOW).
+/** X-Panel: Poco Game Turbo-style edge handle over other apps (SYSTEM_ALERT_WINDOW).
  *  Plain views only (2 GB phone friendly), no screen reading, no accessibility. Turn it off any time. */
 object XPanelStore {
     private val p get() = Api.ctx.getSharedPreferences("xr_xpanel", 0)
     var enabled: Boolean get() = p.getBoolean("enabled", false); set(v) = p.edit().putBoolean("enabled", v).apply()
-    var ballX: Int get() = p.getInt("ballx", 24); set(v) = p.edit().putInt("ballx", v).apply()
-    var ballY: Int get() = p.getInt("bally", 300); set(v) = p.edit().putInt("bally", v).apply()
     fun sync(ctx: Context) {
         if (enabled && Settings.canDrawOverlays(ctx)) ctx.startService(Intent(ctx, FloatingXPanelService::class.java))
         else ctx.stopService(Intent(ctx, FloatingXPanelService::class.java))
@@ -42,7 +40,6 @@ object XPanelStore {
 
 class FloatingXPanelService : Service() {
     private lateinit var wm: WindowManager
-    private var ball: View? = null
     private var handle: View? = null
     private var panel: View? = null
     private val ui = Handler(Looper.getMainLooper())
@@ -62,10 +59,10 @@ class FloatingXPanelService : Service() {
         val ch = NotificationChannel("xpanel", "X-Panel", NotificationManager.IMPORTANCE_MIN)
         getSystemService(NotificationManager::class.java).createNotificationChannel(ch)
         val n = Notification.Builder(this, "xpanel").setContentTitle("XARENA X-Panel is showing")
-            .setContentText("Drag the X ball or swipe the right edge. Turn off in Settings.").setSmallIcon(R.mipmap.ic_launcher).build()
+            .setContentText("Swipe the right edge to open it. Turn off in Settings.").setSmallIcon(R.mipmap.ic_launcher).build()
         startForeground(42, n)
         wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        showBall(); showHandle()
+        showHandle()
     }
 
     private fun overlayParams(w: Int, h: Int, x: Int, y: Int, gravity: Int) = WindowManager.LayoutParams(
@@ -76,33 +73,6 @@ class FloatingXPanelService : Service() {
     private fun circleBg(color: Int, stroke: Int) = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(color); setStroke(4, stroke) }
     private fun cardBg() = GradientDrawable().apply { setColor(BG); cornerRadius = 28f; setStroke(3, GOLD) }
     private fun rowBg() = GradientDrawable().apply { setColor(CARD); cornerRadius = 16f }
-
-    private fun showBall() {
-        if (ball != null) return
-        val size = (56 * resources.displayMetrics.density).toInt()
-        val v = TextView(this).apply {
-            text = "X"; textSize = 22f; setTextColor(GOLD); gravity = Gravity.CENTER
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
-            background = circleBg(GColor.parseColor("#F21A0E33"), GOLD); elevation = 8f
-        }
-        val p = overlayParams(size, size, XPanelStore.ballX, XPanelStore.ballY, Gravity.TOP or Gravity.START)
-        var downX = 0f; var downY = 0f; var moved = false
-        v.setOnTouchListener { _, e ->
-            when (e.action) {
-                MotionEvent.ACTION_DOWN -> { downX = e.rawX; downY = e.rawY; moved = false; true }
-                MotionEvent.ACTION_MOVE -> {
-                    if (Math.abs(e.rawX - downX) + Math.abs(e.rawY - downY) > 14) moved = true
-                    if (moved) { p.x = (e.rawX - size / 2).toInt(); p.y = (e.rawY - size / 2).toInt(); runCatching { wm.updateViewLayout(v, p) }; true } else false
-                }
-                MotionEvent.ACTION_UP -> {
-                    if (moved) { XPanelStore.ballX = p.x; XPanelStore.ballY = p.y } else togglePanel()
-                    true
-                }
-                else -> false
-            }
-        }
-        wm.addView(v, p); ball = v
-    }
 
     private fun showHandle() {
         if (handle != null) return
@@ -302,8 +272,8 @@ class FloatingXPanelService : Service() {
 
     override fun onDestroy() {
         ui.removeCallbacks(refreshTick)
-        listOf(ball, handle, panel).forEach { it?.let { v -> runCatching { wm.removeView(v) } } }
-        ball = null; handle = null; panel = null
+        listOf(handle, panel).forEach { it?.let { v -> runCatching { wm.removeView(v) } } }
+        handle = null; panel = null
         io.shutdown()
         super.onDestroy()
     }
