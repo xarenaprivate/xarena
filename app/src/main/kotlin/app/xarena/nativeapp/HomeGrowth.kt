@@ -73,7 +73,7 @@ fun CupHeroCard(t: JSONObject, slotsTaken: Int, onRegister: () -> Unit) {
         }
         Spacer(Modifier.height(12.dp))
         Row {
-            if (t.optBoolean("reg_open")) GoldButton("REGISTER YOUR SQUAD") { onRegister() }
+            if (t.optBoolean("reg_open")) GoldButton(Txt.t("REGISTER YOUR SQUAD", "SQUAD REGISTER KARO")) { onRegister() }
             Spacer(Modifier.width(10.dp))
             Text("SHARE", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
@@ -125,7 +125,7 @@ fun CheckinHomeCard(onOpenStreak: () -> Unit) {
         PanelCard {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("DAILY CHECK-IN", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(Txt.t("DAILY CHECK-IN", "ROZ CHECK-IN"), color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(4.dp))
                     if (s == null || !s.optBoolean("ok")) Text("Log in to check in daily and earn XP.", color = Muted, fontSize = 12.sp)
                     else {
@@ -137,7 +137,7 @@ fun CheckinHomeCard(onOpenStreak: () -> Unit) {
                 }
                 val scope = rememberCoroutineScope()
                 if (s != null && s.optBoolean("ok") && !s.optBoolean("checked_in_today"))
-                    GoldButton("CLAIM") { scope.launch {
+                    GoldButton(Txt.t("CLAIM", "CLAIM KARO")) { scope.launch {
                         val cr = runCatching { Api.authedRpc("daily_checkin", JSONObject()) }.getOrNull()
                         if (cr != null && cr.optBoolean("ok")) { confetti = true; Fx.blip() }
                         tick++
@@ -166,7 +166,7 @@ fun FanVoteHomeCard(onOpenVote: () -> Unit) {
     }) { pr ->
         val (poll, res) = pr ?: return@LoadState2
         PanelCard {
-            Text("FAN VOTE", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text(Txt.t("FAN VOTE", "FAN VOTE"), color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(4.dp))
             Text(poll.s("title"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
             if (res == null || !res.optBoolean("ok")) {
@@ -214,7 +214,7 @@ fun WinnersStrip(onOpenWinners: () -> Unit) {
         if (aw.length() == 0) return@LoadState2
         Column {
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("LATEST WINNERS", color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(Txt.t("LATEST WINNERS", "JEETNE WALE"), color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 Text("Hall of Fame →", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenWinners() }.padding(4.dp))
             }
             LazyRow(Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 12.dp)) {
@@ -250,7 +250,7 @@ fun TopSquadsCard(onOpenLeaderboard: () -> Unit, onOpenSquad: (String) -> Unit =
         if (rows.length() == 0) return@LoadState2
         PanelCard {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("TOP SQUADS", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(Txt.t("TOP SQUADS", "TOP SQUADS"), color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 Text("All →", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenLeaderboard() }.padding(4.dp))
             }
             for (i in 0 until minOf(3, rows.length())) {
@@ -281,14 +281,14 @@ fun DailyAvatarHomeCard() {
                     modifier = Modifier.width(56.dp).height(56.dp).clip(RoundedCornerShape(14.dp)).background(Color(0x22FFFFFF)))
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("AVATAR OF THE DAY", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(Txt.t("AVATAR OF THE DAY", "AAJ KA AVATAR"), color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     Text(av.s("title") + " · " + av.s("tier").uppercase(), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Text(if (owned) "In your locker - free" else "Free cosmetic unlock - today only", color = Muted, fontSize = 11.sp)
                 }
                 if (!owned) {
                     val scope = rememberCoroutineScope()
                     var msg by remember { mutableStateOf<String?>(null) }
-                    GoldButton("CLAIM") {
+                    GoldButton(Txt.t("CLAIM", "CLAIM KARO")) {
                         scope.launch {
                             val cr = runCatching { Api.authedRpc("daily_avatar_claim", JSONObject()) }.getOrNull()
                             if (cr != null && cr.optBoolean("ok")) tick++ else msg = cr?.s("error")?.ifBlank { null } ?: "Log in to claim"
@@ -310,7 +310,7 @@ fun WalkthroughOnce() {
     androidx.compose.ui.window.Dialog(onDismissRequest = {}) {
         Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Look.cardBg)
             .border(1.dp, Gold.copy(alpha = .6f), RoundedCornerShape(18.dp)).padding(20.dp)) {
-            Text("How to join in 3 steps", color = Gold2, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(Txt.t("How to join in 3 steps", "Join kaise kare - 3 steps"), color = Gold2, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(12.dp))
             listOf(
                 "1" to ("Create a free account" to "Sign up on the Account page and finish phone verification as shown there. It costs nothing."),
@@ -329,7 +329,7 @@ fun WalkthroughOnce() {
                 }
             }
             Spacer(Modifier.height(14.dp))
-            GoldButton("GOT IT") { prefs.edit().putBoolean("seen_walkthrough", true).apply(); show = false }
+            GoldButton(Txt.t("GOT IT", "SAMJH GAYA")) { prefs.edit().putBoolean("seen_walkthrough", true).apply(); show = false }
         }
     }
 }
@@ -345,7 +345,7 @@ fun TipHomeCard() {
         if (items.length() == 0) return@LoadState2
         val dayIdx = ((System.currentTimeMillis() + 19800000L) / 86400000L % items.length()).toInt()
         PanelCard {
-            Text("AAJ KA TIP", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text(Txt.t("AAJ KA TIP", "AAJ KA TIP"), color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(4.dp))
             Text(items.optString(dayIdx), color = Color.White, fontSize = 14.sp)
         }
@@ -367,7 +367,7 @@ fun CreatorSpotlightCard(onOpenCreator: () -> Unit) {
                     modifier = Modifier.width(52.dp).height(52.dp).clip(RoundedCornerShape(26.dp)), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text("CREATOR SPOTLIGHT", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(Txt.t("CREATOR SPOTLIGHT", "CREATOR SPOTLIGHT"), color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     Text(c.s("ign").ifBlank { c.s("username") } + (if (c.optBoolean("verified_creator")) " ✓" else ""), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     Text(listOf(c.s("tier").uppercase().takeIf { it.isNotBlank() } ?: "", if (c.optInt("self_followers") > 0) c.optInt("self_followers").toString() + " followers" else "").filter { it.isNotBlank() }.joinToString(" · "),
                         color = Muted, fontSize = 11.sp)

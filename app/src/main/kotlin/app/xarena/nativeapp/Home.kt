@@ -78,7 +78,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
             item {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     LivePulse()
-                    Text("LIVE NOW", color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                    Text(Txt.t("LIVE NOW", "ABHI LIVE"), color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                     Text("See all →", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenFeature("live") }.padding(4.dp))
                 }
                 val liveCards = mutableListOf<@Composable () -> Unit>()
@@ -96,7 +96,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
             }
             item {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text("UPCOMING TOURNAMENTS", color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                    Text(Txt.t("UPCOMING TOURNAMENTS", "AANE WALE TOURNAMENTS"), color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                     Text("See all →", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onGoTab(1) }.padding(4.dp))
                 }
                 if (d.ts.length() == 0) PanelCard { Text("No upcoming tournaments yet.", color = Muted, fontSize = 13.sp) }
@@ -117,7 +117,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
             }
             item {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    Text("YOUR STATS", color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                    Text(Txt.t("YOUR STATS", "TUMHARE STATS"), color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                     Text("All stats →", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenFeature("stats") }.padding(4.dp))
                 }
                 PanelCard {

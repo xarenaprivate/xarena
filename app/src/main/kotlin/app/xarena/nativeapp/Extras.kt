@@ -338,6 +338,24 @@ fun LookThemeRows() {
             }
             Switch(checked = redGold, onCheckedChange = { redGold = it; Look.setRedGold(Api.ctx, it) })
         }
+        Spacer(Modifier.height(6.dp))
+        var darkGold by remember { mutableStateOf(Look.darkGold) }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Look: " + if (darkGold) "Dark Gold" else "Purple Night (default)", color = Color.White, fontSize = 13.sp)
+                Text("Dark Gold = the site's black-gold look", color = Muted, fontSize = 11.sp)
+            }
+            Switch(checked = darkGold, onCheckedChange = { darkGold = it; Look.setDarkGold(Api.ctx, it) })
+        }
+        Spacer(Modifier.height(6.dp))
+        var hi by remember { mutableStateOf(Txt.hi) }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Language: " + if (hi) "Hinglish" else "English (default)", color = Color.White, fontSize = 13.sp)
+                Text("Fixed app labels only - posts and names stay as written", color = Muted, fontSize = 11.sp)
+            }
+            Switch(checked = hi, onCheckedChange = { hi = it; Txt.set(Api.ctx, it) })
+        }
     }
 }
 

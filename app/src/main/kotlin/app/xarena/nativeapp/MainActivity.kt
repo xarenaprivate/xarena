@@ -85,16 +85,29 @@ object Look {
     var liquid: Boolean = true
         private set
     var redGold by mutableStateOf(false); private set
+    var darkGold by mutableStateOf(false); private set
     fun init(c: android.content.Context) {
         liquid = c.getSharedPreferences(PREF, 0).getBoolean("liquid", true)
         redGold = c.getSharedPreferences(PREF, 0).getBoolean("redgold", false)
+        darkGold = c.getSharedPreferences(PREF, 0).getBoolean("darkgold", false)
         applyPalette()
     }
     fun setRedGold(c: android.content.Context, v: Boolean) {
         redGold = v; c.getSharedPreferences(PREF, 0).edit().putBoolean("redgold", v).apply(); applyPalette()
     }
+    fun setDarkGold(c: android.content.Context, v: Boolean) {
+        darkGold = v; if (v) redGold = false
+        c.getSharedPreferences(PREF, 0).edit().putBoolean("darkgold", v).putBoolean("redgold", redGold).apply(); applyPalette()
+    }
     private fun applyPalette() {
-        if (redGold) { Gold = Color(0xFFFF5252); Gold2 = Color(0xFFFFB4A2) } else { Gold = Color(0xFFF5C451); Gold2 = Color(0xFFFFE9A3) }
+        if (darkGold) {
+            // Dark Gold look - same palette as the site's Dark Gold option
+            Gold = Color(0xFFD4A017); Gold2 = Color(0xFFF2CF6B)
+            Ink = Color(0xFF070707); Card = Color(0xFF12100A); Muted = Color(0xFFF6EFDC)
+        } else {
+            if (redGold) { Gold = Color(0xFFFF5252); Gold2 = Color(0xFFFFB4A2) } else { Gold = Color(0xFFF5C451); Gold2 = Color(0xFFFFE9A3) }
+            Ink = Color(0xFF120A24); Card = Color(0xFF241440); Muted = Color(0xFFB79CE0)
+        }
     }
     fun set(c: android.content.Context, v: Boolean) { liquid = v; c.getSharedPreferences(PREF, 0).edit().putBoolean("liquid", v).apply() }
     val accent: Color get() = if (liquid) Color(0xFF0A84FF) else Gold
@@ -103,11 +116,20 @@ object Look {
     val cardRadius get() = if (liquid) 22.dp else 16.dp
 }
 
+/* Fixed-label language toggle (English default / Hinglish) - same scope as the site: fixed UI labels only, local setting. */
+object Txt {
+    private const val PREF = "xr_prefs"
+    var hi by mutableStateOf(false); private set
+    fun init(c: android.content.Context) { hi = c.getSharedPreferences(PREF, 0).getBoolean("lang_hi", false) }
+    fun set(c: android.content.Context, v: Boolean) { hi = v; c.getSharedPreferences(PREF, 0).edit().putBoolean("lang_hi", v).apply() }
+    fun t(en: String, hi: String) = if (Txt.hi) hi else en
+}
+
 var Gold by mutableStateOf(Color(0xFFF5C451)); private set
 var Gold2 by mutableStateOf(Color(0xFFFFE9A3)); private set
-val Ink = Color(0xFF120A24)
-val Card = Color(0xFF241440)
-val Muted = Color(0xFFB79CE0)
+var Ink by mutableStateOf(Color(0xFF120A24)); private set
+var Card by mutableStateOf(Color(0xFF241440)); private set
+var Muted by mutableStateOf(Color(0xFFB79CE0)); private set
 val ErrRed = Color(0xFFFF8A8A)
 
 class MainActivity : ComponentActivity() {
@@ -147,7 +169,7 @@ fun PaperPlaneIcon(tint: Color, size: androidx.compose.ui.unit.Dp) {
 
 @Composable
 fun XarenaApp() {
-    androidx.compose.runtime.LaunchedEffect(Unit) { Look.init(Api.ctx) }
+    androidx.compose.runtime.LaunchedEffect(Unit) { Look.init(Api.ctx); Txt.init(Api.ctx) }
     var screen by remember { mutableStateOf(if (Api.loggedIn) Screen.Home else Screen.Login) }
     var setupChecked by remember { mutableStateOf(false) }
     var update by remember { mutableStateOf<UpdateChecker.Info?>(null) }
@@ -360,7 +382,7 @@ fun HomeShell(onLogout: () -> Unit) {
     var conv by remember { mutableStateOf<DmConv?>(null) }
     var playerId by remember { mutableStateOf<String?>(null) }
     val tabs = listOf(
-        "Home" to Icons.Default.Home, "Feed" to Icons.Default.FavoriteBorder, "Live" to Icons.Default.PlayArrow, "Voice" to Icons.Default.Call, "Tournaments" to Icons.Default.Star, "Board" to Icons.Default.List,
+        Txt.t("Home", "Home") to Icons.Default.Home, Txt.t("Feed", "Feed") to Icons.Default.FavoriteBorder, Txt.t("Live", "LIVE") to Icons.Default.PlayArrow, Txt.t("Voice", "Voice") to Icons.Default.Call, Txt.t("Tournaments", "Tournaments") to Icons.Default.Star, Txt.t("Board", "Board") to Icons.Default.List,
         "More" to Icons.Default.Menu)
     val c = conv
     if (c != null) { BackHandler { conv = null }; ConversationScreen(c.threadId, c.peerId, c.peerName, c.status, c.reqByMe) { conv = null }; return }
