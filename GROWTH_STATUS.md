@@ -64,3 +64,13 @@ Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backen
 - Release: https://github.com/xarenaprivate/xarena/releases/tag/v0.17.16-native (prerelease, xarena-native.apk 28,833,160 B, sha 355bc92df48ded7d941dfa37ff5e03491be326481f09a8921b0980eec249348a)
 - 13 patch bases (47-52, 54-60) all PatchCheck-verified byte-identical; manifest vc 61 live on CDN; /releases/latest untouched (app-v7.22.1).
 - Rides v0.17.17: shareable squad-invite link format, match recap card, remaining web batches.
+
+## SHIPPED v0.17.17-native (62) - 2026-10-20 ~11:25 PM IST
+- Creator board + creator profile (bio, posts, joined) + in-app bio edit (creator_board/creator_profile/creator_set_bio)
+- Squad invite share link (web format more.html?squad=<uuid>#squad)
+- Match result recap share card on points table (top 3 + top fragger + reg counts)
+- Sandbox reaped mid-build; full toolchain restore; 2GB-box OOM fixed by killing lingering KotlinCompileDaemon + in-process kotlin (local gradle.properties tweak, NOT committed)
+- Release: v0.17.17-native (prerelease). SHA256 311c795f68886577231bd37ee705d0475892a9eb9f883ef584996f0c9cc4e188, 28,849,544 B
+- 14 patches (47-52,54-61 -> 62), all PatchCheck-verified byte-identical
+- CDN vc 62 live; /releases/latest stays app-v7.22.1; download hashes verified
+- Untested on a real phone (emulator-free build env)
