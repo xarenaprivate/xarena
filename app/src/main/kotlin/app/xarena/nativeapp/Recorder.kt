@@ -99,6 +99,7 @@ class RecorderService : Service() {
         val micOk = androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) ==
             android.content.pm.PackageManager.PERMISSION_GRANTED
         val r = if (Build.VERSION.SDK_INT >= 31) MediaRecorder(this) else @Suppress("DEPRECATION") MediaRecorder()
+        try {
         if (micOk) r.setAudioSource(MediaRecorder.AudioSource.MIC)
         r.setVideoSource(MediaRecorder.VideoSource.SURFACE)
         r.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
@@ -123,6 +124,12 @@ class RecorderService : Service() {
         vd = p.createVirtualDisplay("xrec", w, h, dm.densityDpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, r.surface, null, null)
         r.start()
         rec = r
+        } catch (t: Throwable) {
+            // setup failed before rec was assigned - release the local recorder so it cannot leak
+            runCatching { r.release() }
+            runCatching { vd?.release() }; vd = null
+            throw t
+        }
         RecStore.recording = true; RecStore.startedAt = System.currentTimeMillis()
         XPanelStore.sync(this)
     }

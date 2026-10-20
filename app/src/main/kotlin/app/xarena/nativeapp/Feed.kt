@@ -373,14 +373,7 @@ private fun ComposePostDialog(onDone: (Boolean) -> Unit) {
                                                 mediaPath = Api.cloudinaryUploadVideo(bytes, mime)
                                             } else {
                                                 if (bytes.size > 5 * 1024 * 1024) {
-                                                    var bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: throw Exception("Could not read that image.")
-                                                    if (maxOf(bmp.width, bmp.height) > 1280) {
-                                                        val f = 1280f / maxOf(bmp.width, bmp.height)
-                                                        bmp = android.graphics.Bitmap.createScaledBitmap(bmp, Math.round(bmp.width * f), Math.round(bmp.height * f), true)
-                                                    }
-                                                    val baos = java.io.ByteArrayOutputStream()
-                                                    bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, 82, baos)
-                                                    bytes = baos.toByteArray()
+                                                    bytes = Img.downscaleJpeg(bytes) ?: throw Exception("Could not read that image.")
                                                 }
                                                 kind = "photo"
                                                 val ext = mime.substringAfter("/", "jpg")

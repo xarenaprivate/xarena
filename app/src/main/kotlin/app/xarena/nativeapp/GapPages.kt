@@ -265,14 +265,7 @@ fun VerifyScreen(onBack: () -> Unit) {
                     var bytes = withContext(Dispatchers.IO) { cr.openInputStream(uri)!!.use { it.readBytes() } }
                     if (bytes.size > 8 * 1024 * 1024) throw Exception("Image too large (max 8 MB).")
                     if (bytes.size > 2 * 1024 * 1024) {
-                        val bmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                        if (bmp != null) {
-                            val f = 1280f / maxOf(bmp.width, bmp.height)
-                            val scaled = if (f < 1f) android.graphics.Bitmap.createScaledBitmap(bmp, Math.round(bmp.width * f), Math.round(bmp.height * f), true) else bmp
-                            val baos = java.io.ByteArrayOutputStream()
-                            scaled.compress(android.graphics.Bitmap.CompressFormat.JPEG, 82, baos)
-                            bytes = baos.toByteArray()
-                        }
+                        bytes = Img.downscaleJpeg(bytes) ?: bytes
                     }
                     val url = Api.cloudinaryUpload(bytes)
                     val res = Api.authedRpc("submit_id_verification", JSONObject().put("p_image", url))

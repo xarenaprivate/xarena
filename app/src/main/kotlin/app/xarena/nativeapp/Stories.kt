@@ -66,15 +66,9 @@ fun StoriesScreen(onBack: () -> Unit) {
                     kind = "clip"
                     url = Api.cloudinaryUploadVideo(bytes, mime)
                 } else {
-                    var bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: throw Exception("Could not read that image.")
-                    if (maxOf(bmp.width, bmp.height) > 1280) {
-                        val f = 1280f / maxOf(bmp.width, bmp.height)
-                        bmp = android.graphics.Bitmap.createScaledBitmap(bmp, Math.round(bmp.width * f), Math.round(bmp.height * f), true)
-                    }
-                    val baos = java.io.ByteArrayOutputStream()
-                    bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, 82, baos)
+                    bytes = Img.downscaleJpeg(bytes) ?: throw Exception("Could not read that image.")
                     kind = "photo"
-                    url = Api.cloudinaryUpload(baos.toByteArray())
+                    url = Api.cloudinaryUpload(bytes)
                 }
                 val r = Api.storyCreate(kind, url, null)
                 if (!r.optBoolean("ok")) throw Exception(r.s("error").ifBlank { "Could not post story." })

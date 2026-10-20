@@ -422,20 +422,15 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
                     kind = "video"
                     meta = JSONObject().put("mime", mime).put("size", bytes.size).put("sk", DmCrypto.myKeyId()).put("rk", peerKeyId)
                 } else {
-                    val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, opts)
-                    var w = opts.outWidth; var h = opts.outHeight
-                    if (w <= 0 || h <= 0) throw Exception("Could not read that image.")
+                    val (bw, bh) = Img.bounds(bytes)
+                    if (bw <= 0 || bh <= 0) throw Exception("Could not read that image.")
                     val max = 1280
-                    var bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                    var w = bw; var h = bh
                     if (maxOf(w, h) > max) {
                         val f = max.toFloat() / maxOf(w, h)
                         w = Math.round(w * f); h = Math.round(h * f)
-                        bmp = android.graphics.Bitmap.createScaledBitmap(bmp, w, h, true)
                     }
-                    val baos = java.io.ByteArrayOutputStream()
-                    bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, 82, baos)
-                    bytes = baos.toByteArray()
+                    bytes = Img.downscaleJpeg(bytes, max, 82) ?: throw Exception("Could not read that image.")
                     kind = "image"
                     meta = JSONObject().put("mime", "image/jpeg").put("width", w).put("height", h).put("size", bytes.size).put("sk", DmCrypto.myKeyId()).put("rk", peerKeyId)
                 }

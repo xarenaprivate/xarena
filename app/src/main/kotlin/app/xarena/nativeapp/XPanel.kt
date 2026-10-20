@@ -304,6 +304,7 @@ class FloatingXPanelService : Service() {
         ui.removeCallbacks(refreshTick)
         listOf(ball, handle, panel).forEach { it?.let { v -> runCatching { wm.removeView(v) } } }
         ball = null; handle = null; panel = null
+        io.shutdown()
         super.onDestroy()
     }
 }
