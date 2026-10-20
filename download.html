@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="canonical" href="https://xarena.surge.sh/download.html">
+<link rel="canonical" href="https://xarenaprivate.github.io/xarena/download.html">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Get the App · XARENA ESPORTS</title>
@@ -14,8 +14,8 @@
 <meta property="og:site_name" content="XARENA ESPORTS">
 <meta property="og:title" content="XARENA ESPORTS - Free Fire tournaments, feed, stories, Luna">
 <meta property="og:description" content="India's Free Fire esports platform - tournaments, scrims, highlights feed, stories, encrypted messages and the Luna assistant. Free forever.">
-<meta property="og:url" content="https://xarena.surge.sh/">
-<meta property="og:image" content="https://xarena.surge.sh/assets/icon-512.png">
+<meta property="og:url" content="https://xarenaprivate.github.io/xarena/">
+<meta property="og:image" content="https://xarenaprivate.github.io/xarena/assets/icon-512.png">
 <meta name="twitter:card" content="summary">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0a0104">
@@ -147,7 +147,7 @@
     <p style="color:var(--muted);font-size:13.5px;margin:6px 0 12px">Send friends this one link. Copy it WITH the https:// - apps like Instagram only make full https links tappable.</p>
     <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
       <button class="btn btn-red btn-sm" id="dl-copy">Copy the link</button>
-      <a class="btn btn-ghost btn-sm" href="https://xarena.surge.sh/download.html" id="dl-plain" style="user-select:all">https://xarena.surge.sh/download.html</a>
+      <a class="btn btn-ghost btn-sm" href="https://xarenaprivate.github.io/xarena/download.html" id="dl-plain" style="user-select:all">https://xarenaprivate.github.io/xarena/download.html</a>
     </div>
   </div>
   <div class="card" style="margin-bottom:16px;text-align:center">
@@ -174,7 +174,7 @@ window.addEventListener("load", function () {
   (function () {
     if (typeof qrcode === "undefined") return;
     var Q = qrcode(0, "M");
-    Q.addData("https://xarena.surge.sh/download.html");
+    Q.addData("https://xarenaprivate.github.io/xarena/download.html");
     Q.make();
     var W = 1080, H = 1350;
     var cv = document.createElement("canvas"); cv.width = W; cv.height = H;
@@ -256,7 +256,7 @@ window.addEventListener("load", function () {
   }
   var copyBtn = document.getElementById("dl-copy");
   if (copyBtn) copyBtn.addEventListener("click", function () {
-    var link = "https://xarena.surge.sh/download.html";
+    var link = "https://xarenaprivate.github.io/xarena/download.html";
     function done() { copyBtn.textContent = "Copied - paste it anywhere"; setTimeout(function () { copyBtn.textContent = "Copy the link"; }, 2000); }
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(link).then(done, done);
     else { var t = document.createElement("textarea"); t.value = link; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); } catch (e) {} t.remove(); done(); }

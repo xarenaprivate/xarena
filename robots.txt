@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 
-Sitemap: https://xarena.surge.sh/sitemap.xml
+Sitemap: https://xarenaprivate.github.io/xarena/sitemap.xml
