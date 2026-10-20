@@ -49,6 +49,7 @@ private fun regStatusLine(o: JSONObject): String {
     return when {
         o.optBoolean("hold") -> "UNDER REVIEW - routine security check"
         o.optBoolean("verified") || st == "VERIFIED" || st == "APPROVED" -> "VERIFIED"
+        st == "WAITLIST" -> "WAITLIST - you are in line if a slot opens"
         st == "REJECTED" || st == "CANCELLED" -> st
         else -> "PENDING VERIFICATION"
     }
@@ -70,6 +71,7 @@ fun RegisterScreen(onBack: () -> Unit) {
     var err by remember { mutableStateOf<String?>(null) }
     var successId by remember { mutableStateOf<String?>(null) }
     var holdNote by remember { mutableStateOf(false) }
+    var waitNote by remember { mutableStateOf(false) }
     var entryCost by remember { mutableStateOf(0) }
     var apNote by remember { mutableStateOf<String?>(null) }
     var myReg by remember { mutableStateOf<JSONObject?>(null) }
@@ -125,6 +127,7 @@ fun RegisterScreen(onBack: () -> Unit) {
                 Text("Screenshot this ID - it is your proof of entry for " + tourneyName + ".", color = Color.White, fontSize = 13.sp)
                 apNote?.let { Text(it, color = Gold2, fontSize = 13.sp) }
                 if (holdNote) Text("Note: your entry is under a quick security review (routine). It shows in the management panel and gets verified there.", color = Gold2, fontSize = 12.sp)
+                if (waitNote) Text("You are on the waitlist - if a slot opens, your entry moves up automatically.", color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(12.dp))
                 GoldButton("BACK TO TOURNAMENTS", onClick = onBack)
             }
@@ -190,6 +193,7 @@ fun RegisterScreen(onBack: () -> Unit) {
                         if (r.optBoolean("ok")) {
                             Api.myRegsAdd(regId, squad.trim())
                             holdNote = r.optBoolean("hold") || r.optBoolean("review")
+                            waitNote = r.optBoolean("waitlist")
                             val charged = r.optInt("ap_charged", 0)
                             if (charged > 0) apNote = charged.toString() + " AP charged. Balance: " + r.optInt("balance", -1).takeIf { it >= 0 }?.toString() + " AP."
                             successId = regId
