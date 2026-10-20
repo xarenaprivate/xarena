@@ -9,7 +9,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,9 +27,15 @@ import org.json.JSONObject
 
 /* Home tab: featured tournament, LIVE NOW swiper, upcoming tournaments swiper, your stats.
    Every number is from the live backend; empty states where nothing exists. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
     var tick by remember { mutableIntStateOf(0) }
+    val ptr = rememberPullToRefreshState()
+    if (ptr.isRefreshing) {
+        LaunchedEffect(true) { tick++; kotlinx.coroutines.delay(1200); ptr.endRefresh() }
+    }
+    Box(Modifier.fillMaxSize().nestedScroll(ptr.nestedScrollConnection)) {
     LoadState2(tick, {
         val ts = Api.publicGet("/rest/v1/tournaments?select=id,name,status,slots,prize,date_text,reg_open,mode&order=sort.asc")
         val yt = runCatching { Api.publicGet("/rest/v1/site_settings?key=eq.youtube_live&select=value") }.getOrElse { JSONArray() }
@@ -142,6 +152,8 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                 Spacer(Modifier.height(24.dp))
             }
         }
+    }
+    PullToRefreshContainer(ptr, Modifier.align(Alignment.TopCenter))
     }
 }
 
