@@ -9,3 +9,5 @@ Status: SHIPPED / EXISTED / NEXT (next release) / POST-OCT-24
 ## 7 picks: mini-tournament POST-OCT-24 | rank/level NEXT | live match thread POST-OCT-24 | spectator page POST-OCT-24 | Player of the Day NEXT | meme/clip vote NEXT | sound/haptics NEXT
 ## Later: squad mini-page, challenge squad, pre-match checklist, season recap card, Hinglish guide, event calendar, feedback box, Store tab (cosmetic XP only) NEXT
 ## Creator 9, Organizer 8, Admin 10: NEXT (creator mini-cup POST-OCT-24; register_squad changes only after regression tests)
+
+## Update 9:15 PM (bundle1, more.html Arena Hub): SHIPPED = points table (reads lb_entries via admin Match Results), tournament history, spotlights (MVP match/week, Squad of Week, Player of Day, clip of week), notice board (scheduled + pinned), head-to-head, squad profile + share link, feedback box, feature flags row (all OFF), Aaj ka tip, data saver, creator spotlight.
