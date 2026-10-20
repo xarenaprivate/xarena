@@ -7,6 +7,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 
 /** Thin client for the SAME Supabase backend the website and the WebView app use. */
 object Api {
@@ -377,12 +378,48 @@ object Api {
         publicRpc("chat_send", JSONObject().put("p_handle", chatHandle).put("p_token", chatToken).put("p_body", body))
     }
 
-    suspend fun chatHistory(): JSONArray = withContext(Dispatchers.IO) {
-        publicGet("/rest/v1/chat_messages?select=id,handle,body,created_at&order=id.desc&limit=80")
+    suspend fun chatHistory(room: String): JSONArray = withContext(Dispatchers.IO) {
+        publicGet("/rest/v1/chat_messages?select=id,handle,body,created_at&room=eq." + URLEncoder.encode(room, "UTF-8") + "&order=id.desc&limit=80")
     }
 
-    suspend fun chatSince(lastId: Long): JSONArray = withContext(Dispatchers.IO) {
-        publicGet("/rest/v1/chat_messages?select=id,handle,body,created_at&order=id.asc&limit=80&id=gt." + lastId)
+    suspend fun chatSince(lastId: Long, room: String): JSONArray = withContext(Dispatchers.IO) {
+        publicGet("/rest/v1/chat_messages?select=id,handle,body,created_at&order=id.asc&limit=80&id=gt." + lastId + "&room=eq." + URLEncoder.encode(room, "UTF-8"))
+    }
+
+    /** Server-derived world-chat room from the account's coarse state: "general" or "st-<slug>". Cached so voice can reuse it; any failure falls back to General. */
+    suspend fun chatMyRoom(): Pair<String, String> = withContext(Dispatchers.IO) {
+        val h = chatHandle; val t = chatToken
+        if (h.isNullOrBlank() || t.isNullOrBlank()) return@withContext ("general" to "General")
+        try {
+            val j = publicRpc("chat_my_room", JSONObject().put("p_handle", h).put("p_token", t))
+            val d = j.optJSONObject("data") ?: j
+            val room = d.optString("room").ifBlank { "general" }
+            val label = d.optString("label").ifBlank { if (room == "general") "General" else room }
+            prefs.edit().putString("chat_room", room).putString("chat_room_label", label).apply()
+            room to label
+        } catch (e: Exception) {
+            (prefs.getString("chat_room", null) ?: "general") to (prefs.getString("chat_room_label", null) ?: "General")
+        }
+    }
+
+    /** Consent-based area set: coarse STATE ONLY - no district, no exact location (district/lat/lon stay null). */
+    suspend fun setMyArea(state: String): JSONObject = withContext(Dispatchers.IO) {
+        JSONObject(authed("POST", "/rest/v1/rpc/set_my_area",
+            JSONObject().put("p_state", state).put("p_district", JSONObject.NULL)
+                .put("p_lat", JSONObject.NULL).put("p_lon", JSONObject.NULL)))
+    }
+
+    /** Same reverse lookup the site uses (Nominatim zoom 10), so the state string matches the web room slugs. Returns the state name or null. */
+    suspend fun reverseGeocodeState(lat: Double, lon: Double): String? = withContext(Dispatchers.IO) {
+        try {
+            val u = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&addressdetails=1&accept-language=en&lat=$lat&lon=$lon"
+            val c = URL(u).openConnection() as HttpURLConnection
+            c.setRequestProperty("User-Agent", "XARENA-Android")
+            c.connectTimeout = 10000; c.readTimeout = 10000
+            val j = JSONObject(c.inputStream.bufferedReader().use { it.readText() })
+            val a = j.optJSONObject("address") ?: return@withContext null
+            a.optString("state").ifBlank { a.optString("region") }.ifBlank { null }
+        } catch (e: Exception) { null }
     }
 
     suspend fun myStats(): JSONObject? = withContext(Dispatchers.IO) {

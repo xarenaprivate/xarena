@@ -1,5 +1,10 @@
 package app.xarena.nativeapp
 
+import android.Manifest
+import android.content.Context
+import android.location.LocationManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,7 +23,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -131,6 +139,43 @@ fun ChatRoom() {
     var sending by remember { mutableStateOf(false) }
     var notice by remember { mutableStateOf<String?>(null) }
     var lastId by remember { mutableLongStateOf(0L) }
+    var room by remember { mutableStateOf(Api.prefs.getString("chat_room", null) ?: "general") }
+    var roomLabel by remember { mutableStateOf(Api.prefs.getString("chat_room_label", null) ?: "General") }
+    var areaBusy by remember { mutableStateOf(false) }
+    var areaMsg by remember { mutableStateOf<String?>(null) }
+    var locGranted by remember { mutableStateOf(
+        ContextCompat.checkSelfPermission(Api.ctx, Manifest.permission.ACCESS_COARSE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED) }
+
+    fun useMyState() {
+        if (areaBusy) return
+        areaBusy = true; areaMsg = null
+        scope.launch(Dispatchers.IO) {
+            try {
+                val lm = Api.ctx.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                var loc = runCatching { lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER) }.getOrNull()
+                    ?: runCatching { lm.getLastKnownLocation(LocationManager.GPS_PROVIDER) }.getOrNull()
+                if (loc == null) { areaMsg = "No location fix yet - turn location on and try again."; return@launch }
+                val state = Api.reverseGeocodeState(loc.latitude, loc.longitude)
+                if (state.isNullOrBlank()) { areaMsg = "Could not work out your state - you stay in General."; return@launch }
+                val r = Api.setMyArea(state)
+                if (!r.optBoolean("ok")) { areaMsg = r.s("error").ifBlank { "Could not save your area - you stay in General." }; return@launch }
+                val (nr, nl) = Api.chatMyRoom()
+                room = nr; roomLabel = nl
+                areaMsg = if (nr == "general") "Area saved - regional rooms open as more players join your state." else null
+            } catch (e: Exception) { areaMsg = "Could not set your area - you stay in General." }
+            finally { areaBusy = false }
+        }
+    }
+    val locLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        locGranted = granted
+        if (granted) useMyState() else areaMsg = "Location permission was not given - you stay in General."
+    }
+
+    LaunchedEffect(Unit) {
+        val (r, l) = Api.chatMyRoom()
+        if (r != room) room = r
+        roomLabel = l
+    }
 
     fun addRows(arr: org.json.JSONArray, toFront: Boolean) {
         val fresh = (0 until arr.length()).map {
@@ -142,9 +187,11 @@ fun ChatRoom() {
         lastId = maxOf(lastId, fresh.maxOf { it.id })
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(room) {
+        // (Re)load whenever the server moves us to a different room (area set, account change).
+        msgs = emptyList(); lastId = 0L; loadErr = null
         try {
-            val hist = Api.chatHistory()
+            val hist = Api.chatHistory(room)
             val rev = org.json.JSONArray()
             for (i in hist.length() - 1 downTo 0) rev.put(hist.getJSONObject(i))
             addRows(rev, toFront = false)
@@ -156,9 +203,9 @@ fun ChatRoom() {
             ticks++
             try {
                 if (ticks % 18 == 0 || lastId == 0L) {
-                    // Full resync every ~3 min: world chat is purged every few hours server-side,
-                    // and a purge can restart ids - an append-only lastId poll would freeze forever.
-                    val hist = Api.chatHistory()
+                    // Full resync every ~3 min: world chat is purged hourly (older than 6 h)
+                    // server-side; an append-only lastId poll would never notice vanished rows.
+                    val hist = Api.chatHistory(room)
                     val rev = org.json.JSONArray()
                     for (i in hist.length() - 1 downTo 0) rev.put(hist.getJSONObject(i))
                     val fresh = (0 until rev.length()).map { rev.getJSONObject(it) }
@@ -167,7 +214,7 @@ fun ChatRoom() {
                     msgs = fresh
                     lastId = fresh.maxOfOrNull { it.id } ?: 0L
                 } else {
-                    addRows(Api.chatSince(lastId), toFront = false)
+                    addRows(Api.chatSince(lastId, room), toFront = false)
                 }
             } catch (e: Exception) { /* keep polling */ }
         }
@@ -176,6 +223,19 @@ fun ChatRoom() {
     LaunchedEffect(msgs.size) { if (msgs.isNotEmpty()) listState.animateScrollToItem(msgs.size - 1) }
 
     Column(Modifier.fillMaxSize()) {
+        Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            Text("Room: " + roomLabel, color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            if (room == "general") {
+                Text(if (areaBusy) "Finding your state..." else "Use my state for regional chat",
+                    color = if (areaBusy) Muted else Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clickable(enabled = !areaBusy) {
+                        areaMsg = null
+                        if (locGranted) useMyState() else locLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                    })
+            }
+        }
+        areaMsg?.let { Text(it, color = Muted, fontSize = 11.sp, modifier = Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(horizontal = 12.dp, vertical = 2.dp)) }
         if (loadErr != null && msgs.isEmpty()) {
             Column(Modifier.weight(1f).padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(loadErr ?: "", color = ErrRed); Spacer(Modifier.height(12.dp))

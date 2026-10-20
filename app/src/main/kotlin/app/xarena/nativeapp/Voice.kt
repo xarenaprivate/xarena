@@ -160,7 +160,7 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
     var muted = false
         private set
 
-    fun join(handle: String) {
+    fun join(handle: String, room: String = "general") {
         if (handle.isNotBlank()) myHandle = handle
         try {
             val am = Api.ctx.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
@@ -180,7 +180,8 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
         }
         audioSource = factory!!.createAudioSource(audioConstraints)
         audioTrack = factory!!.createAudioTrack("voice-mic", audioSource)
-        chan = PhoenixChannel("realtime:voice:arena-lobby", myId,
+        val voiceChannel = if (room != "general") "realtime:voice:" + room else "realtime:voice:arena-lobby"
+        chan = PhoenixChannel(voiceChannel, myId,
             onJoined = { chan?.track(JSONObject().put("handle", myHandle).put("muted", false).put("at", System.currentTimeMillis())) },
             onJoins = { j -> main { onJoinsUpdate(j) } },
             onLeaves = { l -> main { onLeavesUpdate(l) } },
@@ -331,6 +332,7 @@ fun VoiceScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     var engine by remember { mutableStateOf<VoiceEngine?>(null) }
     var peers by remember { mutableStateOf<List<VoicePeer>>(emptyList()) }
+    var lobbyLabel by remember { mutableStateOf("General") }
     var state by remember { mutableStateOf("idle") }
     var muted by remember { mutableStateOf(false) }
     var micGranted by remember { mutableStateOf(
@@ -353,7 +355,9 @@ fun VoiceScreen(onBack: () -> Unit) {
                     scope.launch(Dispatchers.IO) {
                         try {
                             val h = runCatching { Api.myProfile()?.s("username") ?: "" }.getOrDefault("")
-                            e.join(h)
+                            val (room, rl) = runCatching { Api.chatMyRoom() }.getOrDefault("general" to "General")
+                            lobbyLabel = rl
+                            e.join(h, room)
                         } catch (ex: Throwable) { runCatching { e.leave() }; err = "Voice unavailable on this device right now - the rest of the app is unaffected."; engine = null; state = "idle" }
                     }
                 }
@@ -361,6 +365,7 @@ fun VoiceScreen(onBack: () -> Unit) {
                 err?.let { Text(it, color = ErrRed, fontSize = 13.sp) }
             } else {
                 Text(state.uppercase(), color = if (state == "joined") Color(0xFF22C55E) else Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text("Lobby: " + lobbyLabel, color = Muted, fontSize = 11.sp)
                 Spacer(Modifier.height(10.dp))
                 Row {
                     GoldButton(if (muted) "UNMUTE" else "MUTE") { muted = engine!!.toggleMute() }
