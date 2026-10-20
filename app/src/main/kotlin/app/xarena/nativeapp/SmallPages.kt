@@ -9,9 +9,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.animation.core.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -130,13 +132,26 @@ fun StreakScreen(onBack: () -> Unit) {
             val badges = s.optJSONArray("badges") ?: JSONArray()
             val has = { k: String -> (0 until badges.length()).any { badges.optString(it) == k } }
             SmallCard {
-                Text(streak.toString(), color = Gold2, fontSize = 44.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally))
+                val streakPulse = rememberInfiniteTransition(label = "streak")
+                val streakScale by streakPulse.animateFloat(1f, 1.07f, infiniteRepeatable(tween(800), RepeatMode.Reverse), label = "s")
+                Text(streak.toString(), color = Gold2, fontSize = 44.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.CenterHorizontally).graphicsLayer {
+                        val k = if (streak > 0 && !DataSaver.on) streakScale else 1f; scaleX = k; scaleY = k })
                 Text("day streak", color = Muted, fontSize = 14.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
                 Spacer(Modifier.height(10.dp))
                 if (claimed) Text("Checked in today - come back tomorrow", color = Color(0xFF22C55E), fontSize = 13.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
                 else GoldButton("CHECK IN TODAY") {
                     scope.launch { try { Api.authedRpc("daily_checkin", JSONObject()); tick++ } catch (e: Exception) { } }
                 }
+                Spacer(Modifier.height(8.dp))
+                var recapMsg by remember { mutableStateOf<String?>(null) }
+                GoldButton("SHARE MY SEASON RECAP") {
+                    scope.launch {
+                        val fx = ShareCard.buildRecap(Api.ctx)
+                        if (fx != null) ShareCard.share(Api.ctx, fx) else recapMsg = "Could not build the card - try again."
+                    }
+                }
+                recapMsg?.let { Text(it, color = ErrRed, fontSize = 12.sp) }
             }
             val weekDay = if (streak <= 0) 0 else ((streak - 1) % 7) + 1
             SmallCard {

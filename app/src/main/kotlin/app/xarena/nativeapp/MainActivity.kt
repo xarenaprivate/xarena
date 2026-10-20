@@ -63,6 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -125,6 +126,32 @@ object Txt {
     fun t(en: String, hi: String) = if (Txt.hi) hi else en
 }
 
+/** Animated app splash - brand mark scales in with a soft gold pulse. Skipped fast when Data Saver is on. */
+@Composable
+fun SplashAnim() {
+    val oneShot = remember { androidx.compose.animation.core.Animatable(0.6f) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        oneShot.animateTo(1f, androidx.compose.animation.core.spring(
+            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
+            stiffness = androidx.compose.animation.core.Spring.StiffnessLow))
+    }
+    val pulse = rememberInfiniteTransition(label = "splash")
+    val glow by pulse.animateFloat(0.75f, 1f, infiniteRepeatable(tween(900), RepeatMode.Reverse), label = "glow")
+    Box(Modifier.fillMaxSize().background(Ink), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.graphicsLayer { scaleX = oneShot.value; scaleY = oneShot.value; alpha = oneShot.value.coerceIn(0f, 1f) }) {
+            Box(Modifier.size(110.dp).clip(RoundedCornerShape(28.dp))
+                .background(Gold.copy(alpha = 0.18f * glow)).border(2.dp, Gold.copy(alpha = glow), RoundedCornerShape(28.dp)),
+                contentAlignment = Alignment.Center) {
+                Text("X", color = Gold2, fontSize = 52.sp, fontWeight = FontWeight.Black)
+            }
+            Spacer(Modifier.height(18.dp))
+            Text("XARENA", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Black, letterSpacing = 4.sp)
+            Text("E S P O R T S", color = Gold.copy(alpha = glow), fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 6.sp)
+        }
+    }
+}
+
 var Gold by mutableStateOf(Color(0xFFF5C451)); private set
 var Gold2 by mutableStateOf(Color(0xFFFFE9A3)); private set
 var Ink by mutableStateOf(Color(0xFF120A24)); private set
@@ -170,6 +197,8 @@ fun PaperPlaneIcon(tint: Color, size: androidx.compose.ui.unit.Dp) {
 @Composable
 fun XarenaApp() {
     androidx.compose.runtime.LaunchedEffect(Unit) { Look.init(Api.ctx); Txt.init(Api.ctx) }
+    var splash by remember { mutableStateOf(true) }
+    androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(if (DataSaver.on) 400 else 1500); splash = false }
     var screen by remember { mutableStateOf(if (Api.loggedIn) Screen.Home else Screen.Login) }
     var setupChecked by remember { mutableStateOf(false) }
     var update by remember { mutableStateOf<UpdateChecker.Info?>(null) }
@@ -199,6 +228,7 @@ fun XarenaApp() {
     }
     MaterialTheme(colorScheme = darkColorScheme(primary = Gold, background = Ink, surface = Card, onSurface = Color.White)) {
         NovaBackground {
+            if (splash) { SplashAnim(); return@NovaBackground }
             when (screen) {
                 Screen.Login -> LoginScreen(
                     onDone = { setupChecked = false; screen = Screen.Home },
