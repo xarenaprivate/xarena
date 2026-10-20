@@ -125,6 +125,7 @@ body.sp-page header.nav,body.sp-page .nav{background:#0a0a0a !important;border-b
 .spg-btn{margin-top:12px;background:linear-gradient(135deg,#f6d77a,#c28f12);color:#1a1200;border:0;border-radius:10px;padding:11px 18px;font:800 14px Orbitron,sans-serif;letter-spacing:1px;cursor:pointer}
 .spg-btn:disabled{opacity:.5}
 .spg-warn{color:#f2c94c !important;font-weight:700}
+.spg-list{margin-top:16px;background:#0b0b0b;border:1px solid #5c4513;border-radius:16px;padding:14px}.spg-list h2{font:800 14px Orbitron,sans-serif;letter-spacing:2px;color:#f2c94c;margin:0 0 4px}.spg-list .sub{font-size:12px;color:#bfae86;margin:0 0 8px}.spg-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #2a2008;font-size:15px;color:#f3e9cf}.spg-row b{color:#f2c94c;white-space:nowrap}.spg-row small{display:block;color:#a99a72;font-size:12px}.spg-empty{font-size:14px;color:#a99a72;padding:6px 0}
 .spg-msg{font-size:14px;margin-top:8px;color:#f2c94c}
 </style>
 <script>
@@ -142,7 +143,7 @@ body.sp-page header.nav,body.sp-page .nav{background:#0a0a0a !important;border-b
     if(!window.xrApi){if((wireAck.n=(wireAck.n||0)+1)<30){setTimeout(wireAck,200)}else login();return}
     window.xrApi.user().then(function(u){
       if(!u){login();return}
-      box.innerHTML='<label for="sp-f">Payment screenshot (JPG or PNG, max 5 MB)</label><input type="file" id="sp-f" accept="image/jpeg,image/png"><label for="sp-t">Transaction id (optional)</label><input type="text" id="sp-t" maxlength="40" autocomplete="off"><label for="sp-n">Name (optional)</label><input type="text" id="sp-n" maxlength="40" autocomplete="off"><button class="spg-btn" id="sp-go">SEND</button><div class="spg-msg" id="sp-m"></div>';
+      box.innerHTML='<label for="sp-f">Payment screenshot (JPG or PNG, max 5 MB)</label><input type="file" id="sp-f" accept="image/jpeg,image/png"><label for="sp-t">Transaction id (optional)</label><input type="text" id="sp-t" maxlength="40" autocomplete="off"><label for="sp-n">Name (optional)</label><input type="text" id="sp-n" maxlength="40" autocomplete="off"><label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px"><input type="checkbox" id="sp-c" style="margin-top:3px"><span>Show my name publicly on the supporters list. If unticked, you appear as Anonymous.</span></label><button class="spg-btn" id="sp-go">SEND</button><div class="spg-msg" id="sp-m"></div>';
       var m=document.getElementById("sp-m"),go=document.getElementById("sp-go");
       go.addEventListener("click",function(){
         var f=document.getElementById("sp-f").files[0];
@@ -154,7 +155,7 @@ body.sp-page header.nav,body.sp-page .nav{background:#0a0a0a !important;border-b
         window.xrApi.userToken().then(function(tok){
           return fetch(URLB+"/storage/v1/object/support-proofs/"+path,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+tok,"Content-Type":f.type,"x-upsert":"false"},body:f});
         }).then(function(r){if(!r.ok)throw new Error(r.status===403||r.status===400?"Limit reached (3 per day) or upload not allowed.":"Upload failed.");
-          return window.xrApi.uRpc("support_ack_submit",{p_path:path,p_txn:document.getElementById("sp-t").value,p_name:document.getElementById("sp-n").value});
+          return window.xrApi.uRpc("support_ack_submit",{p_path:path,p_txn:document.getElementById("sp-t").value,p_name:document.getElementById("sp-n").value,p_consent:document.getElementById("sp-c").checked});
         }).then(function(r){
           if(r&&r.ok){box.innerHTML='<p style="font-size:16px;color:#f2c94c;font-weight:700">Thanks, received.</p>'}
           else{m.textContent=(r&&r.error)||"Could not send.";go.disabled=false}
@@ -162,10 +163,20 @@ body.sp-page header.nav,body.sp-page .nav{background:#0a0a0a !important;border-b
       });
     }).catch(login);
   }
+
+  function supporters(){
+    fetch(URLB+"/rest/v1/rpc/support_supporters",{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:"{}"}).then(function(r){return r.json()}).then(function(L){
+      var h='<div class="spg-list"><h2>SUPPORTERS</h2><p class="sub">Listed by date, newest first. Only payments checked by XARENA admins are shown.</p>';
+      if(!Array.isArray(L)||!L.length)h+='<div class="spg-empty">No supporters listed yet.</div>';
+      else h+=L.map(function(x){var d=x.date?new Date(x.date+"T00:00:00").toLocaleDateString([],{day:"numeric",month:"short",year:"numeric"}):"";return '<div class="spg-row"><div>'+esc(x.name)+'<small>'+esc(d)+'</small></div><b>&#8377;'+esc(x.amount)+'</b></div>'}).join("");
+      root.insertAdjacentHTML("beforeend",h+"</div>");
+    }).catch(function(){});
+  }
   fetch(URLB+"/rest/v1/site_settings?key=eq.support&select=value",{headers:{apikey:KEY}}).then(function(r){return r.json()}).then(function(d){
     var v=d&&d[0]&&d[0].value||{};var ok=typeof v.image_url==="string"&&/^https:\/\//.test(v.image_url);
     root.innerHTML='<div class="spg-frame"><div class="spg-in">'+HEAD+(ok?'<div class="spg-scan">SCAN TO DONATE</div><img class="spg-qr" src="'+esc(v.image_url)+'" alt="Payment QR code">'+(v.text?'<div class="spg-note">'+esc(v.text)+'</div>':""):'<div class="spg-soon">COMING SOON</div>')+NOTE+'</div></div>'+(ok?ackForm():"");
     if(ok)wireAck();
+    supporters();
   }).catch(function(){root.innerHTML='<div class="spg-frame"><div class="spg-in">'+HEAD+'<div class="spg-soon">COMING SOON</div>'+NOTE+'</div></div>'});
 })();
 </script>

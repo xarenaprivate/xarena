@@ -1860,22 +1860,24 @@
         .then(function (r) { return r.json(); }).then(function (d) { if (!d || !d.signedURL) throw new Error("sign failed"); return api.url + "/storage/v1" + d.signedURL; });
     }
     function load() {
-      call(function () { return api.uRpc("admin_support_acks", {}); }).then(function (rows) {
+      call(function () { return api.rpc("admin_support_acks", {}, true); }).then(function (rows) {
         if (!Array.isArray(rows) || !rows.length) { list.innerHTML = "<p>No acknowledgements yet.</p>"; return; }
         list.innerHTML = rows.map(function (r) {
           return '<div class="card" style="margin:8px 0" data-id="' + r.id + '" data-path="' + esc(r.path) + '"><b>' + esc(r.name || "(no name)") + "</b> &middot; @" + esc(r.username || "?") + " &middot; " + esc(new Date(r.created_at).toLocaleString()) +
-            (r.txn_id ? "<br>Txn: " + esc(r.txn_id) : "") + (r.seen ? ' <span style="color:#7bd88f">seen</span>' : ' <span style="color:#f2c94c">new</span>') +
-            '<div style="margin-top:6px"><button class="btn btn-ghost btn-sm" data-sa="view">View screenshot</button> <button class="btn btn-ghost btn-sm" data-sa="seen">Mark seen</button> <button class="btn btn-red btn-sm" data-sa="del">Delete</button></div><div data-img></div></div>';
+            (r.txn_id ? "<br>Txn: " + esc(r.txn_id) : "") + "<br>Public name: " + (r.consent && r.name ? "yes" : "no (Anonymous)") + " &middot; Status: <b>" + esc(r.status) + "</b>" + (r.amount ? " &middot; &#8377;" + esc(r.amount) : "") + (r.seen ? ' <span style="color:#7bd88f">seen</span>' : ' <span style="color:#f2c94c">new</span>') +
+            '<div style="margin-top:6px"><button class="btn btn-ghost btn-sm" data-sa="view">View screenshot</button> <button class="btn btn-ghost btn-sm" data-sa="seen">Mark seen</button> <button class="btn btn-red btn-sm" data-sa="approve">Approve + amount</button> <button class="btn btn-ghost btn-sm" data-sa="hide">Hide from list</button> <button class="btn btn-red btn-sm" data-sa="del">Delete</button></div><div data-img></div></div>';
         }).join("");
         list.querySelectorAll("[data-sa]").forEach(function (b) {
           b.addEventListener("click", function () {
             var c = b.closest("[data-id]"), id = +c.getAttribute("data-id"), path = c.getAttribute("data-path"), a = b.getAttribute("data-sa");
             if (a === "view") { proof(path).then(function (u) { c.querySelector("[data-img]").innerHTML = '<img src="' + esc(u) + '" alt="" style="max-width:100%;max-height:420px;margin-top:8px;border-radius:8px">'; }).catch(function () { c.querySelector("[data-img]").textContent = "Could not load."; }); }
-            if (a === "seen") call(function () { return api.uRpc("admin_support_ack_seen", { p_id: id }); }).then(load);
+            if (a === "approve") { var amt = prompt("Verified amount received in INR (whole rupees). It will appear on the public supporters list."); if (amt === null) return; amt = parseInt(amt, 10); call(function () { return api.rpc("admin_support_ack_approve", { p_id: id, p_amount: amt }, true); }).then(function (r) { if (r && r.ok === false) alert(r.error); load(); }); }
+            if (a === "hide") call(function () { return api.rpc("admin_support_ack_hide", { p_id: id }, true); }).then(load);
+            if (a === "seen") call(function () { return api.rpc("admin_support_ack_seen", { p_id: id }, true); }).then(load);
             if (a === "del") { if (!confirm("Delete this acknowledgement and its screenshot?")) return;
               var s = api.session();
               fetch(api.url + "/storage/v1/object/support-proofs/" + path, { method: "DELETE", headers: { "apikey": api.key, "Authorization": "Bearer " + (s && s.access_token) } })
-                .then(function () { return call(function () { return api.uRpc("admin_support_ack_delete", { p_id: id }); }); }).then(load); }
+                .then(function () { return call(function () { return api.rpc("admin_support_ack_delete", { p_id: id }, true); }); }).then(load); }
           });
         });
       }).catch(function (e) { list.textContent = "Failed: " + e.message; });
