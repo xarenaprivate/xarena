@@ -27,3 +27,4 @@ rpc/register_squad: p_tournament = site_settings reg_tournament ("xr-5oar"). Res
 points_table {p_tournament}, head_to_head {p_a,p_b}, squad_profile {p_squad}, creator_board {}, feedback_submit {p_kind,p_body}, tournament_reg_counts {}, GET notices (RLS shows active), GET site_settings?key=eq.tips / pinned / flags.
 
 ## Not built yet (flags OFF): live match thread, spectator page, mini-cup.
+- live thread + spectator RPCs (bundle5): thread_post {p_match,p_body}, thread_list {p_match,p_limit}, thread_report {p_post,p_reason}, spectator_info {p_tournament}; all return ok:false while flags live_thread/spectator are OFF. No Room ID. Auto-hide at 3 reports.

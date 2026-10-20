@@ -1,0 +1,2 @@
+drop function if exists public.spectator_info(text); drop function if exists public.admin_thread_hide(bigint,boolean); drop function if exists public.thread_report(bigint,text); drop function if exists public.thread_list(uuid,int); drop function if exists public.thread_post(uuid,text); drop function if exists public._flag(text);
+drop table if exists public.match_thread_reports; drop table if exists public.match_thread_posts;

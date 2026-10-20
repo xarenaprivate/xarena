@@ -7,7 +7,7 @@
   function prpc(n, a) { return fetch(URLB + "/rest/v1/rpc/" + n, { method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" }, body: JSON.stringify(a || {}) }).then(function (r) { return r.json(); }); }
   function safe(u) { u = String(u || ""); return /^https:\/\//.test(u) ? u : ""; }
   var body = document.getElementById("hub-body"), tabs = document.getElementById("hub-tabs");
-  var T = [["points", "Points table"], ["history", "History"], ["spot", "Spotlights"], ["notices", "Notice board"], ["h2h", "Head to head"], ["squad", "Squad profile"], ["creators", "Creators"], ["guide", "Guide & checklist"], ["faq", "FAQ"], ["feedback", "Feedback"]];
+  var T = [["points", "Points table"], ["history", "History"], ["spot", "Spotlights"], ["notices", "Notice board"], ["h2h", "Head to head"], ["squad", "Squad profile"], ["watch", "Watch"], ["creators", "Creators"], ["guide", "Guide & checklist"], ["faq", "FAQ"], ["feedback", "Feedback"]];
   function empty(t) { return '<div class="hub-c hub-e">' + t + "</div>"; }
   var V = {
     points: function () {
@@ -78,6 +78,23 @@
       if (id) { show(id); return; }
       get("squads_public?select=id,name&order=name.asc&limit=200").then(function (sq) {
         body.innerHTML = !sq || !sq.length ? empty("No squads yet.") : sq.map(function (s) { return '<div class="hub-c"><a href="more.html?squad=' + esc(s.id) + '#squad">' + esc(s.name) + "</a></div>"; }).join("");
+      });
+    },
+    watch: function () {
+      prpc("spectator_info", { p_tournament: "xr-5oar" }).then(function (r) {
+        if (!r || !r.ok) { body.innerHTML = empty("The watch page opens on match day. Room ID and password are never shown here; they are only for registered players."); return; }
+        var t = r.tournament || {};
+        body.innerHTML = '<div class="hub-c"><b>' + esc(t.name) + "</b><br>" + esc(t.date_text) + " · " + esc(t.status) + "</div><h3>Matches</h3>" + ((r.matches || []).length ? r.matches.map(function (m) { return '<div class="hub-c"><b>' + esc(m.title) + "</b> · " + esc(m.status) + (m.starts_at ? "<br>" + esc(new Date(m.starts_at).toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })) + " IST" : "") + '<br><button class="hub-b" data-th="' + esc(m.id) + '">Open thread</button><div id="th-' + esc(m.id) + '"></div></div>'; }).join("") : empty("No matches scheduled yet.")) +
+          "<h3>Points</h3>" + (Array.isArray(r.points) && r.points.length ? '<table class="hub-t">' + r.points.map(function (x, i) { return "<tr><td>" + (i + 1) + "</td><td>" + esc(x.squad) + "</td><td>" + x.points + "</td></tr>"; }).join("") + "</table>" : empty("No results yet."));
+        body.querySelectorAll("[data-th]").forEach(function (b) { b.addEventListener("click", function () {
+          var id = b.dataset.th, box = document.getElementById("th-" + id);
+          function load() { prpc("thread_list", { p_match: id, p_limit: 50 }).then(function (x) {
+            box.innerHTML = (x && x.ok ? (x.posts || []).map(function (p) { return "<div><b>" + esc(p.name) + ":</b> " + esc(p.body) + (p.mine ? "" : ' <a href="#" data-rp="' + p.id + '">report</a>') + "</div>"; }).join("") || "<p>No messages yet.</p>" : "<p>" + esc((x && x.error) || "Closed") + "</p>") + '<input id="thi-' + esc(id) + '" maxlength="200" placeholder="Say something (no phone numbers or links)"><button class="hub-b" id="thb-' + esc(id) + '">Post</button> <span id="thm-' + esc(id) + '"></span>';
+            document.getElementById("thb-" + id).addEventListener("click", function () { if (!window.xrApi) return; window.xrApi.uRpc("thread_post", { p_match: id, p_body: document.getElementById("thi-" + id).value }).then(function (r2) { if (r2 && r2.ok) load(); else document.getElementById("thm-" + id).textContent = (r2 && r2.error) || "Log in first."; }); });
+            box.querySelectorAll("[data-rp]").forEach(function (a) { a.addEventListener("click", function (e) { e.preventDefault(); if (window.xrApi) window.xrApi.uRpc("thread_report", { p_post: +a.dataset.rp, p_reason: "report" }).then(function () { a.textContent = "reported"; }); }); });
+          }); }
+          load();
+        }); });
       });
     },
     creators: function () {
