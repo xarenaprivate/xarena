@@ -1,3 +1,7 @@
+/* Registration target tournament: site_settings key reg_tournament {id} (default xr-s1 = unchanged behaviour). */
+window.__xrRegT = "xr-s1";
+function xrRegT() { return window.__xrRegT || "xr-s1"; }
+try { fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/site_settings?key=eq.reg_tournament&select=value", { headers: { apikey: "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7" } }).then(function (r) { return r.json(); }).then(function (r) { var v = r && r[0] && r[0].value; if (v && /^[a-z0-9-]{2,40}$/.test(v.id || "")) window.__xrRegT = v.id; }).catch(function () {}); } catch (e) {}
 /* Hybrid OS embed mode: pages opened inside Hybrid OS windows hide the website chrome. */
 (function () {
   try {
@@ -286,7 +290,10 @@
         if (sc) {
           el(".sid", sc).textContent = rec.id;
           var hp = el(".hold-note", sc);
-          if (hp) hp.style.display = (res && res.hold) ? "block" : "none";
+          if (hp) {
+            if (res && res.waitlist) { hp.textContent = "You are on the waitlist. All 48 slots are taken. If a slot opens, the owner moves squads up in the order they joined."; hp.style.display = "block"; }
+            else hp.style.display = (res && res.hold) ? "block" : "none";
+          }
           sc.classList.add("show");
           sc.scrollIntoView({ behavior: "smooth", block: "center" });
         }
@@ -366,7 +373,7 @@
     if (!window.xrApi || !xrApi.uRpc) return;
     xrApi.uRpc("my_registrations", {}).then(function (r) {
       if (!r || !r.ok) return;
-      var mine = (r.registrations || []).filter(function (x) { return x.tournament_id === "xr-s1"; })[0];
+      var mine = (r.registrations || []).filter(function (x) { return x.tournament_id === xrRegT(); })[0];
       if (!mine) return;
       var st = mine.verified ? "VERIFIED" : (mine.status === "confirmed" ? "Confirmed" : (mine.status || "pending"));
       var rf = document.getElementById("reg-form");
@@ -391,7 +398,7 @@
     var rf = document.getElementById("reg-form");
     if (!rf) return;
     try {
-      fetch(xrApi.url + "/rest/v1/tournaments?select=entry_cost_ap&id=eq.xr-s1", { headers: { apikey: "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7" } })
+      fetch(xrApi.url + "/rest/v1/tournaments?select=entry_cost_ap&id=eq." + xrRegT(), { headers: { apikey: "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7" } })
         .then(function (r) { return r.json(); }).then(function (d) {
           var c = d && d[0] && parseInt(d[0].entry_cost_ap, 10);
           if (!(c > 0)) return;
@@ -407,13 +414,13 @@
   bindForm("reg-form", {
     store: "xarena_regs", table: "registrations", prefix: "XR-S1", type: "tournament_registration",
     successId: "reg-success", toast: "Squad registered — save your Registration ID.", btn: "REGISTER SQUAD",
-    row: function (r) { return { id: r.id, tournament_id: "xr-s1", squad: r.squad, captain: r.captain, uid: r.uid, phone: r.phone }; },
+    row: function (r) { return { id: r.id, tournament_id: xrRegT(), squad: r.squad, captain: r.captain, uid: r.uid, phone: r.phone }; },
     rpcSubmit: function (rec) {
       var fileInput = el("#proof");
       var file = fileInput && fileInput.files && fileInput.files[0];
       return uploadProof(rec.id, file).then(function (proofPath) {
         return xrApi.uRpc(xrEntryCost > 0 ? "enter_tournament_with_ap" : "register_squad", {
-          p_id: rec.id, p_tournament: "xr-s1", p_squad: rec.squad, p_captain: rec.captain,
+          p_id: rec.id, p_tournament: xrRegT(), p_squad: rec.squad, p_captain: rec.captain,
           p_uid: rec.uid, p_ign: rec.captain, p_phone: rec.phone, p_proof: proofPath,
           p_client: deviceId(), p_ip: null
         });

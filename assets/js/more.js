@@ -17,7 +17,17 @@
         function load() { prpc("points_table", { p_tournament: sel.value || null }).then(function (r) {
           var box = document.getElementById("p-r");
           if (!Array.isArray(r) || !r.length) { box.innerHTML = empty("No results yet. The table fills in after the first match is played."); return; }
-          box.innerHTML = '<div class="hub-c"><table class="hub-t"><tr><th>#</th><th>Squad</th><th>Matches</th><th>Kills</th><th>Points</th></tr>' + r.map(function (x, i) { return "<tr><td>" + (i + 1) + "</td><td>" + esc(x.squad) + "</td><td>" + x.matches + "</td><td>" + x.kills + "</td><td><b>" + x.points + "</b></td></tr>"; }).join("") + "</table></div>"; }); }
+          box.innerHTML = '<div class="hub-c"><button class="hub-b" id="p-share">Share result recap</button></div><div class="hub-c"><table class="hub-t"><tr><th>#</th><th>Squad</th><th>Matches</th><th>Kills</th><th>Points</th></tr>' + r.map(function (x, i) { return "<tr><td>" + (i + 1) + "</td><td>" + esc(x.squad) + "</td><td>" + x.matches + "</td><td>" + x.kills + "</td><td><b>" + x.points + "</b></td></tr>"; }).join("") + "</table></div>";
+          document.getElementById("p-share").addEventListener("click", function () {
+            var tn = sel.options[sel.selectedIndex].text;
+            get("lb_entries?select=player_name,kills&order=kills.desc&limit=1").then(function (k) {
+              var lines = r.slice(0, 3).map(function (x, i) { return (i + 1) + ". " + x.squad + " - " + x.points + " pts"; });
+              if (k && k[0] && k[0].kills > 0) lines.push("Top fragger: " + k[0].player_name + " (" + k[0].kills + " kills)");
+              if (!window.xshare) return;
+              var cv = xshare.draw({ kicker: "XARENA result", title: sel.value ? tn : "Results", lines: lines, sub: "Free Fire tournaments - free forever" });
+              xshare.share(cv, "XARENA result", "Results on XARENA").then(function (ok) { if (!ok) xshare.download(cv, "xarena-result.png"); });
+            });
+          }); }); }
         sel.addEventListener("change", load); load();
       });
     },
