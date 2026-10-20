@@ -81,6 +81,9 @@
     supportqr: { title: "Support QR", custom: renderSupportQr },
     pinned: { title: "Pinned notice", custom: renderPinned },
     tips: { title: "Aaj ka tip", custom: renderTips },
+    spotlights: { title: "Spotlights", custom: renderSpot },
+    notices: { title: "Notice board", custom: renderNotices },
+    feedback: { title: "Feedback", custom: renderFeedback },
     sponsors: {
       title: "Sponsors", table: "sponsors", order: "id.asc",
       cols: [
@@ -1865,6 +1868,52 @@
           .then(function () { return api.audit("tips_set", { n: list.length }); })
           .then(function () { el("#tp-m", body).textContent = "Saved " + list.length + " tips."; }).catch(function (e) { el("#tp-m", body).textContent = "Failed: " + e.message; });
       });
+    });
+  }
+
+  function renderSpot() {
+    var body = el("#admin-body"), KINDS = { mvp_match: "MVP of the match", mvp_week: "MVP of the week", squad_week: "Squad of the Week", player_day: "Player of the Day", clip_week: "Clip of the week" };
+    function load() {
+      call(function () { return api.aGet("spotlights", "?select=*&order=created_at.desc&limit=40"); }).then(function (rows) {
+        body.innerHTML = '<div class="card"><h3>Add spotlight</h3><div class="field"><label>Type</label><select id="sp-k">' + Object.keys(KINDS).map(function (k) { return '<option value="' + k + '">' + KINDS[k] + "</option>"; }).join("") + '</select></div>' +
+          '<div class="field"><label>Name</label><input id="sp-n" maxlength="80"></div><div class="field"><label>Detail (optional)</label><input id="sp-d" maxlength="240"></div><div class="field"><label>Logo URL (optional, https)</label><input id="sp-l"></div><div class="field"><label>Link (optional, https; for clip)</label><input id="sp-r"></div>' +
+          '<button class="btn btn-red btn-sm" id="sp-s">Save</button> <span id="sp-m"></span></div><div class="card"><h3>Recent</h3>' + ((rows || []).map(function (r) { return "<div>" + esc(KINDS[r.kind]) + ": <b>" + esc(r.name) + '</b> <button class="btn btn-sm" data-del="' + r.id + '">Delete</button></div>'; }).join("") || "None yet.") + "</div>";
+        el("#sp-s", body).addEventListener("click", function () {
+          var l = el("#sp-l", body).value.trim(), r = el("#sp-r", body).value.trim(), m = el("#sp-m", body);
+          if ((l && !/^https:\/\//.test(l)) || (r && !/^https:\/\//.test(r))) { m.textContent = "Links must start with https://"; return; }
+          if (!el("#sp-n", body).value.trim()) { m.textContent = "Add a name."; return; }
+          call(function () { return api.aPost("spotlights", { kind: el("#sp-k", body).value, name: el("#sp-n", body).value.trim(), detail: el("#sp-d", body).value.trim() || null, logo_url: l || null, ref_url: r || null }); })
+            .then(load).catch(function (e) { m.textContent = "Failed: " + e.message; });
+        });
+        body.querySelectorAll("[data-del]").forEach(function (b) { b.addEventListener("click", function () { call(function () { return api.aDel("spotlights", "id=eq." + b.dataset.del); }).then(load); }); });
+      });
+    }
+    load();
+  }
+  function renderNotices() {
+    var body = el("#admin-body");
+    function load() {
+      call(function () { return api.aGet("notices", "?select=*&order=created_at.desc&limit=40"); }).then(function (rows) {
+        body.innerHTML = '<div class="card"><h3>Add notice</h3><div class="field"><label>Title</label><input id="nt-t" maxlength="80"></div><div class="field"><label>Text (optional)</label><input id="nt-b" maxlength="400"></div><div class="field"><label>Link (optional)</label><input id="nt-l"></div>' +
+          '<div class="field"><label>Show from (optional, schedule)</label><input type="datetime-local" id="nt-s"></div><div class="field"><label>Hide after (optional)</label><input type="datetime-local" id="nt-e"></div><label><input type="checkbox" id="nt-p"> Pinned</label><br>' +
+          '<button class="btn btn-red btn-sm" id="nt-go">Save</button> <span id="nt-m"></span></div><div class="card"><h3>All notices</h3>' + ((rows || []).map(function (r) { return "<div>" + (r.pinned ? "[pinned] " : "") + "<b>" + esc(r.title) + '</b> <button class="btn btn-sm" data-del="' + r.id + '">Delete</button></div>'; }).join("") || "None yet.") + "</div>";
+        el("#nt-go", body).addEventListener("click", function () {
+          var l = el("#nt-l", body).value.trim(), m = el("#nt-m", body), s = el("#nt-s", body).value, e = el("#nt-e", body).value;
+          if (l && !/^https:\/\//.test(l) && !/^[a-z0-9-]+\.html$/i.test(l)) { m.textContent = "Link must be https:// or a site page."; return; }
+          if (!el("#nt-t", body).value.trim()) { m.textContent = "Add a title."; return; }
+          var row = { title: el("#nt-t", body).value.trim(), body: el("#nt-b", body).value.trim() || null, link: l || null, pinned: el("#nt-p", body).checked, expires_at: e ? new Date(e).toISOString() : null };
+          if (s) row.starts_at = new Date(s).toISOString();
+          call(function () { return api.aPost("notices", row); }).then(load).catch(function (x) { m.textContent = "Failed: " + x.message; });
+        });
+        body.querySelectorAll("[data-del]").forEach(function (b) { b.addEventListener("click", function () { call(function () { return api.aDel("notices", "id=eq." + b.dataset.del); }).then(load); }); });
+      });
+    }
+    load();
+  }
+  function renderFeedback() {
+    var body = el("#admin-body");
+    call(function () { return api.aGet("feedback", "?select=id,kind,body,status,created_at&order=created_at.desc&limit=100"); }).then(function (rows) {
+      body.innerHTML = '<div class="card"><h3>Feedback box (anonymous: no user shown)</h3>' + ((rows || []).map(function (r) { return '<div style="padding:6px 0;border-bottom:1px solid #8884">[' + esc(r.kind) + "] " + esc(r.body) + ' <small>' + esc(r.created_at.slice(0, 10)) + "</small></div>"; }).join("") || "Nothing yet.") + "</div>";
     });
   }
 
