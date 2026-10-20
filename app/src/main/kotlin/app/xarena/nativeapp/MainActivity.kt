@@ -458,6 +458,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "spectator" -> { SpectatorScreen(onBack = { feature = null }); return }
         "minicup" -> { MiniCupScreen(onBack = { feature = null }, onRegister = { feature = "register" }); return }
         "livethread" -> { LiveThreadScreen(onBack = { feature = null }); return }
+        "teamfinder" -> { TeamFinderScreen(onBack = { feature = null }); return }
         "h2h" -> { HeadToHeadScreen(onBack = { feature = null }); return }
         "notices" -> { NoticeBoardScreen(onBack = { feature = null }); return }
         "feedback" -> { FeedbackScreen(onBack = { feature = null }); return }
@@ -589,6 +590,7 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("stats", "Stats", "Your numbers and platform numbers", Icons.Default.List),
         GridItem("tasks", "Tasks", "Finish tasks, earn points", Icons.Default.Done),
         GridItem("scrims", "Scrims", "Looking-for-game board", Icons.Default.Search),
+        GridItem("teamfinder", "Team Finder", "Find a squad or host a lobby", Icons.Default.Person),
         GridItem("calendar", "Calendar", "Tournament and event dates", Icons.Default.DateRange),
         GridItem("ping", "Ping Check", "Real connection and device test", Icons.Default.Refresh),
         GridItem("refer", "Refer & Earn", "Invite friends, earn Store Points", Icons.Default.Share),
