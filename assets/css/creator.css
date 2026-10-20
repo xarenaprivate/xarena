@@ -48,3 +48,5 @@ body.cr-page .cr-live{background:#2a0f0a !important}
 body.cr-page .cr,body.cr-page .cr-t,body.cr-page .cr-note{color:#e6d3bf}
 body.cr-page .cr-h{color:#ff7a1a}
 body.cr-page .cr-t{color:#d9a56e !important}
+body.cr-page header.nav,body.cr-page .nav{background:#120b07 !important;border-bottom:1px solid #3a1f0d !important}
+body.cr-page .brand-name{color:#fff !important}
