@@ -27,3 +27,11 @@
 .cr-pill{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:700;border:1px solid rgba(255,122,26,.5);color:var(--o)}
 .cr-note{font-size:13px;color:#b8a898;margin:8px 0}
 .cr-msg{margin:8px 0;font-weight:700;color:var(--o2)}
+/* quick actions: dark cards, orange outline, readable text (override global button styles) */
+.cr .cr-btn{background:linear-gradient(90deg,rgba(255,122,26,.30),rgba(24,13,7,.96)) !important;color:#fff !important;border:1px solid rgba(255,122,26,.6) !important;opacity:1 !important;text-shadow:none}
+.cr .cr-btn small{color:#e6d3bf !important}
+.cr .cr-btn[disabled]{background:linear-gradient(90deg,rgba(255,122,26,.12),rgba(18,10,6,.96)) !important;color:#f1e4d6 !important;cursor:default}
+.cr .cr-btn[disabled] small{color:#c9b29a !important}
+.cr .cr-go.g{background:rgba(24,13,7,.9) !important;color:#ff9a4d !important}
+.cr .cr-in{color:#fff !important;background:#0d0907 !important}
+#cr-app{padding-bottom:96px}

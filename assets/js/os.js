@@ -95,6 +95,7 @@
   var APPS = {
     tournaments: ["🏆", "Tournaments", "tournaments.html"],
     squads: ["🛡️", "Squads", "squads.html"],
+    creator: ["🎬", "Creator", "creator.html"],
     tasks: ["✅", "Tasks", "tasks.html"],
     chat: ["💬", "World Chat", "chat.html"],
     luna: ["✨", "Luna AI", "luna.html"],
