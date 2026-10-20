@@ -31,6 +31,19 @@
         sel.addEventListener("change", load); load();
       });
     },
+    creator: function () {
+      var id = new URLSearchParams(location.search).get("creator");
+      if (!id) { body.innerHTML = empty("Pick a creator from the Creators tab."); return; }
+      prpc("creator_profile", { p_id: id }).then(function (c) {
+        if (!c || !c.name) { body.innerHTML = empty("Creator not found."); return; }
+        var ch = safe(c.channel_url), av = safe(c.avatar_url);
+        body.innerHTML = '<div class="hub-c">' + (av ? '<img src="' + esc(av) + '" alt="" style="width:72px;height:72px;border-radius:50%;object-fit:cover">' : "") +
+          "<h3>" + esc(c.name) + " ✓</h3><p>Tier: " + esc(c.tier) + " - Joined via invite: <b>" + esc(c.joined) + "</b></p>" +
+          (c.bio ? "<p>" + esc(c.bio) + "</p>" : "") + (ch ? '<p><a href="' + esc(ch) + '" target="_blank" rel="noopener noreferrer">Channel</a></p>' : "") + "</div>" +
+          '<div class="hub-c"><h3>Approved posts</h3>' + ((c.posts || []).length ? (c.posts || []).map(function (x) { return "<p>" + esc(x.caption || "(no caption)") + "</p>"; }).join("") : "<p>No approved posts yet.</p>") + "</div>" +
+          '<div class="hub-c"><a href="more.html#creators">Back to creators</a></div>';
+      });
+    },
     recap: function () {
       Promise.all([prpc("points_table", { p_tournament: null }), prpc("tournament_reg_counts", {})]).then(function (a) {
         var r = a[0], c = a[1];
@@ -116,7 +129,7 @@
     creators: function () {
       prpc("creator_board", {}).then(function (r) {
         body.innerHTML = !Array.isArray(r) || !r.length ? empty("No verified creators yet. Creators can apply from the Creator page. Ranking = players who joined with the creator's invite code. No rewards.") +
-          '<p><a href="creator.html">Become a creator</a></p>' : '<div class="hub-c"><table class="hub-t"><tr><th>#</th><th>Creator</th><th>Tier</th><th>Joined via invite</th></tr>' + r.map(function (x, i) { return "<tr><td>" + (i + 1) + "</td><td>" + esc(x.name) + (x.verified ? " ✓" : "") + "</td><td>" + esc(x.tier) + "</td><td><b>" + x.joined + "</b></td></tr>"; }).join("") + "</table></div>";
+          '<p><a href="creator.html">Become a creator</a></p>' : '<div class="hub-c"><table class="hub-t"><tr><th>#</th><th>Creator</th><th>Tier</th><th>Joined via invite</th></tr>' + r.map(function (x, i) { return "<tr><td>" + (i + 1) + "</td><td><a href=\"more.html?creator=" + encodeURIComponent(x.user_id) + "#creator\">" + esc(x.name) + "</a>" + (x.verified ? " ✓" : "") + "</td><td>" + esc(x.tier) + "</td><td><b>" + x.joined + "</b></td></tr>"; }).join("") + "</table></div>";
       });
     },
     guide: function () {
