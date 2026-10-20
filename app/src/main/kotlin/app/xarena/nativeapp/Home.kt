@@ -94,6 +94,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                 CreatorSpotlightCard { onOpenFeature("creator") }
             }
             item { WinnersStrip { onOpenFeature("winners") } }
+            item { SpotlightsRow { f -> onOpenFeature(f) } }
             item { TopSquadsCard({ onGoTab(5) }, { id -> onOpenFeature("squadprofile:" + id) }) }
             item { WeeklyClipCard() }
             item {

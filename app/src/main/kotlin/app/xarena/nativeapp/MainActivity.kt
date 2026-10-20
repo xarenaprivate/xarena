@@ -457,6 +457,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "pointstable" -> { PointsTableScreen(onBack = { feature = null }); return }
         "spectator" -> { SpectatorScreen(onBack = { feature = null }); return }
         "minicup" -> { MiniCupScreen(onBack = { feature = null }, onRegister = { feature = "register" }); return }
+        "livethread" -> { LiveThreadScreen(onBack = { feature = null }); return }
         "h2h" -> { HeadToHeadScreen(onBack = { feature = null }); return }
         "notices" -> { NoticeBoardScreen(onBack = { feature = null }); return }
         "feedback" -> { FeedbackScreen(onBack = { feature = null }); return }
@@ -614,6 +615,7 @@ fun MoreGrid(onOpen: (String) -> Unit) {
     val gated = listOf(
         Triple("spectator", GridItem("spectator", "Spectator Room", "Watch tournament matches live", Icons.Default.PlayArrow), "spectator"),
         Triple("minicup", GridItem("minicup", "Weekly Mini-Cup", "A quick cup every week", Icons.Default.Star), "mini_cup"),
+        Triple("livethread", GridItem("livethread", "Live Thread", "Talk during the match", Icons.Default.MailOutline), "live_thread"),
     )
     val items = itemsAll.filter { RemoteConfig.featureEnabled(it.key) } +
         gated.filter { flagState?.optBoolean(it.third, false) == true }.map { it.second }

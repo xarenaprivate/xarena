@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.json.JSONArray
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 /* Remote feature flags (site_settings key "flags"). Admin-toggled on the site's admin panel.
@@ -54,10 +55,33 @@ fun SpectatorScreen(onBack: () -> Unit) {
             true -> {
                 var tick by remember { mutableIntStateOf(0) }
                 LoadState2(tick, {
+                    // spectator_info (web batch-7 contract): never returns room_id/room_pass; ok:false while flag off
+                    val tourney = Api.regTournament()
+                    val info = runCatching { Api.publicRpc("spectator_info", JSONObject().put("p_tournament", tourney)) }.getOrNull()
                     val ms = Api.publicGet("/rest/v1/matches_public?select=*&order=starts_at.asc.nullslast&limit=20")
                     val yt = runCatching { Api.publicGet("/rest/v1/site_settings?key=eq.youtube_live&select=value") }.getOrElse { JSONArray() }
-                    JSONObject().put("matches", ms).put("yt", if (yt.length() > 0) yt.getJSONObject(0).s("value") else "")
+                    JSONObject().put("matches", ms).put("yt", if (yt.length() > 0) yt.getJSONObject(0).s("value") else "").put("info", info)
                 }) { d ->
+                    val info = d.optJSONObject("info")
+                    if (info != null && !info.optBoolean("ok")) {
+                        PanelCard { Text(info.s("error").ifBlank { "Spectator info is not available yet." }, color = Muted, fontSize = 13.sp) }
+                    }
+                    if (info != null && info.optBoolean("ok")) {
+                        PanelCard {
+                            Text("LIVE SPECTATING", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            val keys = info.keys().asSequence().filter { it !in setOf("ok", "room_id", "room_pass", "pass", "password") }.toList()
+                            for (k in keys) {
+                                val v = info.opt(k)?.toString() ?: continue
+                                if (v.isBlank() || v == "null") continue
+                                if (v.startsWith("http")) {
+                                    Spacer(Modifier.height(6.dp))
+                                    GoldButton("WATCH STREAM") {
+                                        runCatching { Api.ctx.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(v))) }
+                                    }
+                                } else Text(k.replace("_", " ").uppercase() + ": " + v, color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+                            }
+                        }
+                    }
                     val arr = d.optJSONArray("matches") ?: JSONArray()
                     val ytUrl = d.s("yt")
                     if (arr.length() == 0) Box(Modifier.padding(28.dp)) {
@@ -115,6 +139,85 @@ fun MiniCupScreen(onBack: () -> Unit, onRegister: () -> Unit) {
                                     Spacer(Modifier.height(8.dp))
                                     GoldButton("REGISTER YOUR SQUAD", onClick = onRegister)
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Live match thread (flag: live_thread). Web batch-7 contract: thread_list/thread_post/thread_report.
+    Server returns ok:false while the flag is off; posts auto-hide at 3 reports server-side. */
+@Composable
+fun LiveThreadScreen(onBack: () -> Unit) {
+    var allowed by remember { mutableStateOf<Boolean?>(null) }
+    LaunchedEffect(Unit) { allowed = Flags.on("live_thread") }
+    Column(Modifier.fillMaxSize().background(Ink)) {
+        PageHeader("Live Match Thread", "Talk during the match - be respectful", onBack)
+        when (allowed) {
+            null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Loading...", color = Muted) }
+            false -> Box(Modifier.fillMaxSize().padding(28.dp)) {
+                PanelCard { Text("Not open yet", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("The live match thread opens when the owner switches it on for a match.", color = Muted, fontSize = 13.sp) } }
+            true -> {
+                var tick by remember { mutableIntStateOf(0) }
+                LoadState2(tick, {
+                    val ms = runCatching { Api.publicGet("/rest/v1/matches_public?select=*&order=starts_at.desc.nullslast&limit=1") }.getOrElse { JSONArray() }
+                    if (ms.length() == 0) JSONObject().put("posts", JSONArray()).put("nomatch", true)
+                    else {
+                        val mid = ms.getJSONObject(0).s("id")
+                        val r = runCatching { Api.authedRpc("thread_list", JSONObject().put("p_match", mid).put("p_limit", 60)) }.getOrNull()
+                        JSONObject().put("match", ms.getJSONObject(0)).put("resp", r)
+                    }
+                }) { d ->
+                    if (d.optBoolean("nomatch")) {
+                        PanelCard { Text("No match to discuss yet.", color = Muted, fontSize = 13.sp) }
+                        return@LoadState2
+                    }
+                    val m = d.optJSONObject("match")
+                    val r = d.optJSONObject("resp")
+                    if (m != null) Text(m.s("title").ifBlank { m.s("name").ifBlank { "Match" } }, color = Gold2, fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+                    if (r == null || !r.optBoolean("ok", true)) {
+                        PanelCard { Text(r?.s("error")?.ifBlank { "The thread is not open for this match." } ?: "The thread is not open for this match.", color = Muted, fontSize = 13.sp) }
+                        return@LoadState2
+                    }
+                    val posts = r.optJSONArray("posts") ?: r.optJSONArray("thread") ?: JSONArray()
+                    var draft by remember { mutableStateOf("") }
+                    var msg by remember { mutableStateOf<String?>(null) }
+                    val scope = rememberCoroutineScope()
+                    LazyColumn(Modifier.weight(1f)) {
+                        items((0 until posts.length()).map { posts.getJSONObject(it) }.asReversed()) { p ->
+                            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 3.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(p.s("name").ifBlank { p.s("author").ifBlank { "Player" } }, color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                    Spacer(Modifier.weight(1f))
+                                    Text("report", color = Muted, fontSize = 10.sp, modifier = Modifier.clickable {
+                                        val pid = p.optLong("id", -1)
+                                        if (pid > 0) scope.launch {
+                                            val rr = runCatching { Api.authedRpc("thread_report", JSONObject().put("p_post", pid).put("p_reason", "reported from app")) }.getOrNull()
+                                            msg = if (rr?.optBoolean("ok") == true) "Reported - mods review it." else rr?.s("error") ?: "Could not report."
+                                        }
+                                    }.padding(4.dp))
+                                }
+                                Text(p.s("body"), color = Color.White, fontSize = 13.sp)
+                            }
+                        }
+                        if (posts.length() == 0) item { Text("No messages yet - say something nice.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(16.dp)) }
+                    }
+                    msg?.let { Text(it, color = Gold2, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 16.dp)) }
+                    Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.OutlinedTextField(draft, { draft = it.take(200) }, placeholder = { Text("Message...") },
+                            singleLine = true, modifier = Modifier.weight(1f))
+                        Spacer(Modifier.width(8.dp))
+                        GoldButton("SEND", enabled = draft.isNotBlank()) {
+                            val body = draft.trim(); draft = ""
+                            scope.launch {
+                                val mid = m?.s("id") ?: return@launch
+                                val sr = runCatching { Api.authedRpc("thread_post", JSONObject().put("p_match", mid).put("p_body", body)) }.getOrNull()
+                                if (sr?.optBoolean("ok") == true) tick++ else msg = sr?.s("error") ?: "Could not send."
                             }
                         }
                     }
