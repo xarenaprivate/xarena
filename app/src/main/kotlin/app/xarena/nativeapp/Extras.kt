@@ -81,6 +81,10 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
             Spacer(Modifier.height(4.dp))
             DataSaverSwitchRow()
             Spacer(Modifier.height(14.dp))
+            Text("Look", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Spacer(Modifier.height(4.dp))
+            LookThemeRows()
+            Spacer(Modifier.height(14.dp))
             Text("Feel", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Spacer(Modifier.height(4.dp))
             FxSwitchRows()
@@ -309,6 +313,30 @@ fun FxSwitchRows() {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("Soft sounds on wins and claims" + (if (DataSaver.on) " (off while Data Saver is on)" else ""), color = Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
             Switch(checked = so, onCheckedChange = { so = it; Fx.soundsOn = it })
+        }
+    }
+}
+
+/* ---- Theme picker - new looks are EXTRA options; the default look stays. Applies app-wide instantly. ---- */
+@Composable
+fun LookThemeRows() {
+    var liquid by remember { mutableStateOf(Look.liquid) }
+    var redGold by remember { mutableStateOf(Look.redGold) }
+    Column {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Theme: " + if (liquid) "Liquid (default)" else "Classic", color = Color.White, fontSize = 13.sp)
+                Text("Classic = the older solid cards look", color = Muted, fontSize = 11.sp)
+            }
+            Switch(checked = liquid, onCheckedChange = { liquid = it; Look.set(Api.ctx, it) })
+        }
+        Spacer(Modifier.height(6.dp))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Accent: " + if (redGold) "Red-Gold" else "Gold (default)", color = Color.White, fontSize = 13.sp)
+                Text("Red-Gold = the tournament-night accent", color = Muted, fontSize = 11.sp)
+            }
+            Switch(checked = redGold, onCheckedChange = { redGold = it; Look.setRedGold(Api.ctx, it) })
         }
     }
 }
