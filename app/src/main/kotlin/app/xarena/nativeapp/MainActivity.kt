@@ -668,9 +668,18 @@ fun TournamentsScreen() {
     if (showMatches) { androidx.activity.compose.BackHandler { showMatches = false }; MatchCenterScreen(onBack = { showMatches = false }); return }
     Column(Modifier.fillMaxSize()) {
         Brand()
-        Box(Modifier.padding(horizontal = 16.dp, vertical = 2.dp)) { GoldButton("REGISTER YOUR SQUAD - SEASON 1") { showRegister = true } }
+        Box(Modifier.padding(horizontal = 16.dp, vertical = 2.dp)) { GoldButton(Txt.t("REGISTER YOUR SQUAD", "SQUAD REGISTER KARO")) { showRegister = true } }
         Box(Modifier.padding(horizontal = 16.dp, vertical = 2.dp)) { GoldButton("MATCH CENTER - ROOMS, CHECK-IN, RESULTS") { showMatches = true } }
-        LoadState({ Api.publicGet("/rest/v1/tournaments?select=id,name,status,slots,prize,date_text,reg_open,mode&order=sort.asc") }) { arr ->
+        LoadState({
+            val arr = Api.publicGet("/rest/v1/tournaments?select=id,name,status,slots,prize,date_text,reg_open,mode&order=sort.asc")
+            val optedOut = if (Api.loggedIn) runCatching {
+                val r = Api.authedRpc("my_match_reminders", JSONObject())
+                r.optJSONArray("opted_out")?.let { (0 until it.length()).map { i -> it.optString(i) } }?.toSet() ?: emptySet()
+            }.getOrElse { emptySet() } else emptySet()
+            JSONObject().put("arr", arr).put("opted", JSONArray(optedOut.toList()))
+        }) { d ->
+            val arr = d.optJSONArray("arr") ?: JSONArray()
+            val optedOut = d.optJSONArray("opted")?.let { (0 until it.length()).map { i -> it.optString(i) }.toSet() } ?: emptySet()
             if (arr.length() == 0) EmptyNote("No tournaments yet", "Tournaments appear here as soon as the admin creates them.")
             else LazyColumn { items((0 until arr.length()).map { arr.getJSONObject(it) }) { t ->
                 PanelCard {
@@ -682,9 +691,33 @@ fun TournamentsScreen() {
                     Spacer(Modifier.height(6.dp))
                     Text((t.s("status").uppercase()) + if (t.optBoolean("reg_open")) " - REGISTRATION OPEN" else " - REGISTRATION CLOSED",
                         color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    if (Api.loggedIn && (t.optBoolean("reg_open") || t.s("status").equals("live", true))) {
+                        Spacer(Modifier.height(8.dp))
+                        MatchReminderRow(t.s("id"), t.s("id") !in optedOut)
+                    }
                 }
             } }
         }
+    }
+}
+
+/** Per-tournament match reminder toggle - server pushes 1h and 15min before (registered squads only). */
+@Composable
+fun MatchReminderRow(tournamentId: String, initiallyOn: Boolean) {
+    val scope = rememberCoroutineScope()
+    var on by remember { mutableStateOf(initiallyOn) }
+    var busy by remember { mutableStateOf(false) }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(if (on) "Match reminders ON (1h + 15min before)" else "Match reminders off", color = if (on) Gold2 else Muted,
+            fontSize = 12.sp, fontWeight = if (on) FontWeight.Bold else FontWeight.Normal, modifier = Modifier.weight(1f))
+        Switch(checked = on, enabled = !busy, onCheckedChange = { v ->
+            on = v; busy = true
+            scope.launch {
+                val r = runCatching { Api.authedRpc("set_match_reminder", JSONObject().put("p_tournament", tournamentId).put("p_on", v)) }.getOrNull()
+                if (r == null || (r.has("ok") && !r.optBoolean("ok"))) on = !v
+                busy = false
+            }
+        })
     }
 }
 
