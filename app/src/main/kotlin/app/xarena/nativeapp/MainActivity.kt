@@ -354,6 +354,9 @@ fun HomeShell(onLogout: () -> Unit) {
         }
         if (MainActivity.pendingOpen != null) MainActivity.pendingOpen = null
     }
+    if (feature != null && feature!!.startsWith("squadprofile:")) {
+        SquadProfileScreen(squadId = feature!!.removePrefix("squadprofile:"), onBack = { feature = null }); return
+    }
     var conv by remember { mutableStateOf<DmConv?>(null) }
     var playerId by remember { mutableStateOf<String?>(null) }
     val tabs = listOf(
@@ -399,6 +402,10 @@ fun HomeShell(onLogout: () -> Unit) {
         "sponsors" -> { SponsorsScreen(onBack = { feature = null }); return }
         "register" -> { RegisterScreen(onBack = { feature = null }); return }
         "checklist" -> { PreMatchChecklistScreen(onBack = { feature = null }); return }
+        "pointstable" -> { PointsTableScreen(onBack = { feature = null }); return }
+        "h2h" -> { HeadToHeadScreen(onBack = { feature = null }); return }
+        "notices" -> { NoticeBoardScreen(onBack = { feature = null }); return }
+        "feedback" -> { FeedbackScreen(onBack = { feature = null }); return }
         "guide" -> { HinglishGuideScreen(onBack = { feature = null }); return }
         "room" -> { RoomScreen(onBack = { feature = null }); return }
         "support" -> { SupportScreen(onBack = { feature = null }); return }
@@ -513,6 +520,10 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("news", "News", "Updates and announcements", Icons.Default.Info),
         GridItem("rules", "Rules", "Tournament and squad rules", Icons.Default.Menu),
         GridItem("checklist", "Match Checklist", "Be ready before the room opens", Icons.Default.CheckCircle),
+        GridItem("pointstable", "Points Table", "Kills and placement points", Icons.Default.List),
+        GridItem("h2h", "Head to Head", "Squad vs squad record", Icons.Default.Star),
+        GridItem("notices", "Notice Board", "Official announcements", Icons.Default.Notifications),
+        GridItem("feedback", "Feedback", "Report bugs, cheaters, ideas", Icons.Default.MailOutline),
         GridItem("guide", "Beginner Guide", "Naya player? Shuru yahan se", Icons.Default.Info),
         GridItem("notifications", "Notifications", "Your alerts", Icons.Default.Notifications),
         GridItem("stories", "Stories", "24-hour highlights from players", Icons.Default.Face),

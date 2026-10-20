@@ -242,7 +242,7 @@ fun WinnersStrip(onOpenWinners: () -> Unit) {
 
 /** Top 3 squads - from the real squad board; hidden when empty. */
 @Composable
-fun TopSquadsCard(onOpenLeaderboard: () -> Unit) {
+fun TopSquadsCard(onOpenLeaderboard: () -> Unit, onOpenSquad: (String) -> Unit = {}) {
     LoadState2(0, {
         runCatching { Api.publicRpc("squad_board", JSONObject().put("p_scope", "global")) }.getOrNull()
     }) { r ->
@@ -255,7 +255,8 @@ fun TopSquadsCard(onOpenLeaderboard: () -> Unit) {
             }
             for (i in 0 until minOf(3, rows.length())) {
                 val row = rows.getJSONObject(i)
-                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.fillMaxWidth().padding(vertical = 4.dp).clip(RoundedCornerShape(8.dp))
+                    .clickable(enabled = row.s("id").isNotBlank()) { onOpenSquad(row.s("id")) }.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("#" + row.optInt("rank", i + 1), color = if (i == 0) Gold2 else Muted, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(34.dp))
                     Text(row.s("name") + (row.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""), color = Color.White, fontSize = 14.sp, modifier = Modifier.weight(1f))
                     Text(row.optInt("xp").toString() + " XP · " + row.optInt("members") + " players", color = Gold2, fontSize = 11.sp)
