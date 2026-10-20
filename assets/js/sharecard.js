@@ -75,7 +75,7 @@
     }
     // footer link
     c.fillStyle = '#00d9ff'; c.font = '700 40px Rajdhani, Arial, sans-serif';
-    c.fillText('xarena.surge.sh', W / 2, H - 120);
+    c.fillText('xarenaprivate.github.io/xarena', W / 2, H - 120);
     c.fillStyle = 'rgba(255,255,255,.4)'; c.font = '500 26px Rajdhani, Arial, sans-serif';
     c.fillText('Join free - founded & owned by Shivhari Rajput', W / 2, H - 72);
     return cv;
