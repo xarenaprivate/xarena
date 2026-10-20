@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -18,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,6 +38,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
         LaunchedEffect(true) { tick++; kotlinx.coroutines.delay(1200); ptr.endRefresh() }
     }
     Box(Modifier.fillMaxSize().nestedScroll(ptr.nestedScrollConnection)) {
+    val listState = rememberLazyListState()
     LoadState2(tick, {
         val ts = Api.publicGet("/rest/v1/tournaments?select=id,name,status,slots,prize,date_text,reg_open,mode&order=sort.asc")
         val yt = runCatching { Api.publicGet("/rest/v1/site_settings?key=eq.youtube_live&select=value") }.getOrElse { JSONArray() }
@@ -56,7 +59,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
         } ?: -1
         HomeData(ts, if (yt.length() > 0) yt.getJSONObject(0).s("value") else "", matches, stats, ann, cup, slotsTaken)
     }) { d ->
-        LazyColumn(Modifier.fillMaxSize()) {
+        LazyColumn(Modifier.fillMaxSize(), state = listState) {
             item {
                 Brand()
                 d.ann?.let { a ->
@@ -74,7 +77,15 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                 if (d.cup == null) {
                     PanelCard { Text("No tournaments yet", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         Text("Tournaments appear here as soon as the admin creates them.", color = Muted, fontSize = 13.sp) }
-                } else Rise3D { CupHeroCard(d.cup, d.slotsTaken) { onOpenFeature("register") } }
+                } else Rise3D {
+                    // scroll parallax: hero tilts and drifts slightly as you scroll past it (off under Data Saver)
+                    val par = if (DataSaver.on || listState.firstVisibleItemIndex != 0) 0f else listState.firstVisibleItemScrollOffset.toFloat()
+                    Box(Modifier.graphicsLayer {
+                        translationY = -par * 0.18f
+                        rotationX = (par / 240f).coerceIn(0f, 6f)
+                        cameraDistance = 14f * density
+                    }) { CupHeroCard(d.cup, d.slotsTaken) { onOpenFeature("register") } }
+                }
                 AajKyaHaiCard(d.matches) { onOpenFeature("live") }
                 CheckinHomeCard { onOpenFeature("streak") }
                 FanVoteHomeCard { onOpenFeature("vote") }
