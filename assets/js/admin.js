@@ -1918,7 +1918,7 @@
         if (!d || !t) { m.textContent = "Pick a tournament and a start time."; return; }
         if (!confirm("Create 4 matches?")) return;
         var base = new Date(d).getTime(), names = [["Qualifier Lobby A", "Qualifier"], ["Qualifier Lobby B", "Qualifier"], ["Qualifier Lobby C", "Qualifier"], ["Grand Final", "Final"]];
-        var rows = names.map(function (n, i) { var s = new Date(base + i * g * 60000).toISOString(); return { tournament_id: t, title: n[0], stage: n[1], starts_at: s, played_at: s, reveal_minutes: 15 }; });
+        var rows = names.map(function (n, i) { var s = new Date(base + i * g * 60000).toISOString(); return { tournament_id: t, title: n[0], stage: n[1], starts_at: s, played_at: s, reveal_minutes: 15, status: "scheduled" }; });
         call(function () { return api.aPost("matches", rows); }).then(function () { return api.audit("match_wizard", { t: t, n: 4 }); }).then(function () { m.textContent = "Created 4 matches."; }).catch(function (e) { m.textContent = "Failed: " + e.message; });
       });
       el("#bk-go", body).addEventListener("click", function () {
