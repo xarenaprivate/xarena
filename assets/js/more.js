@@ -7,7 +7,7 @@
   function prpc(n, a) { return fetch(URLB + "/rest/v1/rpc/" + n, { method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" }, body: JSON.stringify(a || {}) }).then(function (r) { return r.json(); }); }
   function safe(u) { u = String(u || ""); return /^https:\/\//.test(u) ? u : ""; }
   var body = document.getElementById("hub-body"), tabs = document.getElementById("hub-tabs");
-  var T = [["points", "Points table"], ["history", "History"], ["spot", "Spotlights"], ["notices", "Notice board"], ["h2h", "Head to head"], ["squad", "Squad profile"], ["watch", "Watch"], ["creators", "Creators"], ["guide", "Guide & checklist"], ["faq", "FAQ"], ["feedback", "Feedback"]];
+  var T = [["points", "Points table"], ["history", "History"], ["spot", "Spotlights"], ["notices", "Notice board"], ["h2h", "Head to head"], ["squad", "Squad profile"], ["watch", "Watch"], ["creators", "Creators"], ["recap", "Season recap"], ["guide", "Guide & checklist"], ["faq", "FAQ"], ["feedback", "Feedback"]];
   function empty(t) { return '<div class="hub-c hub-e">' + t + "</div>"; }
   var V = {
     points: function () {
@@ -29,6 +29,22 @@
             });
           }); }); }
         sel.addEventListener("change", load); load();
+      });
+    },
+    recap: function () {
+      Promise.all([prpc("points_table", { p_tournament: null }), prpc("tournament_reg_counts", {})]).then(function (a) {
+        var r = a[0], c = a[1];
+        var regs = Array.isArray(c) ? c.reduce(function (n, x) { return n + (x.registered || 0); }, 0) : 0;
+        if (!Array.isArray(r) || !r.length) { body.innerHTML = empty("The season recap appears after the first matches are played. " + regs + " squads registered so far."); return; }
+        var matches = r.reduce(function (m, x) { return Math.max(m, x.matches || 0); }, 0);
+        body.innerHTML = '<div class="hub-c"><h3>Season recap</h3><p>' + regs + " squads registered - " + matches + " matches played - Champion so far: <b>" + esc(r[0].squad) + '</b> (' + esc(r[0].points) + ' pts)</p><button class="hub-b" id="rc-share">Share season recap</button></div>';
+        document.getElementById("rc-share").addEventListener("click", function () {
+          if (!window.xshare) return;
+          var lines = r.slice(0, 3).map(function (x, i) { return (i + 1) + ". " + x.squad + " - " + x.points + " pts"; });
+          lines.push(regs + " squads - " + matches + " matches");
+          var cv = xshare.draw({ kicker: "XARENA season recap", title: "Season recap", lines: lines, sub: "Free Fire tournaments - free forever" });
+          xshare.share(cv, "XARENA season recap", "Season recap on XARENA").then(function (ok) { if (!ok) xshare.download(cv, "xarena-season-recap.png"); });
+        });
       });
     },
     history: function () {
