@@ -29,8 +29,8 @@ fun CreatorBoardScreen(onBack: () -> Unit, onOpenProfile: (String) -> Unit) {
     var tick by remember { mutableIntStateOf(0) }
     Column(Modifier.fillMaxSize().background(Ink)) {
         PageHeader("Creators", "Verified XARENA creators", onBack)
-        LoadState2(tick, { runCatching { Api.publicRpc("creator_board", JSONObject()) }.getOrNull() }) { r ->
-            val rows = r?.optJSONArray("creators") ?: r?.optJSONArray("rows") ?: JSONArray()
+        LoadState2(tick, { runCatching { Api.authedRpcRaw("creator_board", JSONObject()).trim() }.getOrElse { "[]" } }) { body ->
+            val rows = if (body.startsWith("[")) JSONArray(body) else JSONArray()
             if (rows.length() == 0) {
                 SmallCard { Text("No creators yet", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     Text("Creators appear here as the owner verifies them.", color = Muted, fontSize = 12.sp) }
@@ -60,8 +60,9 @@ fun CreatorProfileScreen(userId: String, onBack: () -> Unit) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
     Column(Modifier.fillMaxSize().background(Ink)) {
         PageHeader("Creator", "", onBack)
-        LoadState2(tick, { runCatching { Api.publicRpc("creator_profile", JSONObject().put("p_id", userId)) }.getOrNull() }) { c ->
-            if (c == null || c.optBoolean("ok") == false && c.has("ok")) {
+        LoadState2(tick, { runCatching { Api.authedRpcRaw("creator_profile", JSONObject().put("p_id", userId)).trim() }.getOrElse { "null" } }) { body ->
+            val c = if (body.startsWith("{")) JSONObject(body) else null
+            if (c == null) {
                 SmallCard { Text("This creator profile is not available.", color = Muted, fontSize = 13.sp) }
                 return@LoadState2
             }
