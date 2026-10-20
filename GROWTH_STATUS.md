@@ -3,11 +3,11 @@ Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backen
 
 ## 25-point list
 1 Daily check-in streak: DONE (home card + StreakScreen)
-2 Daily challenge: SHIP (Play screen - daily spin + quiz XP)
+2 Daily challenge: SHIP (Play screen - daily_missions_v2 + quiz)
 3 Daily quiz: SHIP (quiz_feed/quiz_answer in Play)
 4 Match poll "Kaun jeetega?": poll infra DONE; needs admin-created match polls
 5 Aaj kya hai card: DONE
-6 Squad of the Week wall: BACK
+6 Squad of the Week wall: DONE (spotlights table, SpotlightsRow on Home)
 7 Clips wall: SHIP (clips screen exists)
 8 Practice scrim list: BACK
 9 Roz naya avatar/frame: DONE (daily_avatar card)
@@ -15,9 +15,9 @@ Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backen
 11 Match check-in: SHIP (MatchCenter match_checkin)
 12 Points table: DONE (points_table RPC live)
 13 Live bracket/lobby: GATE (post Oct 24)
-14 "1 hour pehle" reminder: BACK (server push timing, web-builder owned)
+14 "1 hour pehle" reminder: BACK-HALF (server pushes 1h+15min before via set_match_reminder; native toggle NEXT)
 15 Winners squad photo/logo: DONE (hall_of_fame strip w/ logos)
-16 Team Finder: BACK
+16 Team Finder: DONE (TeamFinderScreen: lfg_list/create/join/leave/set_role)
 17 Squad chat room: SHIP (clan room in X-Panel); in-app room NEXT
 18 Friends + invite link: BACK
 19 City leaderboard: SHIP (Leaderboard state/district scopes)
@@ -37,7 +37,7 @@ Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backen
 1 Tournament history: SHIP (Winners/Hall of Fame) | 2 H2H squads: DONE (head_to_head RPC) | 3 MVP of match/week: DONE (hall_of_fame categories) | 4 Highlight reel wall: NEXT | 5 Creator spotlight: DONE | 6 Scrim schedule: BACK | 7 Aaj ka tip: DONE | 8 Notice board: DONE (pinned) | 9 Squad invite link: BACK | 10 Per-tournament reminder toggle: BACK | 11 Low-data mode: DONE (Data Saver) | 12 Offline cache: DONE (last-good cache on public GETs)
 
 ## 8 picks
-1 Weekly mini-tournament: GATE-OFF-READY (MiniCupScreen built, flag mini_cup=false so hidden; shows real mini tournaments when flag flips) | 2 Rank/level: SHIP (my_header/levelFromXp) | 3 Live match thread: BACK (needs backend thread table + moderation; NOT built, no fake UI) | 4 Spectator room page: GATE-OFF-READY (SpectatorScreen built, flag spectator=false so hidden; matches_public + admin stream link; never renders room IDs) | 5 Player of the Day: BACK | 6 Meme/clip voting: DONE (poll infra reusable) | 7 Sound/haptics+anims: DONE part (Rise3D, Data Saver gate); haptics/sound toggle NEXT | 8 (logo maker not picked)
+1 Weekly mini-tournament: GATE-OFF-READY (MiniCupScreen built, flag mini_cup=false so hidden; shows real mini tournaments when flag flips) | 2 Rank/level: SHIP (my_header/levelFromXp) | 3 Live match thread: GATE-OFF-READY (LiveThreadScreen on thread_list/thread_post/thread_report, flag-gated hidden; server ok:false while flag off) | 4 Spectator room page: GATE-OFF-READY (SpectatorScreen on spectator_info contract - strips room_id/pass defensively; flag hidden) | 5 Player of the Day: DONE (spotlights kind player_day in SpotlightsRow) | 6 Meme/clip voting: DONE (poll infra reusable) | 7 Sound/haptics+anims: DONE part (Rise3D, Data Saver gate); haptics/sound toggle NEXT | 8 (logo maker not picked)
 
 ## 7 ideas: squad mini-page DONE (SquadProfileScreen) | challenge squad BACK | pre-match checklist DONE | season recap DONE (ShareCard.buildRecap + share button on Streak page) | Hinglish guide DONE | calendar SHIP (grid) | feedback box DONE (feedback_submit)
 
@@ -50,6 +50,8 @@ Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backen
 ## Look/feel 10: Rise3D DONE; parallax/tilt NEXT; splash anim DONE (SplashAnim, Data-Saver fast path); confetti DONE (ConfettiBurst); neon theme DONE (Dark Gold palette, site parity, Settings); pull-refresh DONE (Home PullToRefreshContainer); skeleton DONE; haptics+sounds DONE (Fx, Settings toggles, Data-Saver gated); animated badges DONE (streak number pulse); LIVE pulse DONE (LivePulse); widget DONE
 
 ## 3D effects: DONE (Rise3D, gated by Data Saver)
+
+## Batch-7 (Oct 20 ~9:50 PM): spotlights row, spectator_info, live thread screen, team finder all wired to web contracts. match_room ok:false already handled gracefully (MatchCenter shows server error text).
 
 ## Registration retarget fix (Oct 20 ~9:35 PM, parent-relayed from web)
 - register_squad / enter_tournament_with_ap: p_tournament was HARDCODED "xr-s1" (Season 1) in Api.kt; my_registrations filter + entry-cost lookup + UI copy also xr-s1. FIXED: target resolved dynamically from site_settings reg_tournament {id} (same as web app.js xrRegT()), fallback "xr-5oar" (Ignition Cup, user-confirmed). Live value verified = xr-5oar.
