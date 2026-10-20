@@ -1,5 +1,6 @@
 package app.xarena.nativeapp
 
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -368,7 +369,19 @@ fun <T> LoadState2(tick: Int, load: suspend () -> T, content: @Composable (T) ->
     LaunchedEffect(tick, nonce) { state = null; state = runCatching { load() } }
     val s = state
     when {
-        s == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Gold) }
+        s == null -> if (DataSaver.on) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Gold) }
+        else Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            val inf = androidx.compose.animation.core.rememberInfiniteTransition(label = "sk")
+            val a = inf.animateFloat(0.25f, 0.6f, androidx.compose.animation.core.infiniteRepeatable(
+                androidx.compose.animation.core.tween(800), androidx.compose.animation.core.RepeatMode.Reverse), label = "ska").value
+            repeat(3) {
+                Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color.White.copy(alpha = a * 0.14f)).padding(16.dp)) {
+                    Box(Modifier.fillMaxWidth(0.5f).height(14.dp).clip(RoundedCornerShape(7.dp)).background(Color.White.copy(alpha = a)))
+                    Spacer(Modifier.height(10.dp))
+                    Box(Modifier.fillMaxWidth(0.85f).height(10.dp).clip(RoundedCornerShape(5.dp)).background(Color.White.copy(alpha = a * 0.7f)))
+                }
+            }
+        }
         s.isFailure -> Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
             Text(s.exceptionOrNull()?.message ?: "Could not load.", color = ErrRed)
             Spacer(Modifier.height(12.dp))

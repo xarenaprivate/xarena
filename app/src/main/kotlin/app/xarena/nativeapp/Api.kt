@@ -132,10 +132,19 @@ object Api {
         return text
     }
 
+    private val cachePrefs get() = ctx.getSharedPreferences("xr_cache", 0)
+
+    /** Public GET with a last-good cache: on network failure the previous successful response is served (offline mode). */
     suspend fun publicGet(path: String): JSONArray = withContext(Dispatchers.IO) {
-        val (code, text) = call("GET", path, null, null)
-        if (code !in 200..299) throw ApiError("Could not load data ($code).")
-        JSONArray(text)
+        try {
+            val (code, text) = call("GET", path, null, null)
+            if (code !in 200..299) throw ApiError("Could not load data ($code).")
+            runCatching { cachePrefs.edit().putString("g:" + path.hashCode(), text).apply() }
+            JSONArray(text)
+        } catch (e: Exception) {
+            val cached = cachePrefs.getString("g:" + path.hashCode(), null)
+            if (cached != null) JSONArray(cached) else throw e
+        }
     }
 
     suspend fun publicRpc(name: String, args: JSONObject): JSONObject = withContext(Dispatchers.IO) {
