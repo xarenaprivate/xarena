@@ -3,7 +3,7 @@
    (no external 3D model assets exist for this brand - trophy is lathe-built). */
 (function () {
   "use strict";
-  var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var REDUCED = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) || (function () { try { return localStorage.getItem("xr_lite") === "1"; } catch (e) { return false; } })();
   var MOBILE = window.innerWidth < 700;
 
   function webglOK() {

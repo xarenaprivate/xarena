@@ -31,3 +31,8 @@ html:not(.app-mode) body.luna-full main{display:none}
 html.app-mode body.luna-full main{display:none}
 html.app-mode body.luna-full footer,html:not(.app-mode) body.luna-full footer{display:none}
 body.luna-full #luna-close{display:none}
+
+/* Data saver (xr_lite): no animations, no 3D canvas, no hero image */
+.xr-lite *,.xr-lite *::before,.xr-lite *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+.xr-lite #hero3d,.xr-lite #trophy3d,.xr-lite canvas{display:none!important}
+.xr-lite .hero-bg{background-image:none!important;background:#12131a!important}

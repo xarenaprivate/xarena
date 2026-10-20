@@ -80,6 +80,7 @@
     creators: { title: "Creators", custom: renderCreators },
     supportqr: { title: "Support QR", custom: renderSupportQr },
     pinned: { title: "Pinned notice", custom: renderPinned },
+    tips: { title: "Aaj ka tip", custom: renderTips },
     sponsors: {
       title: "Sponsors", table: "sponsors", order: "id.asc",
       cols: [
@@ -1850,6 +1851,21 @@
       });
     }
     load();
+  }
+
+  function renderTips() {
+    var body = el("#admin-body");
+    call(function () { return api.aGet("site_settings", "?key=eq.tips&select=value"); }).then(function (rows) {
+      var v = (rows && rows[0] && rows[0].value) || {}, items = Array.isArray(v.items) ? v.items : [];
+      body.innerHTML = '<div class="card"><h3>Aaj ka tip (home page)</h3><p style="font-size:13px">One tip per line (max 60 tips, 160 characters each). The home page shows one tip per day, rotating. With no tips the card is hidden.</p>' +
+        '<textarea id="tp-x" rows="10" style="width:100%">' + esc(items.join("\n")) + '</textarea><div style="margin-top:8px"><button class="btn btn-red btn-sm" id="tp-s">Save tips</button> <span id="tp-m" style="font-size:13px"></span></div></div>';
+      el("#tp-s", body).addEventListener("click", function () {
+        var list = el("#tp-x", body).value.split("\n").map(function (x) { return x.trim().slice(0, 160); }).filter(Boolean).slice(0, 60);
+        call(function () { return api.aUpsert("site_settings", { key: "tips", value: { items: list }, updated_at: new Date().toISOString() }, "key"); })
+          .then(function () { return api.audit("tips_set", { n: list.length }); })
+          .then(function () { el("#tp-m", body).textContent = "Saved " + list.length + " tips."; }).catch(function (e) { el("#tp-m", body).textContent = "Failed: " + e.message; });
+      });
+    });
   }
 
   function renderPinned() {

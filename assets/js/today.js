@@ -20,7 +20,9 @@
   }
   function fmtIST(d) { try { return d.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) + " IST"; } catch (e) { return ""; } }
   function card(id, title, body) { return '<div class="td-c" id="' + id + '"><div class="td-t">' + title + "</div>" + body + "</div>"; }
-  root.innerHTML = '<div class="wrap"><div id="td-pin"></div><div class="overline">Today</div><h2>Aaj kya hai</h2><div class="td-grid">' +
+  root.innerHTML = '<div class="wrap"><div id="td-pin"></div><div class="overline">Today</div><h2>Aaj kya hai</h2><div class="td-lite"><button type="button" id="td-lite" class="td-btn td-ghost"></button><span class="td-sub">Data saver turns off 3D, animations and the big hero image on all pages (good for slow phones).</span></div><div class="td-grid">' +
+    card("td-tip", "Aaj ka tip", '<div class="td-empty">Loading…</div>') +
+    card("td-cr", "Creator spotlight", '<div class="td-empty">Loading…</div>') +
     card("td-cd", "Countdown", '<div class="td-empty">Loading…</div>') +
     card("td-reg", "Squads registered", '<div class="td-empty">Loading…</div>') +
     card("td-match", "Next match", '<div class="td-empty">Loading…</div>') +
@@ -120,8 +122,31 @@
     }).catch(function () {});
   }
 
+  function setLite() {
+    var b = el("td-lite"); function on() { try { return localStorage.getItem("xr_lite") === "1"; } catch (e) { return false; } }
+    function paint() { b.textContent = "Data saver: " + (on() ? "ON" : "OFF"); }
+    paint(); b.addEventListener("click", function () { try { localStorage.setItem("xr_lite", on() ? "0" : "1"); } catch (e) {} location.reload(); });
+  }
+  function setTip() {
+    get("site_settings?key=eq.tips&select=value").then(function (r) {
+      var items = r && r[0] && r[0].value && r[0].value.items, box = el("td-tip");
+      if (!Array.isArray(items) || !items.length) { box.remove(); return; }
+      var day = Math.floor((Date.now() + 330 * 60000) / 86400000);
+      box.innerHTML = '<div class="td-t">Aaj ka tip</div><div class="td-name" style="font-weight:700">' + esc(items[day % items.length]) + "</div>";
+    }).catch(function () { var b = el("td-tip"); if (b) b.remove(); });
+  }
+  function setCreator() {
+    get("creators_public?select=username,ign,avatar_url,tier,self_followers,channel_url,verified_creator").then(function (rows) {
+      var box = el("td-cr");
+      if (!Array.isArray(rows) || !rows.length) { box.remove(); return; }
+      var day = Math.floor((Date.now() + 330 * 60000) / 86400000), c = rows[day % rows.length];
+      var link = /^https:\/\/(www\.)?(youtube\.com|youtu\.be|instagram\.com)\//.test(c.channel_url || "") ? c.channel_url : "creator.html";
+      box.innerHTML = '<div class="td-t">Creator spotlight</div><div class="td-name">' + esc(c.ign || c.username) + ' <span class="td-ok">&#10003; verified</span></div><div class="td-sub">' + esc(c.tier) + ' creator &middot; self-reported followers: ' + esc(c.self_followers) + '</div><a class="td-more" href="' + esc(link) + '"' + (link === "creator.html" ? "" : ' target="_blank" rel="noopener noreferrer"') + ">Visit channel</a>";
+    }).catch(function () { var b = el("td-cr"); if (b) b.remove(); });
+  }
+
   function boot() {
-    setStreak(); setDaily(); setWinners(); setTop();
+    setLite(); setTip(); setCreator(); setStreak(); setDaily(); setWinners(); setTop();
     get("tournaments?select=id,name,date_text,start_at,slots,reg_open,status&order=sort.asc,created_at.asc").then(function (list) {
       var now = Date.now(), best = null;
       (list || []).forEach(function (t) { var d = startOf(t); if (d && d.getTime() > now - 3 * 3600000 && (!best || d < best.start)) best = { t: t, start: d }; });

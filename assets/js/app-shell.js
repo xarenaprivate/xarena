@@ -1,3 +1,4 @@
+(function(){try{if(localStorage.getItem("xr_lite")==="1")document.documentElement.classList.add("xr-lite")}catch(e){}})();
 /* XARENA app shell — bottom tab bar + profile circle in the installed app.
    Activates in the Android app (XarenaApp bridge), installed PWA, or ?app=1 preview. */
 (function () {
