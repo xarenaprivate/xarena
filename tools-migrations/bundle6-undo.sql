@@ -1,0 +1,2 @@
+drop function if exists public.helper_registrations(text); drop function if exists public.helper_add_result(uuid,text,text,int,int,int); drop function if exists public.helper_set_room(uuid,text,text); drop function if exists public.helper_matches();
+drop function if exists public.admin_list_helpers(); drop function if exists public.admin_remove_helper(uuid); drop function if exists public.admin_add_helper(text); drop function if exists public.is_helper(); drop table if exists public.helpers;

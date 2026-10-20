@@ -86,6 +86,7 @@
     notices: { title: "Notice board", custom: renderNotices },
     feedback: { title: "Feedback", custom: renderFeedback },
     thread: { title: "Match thread", custom: renderThread },
+    helpers: { title: "Helpers", custom: renderHelpers },
     sponsors: {
       title: "Sponsors", table: "sponsors", order: "id.asc",
       cols: [
@@ -1942,6 +1943,18 @@
         var rows = r[0] || [], rep = {}; (r[1] || []).forEach(function (x) { rep[x.post_id] = (rep[x.post_id] || 0) + 1; });
         body.innerHTML = '<div class="card"><h3>Match thread moderation</h3><p style="font-size:13px">Newest first. Posts auto-hide at 3 reports. The thread is open only when the live_thread flag is ON (Control tab).</p>' + (rows.map(function (x) { return '<div style="padding:5px 0;border-bottom:1px solid #8882">' + (x.hidden ? "[hidden] " : "") + esc(x.body) + " <small>(" + (rep[x.id] || 0) + ' reports)</small> <button class="btn btn-sm" data-h="' + x.id + '" data-v="' + (x.hidden ? "0" : "1") + '">' + (x.hidden ? "Unhide" : "Hide") + "</button></div>"; }).join("") || "No posts yet.") + "</div>";
         body.querySelectorAll("[data-h]").forEach(function (b) { b.addEventListener("click", function () { call(function () { return api.rpc("admin_thread_hide", { p_post: +b.dataset.h, p_hidden: b.dataset.v === "1" }, true); }).then(load); }); });
+      });
+    }
+    load();
+  }
+  function renderHelpers() {
+    var body = el("#admin-body");
+    function load() {
+      call(function () { return api.rpc("admin_list_helpers", {}, true); }).then(function (r) {
+        var l = (r && r.helpers) || [];
+        body.innerHTML = '<div class="card"><h3>Helpers</h3><p style="font-size:13px">A helper can set Room ID/password, enter match results and view registrations (no phone, UID or IP) at helper.html. Nothing else. Every action is in the activity log.</p><input id="hp-u" placeholder="Player username"> <button class="btn btn-red btn-sm" id="hp-a">Add helper</button> <span id="hp-m"></span>' + (l.map(function (h) { return '<div style="padding:5px 0">' + esc(h.username || h.user_id) + ' <button class="btn btn-sm" data-rm="' + esc(h.user_id) + '">Remove</button></div>'; }).join("") || "<p>No helpers.</p>") + "</div>";
+        el("#hp-a", body).addEventListener("click", function () { call(function () { return api.rpc("admin_add_helper", { p_username: el("#hp-u", body).value }, true); }).then(function (x) { if (x && x.ok) load(); else el("#hp-m", body).textContent = (x && x.error) || "Failed"; }); });
+        body.querySelectorAll("[data-rm]").forEach(function (b) { b.addEventListener("click", function () { call(function () { return api.rpc("admin_remove_helper", { p_user: b.dataset.rm }, true); }).then(load); }); });
       });
     }
     load();
