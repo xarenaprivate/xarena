@@ -151,6 +151,57 @@ object ShareCard {
         }.getOrNull()
     }
 
+    /** IG/WhatsApp story poster (1080x1920) for a tournament - real tournament row data only. */
+    suspend fun buildStory(ctx: android.content.Context, t: JSONObject): File? = withContext(Dispatchers.IO) {
+        runCatching {
+            val SW = 1080; val SH = 1920
+            val bmp = Bitmap.createBitmap(SW, SH, Bitmap.Config.ARGB_8888)
+            val c = Canvas(bmp)
+            val bg = Paint()
+            bg.shader = LinearGradient(0f, 0f, 0f, SH.toFloat(), GColor.parseColor("#120A24"), GColor.parseColor("#05010C"), Shader.TileMode.CLAMP)
+            c.drawRect(0f, 0f, SW.toFloat(), SH.toFloat(), bg)
+            // gold frame
+            val border = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 8f; color = GColor.parseColor("#F5C451") }
+            c.drawRect(40f, 40f, (SW - 40).toFloat(), (SH - 40).toFloat(), border)
+            val gold = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = GColor.parseColor("#F5C451"); textAlign = Paint.Align.CENTER }
+            val gold2 = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = GColor.parseColor("#FFE9A3"); textAlign = Paint.Align.CENTER }
+            val white = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = GColor.WHITE; textAlign = Paint.Align.CENTER }
+            val muted = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = GColor.parseColor("#B79CE0"); textAlign = Paint.Align.CENTER }
+
+            gold.textSize = 96f; gold.isFakeBoldText = true
+            c.drawText("XARENA", SW / 2f, 320f, gold)
+            muted.textSize = 36f; muted.isFakeBoldText = false
+            c.drawText("E S P O R T S", SW / 2f, 380f, muted)
+
+            // tournament name, wrapped to 2 lines
+            val name = t.s("name").ifBlank { "TOURNAMENT" }
+            white.textSize = 76f; white.isFakeBoldText = true
+            val words = name.split(" ")
+            var line1 = ""; var line2 = ""
+            for (w in words) { if ((line1 + " " + w).trim().length <= 14 && line2.isEmpty()) line1 = (line1 + " " + w).trim() else line2 = (line2 + " " + w).trim() }
+            c.drawText(line1, SW / 2f, 640f, white)
+            if (line2.isNotBlank()) c.drawText(line2, SW / 2f, 740f, white)
+
+            gold2.textSize = 44f
+            val date = t.s("date_text")
+            if (date.isNotBlank()) c.drawText(date, SW / 2f, 900f, gold2)
+            val slots = t.optInt("slots", 0)
+            if (slots > 0) { gold.textSize = 120f; c.drawText(slots.toString(), SW / 2f, 1080f, gold); muted.textSize = 34f; c.drawText("SQUAD SLOTS", SW / 2f, 1130f, muted) }
+            val prize = t.s("prize")
+            if (prize.isNotBlank()) { gold2.textSize = 48f; c.drawText(prize, SW / 2f, 1260f, gold2) }
+
+            white.textSize = 42f; white.isFakeBoldText = true
+            c.drawText("FREE ENTRY - REGISTER IN THE APP", SW / 2f, 1500f, white)
+            muted.textSize = 32f; muted.isFakeBoldText = false
+            c.drawText("xarenaprivate.github.io/xarena", SW / 2f, (SH - 120).toFloat(), muted)
+
+            val dir = File(ctx.cacheDir, "share").apply { mkdirs() }
+            val out = File(dir, "xarena-story.png")
+            FileOutputStream(out).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            out
+        }.getOrNull()
+    }
+
     fun share(ctx: android.content.Context, f: File) {
         val uri = androidx.core.content.FileProvider.getUriForFile(ctx, "app.xarena.esports.native.fileprovider", f)
         val i = android.content.Intent(android.content.Intent.ACTION_SEND).apply {

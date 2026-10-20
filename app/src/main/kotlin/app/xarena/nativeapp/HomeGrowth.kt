@@ -82,6 +82,16 @@ fun CupHeroCard(t: JSONObject, slotsTaken: Int, onRegister: () -> Unit) {
                             .putExtra(Intent.EXTRA_TEXT, "Join XARENA ESPORTS - free Free Fire tournaments. https://xarenaprivate.github.io/xarena/tournaments.html")
                         ctx.startActivity(Intent.createChooser(i, "Share"))
                     }.padding(horizontal = 16.dp, vertical = 9.dp))
+            Spacer(Modifier.width(10.dp))
+            val scope2 = rememberCoroutineScope()
+            Text("POSTER", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
+                    .clickable {
+                        scope2.launch {
+                            val fx = ShareCard.buildStory(ctx, t)
+                            if (fx != null) ShareCard.share(ctx, fx)
+                        }
+                    }.padding(horizontal = 16.dp, vertical = 9.dp))
         }
     }
 }
