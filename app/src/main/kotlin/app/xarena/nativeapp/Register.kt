@@ -186,6 +186,10 @@ fun RegisterScreen(onBack: () -> Unit) {
                 busy = true; err = null
                 scope.launch {
                     try {
+                        if (runCatching { Flags.on("dup_check") }.getOrDefault(false)) {
+                            val existing = findMySeasonReg(regTarget)
+                            if (existing != null) { myReg = existing; busy = false; return@launch }
+                        }
                         val regId = "XR-S1-" + Random.nextInt(1000, 10000)
                         val path = Api.uploadProof(regId, proofBytes!!)
                         val r = if (entryCost > 0) Api.registerSquadAp(regTarget, regId, squad.trim(), captain.trim(), uid, phone, path)

@@ -455,6 +455,8 @@ fun HomeShell(onLogout: () -> Unit) {
         "register" -> { RegisterScreen(onBack = { feature = null }); return }
         "checklist" -> { PreMatchChecklistScreen(onBack = { feature = null }); return }
         "pointstable" -> { PointsTableScreen(onBack = { feature = null }); return }
+        "spectator" -> { SpectatorScreen(onBack = { feature = null }); return }
+        "minicup" -> { MiniCupScreen(onBack = { feature = null }, onRegister = { feature = "register" }); return }
         "h2h" -> { HeadToHeadScreen(onBack = { feature = null }); return }
         "notices" -> { NoticeBoardScreen(onBack = { feature = null }); return }
         "feedback" -> { FeedbackScreen(onBack = { feature = null }); return }
@@ -607,7 +609,14 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("recorder", "Screen Recorder", "Record gameplay to this phone only", Icons.Default.PlayArrow),
         GridItem("settings", "Settings", "App version, activity status, logout", Icons.Default.Settings),
     )
-    val items = itemsAll.filter { RemoteConfig.featureEnabled(it.key) }
+    // Remote-flag-gated entries (site_settings key "flags"): hidden until the owner switches the flag on.
+    val flagState by produceState<JSONObject?>(null) { value = runCatching { Flags.get() }.getOrNull() }
+    val gated = listOf(
+        Triple("spectator", GridItem("spectator", "Spectator Room", "Watch tournament matches live", Icons.Default.PlayArrow), "spectator"),
+        Triple("minicup", GridItem("minicup", "Weekly Mini-Cup", "A quick cup every week", Icons.Default.Star), "mini_cup"),
+    )
+    val items = itemsAll.filter { RemoteConfig.featureEnabled(it.key) } +
+        gated.filter { flagState?.optBoolean(it.third, false) == true }.map { it.second }
     Column(Modifier.fillMaxSize()) {
         Brand()
         LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
