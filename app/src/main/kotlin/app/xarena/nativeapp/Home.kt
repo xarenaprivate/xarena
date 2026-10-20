@@ -32,7 +32,18 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
         val matches = runCatching { Api.publicGet("/rest/v1/matches_public?select=*&order=starts_at.asc.nullslast&limit=6") }.getOrElse { JSONArray() }
         val stats = runCatching { Api.authedRpc("my_stats", JSONObject()) }.getOrNull()
         val ann = runCatching { RemoteConfig.get(); RemoteConfig.announcement() }.getOrNull()
-        HomeData(ts, if (yt.length() > 0) yt.getJSONObject(0).s("value") else "", matches, stats, ann)
+        val all = (0 until ts.length()).map { ts.getJSONObject(it) }
+        val cup = all.firstOrNull { it.s("name").contains("ignition", true) } ?: all.firstOrNull { it.optBoolean("reg_open") } ?: all.firstOrNull()
+        val slotsTaken = cup?.let { c ->
+            runCatching {
+                val body = Api.authedRpcRaw("tournament_reg_counts", JSONObject()).trim()
+                val arr = if (body.startsWith("[")) JSONArray(body) else JSONArray()
+                var n = -1
+                for (i in 0 until arr.length()) { val r = arr.getJSONObject(i); if (r.s("tournament_id") == c.s("id")) n = r.optInt("registered", -1) }
+                n
+            }.getOrDefault(-1)
+        } ?: -1
+        HomeData(ts, if (yt.length() > 0) yt.getJSONObject(0).s("value") else "", matches, stats, ann, cup, slotsTaken)
     }) { d ->
         LazyColumn(Modifier.fillMaxSize()) {
             item {
@@ -48,31 +59,18 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                         if (a.s("link").isNotBlank()) Text("Tap to open", color = Muted, fontSize = 11.sp)
                     }
                 }
-                // Featured tournament = first with open registration, else first in list
-                val openIdx = (0 until d.ts.length()).indexOfFirst { d.ts.getJSONObject(it).optBoolean("reg_open") }
-                val featIdx = if (openIdx >= 0) openIdx else if (d.ts.length() > 0) 0 else -1
-                if (featIdx < 0) {
+                WalkthroughOnce()
+                if (d.cup == null) {
                     PanelCard { Text("No tournaments yet", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         Text("Tournaments appear here as soon as the admin creates them.", color = Muted, fontSize = 13.sp) }
-                } else {
-                    val t = d.ts.getJSONObject(featIdx)
-                    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(Look.cardRadius))
-                        .background(Look.cardBg).border(1.dp, Gold.copy(alpha = .45f), RoundedCornerShape(Look.cardRadius)).padding(18.dp)) {
-                        Text(t.s("name"), color = Gold2, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                        Text(listOf(t.s("mode"), t.s("date_text")).filter { it.isNotBlank() }.joinToString(" · "), color = Muted, fontSize = 12.sp)
-                        if (t.s("prize").isNotBlank()) {
-                            Spacer(Modifier.height(8.dp))
-                            Text("Prize: " + t.s("prize"), color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
-                                modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Gold).padding(horizontal = 10.dp, vertical = 4.dp))
-                        }
-                        if (t.optInt("slots", 0) > 0) { Spacer(Modifier.height(4.dp)); Text(t.optInt("slots").toString() + " slots", color = Muted, fontSize = 12.sp) }
-                        Spacer(Modifier.height(10.dp))
-                        Text("VIEW DETAILS →", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
-                            modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
-                                .clickable { onGoTab(1) }.padding(horizontal = 16.dp, vertical = 8.dp))
-                    }
-                }
+                } else CupHeroCard(d.cup, d.slotsTaken) { onOpenFeature("register") }
+                AajKyaHaiCard(d.matches) { onOpenFeature("live") }
+                CheckinHomeCard { onOpenFeature("streak") }
+                FanVoteHomeCard { onOpenFeature("vote") }
+                DailyAvatarHomeCard()
             }
+            item { WinnersStrip { onOpenFeature("winners") } }
+            item { TopSquadsCard { onGoTab(5) } }
             item { WeeklyClipCard() }
             item {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -143,7 +141,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
     }
 }
 
-private data class HomeData(val ts: JSONArray, val ytUrl: String, val matches: JSONArray, val stats: JSONObject?, val ann: JSONObject? = null)
+private data class HomeData(val ts: JSONArray, val ytUrl: String, val matches: JSONArray, val stats: JSONObject?, val ann: JSONObject? = null, val cup: JSONObject? = null, val slotsTaken: Int = -1)
 
 @Composable
 private fun LiveStreamCard(onOpen: () -> Unit) {
