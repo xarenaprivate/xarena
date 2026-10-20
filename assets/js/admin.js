@@ -1850,6 +1850,39 @@
     load();
   }
 
+  function renderSupportAcks(host) {
+    var box = document.createElement("div"); box.className = "card"; box.style.marginTop = "14px"; host.appendChild(box);
+    box.innerHTML = "<h3>I paid acknowledgements</h3><p style='font-size:13px'>Private. Only admins can see these screenshots. They are deleted automatically after 30 days.</p><div id='sa-list'>Loading…</div>";
+    var list = box.querySelector("#sa-list");
+    function proof(path) {
+      var s = api.session();
+      return fetch(api.url + "/storage/v1/object/sign/support-proofs/" + path, { method: "POST", headers: { "apikey": api.key, "Authorization": "Bearer " + (s && s.access_token), "Content-Type": "application/json" }, body: JSON.stringify({ expiresIn: 600 }) })
+        .then(function (r) { return r.json(); }).then(function (d) { if (!d || !d.signedURL) throw new Error("sign failed"); return api.url + "/storage/v1" + d.signedURL; });
+    }
+    function load() {
+      call(function () { return api.uRpc("admin_support_acks", {}); }).then(function (rows) {
+        if (!Array.isArray(rows) || !rows.length) { list.innerHTML = "<p>No acknowledgements yet.</p>"; return; }
+        list.innerHTML = rows.map(function (r) {
+          return '<div class="card" style="margin:8px 0" data-id="' + r.id + '" data-path="' + esc(r.path) + '"><b>' + esc(r.name || "(no name)") + "</b> &middot; @" + esc(r.username || "?") + " &middot; " + esc(new Date(r.created_at).toLocaleString()) +
+            (r.txn_id ? "<br>Txn: " + esc(r.txn_id) : "") + (r.seen ? ' <span style="color:#7bd88f">seen</span>' : ' <span style="color:#f2c94c">new</span>') +
+            '<div style="margin-top:6px"><button class="btn btn-ghost btn-sm" data-sa="view">View screenshot</button> <button class="btn btn-ghost btn-sm" data-sa="seen">Mark seen</button> <button class="btn btn-red btn-sm" data-sa="del">Delete</button></div><div data-img></div></div>';
+        }).join("");
+        list.querySelectorAll("[data-sa]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            var c = b.closest("[data-id]"), id = +c.getAttribute("data-id"), path = c.getAttribute("data-path"), a = b.getAttribute("data-sa");
+            if (a === "view") { proof(path).then(function (u) { c.querySelector("[data-img]").innerHTML = '<img src="' + esc(u) + '" alt="" style="max-width:100%;max-height:420px;margin-top:8px;border-radius:8px">'; }).catch(function () { c.querySelector("[data-img]").textContent = "Could not load."; }); }
+            if (a === "seen") call(function () { return api.uRpc("admin_support_ack_seen", { p_id: id }); }).then(load);
+            if (a === "del") { if (!confirm("Delete this acknowledgement and its screenshot?")) return;
+              var s = api.session();
+              fetch(api.url + "/storage/v1/object/support-proofs/" + path, { method: "DELETE", headers: { "apikey": api.key, "Authorization": "Bearer " + (s && s.access_token) } })
+                .then(function () { return call(function () { return api.uRpc("admin_support_ack_delete", { p_id: id }); }); }).then(load); }
+          });
+        });
+      }).catch(function (e) { list.textContent = "Failed: " + e.message; });
+    }
+    load();
+  }
+
   function renderSupportQr() {
     var body = el("#admin-body");
     call(function () { return api.aGet("site_settings", "?key=eq.support&select=value"); }).then(function (rows) {
@@ -1857,6 +1890,7 @@
       body.innerHTML = '<div class="card"><h3>Support / Donation QR</h3><p style="font-size:13px">Upload ONE payment QR image (screenshot of your UPI QR, max 5 MB). It shows on the public Support page. No UPI id or phone number is shown as text; payment happens in the donor\'s own UPI app.</p>' +
         (v.image_url ? '<p>Current QR:</p><img src="' + esc(v.image_url) + '" alt="" style="max-width:220px;background:#fff;padding:6px;border-radius:8px">' : "<p>No QR uploaded yet. The Support page says Coming soon.</p>") +
         '<div style="margin:10px 0"><input type="file" id="sq-file" accept="image/*"></div><input id="sq-text" maxlength="120" placeholder="Optional short text under the QR" value="' + esc(v.text || "") + '" style="width:100%;margin-bottom:8px"><button class="btn btn-sm" id="sq-save">Save</button> ' + (v.image_url ? '<button class="btn btn-red btn-sm" id="sq-del">Remove QR</button>' : "") + '<div id="sq-msg" style="margin-top:8px;font-size:13px"></div></div>';
+      renderSupportAcks(body);
       var msg = el("#sq-msg", body);
       function save(data) { return call(function () { return api.aUpsert("site_settings", { key: "support", value: data, updated_at: new Date().toISOString() }, "key"); }).then(function () { return api.audit("support_qr", {}); }).then(renderSupportQr).catch(function (e) { msg.textContent = "Failed: " + e.message; }); }
       el("#sq-save", body).addEventListener("click", function () {

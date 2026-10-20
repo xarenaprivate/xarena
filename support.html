@@ -103,27 +103,70 @@
 </ul>
 </div></header>
 <main>
-<section class="section"><div class="wrap" style="max-width:520px"><div id="sp-app" class="spp"><div class="spp-card">Loading…</div></div></div></section>
+<section class="section"><div class="wrap" style="max-width:520px"><div id="sp-app" class="spp"><div class="spg-frame"><div class="spg-in">Loading…</div></div></div></div></section>
 <style>
-body.sp-page,body.sp-page main,body.sp-page .section{background:#0b0705 !important}
-body.sp-page header.nav,body.sp-page .nav{background:#120b07 !important;border-bottom:1px solid #3a1f0d !important}
-.spp{font-family:Rajdhani,system-ui,sans-serif;color:#e6d3bf;padding-bottom:96px}
-.spp h1{font:900 24px Orbitron,system-ui,sans-serif;letter-spacing:2px;color:#ff7a1a;margin:6px 0 12px}
-.spp-card{background:#1a120c;border:1px solid #ff7a1a;border-radius:16px;padding:16px;text-align:center;box-shadow:0 0 18px rgba(255,122,26,.12)}
-.spp-card img{width:100%;max-width:300px;border-radius:12px;background:#fff;padding:8px;box-sizing:border-box;margin:8px auto;display:block}
-.spp-note{font-size:14px;color:#cdb79f;margin:12px 0 0;line-height:1.45}
-.spp-soon{font:800 22px Orbitron,sans-serif;color:#ff7a1a;padding:26px 0}
+body.sp-page,body.sp-page main,body.sp-page .section{background:#050505 !important}
+body.sp-page header.nav,body.sp-page .nav{background:#0a0a0a !important;border-bottom:1px solid #5c4513 !important}
+.spp{font-family:Rajdhani,system-ui,sans-serif;color:#e9dcc0;padding-bottom:96px}
+.spg-frame{padding:3px;border-radius:22px;background:linear-gradient(135deg,#f6d77a,#9a6f12 35%,#f6d77a 55%,#7a550d 80%,#f6d77a);box-shadow:0 0 28px rgba(212,160,23,.25)}
+.spg-in{background:#0b0b0b;border-radius:19px;padding:20px 16px 18px;text-align:center;border:1px solid #2a2008}
+.spg-crown{width:56px;height:40px;display:block;margin:0 auto 4px}
+.spg-t{font:900 22px Orbitron,system-ui,sans-serif;letter-spacing:3px;color:#f2c94c;margin:2px 0}
+.spg-s{font:600 14px Rajdhani,sans-serif;color:#cdb77a;letter-spacing:1px;margin:0 0 10px}
+.spg-scan{font:800 16px Orbitron,sans-serif;letter-spacing:3px;color:#f2c94c;margin:14px 0 8px}
+.spg-qr{display:block;width:100%;max-width:280px;margin:0 auto;border-radius:14px;background:#fff;padding:10px;box-sizing:border-box;border:2px solid #d4a017}
+.spg-note{font-size:14px;line-height:1.45;color:#bfae86;margin:14px 0 0}
+.spg-soon{font:800 22px Orbitron,sans-serif;color:#f2c94c;padding:26px 0}
+.spg-ack{margin-top:16px;background:#0b0b0b;border:1px solid #5c4513;border-radius:16px;padding:14px;text-align:left}
+.spg-ack h2{font:800 14px Orbitron,sans-serif;letter-spacing:2px;color:#f2c94c;margin:0 0 6px}
+.spg-ack p{font-size:13px;color:#bfae86;margin:4px 0 10px;line-height:1.4}
+.spg-ack label{display:block;font-size:13px;color:#e9dcc0;margin:8px 0 3px}
+.spg-ack input[type=text],.spg-ack input[type=file]{width:100%;box-sizing:border-box;background:#141414;color:#f3e9cf;border:1px solid #5c4513;border-radius:10px;padding:9px;font:600 14px Rajdhani,sans-serif}
+.spg-btn{margin-top:12px;background:linear-gradient(135deg,#f6d77a,#c28f12);color:#1a1200;border:0;border-radius:10px;padding:11px 18px;font:800 14px Orbitron,sans-serif;letter-spacing:1px;cursor:pointer}
+.spg-btn:disabled{opacity:.5}
+.spg-warn{color:#f2c94c !important;font-weight:700}
+.spg-msg{font-size:14px;margin-top:8px;color:#f2c94c}
 </style>
 <script>
 (function(){
   document.body.classList.add("sp-page");
   var KEY="sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7",URLB="https://oskccuajgbyabogbvedj.supabase.co",root=document.getElementById("sp-app");
   function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
-  var NOTE='<p class="spp-note">Voluntary support for XARENA. No rewards, no refunds, not linked to any tournament prize. Payment happens in your own UPI app; XARENA does not see or store payment details.</p>';
+  var CROWN='<svg class="spg-crown" viewBox="0 0 56 40" aria-hidden="true"><defs><linearGradient id="gc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6d77a"/><stop offset="1" stop-color="#b8860b"/></linearGradient></defs><path d="M4 32 L8 10 L19 22 L28 5 L37 22 L48 10 L52 32 Z" fill="url(#gc)" stroke="#7a550d" stroke-width="1.5"/><rect x="5" y="33" width="46" height="5" rx="2" fill="url(#gc)" stroke="#7a550d" stroke-width="1.2"/><circle cx="8" cy="9" r="2.6" fill="#f6d77a"/><circle cx="28" cy="4" r="2.6" fill="#f6d77a"/><circle cx="48" cy="9" r="2.6" fill="#f6d77a"/></svg>';
+  var HEAD=CROWN+'<div class="spg-t">XARENA ESPORTS</div><div class="spg-s">Support the Team</div>';
+  var NOTE='<p class="spg-note">Voluntary support for XARENA. No rewards, no refunds, not linked to any tournament prize. Payment happens in your own UPI app; XARENA does not see or store payment details.</p>';
+  function ackForm(){return '<div class="spg-ack" id="sp-ack"><h2>I PAID (OPTIONAL)</h2><p>Paid already? You can send a screenshot so we know it arrived. This is optional and gives no reward or benefit.</p><p class="spg-warn">Hide your phone number and UPI id in the screenshot if you can.</p><div id="sp-ack-body">Checking login…</div></div>'}
+  function wireAck(){
+    var box=document.getElementById("sp-ack-body");if(!box)return;
+    function login(){box.innerHTML='<p>Log in to send an acknowledgement.</p><a class="spg-btn" style="display:inline-block;text-decoration:none" href="account.html">Log in</a>'}
+    if(!window.xrApi){if((wireAck.n=(wireAck.n||0)+1)<30){setTimeout(wireAck,200)}else login();return}
+    window.xrApi.user().then(function(u){
+      if(!u){login();return}
+      box.innerHTML='<label for="sp-f">Payment screenshot (JPG or PNG, max 5 MB)</label><input type="file" id="sp-f" accept="image/jpeg,image/png"><label for="sp-t">Transaction id (optional)</label><input type="text" id="sp-t" maxlength="40" autocomplete="off"><label for="sp-n">Name (optional)</label><input type="text" id="sp-n" maxlength="40" autocomplete="off"><button class="spg-btn" id="sp-go">SEND</button><div class="spg-msg" id="sp-m"></div>';
+      var m=document.getElementById("sp-m"),go=document.getElementById("sp-go");
+      go.addEventListener("click",function(){
+        var f=document.getElementById("sp-f").files[0];
+        if(!f){m.textContent="Choose a screenshot first.";return}
+        if(f.type!=="image/jpeg"&&f.type!=="image/png"){m.textContent="Only JPG or PNG.";return}
+        if(f.size>5*1024*1024){m.textContent="File too large (max 5 MB).";return}
+        go.disabled=true;m.textContent="Sending…";
+        var path=u.id+"/"+Date.now()+(f.type==="image/png"?".png":".jpg");
+        window.xrApi.userToken().then(function(tok){
+          return fetch(URLB+"/storage/v1/object/support-proofs/"+path,{method:"POST",headers:{apikey:KEY,Authorization:"Bearer "+tok,"Content-Type":f.type,"x-upsert":"false"},body:f});
+        }).then(function(r){if(!r.ok)throw new Error(r.status===403||r.status===400?"Limit reached (3 per day) or upload not allowed.":"Upload failed.");
+          return window.xrApi.uRpc("support_ack_submit",{p_path:path,p_txn:document.getElementById("sp-t").value,p_name:document.getElementById("sp-n").value});
+        }).then(function(r){
+          if(r&&r.ok){box.innerHTML='<p style="font-size:16px;color:#f2c94c;font-weight:700">Thanks, received.</p>'}
+          else{m.textContent=(r&&r.error)||"Could not send.";go.disabled=false}
+        }).catch(function(e){m.textContent=e.message||"Failed.";go.disabled=false});
+      });
+    }).catch(login);
+  }
   fetch(URLB+"/rest/v1/site_settings?key=eq.support&select=value",{headers:{apikey:KEY}}).then(function(r){return r.json()}).then(function(d){
     var v=d&&d[0]&&d[0].value||{};var ok=typeof v.image_url==="string"&&/^https:\/\//.test(v.image_url);
-    root.innerHTML="<h1>SUPPORT XARENA</h1>"+(ok?'<div class="spp-card"><b>Scan with any UPI app</b><img src="'+esc(v.image_url)+'" alt="Payment QR code">'+(v.text?'<div>'+esc(v.text)+'</div>':"")+NOTE+'</div>':'<div class="spp-card"><div class="spp-soon">COMING SOON</div>'+NOTE+'</div>');
-  }).catch(function(){root.innerHTML='<h1>SUPPORT XARENA</h1><div class="spp-card"><div class="spp-soon">COMING SOON</div>'+NOTE+'</div>'});
+    root.innerHTML='<div class="spg-frame"><div class="spg-in">'+HEAD+(ok?'<div class="spg-scan">SCAN TO DONATE</div><img class="spg-qr" src="'+esc(v.image_url)+'" alt="Payment QR code">'+(v.text?'<div class="spg-note">'+esc(v.text)+'</div>':""):'<div class="spg-soon">COMING SOON</div>')+NOTE+'</div></div>'+(ok?ackForm():"");
+    if(ok)wireAck();
+  }).catch(function(){root.innerHTML='<div class="spg-frame"><div class="spg-in">'+HEAD+'<div class="spg-soon">COMING SOON</div>'+NOTE+'</div></div>'});
 })();
 </script>
 </main>
