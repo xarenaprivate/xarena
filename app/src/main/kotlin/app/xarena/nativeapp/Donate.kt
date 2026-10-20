@@ -101,6 +101,10 @@ fun DonateScreen(onBack: () -> Unit) {
                     supporters.take(30).forEach { sp ->
                         Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(sp.s("name").ifBlank { "Anonymous" }, color = Color(0xFFF3E9CF), fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                            if (sp.s("amount").isNotBlank()) {
+                                Text("\u20B9" + sp.s("amount"), color = SpGold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Spacer(Modifier.width(8.dp))
+                            }
                             Text(fmtCr(sp.s("date") + "T00:00:00Z").substringBefore(","), color = SpCream, fontSize = 12.sp)
                         }
                     }
