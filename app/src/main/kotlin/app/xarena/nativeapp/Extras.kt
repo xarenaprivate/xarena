@@ -81,6 +81,10 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
             Spacer(Modifier.height(4.dp))
             DataSaverSwitchRow()
             Spacer(Modifier.height(14.dp))
+            Text("Feel", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Spacer(Modifier.height(4.dp))
+            FxSwitchRows()
+            Spacer(Modifier.height(14.dp))
             Text("Screen Recorder", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Text("Records your screen to this phone only (Movies > XARENA). Nothing is uploaded.", color = Muted, fontSize = 12.sp)
             Spacer(Modifier.height(4.dp))
@@ -272,6 +276,39 @@ fun PlayerCardScreen(onBack: () -> Unit, onOpenConv: (String?, String, String) -
                     Spacer(Modifier.height(24.dp))
                 }
             }
+        }
+    }
+}
+
+/* ---- Haptics + sounds (both forced off when Data Saver is on) ---- */
+object Fx {
+    private val p get() = Api.ctx.getSharedPreferences("xr_prefs", 0)
+    var hapticsOn: Boolean get() = p.getBoolean("fx_haptics", true); set(v) = p.edit().putBoolean("fx_haptics", v).apply()
+    var soundsOn: Boolean get() = p.getBoolean("fx_sounds", true); set(v) = p.edit().putBoolean("fx_sounds", v).apply()
+    fun haptics() = hapticsOn && !DataSaver.on
+    fun sounds() = soundsOn && !DataSaver.on
+    fun blip() {
+        if (!sounds()) return
+        runCatching {
+            val tg = android.media.ToneGenerator(android.media.AudioManager.STREAM_NOTIFICATION, 60)
+            tg.startTone(android.media.ToneGenerator.TONE_PROP_ACK, 140)
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({ tg.release() }, 220)
+        }
+    }
+}
+
+@Composable
+fun FxSwitchRows() {
+    var h by remember { mutableStateOf(Fx.hapticsOn) }
+    var so by remember { mutableStateOf(Fx.soundsOn) }
+    Column {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text("Button vibration" + (if (DataSaver.on) " (off while Data Saver is on)" else ""), color = Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
+            Switch(checked = h, onCheckedChange = { h = it; Fx.hapticsOn = it })
+        }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text("Soft sounds on wins and claims" + (if (DataSaver.on) " (off while Data Saver is on)" else ""), color = Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
+            Switch(checked = so, onCheckedChange = { so = it; Fx.soundsOn = it })
         }
     }
 }

@@ -76,6 +76,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
             item { WeeklyClipCard() }
             item {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    LivePulse()
                     Text("LIVE NOW", color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                     Text("See all →", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenFeature("live") }.padding(4.dp))
                 }

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.json.JSONArray
 import org.json.JSONObject
+import androidx.compose.animation.core.animateFloat
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -118,6 +119,8 @@ fun AajKyaHaiCard(matches: JSONArray, onJoin: () -> Unit) {
 @Composable
 fun CheckinHomeCard(onOpenStreak: () -> Unit) {
     var tick by remember { mutableIntStateOf(0) }
+    var confetti by remember { mutableStateOf(false) }
+    ConfettiBurst(confetti) { confetti = false }
     LoadState2(tick, { runCatching { Api.authedRpc("my_game_stats", JSONObject()) }.getOrNull() }) { s ->
         PanelCard {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -134,7 +137,11 @@ fun CheckinHomeCard(onOpenStreak: () -> Unit) {
                 }
                 val scope = rememberCoroutineScope()
                 if (s != null && s.optBoolean("ok") && !s.optBoolean("checked_in_today"))
-                    GoldButton("CLAIM") { scope.launch { runCatching { Api.authedRpc("daily_checkin", JSONObject()) }; tick++ } }
+                    GoldButton("CLAIM") { scope.launch {
+                        val cr = runCatching { Api.authedRpc("daily_checkin", JSONObject()) }.getOrNull()
+                        if (cr != null && cr.optBoolean("ok")) { confetti = true; Fx.blip() }
+                        tick++
+                    } }
                 else Text("OPEN", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
                     modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
                         .clickable { onOpenStreak() }.padding(horizontal = 16.dp, vertical = 9.dp))
@@ -385,4 +392,35 @@ fun Rise3D(content: @Composable () -> Unit) {
         rotationX = (1f - p) * -12f
         cameraDistance = 16f * density
     }) { content() }
+}
+
+/** One-shot gold confetti burst - ~1.4s, then gone. Skipped entirely under Data Saver. */
+@Composable
+fun ConfettiBurst(fire: Boolean, onDone: () -> Unit) {
+    if (!fire || DataSaver.on) { if (fire) onDone(); return }
+    val parts = remember { List(36) { Triple((10..90).random() / 100f, (20..100).random() / 100f, (4..9).random()) } }
+    var now by remember { mutableStateOf(0f) }
+    LaunchedEffect(Unit) {
+        val s = System.currentTimeMillis()
+        while (System.currentTimeMillis() - s < 1450) { now = (System.currentTimeMillis() - s) / 1450f; kotlinx.coroutines.delay(32) }
+        onDone()
+    }
+    androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
+        parts.forEach { (fx, seed, sz) ->
+            val x = size.width * fx + kotlin.math.sin((now * 6 + seed * 10).toDouble()).toFloat() * 30f
+            val y = size.height * (seed * 0.2f) + now * size.height * (0.5f + seed * 0.6f)
+            drawCircle(if (seed > 0.6f) Gold else Gold2, radius = sz.dp.toPx() / 2f, center = androidx.compose.ui.geometry.Offset(x, y), alpha = 1f - now * 0.6f)
+        }
+    }
+}
+
+/** Pulsing red dot for the LIVE NOW header. Static dot under Data Saver. */
+@Composable
+fun LivePulse() {
+    val a = if (DataSaver.on) 1f else {
+        val inf = androidx.compose.animation.core.rememberInfiniteTransition(label = "lp")
+        inf.animateFloat(0.25f, 1f, androidx.compose.animation.core.infiniteRepeatable(
+            androidx.compose.animation.core.tween(900), androidx.compose.animation.core.RepeatMode.Reverse), label = "lpa").value
+    }
+    Box(Modifier.padding(end = 8.dp).size(10.dp).clip(RoundedCornerShape(5.dp)).background(Color(0xFFE10600).copy(alpha = a)))
 }

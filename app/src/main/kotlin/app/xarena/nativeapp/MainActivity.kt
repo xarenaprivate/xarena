@@ -231,9 +231,10 @@ fun Brand() {
 
 @Composable
 fun GoldButton(text: String, enabled: Boolean = true, onClick: () -> Unit) {
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
     Box(Modifier.fillMaxWidth().height(52.dp).clip(RoundedCornerShape(14.dp)).alpha(if (enabled) 1f else .5f)
         .background(Brush.horizontalGradient(listOf(Gold2, Gold)))
-        .clickable(enabled = enabled, onClick = onClick), contentAlignment = Alignment.Center) {
+        .clickable(enabled = enabled) { if (Fx.haptics()) haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress); onClick() }, contentAlignment = Alignment.Center) {
         Text(text, color = Color(0xFF2A1400), fontWeight = FontWeight.Bold, fontSize = 15.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.padding(horizontal = 12.dp))
     }
 }
@@ -397,6 +398,8 @@ fun HomeShell(onLogout: () -> Unit) {
         "winner" -> { WinnerScreen(onBack = { feature = null }); return }
         "sponsors" -> { SponsorsScreen(onBack = { feature = null }); return }
         "register" -> { RegisterScreen(onBack = { feature = null }); return }
+        "checklist" -> { PreMatchChecklistScreen(onBack = { feature = null }); return }
+        "guide" -> { HinglishGuideScreen(onBack = { feature = null }); return }
         "room" -> { RoomScreen(onBack = { feature = null }); return }
         "support" -> { SupportScreen(onBack = { feature = null }); return }
         "sensitivity" -> { SensitivityScreen(onBack = { feature = null }); return }
@@ -509,6 +512,8 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("academy", "Academy", "Free Fire training drills", Icons.Default.Create),
         GridItem("news", "News", "Updates and announcements", Icons.Default.Info),
         GridItem("rules", "Rules", "Tournament and squad rules", Icons.Default.Menu),
+        GridItem("checklist", "Match Checklist", "Be ready before the room opens", Icons.Default.CheckCircle),
+        GridItem("guide", "Beginner Guide", "Naya player? Shuru yahan se", Icons.Default.Info),
         GridItem("notifications", "Notifications", "Your alerts", Icons.Default.Notifications),
         GridItem("stories", "Stories", "24-hour highlights from players", Icons.Default.Face),
         GridItem("clips", "Clips", "Approved community clips", Icons.Default.PlayArrow),
