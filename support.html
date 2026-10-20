@@ -104,49 +104,81 @@
 </div></header>
 <main>
 <section class="section"><div class="wrap" style="max-width:520px"><div id="sp-app" class="spp"><div class="spg-frame"><div class="spg-in">Loading…</div></div></div></div></section>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&display=swap" rel="stylesheet">
 <style>
-body.sp-page,body.sp-page main,body.sp-page .section{background:#050505 !important}
+body.sp-page,body.sp-page main,body.sp-page .section{background:#050505 radial-gradient(ellipse at 50% 0,#1c1406 0,#050505 60%) !important}
 body.sp-page header.nav,body.sp-page .nav{background:#0a0a0a !important;border-bottom:1px solid #5c4513 !important}
-.spp{font-family:Rajdhani,system-ui,sans-serif;color:#e9dcc0;padding-bottom:96px}
-.spg-frame{padding:3px;border-radius:22px;background:linear-gradient(135deg,#f6d77a,#9a6f12 35%,#f6d77a 55%,#7a550d 80%,#f6d77a);box-shadow:0 0 28px rgba(212,160,23,.25)}
-.spg-in{background:#0b0b0b;border-radius:19px;padding:20px 16px 18px;text-align:center;border:1px solid #2a2008}
-.spg-crown{width:88px;height:88px;display:block;margin:0 auto 4px}
-.spg-t{font:900 22px Orbitron,system-ui,sans-serif;letter-spacing:3px;color:#f2c94c;margin:2px 0}
-.spg-s{font:600 14px Rajdhani,sans-serif;color:#cdb77a;letter-spacing:1px;margin:0 0 10px}
-.spg-scan{font:800 16px Orbitron,sans-serif;letter-spacing:3px;color:#f2c94c;margin:14px 0 8px}
-.spg-qr{display:block;width:100%;max-width:280px;margin:0 auto;border-radius:14px;background:#fff;padding:10px;box-sizing:border-box;border:2px solid #d4a017}
-.spg-note{font-size:14px;line-height:1.45;color:#bfae86;margin:14px 0 0}
-.spg-soon{font:800 22px Orbitron,sans-serif;color:#f2c94c;padding:26px 0}
-.spg-ack{margin-top:16px;background:#0b0b0b;border:1px solid #5c4513;border-radius:16px;padding:14px;text-align:left}
-.spg-ack h2{font:800 14px Orbitron,sans-serif;letter-spacing:2px;color:#f2c94c;margin:0 0 6px}
-.spg-ack p{font-size:13px;color:#bfae86;margin:4px 0 10px;line-height:1.4}
-.spg-ack label{display:block;font-size:13px;color:#e9dcc0;margin:8px 0 3px}
-.spg-ack input[type=text],.spg-ack input[type=file]{width:100%;box-sizing:border-box;background:#141414;color:#f3e9cf;border:1px solid #5c4513;border-radius:10px;padding:9px;font:600 14px Rajdhani,sans-serif}
-.spg-btn{margin-top:12px;background:linear-gradient(135deg,#f6d77a,#c28f12);color:#1a1200;border:0;border-radius:10px;padding:11px 18px;font:800 14px Orbitron,sans-serif;letter-spacing:1px;cursor:pointer}
-.spg-btn:disabled{opacity:.5}
+.spp{font-family:Rajdhani,system-ui,sans-serif;color:#e9dcc0;padding-bottom:96px;position:relative}
+.spg-frame{position:relative;padding:10px;border:1px solid #b8892a;border-radius:6px;background:linear-gradient(180deg,#0e0b06,#070707);box-shadow:0 0 30px rgba(212,160,23,.18)}
+.spg-frame:before{content:"";position:absolute;inset:5px;border:1px solid #6b4f14;border-radius:4px;pointer-events:none}
+.spg-corner{position:absolute;width:34px;height:34px;pointer-events:none}
+.spg-corner.tl{left:2px;top:2px}.spg-corner.tr{right:2px;top:2px;transform:scaleX(-1)}.spg-corner.bl{left:2px;bottom:2px;transform:scaleY(-1)}.spg-corner.br{right:2px;bottom:2px;transform:scale(-1,-1)}
+.spg-in{padding:14px 10px 12px;text-align:center}
+.spg-crown{width:92px;height:92px;display:block;margin:0 auto 2px;filter:drop-shadow(0 0 10px rgba(242,201,76,.35))}
+.spg-t{font:700 25px Cinzel,Georgia,serif;letter-spacing:5px;color:#f2c94c;margin:2px 0;text-shadow:0 0 14px rgba(242,201,76,.25)}
+.spg-s{font:600 14px Rajdhani,sans-serif;color:#e0c985;letter-spacing:1.2px;margin:2px 0 8px}
+.spg-orn{display:block;margin:8px auto;width:80%;max-width:320px;height:18px}
+.spg-scan{font:700 17px Cinzel,Georgia,serif;letter-spacing:3px;color:#f2c94c;margin:12px 0 10px}
+.spg-qrbox{position:relative;max-width:300px;margin:0 auto;padding:22px;border:1px solid #b8892a;border-radius:4px;background:#080808}
+.spg-qrbox:before{content:"";position:absolute;inset:6px;border:1px solid #6b4f14;pointer-events:none}
+.spg-qrbox .spg-corner{width:30px;height:30px}
+.spg-qr{display:block;width:100%;border-radius:4px;background:#fff;padding:6px;box-sizing:border-box}
+.spg-cap{font-size:13px;color:#cdb77a;margin:12px 0 0}
+.spg-note{font-size:13px;line-height:1.45;color:#a99a72;margin:14px 6px 0;padding-top:10px;border-top:1px solid #2a2008}
+.spg-soon{font:700 22px Cinzel,serif;color:#f2c94c;padding:26px 0}
+.spg-sec{margin-top:16px;position:relative;background:#0a0a0a;border:1px solid #6b4f14;border-radius:8px;padding:16px 14px}
+.spg-sec h2{font:700 20px Cinzel,Georgia,serif;letter-spacing:2px;color:#f2c94c;margin:0;text-align:center}
+.spg-sec .sub{text-align:center;font-size:14px;color:#cdb77a;margin:2px 0 10px}
+.spg-sec p{font-size:13px;color:#bfae86;margin:6px 0;line-height:1.4}
 .spg-warn{color:#f2c94c !important;font-weight:700}
-.spg-list{margin-top:16px;background:#0b0b0b;border:1px solid #5c4513;border-radius:16px;padding:14px}.spg-list h2{font:800 14px Orbitron,sans-serif;letter-spacing:2px;color:#f2c94c;margin:0 0 4px}.spg-list .sub{font-size:12px;color:#bfae86;margin:0 0 8px}.spg-row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #2a2008;font-size:15px;color:#f3e9cf}.spg-row b{color:#f2c94c;white-space:nowrap}.spg-row small{display:block;color:#a99a72;font-size:12px}.spg-empty{font-size:14px;color:#a99a72;padding:6px 0}
-.spg-msg{font-size:14px;margin-top:8px;color:#f2c94c}
+.spg-drop{display:block;border:1.5px dashed #b8892a;border-radius:10px;padding:18px 10px;text-align:center;cursor:pointer;margin:10px 0}
+.spg-drop b{display:block;color:#f2c94c;font-size:16px;margin-top:4px}.spg-drop small{color:#bfae86}
+.spg-drop input{display:none}
+.spg-file{display:none;margin:10px auto 0;padding:8px 10px;max-width:260px;background:#141414;border:1px solid #3a2c0c;border-radius:8px;color:#f3e9cf;font-size:13px;text-align:left}
+.spg-file i{color:#58c27a;font-style:normal;font-weight:700}
+.spg-lbl{display:block;font:700 14px Rajdhani,sans-serif;color:#f2c94c;margin:12px 0 4px;letter-spacing:.5px}
+.spg-sec input[type=text]{width:100%;box-sizing:border-box;background:#0d0d0d;color:#f3e9cf;border:1px solid #b8892a;border-radius:8px;padding:11px;font:600 15px Rajdhani,sans-serif}
+.spg-chk{display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:13px;color:#e9dcc0}
+.spg-btn{width:100%;margin-top:14px;background:linear-gradient(180deg,#f7dc82,#c28f12);color:#1a1200;border:1px solid #fff0b0;border-radius:10px;padding:13px 18px;font:800 15px Rajdhani,sans-serif;letter-spacing:1px;cursor:pointer;text-align:center;text-decoration:none;display:block;box-sizing:border-box}
+.spg-btn:disabled{opacity:.5}
+.spg-msg{font-size:14px;margin-top:8px;color:#f2c94c;text-align:center}
+.spg-list h2{font:700 18px Cinzel,Georgia,serif;letter-spacing:3px;color:#f2c94c;margin:0;text-align:center}
+.spg-list .sub{font-size:12px;color:#bfae86;margin:2px 0 8px;text-align:center}
+.spg-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid #2a2008;font-size:15px;color:#f3e9cf}.spg-row b{color:#f2c94c;white-space:nowrap}.spg-row small{display:block;color:#a99a72;font-size:12px}.spg-empty{font-size:14px;color:#a99a72;padding:6px 0;text-align:center}
+.spg-ty{position:relative;overflow:hidden;text-align:center;padding:30px 10px 26px}
+.spg-ty h2{font:700 38px Cinzel,Georgia,serif;letter-spacing:3px;color:#f6d77a;margin:8px 0;text-shadow:0 0 22px rgba(242,201,76,.4)}
+.spg-ty p{font-size:15px;color:#e9dcc0;margin:6px 8px}
+.spg-conf i{position:absolute;top:-10px;width:7px;height:14px;background:#f2c94c;opacity:.85;animation:spgf 4s linear infinite}
+@keyframes spgf{to{transform:translateY(340px) rotate(300deg);opacity:0}}
 </style>
 <script>
 (function(){
   document.body.classList.add("sp-page");
   var KEY="sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7",URLB="https://oskccuajgbyabogbvedj.supabase.co",root=document.getElementById("sp-app");
   function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
-  var CROWN='<svg class="spg-crown" viewBox="0 0 56 40" aria-hidden="true"><defs><linearGradient id="gc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6d77a"/><stop offset="1" stop-color="#b8860b"/></linearGradient></defs><path d="M4 32 L8 10 L19 22 L28 5 L37 22 L48 10 L52 32 Z" fill="url(#gc)" stroke="#7a550d" stroke-width="1.5"/><rect x="5" y="33" width="46" height="5" rx="2" fill="url(#gc)" stroke="#7a550d" stroke-width="1.2"/><circle cx="8" cy="9" r="2.6" fill="#f6d77a"/><circle cx="28" cy="4" r="2.6" fill="#f6d77a"/><circle cx="48" cy="9" r="2.6" fill="#f6d77a"/></svg>';
-  var HEAD='<img class="spg-crown" src="assets/support-logo-512.png" alt="XARENA Support" width="96" height="96">'+'<div class="spg-t">XARENA ESPORTS</div><div class="spg-s">Support the Team</div>';
+  var COR='<svg class="spg-corner %C%" viewBox="0 0 34 34" aria-hidden="true"><path d="M2 32V10C2 5 5 2 10 2H32" fill="none" stroke="#d4a017" stroke-width="1.6"/><path d="M7 28V12C7 9 9 7 12 7H28" fill="none" stroke="#8a6414" stroke-width="1"/><path d="M12 12c4 0 6 2 6 6-4 0-6-2-6-6zM12 12c0 4 2 6 6 6" fill="#f2c94c" opacity=".85"/><circle cx="4" cy="4" r="2" fill="#f6d77a"/></svg>';
+  function corners(){return ["tl","tr","bl","br"].map(function(c){return COR.replace("%C%",c)}).join("")}
+  var ORN='<svg class="spg-orn" viewBox="0 0 320 18" aria-hidden="true"><path d="M0 9H128M192 9H320" stroke="#8a6414" stroke-width="1"/><path d="M128 9c8-8 14-8 20 0 6-8 14-8 22 0" fill="none" stroke="#d4a017" stroke-width="1.2"/><path d="M148 9l12-8 12 8-12 8z" fill="#f2c94c"/><path d="M128 9c8 8 14 8 20 0M172 9c6 8 14 8 20 0" fill="none" stroke="#d4a017" stroke-width="1.2"/></svg>';
+  var HEAD='<img class="spg-crown" src="assets/support-logo-512.png" alt="XARENA Support" width="96" height="96"><div class="spg-t">XARENA Esports</div><div class="spg-s">Support the Team &bull; Fuel Our Victory</div>'+ORN;
   var NOTE='<p class="spg-note">Voluntary support for XARENA. No rewards, no refunds, not linked to any tournament prize. Payment happens in your own UPI app; XARENA does not see or store payment details.</p>';
-  function ackForm(){return '<div class="spg-ack" id="sp-ack"><h2>I PAID (OPTIONAL)</h2><p>Paid already? You can send a screenshot so we know it arrived. This is optional and gives no reward or benefit.</p><p class="spg-warn">Hide your phone number and UPI id in the screenshot if you can.</p><div id="sp-ack-body">Checking login…</div></div>'}
+  function frame(inner){return '<div class="spg-frame">'+corners()+'<div class="spg-in">'+inner+'</div></div>'}
+  function ackForm(){return '<div class="spg-sec" id="sp-ack"><h2>Payment Verification</h2><div class="sub">I paid (optional)</div><p>Paid already? Send a screenshot so we know it arrived. This is optional and gives no reward or benefit.</p><p class="spg-warn">Hide your phone number and UPI id in the screenshot if you can.</p><div id="sp-ack-body">Checking login…</div></div>'}
+  var CLOUD='<svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#f2c94c" stroke-width="1.5" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 17 8.5a4.5 4.5 0 0 1 .5 9.5H7z"/><path d="M12 16V10m0 0-2.5 2.5M12 10l2.5 2.5"/></svg>';
+  function thanks(){
+    var c="";for(var i=0;i<22;i++)c+='<i style="left:'+(Math.random()*100).toFixed(0)+'%;animation-delay:'+(Math.random()*3).toFixed(1)+'s"></i>';
+    document.getElementById("sp-ack").outerHTML='<div class="spg-sec spg-ty"><div class="spg-conf">'+c+'</div><h2>THANK YOU</h2>'+ORN+'<p>Your acknowledgement was received.</p><p>Thank you for supporting the XARENA community.</p></div>';
+  }
   function wireAck(){
     var box=document.getElementById("sp-ack-body");if(!box)return;
-    function login(){box.innerHTML='<p>Log in to send an acknowledgement.</p><a class="spg-btn" style="display:inline-block;text-decoration:none" href="account.html">Log in</a>'}
+    function login(){box.innerHTML='<p style="text-align:center">Log in to send an acknowledgement.</p><a class="spg-btn" href="account.html">Log in</a>'}
     if(!window.xrApi){if((wireAck.n=(wireAck.n||0)+1)<30){setTimeout(wireAck,200)}else login();return}
     window.xrApi.user().then(function(u){
       if(!u){login();return}
-      box.innerHTML='<label for="sp-f">Payment screenshot (JPG or PNG, max 5 MB)</label><input type="file" id="sp-f" accept="image/jpeg,image/png"><label for="sp-t">Transaction id (optional)</label><input type="text" id="sp-t" maxlength="40" autocomplete="off"><label for="sp-n">Name (optional)</label><input type="text" id="sp-n" maxlength="40" autocomplete="off"><label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px"><input type="checkbox" id="sp-c" style="margin-top:3px"><span>Show my name publicly on the supporters list. If unticked, you appear as Anonymous.</span></label><button class="spg-btn" id="sp-go">SEND</button><div class="spg-msg" id="sp-m"></div>';
-      var m=document.getElementById("sp-m"),go=document.getElementById("sp-go");
+      box.innerHTML='<label class="spg-drop" for="sp-f">'+CLOUD+'<b>Tap to upload payment screenshot</b><small>JPG, PNG &bull; Max 5 MB</small><input type="file" id="sp-f" accept="image/jpeg,image/png"></label><div class="spg-file" id="sp-fn"></div><label class="spg-lbl" for="sp-t">UPI transaction ID (optional)</label><input type="text" id="sp-t" maxlength="40" autocomplete="off"><label class="spg-lbl" for="sp-n">Name (optional)</label><input type="text" id="sp-n" maxlength="40" autocomplete="off"><label class="spg-chk"><input type="checkbox" id="sp-c" style="margin-top:3px"><span>Show my name publicly on the supporters list. If unticked, you appear as Anonymous.</span></label><button class="spg-btn" id="sp-go">Submit</button><div class="spg-msg" id="sp-m"></div>';
+      var m=document.getElementById("sp-m"),go=document.getElementById("sp-go"),fi=document.getElementById("sp-f"),fn=document.getElementById("sp-fn");
+      fi.addEventListener("change",function(){var f=fi.files[0];if(!f){fn.style.display="none";return}fn.style.display="block";fn.innerHTML=esc(f.name)+" &bull; "+(f.size/1048576).toFixed(1)+" MB<br><i>&#10003; Selected</i>"});
       go.addEventListener("click",function(){
-        var f=document.getElementById("sp-f").files[0];
+        var f=fi.files[0];
         if(!f){m.textContent="Choose a screenshot first.";return}
         if(f.type!=="image/jpeg"&&f.type!=="image/png"){m.textContent="Only JPG or PNG.";return}
         if(f.size>5*1024*1024){m.textContent="File too large (max 5 MB).";return}
@@ -157,16 +189,14 @@ body.sp-page header.nav,body.sp-page .nav{background:#0a0a0a !important;border-b
         }).then(function(r){if(!r.ok)throw new Error(r.status===403||r.status===400?"Limit reached (3 per day) or upload not allowed.":"Upload failed.");
           return window.xrApi.uRpc("support_ack_submit",{p_path:path,p_txn:document.getElementById("sp-t").value,p_name:document.getElementById("sp-n").value,p_consent:document.getElementById("sp-c").checked});
         }).then(function(r){
-          if(r&&r.ok){box.innerHTML='<p style="font-size:16px;color:#f2c94c;font-weight:700">Thanks, received.</p>'}
-          else{m.textContent=(r&&r.error)||"Could not send.";go.disabled=false}
+          if(r&&r.ok)thanks();else{m.textContent=(r&&r.error)||"Could not send.";go.disabled=false}
         }).catch(function(e){m.textContent=e.message||"Failed.";go.disabled=false});
       });
     }).catch(login);
   }
-
   function supporters(){
     fetch(URLB+"/rest/v1/rpc/support_supporters",{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:"{}"}).then(function(r){return r.json()}).then(function(L){
-      var h='<div class="spg-list"><h2>SUPPORTERS</h2><p class="sub">Listed by date, newest first. Only payments checked by XARENA admins are shown.</p>';
+      var h='<div class="spg-sec spg-list"><h2>SUPPORTERS</h2><p class="sub">Newest first. Only payments checked by XARENA admins are listed.</p>';
       if(!Array.isArray(L)||!L.length)h+='<div class="spg-empty">No supporters listed yet.</div>';
       else h+=L.map(function(x){var d=x.date?new Date(x.date+"T00:00:00").toLocaleDateString([],{day:"numeric",month:"short",year:"numeric"}):"";return '<div class="spg-row"><div>'+esc(x.name)+'<small>'+esc(d)+'</small></div><b>&#8377;'+esc(x.amount)+'</b></div>'}).join("");
       root.insertAdjacentHTML("beforeend",h+"</div>");
@@ -174,10 +204,11 @@ body.sp-page header.nav,body.sp-page .nav{background:#0a0a0a !important;border-b
   }
   fetch(URLB+"/rest/v1/site_settings?key=eq.support&select=value",{headers:{apikey:KEY}}).then(function(r){return r.json()}).then(function(d){
     var v=d&&d[0]&&d[0].value||{};var ok=typeof v.image_url==="string"&&/^https:\/\//.test(v.image_url);
-    root.innerHTML='<div class="spg-frame"><div class="spg-in">'+HEAD+(ok?'<div class="spg-scan">SCAN TO DONATE</div><img class="spg-qr" src="'+esc(v.image_url)+'" alt="Payment QR code">'+(v.text?'<div class="spg-note">'+esc(v.text)+'</div>':""):'<div class="spg-soon">COMING SOON</div>')+NOTE+'</div></div>'+(ok?ackForm():"");
+    var qr=ok?'<div class="spg-scan">SCAN TO DONATE</div><div class="spg-qrbox">'+corners()+'<img class="spg-qr" src="'+esc(v.image_url)+'" alt="Payment QR code"></div><div class="spg-cap">Scan this QR code with any UPI app</div>'+(v.text?'<div class="spg-cap">'+esc(v.text)+'</div>':""):'<div class="spg-soon">COMING SOON</div>';
+    root.innerHTML=frame(HEAD+qr+NOTE)+(ok?ackForm():"");
     if(ok)wireAck();
     supporters();
-  }).catch(function(){root.innerHTML='<div class="spg-frame"><div class="spg-in">'+HEAD+'<div class="spg-soon">COMING SOON</div>'+NOTE+'</div></div>'});
+  }).catch(function(){root.innerHTML=frame(HEAD+'<div class="spg-soon">COMING SOON</div>'+NOTE)});
 })();
 </script>
 </main>
