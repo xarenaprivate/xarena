@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:gravity="center"
+    android:background="#F2120A24" android:padding="12dp"
+    android:id="@+id/widget_root">
+    <TextView android:id="@+id/widget_title" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="XARENA" android:textColor="#F5C451" android:textSize="13sp" android:textStyle="bold" />
+    <TextView android:id="@+id/widget_countdown" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="--" android:textColor="#FFE9A3" android:textSize="24sp" android:textStyle="bold" android:layout_marginTop="4dp" />
+    <TextView android:id="@+id/widget_sub" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="" android:textColor="#B8A8D9" android:textSize="11sp" android:layout_marginTop="2dp" />
+</LinearLayout>

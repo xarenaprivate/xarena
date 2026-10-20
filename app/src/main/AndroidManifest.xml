@@ -44,5 +44,9 @@
         </provider>
     <activity android:name=".RecorderActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar" android:exported="false" android:excludeFromRecents="true" />
         <service android:name=".RecorderService" android:exported="false" android:foregroundServiceType="mediaProjection" />
+        <receiver android:name=".CupWidgetProvider" android:exported="false">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/cup_widget_info" />
+        </receiver>
     </application>
 </manifest>

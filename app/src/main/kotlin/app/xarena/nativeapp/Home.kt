@@ -34,6 +34,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
         val ann = runCatching { RemoteConfig.get(); RemoteConfig.announcement() }.getOrNull()
         val all = (0 until ts.length()).map { ts.getJSONObject(it) }
         val cup = all.firstOrNull { it.s("name").contains("ignition", true) } ?: all.firstOrNull { it.optBoolean("reg_open") } ?: all.firstOrNull()
+        cup?.let { c -> cupStartMs(c)?.let { ms -> CupWidget.setTarget(Api.ctx, c.s("name"), ms, c.s("date_text")) } }
         val slotsTaken = cup?.let { c ->
             runCatching {
                 val body = Api.authedRpcRaw("tournament_reg_counts", JSONObject()).trim()
