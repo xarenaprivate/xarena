@@ -234,19 +234,33 @@ object Api {
         path
     }
 
-    suspend fun registerSquad(id: String, squad: String, captain: String, uid: String, phone: String, proofPath: String?): JSONObject =
+    /* Registration target tournament - resolved from site_settings key reg_tournament {id}, same as the site.
+       Fallback xr-5oar (Ignition Cup, user-confirmed). Cached per process. */
+    @Volatile private var regTCached: String? = null
+    suspend fun regTournament(): String = withContext(Dispatchers.IO) {
+        regTCached?.let { return@withContext it }
+        val t = try {
+            val a = publicGet("/rest/v1/site_settings?key=eq.reg_tournament&select=value")
+            if (a.length() > 0) a.getJSONObject(0).optJSONObject("value")?.optString("id", "") ?: "" else ""
+        } catch (e: Exception) { "" }
+        val v = if (Regex("^[a-z0-9-]{2,40}$").matches(t)) t else "xr-5oar"
+        regTCached = v
+        v
+    }
+
+    suspend fun registerSquad(tournament: String, id: String, squad: String, captain: String, uid: String, phone: String, proofPath: String?): JSONObject =
         withContext(Dispatchers.IO) {
             authedRpc("register_squad", JSONObject()
-                .put("p_id", id).put("p_tournament", "xr-s1").put("p_squad", squad)
+                .put("p_id", id).put("p_tournament", tournament).put("p_squad", squad)
                 .put("p_captain", captain).put("p_uid", uid).put("p_ign", captain)
                 .put("p_phone", phone).put("p_proof", proofPath ?: JSONObject.NULL)
                 .put("p_client", deviceId()).put("p_ip", JSONObject.NULL))
         }
 
-    suspend fun registerSquadAp(id: String, squad: String, captain: String, uid: String, phone: String, proofPath: String?): JSONObject =
+    suspend fun registerSquadAp(tournament: String, id: String, squad: String, captain: String, uid: String, phone: String, proofPath: String?): JSONObject =
         withContext(Dispatchers.IO) {
             authedRpc("enter_tournament_with_ap", JSONObject()
-                .put("p_id", id).put("p_tournament", "xr-s1").put("p_squad", squad)
+                .put("p_id", id).put("p_tournament", tournament).put("p_squad", squad)
                 .put("p_captain", captain).put("p_uid", uid).put("p_ign", captain)
                 .put("p_phone", phone).put("p_proof", proofPath ?: JSONObject.NULL)
                 .put("p_client", deviceId()).put("p_ip", JSONObject.NULL))
