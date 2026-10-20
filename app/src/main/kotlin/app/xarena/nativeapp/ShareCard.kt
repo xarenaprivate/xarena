@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.Shader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
@@ -197,6 +198,61 @@ object ShareCard {
 
             val dir = File(ctx.cacheDir, "share").apply { mkdirs() }
             val out = File(dir, "xarena-story.png")
+            FileOutputStream(out).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            out
+        }.getOrNull()
+    }
+
+    /** Result recap card - same data as the site's "Share result recap": points_table top 3,
+        top fragger from lb_entries, squads/matches totals from tournament_reg_counts. */
+    suspend fun buildResultRecap(ctx: android.content.Context): File? = withContext(Dispatchers.IO) {
+        runCatching {
+            val body = Api.authedRpcRaw("points_table", JSONObject().put("p_tournament", JSONObject.NULL)).trim()
+            val rows = if (body.startsWith("[")) JSONArray(body) else JSONArray()
+            if (rows.length() == 0) return@withContext null
+            val counts = runCatching {
+                val b = Api.authedRpcRaw("tournament_reg_counts", JSONObject()).trim()
+                if (b.startsWith("[")) JSONArray(b) else JSONArray()
+            }.getOrElse { JSONArray() }
+            var regs = 0
+            for (i in 0 until counts.length()) regs += counts.getJSONObject(i).optInt("registered", 0)
+            var matches = 0
+            for (i in 0 until rows.length()) matches = maxOf(matches, rows.getJSONObject(i).optInt("matches", 0))
+            val topFrag = runCatching {
+                val k = Api.publicGet("/rest/v1/lb_entries?select=player_name,kills&order=kills.desc&limit=1")
+                if (k.length() > 0) k.getJSONObject(0) else null
+            }.getOrNull()
+
+            val lines = mutableListOf<String>()
+            for (i in 0 until minOf(3, rows.length())) {
+                val r = rows.getJSONObject(i)
+                lines.add((i + 1).toString() + ". " + r.s("squad") + " - " + r.optInt("points") + " pts")
+            }
+            if (topFrag != null && topFrag.optInt("kills", 0) > 0)
+                lines.add("Top fragger: " + topFrag.s("player_name") + " (" + topFrag.optInt("kills") + " kills)")
+            lines.add(regs.toString() + " squads - " + matches + " matches")
+
+            val bmp = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888)
+            val c = Canvas(bmp)
+            val bg = Paint()
+            bg.shader = LinearGradient(0f, 0f, 0f, H.toFloat(), GColor.parseColor("#1A0E33"), GColor.parseColor("#05010C"), Shader.TileMode.CLAMP)
+            c.drawRect(0f, 0f, W.toFloat(), H.toFloat(), bg)
+            val border = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 6f; color = GColor.parseColor("#FFD700") }
+            c.drawRect(36f, 36f, (W - 36).toFloat(), (H - 36).toFloat(), border)
+            val gold = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = GColor.parseColor("#FFD700"); textAlign = Paint.Align.CENTER }
+            val white = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = GColor.WHITE; textAlign = Paint.Align.CENTER }
+            val muted = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = GColor.parseColor("#B8A8D9"); textAlign = Paint.Align.CENTER }
+            gold.textSize = 56f; gold.isFakeBoldText = true
+            c.drawText("XARENA RESULT", W / 2f, 220f, gold)
+            white.textSize = 72f; white.isFakeBoldText = true
+            c.drawText("Results", W / 2f, 330f, white)
+            var y = 520f
+            white.textSize = 46f; white.isFakeBoldText = false
+            lines.forEach { ln -> c.drawText(ln, W / 2f, y, white); y += 84f }
+            muted.textSize = 30f
+            c.drawText("Free Fire tournaments - free forever", W / 2f, (H - 80).toFloat(), muted)
+            val dir = File(ctx.cacheDir, "share").apply { mkdirs() }
+            val out = File(dir, "xarena-result.png")
             FileOutputStream(out).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
             out
         }.getOrNull()

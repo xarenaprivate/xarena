@@ -274,6 +274,7 @@ fun CreatorScreen(onBack: () -> Unit) {
     var mySquads by remember { mutableStateOf<List<JSONObject>>(emptyList()) }
     var sponsors by remember { mutableStateOf<List<JSONObject>?>(null) }
     var section by remember { mutableStateOf<String?>(null) }
+    var profileId by remember { mutableStateOf<String?>(null) }
     val reload: () -> Unit = { tick++ }
 
     LaunchedEffect(tick) {
@@ -290,7 +291,33 @@ fun CreatorScreen(onBack: () -> Unit) {
     val appStatus = st?.s("application_status") ?: ""
 
     Column(Modifier.fillMaxSize().background(Ink)) {
+        profileId?.let { pid ->
+            CreatorProfileScreen(userId = pid, onBack = { profileId = null })
+            return@Column
+        }
         PageHeader("Creator", "Host free tournaments - grow your city team", onBack)
+        Row(Modifier.padding(horizontal = 14.dp, vertical = 4.dp)) {
+            Text("CREATOR BOARD", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
+                    .clickable { section = "board" }.padding(horizontal = 14.dp, vertical = 8.dp))
+        }
+        if (section == "board") {
+            CreatorBoardScreen(onBack = { section = null }, onOpenProfile = { id -> profileId = id })
+            return@Column
+        }
+        if (isCreator && section == "bio") {
+            Column(Modifier.padding(14.dp)) {
+                CreatorBioEditor(onDone = { err -> section = null })
+            }
+            return@Column
+        }
+        if (isCreator) {
+            Row(Modifier.padding(horizontal = 14.dp, vertical = 2.dp)) {
+                Text("EDIT BIO", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
+                        .clickable { section = "bio" }.padding(horizontal = 14.dp, vertical = 8.dp))
+            }
+        }
         if (!loaded) { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = CrOrange) }; return@Column }
         LazyColumn(Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
             if (isCreator && dash != null && dash!!.optBoolean("ok", true)) {

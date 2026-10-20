@@ -28,6 +28,18 @@ fun PointsTableScreen(onBack: () -> Unit) {
     var tick by remember { mutableIntStateOf(0) }
     Column(Modifier.fillMaxSize().background(Ink)) {
         PageHeader("Points Table", "Kills and placement points - entered by the organizer", onBack)
+        val ctx = androidx.compose.ui.platform.LocalContext.current
+        val scope2 = rememberCoroutineScope()
+        Row(Modifier.padding(horizontal = 16.dp)) {
+            Text("SHARE RESULT RECAP", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
+                    .clickable {
+                        scope2.launch {
+                            val fx = ShareCard.buildResultRecap(Api.ctx)
+                            if (fx != null) ShareCard.share(Api.ctx, fx)
+                        }
+                    }.padding(horizontal = 14.dp, vertical = 8.dp))
+        }
         LoadState2(tick, { Api.authedRpcRaw("points_table", JSONObject().put("p_tournament", JSONObject.NULL)).trim() }) { body ->
             val rows = if (body.startsWith("[")) JSONArray(body) else JSONArray()
             if (rows.length() == 0) {
@@ -110,6 +122,16 @@ fun SquadProfileScreen(squadId: String, onBack: () -> Unit) {
     var tick by remember { mutableIntStateOf(0) }
     Column(Modifier.fillMaxSize().background(Ink)) {
         PageHeader("Squad", "", onBack)
+        val ctx = androidx.compose.ui.platform.LocalContext.current
+        Row(Modifier.padding(horizontal = 16.dp)) {
+            Text("SHARE SQUAD LINK", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
+                    .clickable {
+                        val i = android.content.Intent(android.content.Intent.ACTION_SEND).setType("text/plain")
+                            .putExtra(android.content.Intent.EXTRA_TEXT, "Check out our squad on XARENA: https://xarenaprivate.github.io/xarena/more.html?squad=" + squadId + "#squad")
+                        ctx.startActivity(android.content.Intent.createChooser(i, "Share squad link"))
+                    }.padding(horizontal = 14.dp, vertical = 8.dp))
+        }
         LoadState2(tick, { runCatching { Api.authedRpc("squad_profile", JSONObject().put("p_squad", squadId)) }.getOrNull() }) { r ->
             if (r == null || !r.optBoolean("ok")) { SmallCard { Text("Could not load this squad.", color = Muted, fontSize = 13.sp) }; return@LoadState2 }
             LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {

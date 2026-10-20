@@ -409,6 +409,9 @@ fun HomeShell(onLogout: () -> Unit) {
     if (feature != null && feature!!.startsWith("squadprofile:")) {
         SquadProfileScreen(squadId = feature!!.removePrefix("squadprofile:"), onBack = { feature = null }); return
     }
+    if (feature != null && feature!!.startsWith("creatorprofile:")) {
+        CreatorProfileScreen(userId = feature!!.removePrefix("creatorprofile:"), onBack = { feature = null }); return
+    }
     var conv by remember { mutableStateOf<DmConv?>(null) }
     var playerId by remember { mutableStateOf<String?>(null) }
     val tabs = listOf(
@@ -459,6 +462,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "minicup" -> { MiniCupScreen(onBack = { feature = null }, onRegister = { feature = "register" }); return }
         "livethread" -> { LiveThreadScreen(onBack = { feature = null }); return }
         "teamfinder" -> { TeamFinderScreen(onBack = { feature = null }); return }
+        "creatorboard" -> { CreatorBoardScreen(onBack = { feature = null }, onOpenProfile = { id -> feature = "creatorprofile:" + id }); return }
         "h2h" -> { HeadToHeadScreen(onBack = { feature = null }); return }
         "notices" -> { NoticeBoardScreen(onBack = { feature = null }); return }
         "feedback" -> { FeedbackScreen(onBack = { feature = null }); return }
