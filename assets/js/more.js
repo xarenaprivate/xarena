@@ -7,7 +7,7 @@
   function prpc(n, a) { return fetch(URLB + "/rest/v1/rpc/" + n, { method: "POST", headers: { apikey: KEY, "Content-Type": "application/json" }, body: JSON.stringify(a || {}) }).then(function (r) { return r.json(); }); }
   function safe(u) { u = String(u || ""); return /^https:\/\//.test(u) ? u : ""; }
   var body = document.getElementById("hub-body"), tabs = document.getElementById("hub-tabs");
-  var T = [["points", "Points table"], ["history", "History"], ["spot", "Spotlights"], ["notices", "Notice board"], ["h2h", "Head to head"], ["squad", "Squad profile"], ["guide", "Guide & checklist"], ["faq", "FAQ"], ["feedback", "Feedback"]];
+  var T = [["points", "Points table"], ["history", "History"], ["spot", "Spotlights"], ["notices", "Notice board"], ["h2h", "Head to head"], ["squad", "Squad profile"], ["creators", "Creators"], ["guide", "Guide & checklist"], ["faq", "FAQ"], ["feedback", "Feedback"]];
   function empty(t) { return '<div class="hub-c hub-e">' + t + "</div>"; }
   var V = {
     points: function () {
@@ -68,6 +68,12 @@
       if (id) { show(id); return; }
       get("squads_public?select=id,name&order=name.asc&limit=200").then(function (sq) {
         body.innerHTML = !sq || !sq.length ? empty("No squads yet.") : sq.map(function (s) { return '<div class="hub-c"><a href="more.html?squad=' + esc(s.id) + '#squad">' + esc(s.name) + "</a></div>"; }).join("");
+      });
+    },
+    creators: function () {
+      prpc("creator_board", {}).then(function (r) {
+        body.innerHTML = !Array.isArray(r) || !r.length ? empty("No verified creators yet. Creators can apply from the Creator page. Ranking = players who joined with the creator's invite code. No rewards.") +
+          '<p><a href="creator.html">Become a creator</a></p>' : '<div class="hub-c"><table class="hub-t"><tr><th>#</th><th>Creator</th><th>Tier</th><th>Joined via invite</th></tr>' + r.map(function (x, i) { return "<tr><td>" + (i + 1) + "</td><td>" + esc(x.name) + (x.verified ? " ✓" : "") + "</td><td>" + esc(x.tier) + "</td><td><b>" + x.joined + "</b></td></tr>"; }).join("") + "</table></div>";
       });
     },
     guide: function () {
