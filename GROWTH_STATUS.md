@@ -50,3 +50,10 @@ Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backen
 ## Look/feel 10: Rise3D entrance DONE; parallax/tilt NEXT; splash anim NEXT; confetti NEXT; neon theme NEXT (extra option); pull-refresh NEXT; skeleton DONE; haptics+sounds NEXT; animated badges NEXT; LIVE pulse NEXT; widget DONE
 
 ## 3D effects: DONE (Rise3D, gated by Data Saver)
+
+## Registration retarget fix (Oct 20 ~9:35 PM, parent-relayed from web)
+- register_squad / enter_tournament_with_ap: p_tournament was HARDCODED "xr-s1" (Season 1) in Api.kt; my_registrations filter + entry-cost lookup + UI copy also xr-s1. FIXED: target resolved dynamically from site_settings reg_tournament {id} (same as web app.js xrRegT()), fallback "xr-5oar" (Ignition Cup, user-confirmed). Live value verified = xr-5oar.
+- Reg ID prefix kept "XR-S1-" (web bindForm prefix unchanged - parity).
+- Waitlist states added per web contract: response waitlist:true -> "You are on the waitlist" note; my_registrations status "waitlist" -> "WAITLIST - you are in line if a slot opens". tournament_reg_counts now returns waitlist field (live-verified, currently 0).
+- Registration logic otherwise untouched (parent constraint).
+- TEST: throwaway account p919000000010@phone.xarena (uuid cb786fdb-f77f-44c8-af9f-efa2c759ec57). my_registrations empty OK; register_squad params accepted, blocked at server phone-verification gate (manual Instagram verification by owner) - so no registration row was created, nothing to roll back in registrations. THROWAWAY AUTH USER REMAINS - web builder asked to purge it (service key needed).
