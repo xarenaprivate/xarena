@@ -691,7 +691,8 @@ window.xrUploadTeamLogo = function (file) {
     ["hybrid", "Hybrid OS", "#22d3ee"],
     ["pulse", "Neon Pulse", "#ff2e88"],
     ["aura", "Aura Light", "#8b5cf6"],
-    ["social", "Social", "#0095f6"]
+    ["social", "Social", "#0095f6"],
+    ["gold", "Dark Gold", "#d4a017"]
   ];
   var LOOK_JS = ["arena", "void", "ascend", "aura", "social"];
   try {

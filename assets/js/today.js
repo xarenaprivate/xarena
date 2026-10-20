@@ -20,7 +20,7 @@
   }
   function fmtIST(d) { try { return d.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) + " IST"; } catch (e) { return ""; } }
   function card(id, title, body) { return '<div class="td-c" id="' + id + '"><div class="td-t">' + title + "</div>" + body + "</div>"; }
-  root.innerHTML = '<div class="wrap"><div id="td-pin"></div><div class="overline">Today</div><h2>Aaj kya hai</h2><div class="td-lite"><button type="button" id="td-lite" class="td-btn td-ghost"></button><span class="td-sub">Data saver turns off 3D, animations and the big hero image on all pages (good for slow phones).</span></div><div class="td-grid">' +
+  root.innerHTML = '<div class="wrap"><div id="td-pin"></div><div class="overline">Today</div><h2>Aaj kya hai</h2><div class="td-lite"><button type="button" id="td-lite" class="td-btn td-ghost"></button><button type="button" id="td-theme" class="td-btn td-ghost"></button><button type="button" id="td-lang" class="td-btn td-ghost"></button><span class="td-sub">Data saver turns off 3D, animations and the big hero image on all pages (good for slow phones).</span></div><div class="td-grid">' +
     card("td-tip", "Aaj ka tip", '<div class="td-empty">Loading…</div>') +
     card("td-cr", "Creator spotlight", '<div class="td-empty">Loading…</div>') +
     card("td-cd", "Countdown", '<div class="td-empty">Loading…</div>') +
@@ -127,6 +127,20 @@
     function paint() { b.textContent = "Data saver: " + (on() ? "ON" : "OFF"); }
     paint(); b.addEventListener("click", function () { try { localStorage.setItem("xr_lite", on() ? "0" : "1"); } catch (e) {} location.reload(); });
   }
+  function setTheme() {
+    var b = el("td-theme"); if (!window.xrLooks) { if (!setTheme.t) { setTheme.t = 1; setTimeout(setTheme, 700); } else b.remove(); return; }
+    var cur = window.xrLooks.current();
+    b.textContent = cur === "gold" ? "Theme: Dark Gold (tap for previous)" : "Theme: try Dark Gold";
+    b.addEventListener("click", function () {
+      if (cur === "gold") { var pv = localStorage.getItem("xr_prev_look") || "liquid"; window.xrLooks.pick(pv === "gold" ? "liquid" : pv); }
+      else { try { localStorage.setItem("xr_prev_look", cur); } catch (e) {} window.xrLooks.pick("gold"); }
+    });
+  }
+  function setLang() {
+    var b = el("td-lang"); if (!window.xrLang) { if (!setLang.t) { setLang.t = 1; setTimeout(setLang, 700); } else b.remove(); return; }
+    function paint() { b.textContent = "Language: " + (window.xrLang.get() === "hi" ? "Hinglish" : "English"); }
+    paint(); b.addEventListener("click", function () { window.xrLang.set(window.xrLang.get() === "hi" ? "en" : "hi"); location.reload(); });
+  }
   function setTip() {
     get("site_settings?key=eq.tips&select=value").then(function (r) {
       var items = r && r[0] && r[0].value && r[0].value.items, box = el("td-tip");
@@ -146,7 +160,7 @@
   }
 
   function boot() {
-    setLite(); setTip(); setCreator(); setStreak(); setDaily(); setWinners(); setTop();
+    setLite(); setTheme(); setLang(); setTip(); setCreator(); setStreak(); setDaily(); setWinners(); setTop();
     get("tournaments?select=id,name,date_text,start_at,slots,reg_open,status&order=sort.asc,created_at.asc").then(function (list) {
       var now = Date.now(), best = null;
       (list || []).forEach(function (t) { var d = startOf(t); if (d && d.getTime() > now - 3 * 3600000 && (!best || d < best.start)) best = { t: t, start: d }; });
