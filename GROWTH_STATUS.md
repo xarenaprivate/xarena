@@ -74,3 +74,7 @@ Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backen
 - 14 patches (47-52,54-61 -> 62), all PatchCheck-verified byte-identical
 - CDN vc 62 live; /releases/latest stays app-v7.22.1; download hashes verified
 - Untested on a real phone (emulator-free build env)
+
+## SHIPPED v0.17.18-native (63) - 2026-10-22 ~3:17 PM IST
+- Fix: Home check-in + avatar-of-the-day cards and chat SEND row stretched blank (GoldButton fillMaxWidth inside weighted Row). GoldButton now takes a modifier; Row uses fixed width.
+- SHA256 5e1fe740425a38ed957c530d3c421b06ec0a1734259af6dcc0b72cada7acc75b, 28849548 B, 14 patches (48-52,54-62), PatchCheck 14/14, CDN vc 63
