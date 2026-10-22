@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /admin.html
+Disallow: /helper.html
 
 Sitemap: https://xarenaprivate.github.io/xarena/sitemap.xml
