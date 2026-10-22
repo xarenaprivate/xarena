@@ -212,7 +212,7 @@ fun LiveThreadScreen(onBack: () -> Unit) {
                         androidx.compose.material3.OutlinedTextField(draft, { draft = it.take(200) }, placeholder = { Text("Message...") },
                             singleLine = true, modifier = Modifier.weight(1f))
                         Spacer(Modifier.width(8.dp))
-                        GoldButton("SEND", enabled = draft.isNotBlank()) {
+                        GoldButton("SEND", enabled = draft.isNotBlank(), modifier = Modifier.width(96.dp)) {
                             val body = draft.trim(); draft = ""
                             scope.launch {
                                 val mid = m?.s("id") ?: return@launch

@@ -282,9 +282,9 @@ fun Brand() {
 }
 
 @Composable
-fun GoldButton(text: String, enabled: Boolean = true, onClick: () -> Unit) {
+fun GoldButton(text: String, enabled: Boolean = true, modifier: Modifier = Modifier.fillMaxWidth(), onClick: () -> Unit) {
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
-    Box(Modifier.fillMaxWidth().height(52.dp).clip(RoundedCornerShape(14.dp)).alpha(if (enabled) 1f else .5f)
+    Box(modifier.height(52.dp).clip(RoundedCornerShape(14.dp)).alpha(if (enabled) 1f else .5f)
         .background(Brush.horizontalGradient(listOf(Gold2, Gold)))
         .clickable(enabled = enabled) { if (Fx.haptics()) haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress); onClick() }, contentAlignment = Alignment.Center) {
         Text(text, color = Color(0xFF2A1400), fontWeight = FontWeight.Bold, fontSize = 15.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.padding(horizontal = 12.dp))

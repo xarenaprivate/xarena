@@ -147,7 +147,7 @@ fun CheckinHomeCard(onOpenStreak: () -> Unit) {
                 }
                 val scope = rememberCoroutineScope()
                 if (s != null && s.optBoolean("ok") && !s.optBoolean("checked_in_today"))
-                    GoldButton(Txt.t("CLAIM", "CLAIM KARO")) { scope.launch {
+                    GoldButton(Txt.t("CLAIM", "CLAIM KARO"), modifier = Modifier.width(110.dp)) { scope.launch {
                         val cr = runCatching { Api.authedRpc("daily_checkin", JSONObject()) }.getOrNull()
                         if (cr != null && cr.optBoolean("ok")) { confetti = true; Fx.blip() }
                         tick++
@@ -298,7 +298,7 @@ fun DailyAvatarHomeCard() {
                 if (!owned) {
                     val scope = rememberCoroutineScope()
                     var msg by remember { mutableStateOf<String?>(null) }
-                    GoldButton(Txt.t("CLAIM", "CLAIM KARO")) {
+                    GoldButton(Txt.t("CLAIM", "CLAIM KARO"), modifier = Modifier.width(110.dp)) {
                         scope.launch {
                             val cr = runCatching { Api.authedRpc("daily_avatar_claim", JSONObject()) }.getOrNull()
                             if (cr != null && cr.optBoolean("ok")) tick++ else msg = cr?.s("error")?.ifBlank { null } ?: "Log in to claim"
