@@ -1,95 +1,95 @@
 {
- "versionCode": 62,
- "versionName": "0.17.17-native",
- "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/xarena-native.apk",
- "sha256": "311c795f68886577231bd37ee705d0475892a9eb9f883ef584996f0c9cc4e188",
- "apkBytes": 28849544,
- "notes": "Creator board + creator profiles with in-app bio edit, squad invite share link (same link format as the website), and match result recap share card on the points table.",
+ "versionCode": 63,
+ "versionName": "0.17.18-native",
+ "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/xarena-native.apk",
+ "sha256": "5e1fe740425a38ed957c530d3c421b06ec0a1734259af6dcc0b72cada7acc75b",
+ "apkBytes": 28849548,
+ "notes": "Fix: Home cards (daily check-in, avatar of the day) no longer stretch into big blank space.",
  "patches": [
   {
-   "from": 47,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-47-to-62.bs",
-   "sha256": "c412deacb699d414a608e59cdc91d6e2fcb21e7cc28896ea11a64bc14cd3bff0",
-   "bytes": 9102255
-  },
-  {
    "from": 48,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-48-to-62.bs",
-   "sha256": "be05dd2abb008df51cef10d1ada5b086a7e5aebd7b4a05fe76290a39990b17c9",
-   "bytes": 9102649
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-48-to-63.bs",
+   "sha256": "a6d67bd98472618a571a4647765b4b1320d2103e21f8c3dafe6230431fb8eef7",
+   "bytes": 9102522
   },
   {
    "from": 49,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-49-to-62.bs",
-   "sha256": "3b27b00f23c535e9e2a74af88adc138fb4d8deb5ab46801065c1e049c6836ab1",
-   "bytes": 9103009
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-49-to-63.bs",
+   "sha256": "a0507c44507a4d65ad6d462c4c6a236632bf260cc1a052f447208b7521ea4843",
+   "bytes": 9101994
   },
   {
    "from": 50,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-50-to-62.bs",
-   "sha256": "4e57f59bd6320c88f10d46d55f877327b192f117c3327d5de0d5b7cecb2561f9",
-   "bytes": 9102719
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-50-to-63.bs",
+   "sha256": "1a114cf27da04ecc41effd0e5b037a0737a33fa9b2e80502a98f621965c0f0e7",
+   "bytes": 9102615
   },
   {
    "from": 51,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-51-to-62.bs",
-   "sha256": "8bb1ce8450122c6d54b0df5882cb7e0e1dd879c08d8229bdb2fa27d73cb52ccd",
-   "bytes": 9105600
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-51-to-63.bs",
+   "sha256": "ada4712b08c5dcd89a28048ca039353ca1fb9963e1bfad9f89397e5366ac656a",
+   "bytes": 9105007
   },
   {
    "from": 52,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-52-to-62.bs",
-   "sha256": "7c227301a80ad8668da682277b8210e92f584e4ac29c031e3a367f196e85f1ac",
-   "bytes": 9105607
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-52-to-63.bs",
+   "sha256": "158eb851d533edc133a3483ac07eebdb43bddf2c1245c924b1953b82c9dedd71",
+   "bytes": 9104964
   },
   {
    "from": 54,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-54-to-62.bs",
-   "sha256": "80c29e15dccb67c12eb1984470db345a6e81f8d227f7678e31acfb2af2219d93",
-   "bytes": 8793871
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-54-to-63.bs",
+   "sha256": "ed5d9a64fa9c47dd3439971d9eff6d5cca8568b5ff3c2fcd08c4989ca471d23d",
+   "bytes": 8794163
   },
   {
    "from": 55,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-55-to-62.bs",
-   "sha256": "771517cb3e935613ab2e11dc1822fa4cf9a019a1c0a60efce0f19d74de7b0998",
-   "bytes": 8791504
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-55-to-63.bs",
+   "sha256": "1537a530acb3a1c282564e8577c97e5cf231143b071cd070c41938b1b3c75367",
+   "bytes": 8790703
   },
   {
    "from": 56,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-56-to-62.bs",
-   "sha256": "cb4184ac50ff44c4721c303938e9bd59b4c389cb0c2b32f2fec737e88fe1d191",
-   "bytes": 8790102
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-56-to-63.bs",
+   "sha256": "a34f60ced4ba5cf20228d74ce67391764756190beaa8b7bb8589913c21506cda",
+   "bytes": 8788922
   },
   {
    "from": 57,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-57-to-62.bs",
-   "sha256": "c527b0d7f8b4d80aec07669a03b50972fedd36c6dd941e5388157b6d1dd85283",
-   "bytes": 8796394
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-57-to-63.bs",
+   "sha256": "81fece34db8a2fe67540b5477dcac3c91fb9df5295d3374941b1ca8369e1ac23",
+   "bytes": 8797001
   },
   {
    "from": 58,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-58-to-62.bs",
-   "sha256": "86abe6500bcc5d65cee9dff48fe394e341cccd0f2ca5a6a4e24acae706fb6061",
-   "bytes": 8786921
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-58-to-63.bs",
+   "sha256": "987eb954c148b1746085e4fa8eba588e5c41bcf3d21bf5fbbac20c11fecbbb85",
+   "bytes": 8786785
   },
   {
    "from": 59,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-59-to-62.bs",
-   "sha256": "55ae68ca8601af556e3a67f765a5c1d630ba2b6db0c9a8cd0e4d4dc5874d0ee4",
-   "bytes": 8786915
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-59-to-63.bs",
+   "sha256": "b0422bd7b64f5eb52bc0a88b21235bc345b0c74f35a6231fb7aa0eff1ee3bf8f",
+   "bytes": 8786629
   },
   {
    "from": 60,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-60-to-62.bs",
-   "sha256": "4ff5ce99a21d2a043a5e012f8472b1963cb7afa1d39101729e809b20e2e79588",
-   "bytes": 8787498
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-60-to-63.bs",
+   "sha256": "ed9569ac7cef0875bb3ca7d1e1655763c9cbf6f32238e672641714a3dfeea722",
+   "bytes": 8785924
   },
   {
    "from": 61,
-   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-61-to-62.bs",
-   "sha256": "1f80a6e81260e842c40df07ba7ef818ec3994f0a3b98726129b5a840ff6c7dd0",
-   "bytes": 3934034
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-61-to-63.bs",
+   "sha256": "bc9979b181e7391d49d9aacd6df400d090c5b059e80d51cda9a1a007fc280417",
+   "bytes": 3934070
+  },
+  {
+   "from": 62,
+   "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-62-to-63.bs",
+   "sha256": "20468da3e28e1c86cf367b06515a26cd00d06744a6c5e166499068af1cb48158",
+   "bytes": 3858876
   }
  ],
- "patch": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.17-native/patch-61-to-62.bs"
+ "patch": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.18-native/patch-62-to-63.bs"
 }
