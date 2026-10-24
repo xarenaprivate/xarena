@@ -229,6 +229,7 @@ fun LiveScreen(onBack: () -> Unit) {
                         Text(m.s("title").ifBlank { m.s("name").ifBlank { "Match" } }, color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                         Text(listOf(m.s("team_a"), m.s("team_b")).filter { it.isNotBlank() }.joinToString(" vs "), color = Color.White, fontSize = 13.sp)
                         Text(dmTime(m.s("starts_at")), color = Muted, fontSize = 11.sp)
+                        if (MatchLabels.isPostponed(m)) Text("POSTPONED", color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }

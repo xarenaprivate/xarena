@@ -107,7 +107,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                 if (ytLiveInfo(d.ytUrl) != null) liveCards.add { LiveStreamCard { onOpenFeature("live") } }
                 (0 until d.matches.length()).forEach { i ->
                     val m = d.matches.getJSONObject(i)
-                    liveCards.add { LiveMatchCard(m) { onOpenFeature("live") } }
+                    if (!MatchLabels.isPostponed(m)) liveCards.add { LiveMatchCard(m) { onOpenFeature("live") } }
                 }
                 if (liveCards.isEmpty()) {
                     PanelCard { Text("Nothing live right now", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)

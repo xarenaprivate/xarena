@@ -105,12 +105,12 @@ private fun MatchCard(m: JSONObject, ctx: android.content.Context, scope: kotlin
     PanelCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text(m.s("title"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-            Text(m.s("status").uppercase(), color = statusCol, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(MatchLabels.label(m), color = statusCol, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
         Text(m.s("tournament_id") + " - " + fmtWhen(m.s("starts_at")), color = Muted, fontSize = 12.sp)
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SmallButton("ROOM ID & PASS") {
+            if (!MatchLabels.isPostponed(m)) SmallButton("ROOM ID & PASS") {
                 if (busy) return@SmallButton
                 busy = true
                 scope.launch {
@@ -122,7 +122,7 @@ private fun MatchCard(m: JSONObject, ctx: android.content.Context, scope: kotlin
                     busy = false
                 }
             }
-            SmallButton(if (checkedIn) "CHECKED IN" else "CHECK IN") {
+            if (!MatchLabels.isPostponed(m)) SmallButton(if (checkedIn) "CHECKED IN" else "CHECK IN") {
                 if (busy || checkedIn) return@SmallButton
                 busy = true
                 scope.launch {

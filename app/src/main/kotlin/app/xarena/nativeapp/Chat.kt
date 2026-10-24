@@ -68,7 +68,7 @@ private fun ChatChips(onGoTab: (Int) -> Unit) {
             (0 until arr.length()).map { arr.getJSONObject(it) }.firstOrNull {
                 val st = it.s("starts_at")
                 st.isNotBlank() && runCatching { java.time.Instant.parse(st).toEpochMilli() }.getOrDefault(0L) > now - 15 * 60000 &&
-                    it.s("status") != "done"
+                    it.s("status") != "done" && !MatchLabels.isPostponed(it)
             }
         }.getOrNull()
     }

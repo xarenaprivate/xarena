@@ -192,10 +192,10 @@ class FloatingXPanelService : Service() {
                 val m0 = matches?.let { a -> (0 until a.length()).map { a.getJSONObject(it) }.firstOrNull { it.s("status") != "done" } }
                 if (m0 == null) body.addView(label("No matches scheduled yet.", 12f, MUT))
                 else {
-                    body.addView(label(m0.s("title") + " · " + dmTime(m0.s("starts_at")) + " · " + m0.s("status").uppercase(), 13f, GColor.WHITE, true))
-                    val roomLine = label("Checking room access...", 12f, MUT)
+                    body.addView(label(m0.s("title") + " · " + dmTime(m0.s("starts_at")) + " · " + MatchLabels.label(m0), 13f, GColor.WHITE, true))
+                    val roomLine = label(if (MatchLabels.isPostponed(m0)) "Postponed - new slot will be announced." else "Checking room access...", 12f, MUT)
                     body.addView(roomLine)
-                    io.execute {
+                    if (!MatchLabels.isPostponed(m0)) io.execute {
                         val rr = runCatching { kotlinx.coroutines.runBlocking { Api.authedRpc("match_room", JSONObject().put("p_match", m0.optLong("id"))) } }.getOrNull()
                         ui.post {
                             if (rr != null && rr.optBoolean("ok")) {

@@ -93,7 +93,7 @@ fun SpectatorScreen(onBack: () -> Unit) {
                                 Text(m.s("title").ifBlank { m.s("name").ifBlank { "Match" } }, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                                 val teams = listOf(m.s("team_a"), m.s("team_b")).filter { it.isNotBlank() }
                                 if (teams.isNotEmpty()) Text(teams.joinToString("  VS  "), color = Color.White, fontSize = 13.sp)
-                                Text(listOf(m.s("starts_at").take(16).replace("T", " "), m.s("status").uppercase()).filter { it.isNotBlank() }.joinToString(" · "),
+                                Text(listOf(m.s("starts_at").take(16).replace("T", " "), MatchLabels.label(m)).filter { it.isNotBlank() }.joinToString(" · "),
                                     color = Muted, fontSize = 12.sp)
                                 if (ytUrl.startsWith("http")) {
                                     Spacer(Modifier.height(8.dp))

@@ -99,7 +99,7 @@ fun CupHeroCard(t: JSONObject, slotsTaken: Int, onRegister: () -> Unit) {
 /** "Aaj kya hai" - next real match + countdown + Join + room details for registered players. */
 @Composable
 fun AajKyaHaiCard(matches: JSONArray, onJoin: () -> Unit) {
-    val next = (0 until matches.length()).map { matches.getJSONObject(it) }.firstOrNull { it.s("status") != "done" } ?: return
+    val next = (0 until matches.length()).map { matches.getJSONObject(it) }.firstOrNull { it.s("status") != "done" && !MatchLabels.isPostponed(it) } ?: return
     var room by remember { mutableStateOf<JSONObject?>(null) }
     LaunchedEffect(next.optLong("id")) {
         room = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
