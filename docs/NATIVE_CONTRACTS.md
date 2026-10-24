@@ -38,3 +38,24 @@ points_table {p_tournament}, head_to_head {p_a,p_b}, squad_profile {p_squad}, cr
 ## Squad invite link + match recap card data (v0.17.17)
 - Squad invite / share link: `https://xarenaprivate.github.io/xarena/more.html?squad=<squad_id>#squad` (web profile; native may deep-link it or call `squad_profile(p_squad)` for the data). Share text: "<squad name> on XARENA - <link>". The squad_id is the squads-table uuid (squad_profile takes p_squad uuid), never a phone or UID.
 - Match/result recap card data: `points_table(p_tournament text|null)` -> array of {squad, matches, points, kills, ...} sorted by points (empty array = no results yet, show empty state). Top fragger: `GET lb_entries?select=player_name,kills&order=kills.desc&limit=1` (show only if kills > 0). Season totals: `tournament_reg_counts()` -> [{tournament_id, slots, registered, waitlist}]. The web card draws kicker, title, up to 4 lines and the footer "Free Fire tournaments - free forever". Real data only; no fake numbers.
+
+## Ignition Cup postponement display contract (Oct 24, 2026)
+
+The four xr-5oar matches are postponed from Sat Oct 24 to Sun Oct 25 (new times TBC).
+DB status is `cancelled` because the matches CHECK constraint has no `postponed`
+value; they are POSTPONED, not cancelled. Display contract:
+
+- Match IDs: Lobby A `d35aecce-e27b-4d81-9176-4cfd59825071`,
+  Lobby B `729dbb37-b9dd-4574-babc-7e9974aa4ce1`,
+  Lobby C `5f365c25-96e4-4dac-8f66-f05dc5d7768f`,
+  Grand Final `e7a09d84-cced-4755-b08a-e619e5c0dbe5` (all `tournament_id=xr-5oar`).
+- If `matches_public.status == 'cancelled'` AND the match id is one of these four:
+  render label "POSTPONED", show the original `starts_at` as the old slot, and do
+  NOT show countdown, check-in, or room-reveal UI for it.
+- Any other cancelled match keeps normal cancelled rendering.
+- `match_room` for these matches returns "Room details are not posted yet"
+  (room_id NULL) until match control posts the room - no error UI change needed.
+- On reschedule: status flips back to `scheduled` with a new `starts_at`; the
+  override goes inert automatically. No app update required for the restore.
+- Web reference implementation: `api.matchLabel()` / `api.isPostponed()` in
+  `assets/js/api.js` (commit 5570942).
