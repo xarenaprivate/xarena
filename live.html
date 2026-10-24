@@ -144,7 +144,7 @@ window.addEventListener("load", function () {
     box.innerHTML = rows.map(function (m) {
       var d = m.starts_at ? new Date(m.starts_at) : null;
       var when = d ? d.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "TBD";
-      return '<div class="xnlv-match"><div class="mi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffd23f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8m-4-4v4M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4v2a3 3 0 0 0 3 3m10-5h3v2a3 3 0 0 1-3 3"/></svg></div><div><h3>' + esc(m.title || "Match") + '</h3><p>' + esc(when) + '</p></div>' + (m.status ? '<span class="xnlv-status">' + esc(String(m.status).toUpperCase()) + "</span>" : "") + '</div>';
+      return '<div class="xnlv-match"><div class="mi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffd23f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8m-4-4v4M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4v2a3 3 0 0 0 3 3m10-5h3v2a3 3 0 0 1-3 3"/></svg></div><div><h3>' + esc(m.title || "Match") + '</h3><p>' + esc(when) + '</p></div>' + (m.status ? '<span class="xnlv-status">' + esc(xrApi.matchLabel(m)) + "</span>" : "") + '</div>';
     }).join("");
   }).catch(function () { document.getElementById("live-upcoming").innerHTML = '<p style="color:var(--muted)">Could not load the schedule.</p>'; });
 });

@@ -169,6 +169,12 @@
       api.uRpc("bind_device", { p_device_id: d.id, p_fp: d.fp, p_platform: d.platform }).then(function (r) { if (r && r.ok) sessionStorage.setItem("xr_bound", "1"); }).catch(function () {});
     } catch (e) {}
   };
+  /* Ignition Cup reschedule (Oct 24 -> Oct 25): these four matches are stored as
+     'cancelled' (the matches table CHECK constraint has no 'postponed' value)
+     but are postponed, not cancelled. Label them accurately. */
+  var XR_POSTPONED = { "d35aecce-e27b-4d81-9176-4cfd59825071": 1, "729dbb37-b9dd-4574-babc-7e9974aa4ce1": 1, "5f365c25-96e4-4dac-8f66-f05dc5d7768f": 1, "e7a09d84-cced-4755-b08a-e619e5c0dbe5": 1 };
+  api.isPostponed = function (m) { return !!(m && m.status === "cancelled" && XR_POSTPONED[m.id]); };
+  api.matchLabel = function (m) { return api.isPostponed(m) ? "POSTPONED" : String((m && m.status) || "").toUpperCase(); };
   window.xrApi = api;
 
   /* Native app bridge: hand the session to the APK so it can poll alerts
