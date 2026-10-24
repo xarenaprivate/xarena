@@ -2,6 +2,7 @@
 Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backend contract | GATE=built but behind flag until post-Oct-24 regression test | NEXT=queued, not started
 
 ## 25-point list
+SHIPPED v0.17.19-native (64), Oct 24 ~8:08 PM IST: Ignition Cup postponement display fix - the 4 postponed xr-5oar matches render POSTPONED (not CANCELLED), no countdown/check-in/room-reveal UI, excluded from next-match pickers, LIVE NOW swiper and chat chips; inert on reschedule (NATIVE_CONTRACTS.md 6195e0c). Untested on a real phone.
 1 Daily check-in streak: DONE (home card + StreakScreen)
 2 Daily challenge: SHIP (Play screen - daily_missions_v2 + quiz)
 3 Daily quiz: SHIP (quiz_feed/quiz_answer in Play)
