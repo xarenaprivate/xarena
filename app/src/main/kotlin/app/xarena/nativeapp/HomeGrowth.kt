@@ -101,9 +101,9 @@ fun CupHeroCard(t: JSONObject, slotsTaken: Int, onRegister: () -> Unit) {
 fun AajKyaHaiCard(matches: JSONArray, onJoin: () -> Unit) {
     val next = (0 until matches.length()).map { matches.getJSONObject(it) }.firstOrNull { it.s("status") != "done" && !MatchLabels.isPostponed(it) } ?: return
     var room by remember { mutableStateOf<JSONObject?>(null) }
-    LaunchedEffect(next.optLong("id")) {
+    LaunchedEffect(next.s("id")) {
         room = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            runCatching { Api.authedRpc("match_room", JSONObject().put("p_match", next.optLong("id"))) }.getOrNull()
+            runCatching { Api.authedRpc("match_room", JSONObject().put("p_match", next.s("id"))) }.getOrNull()
         }
     }
     PanelCard {

@@ -196,7 +196,7 @@ class FloatingXPanelService : Service() {
                     val roomLine = label(if (MatchLabels.isPostponed(m0)) "Postponed - new slot will be announced." else "Checking room access...", 12f, MUT)
                     body.addView(roomLine)
                     if (!MatchLabels.isPostponed(m0)) io.execute {
-                        val rr = runCatching { kotlinx.coroutines.runBlocking { Api.authedRpc("match_room", JSONObject().put("p_match", m0.optLong("id"))) } }.getOrNull()
+                        val rr = runCatching { kotlinx.coroutines.runBlocking { Api.authedRpc("match_room", JSONObject().put("p_match", m0.s("id"))) } }.getOrNull()
                         ui.post {
                             if (rr != null && rr.optBoolean("ok")) {
                                 roomLine.text = "Room ID: " + rr.s("room_id") + "   Pass: " + rr.s("room_pass").ifBlank { "(none)" } + "   (tap to copy)"

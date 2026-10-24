@@ -82,7 +82,7 @@ fun MatchCenterScreen(onBack: () -> Unit) {
 
 @Composable
 private fun MatchCard(m: JSONObject, ctx: android.content.Context, scope: kotlinx.coroutines.CoroutineScope, onChanged: () -> Unit) {
-    val mid = m.optLong("id")
+    val mid = m.s("id")
     var roomText by remember { mutableStateOf<String?>(null) }
     var checkinText by remember { mutableStateOf<String?>(null) }
     var checkedIn by remember { mutableStateOf(false) }
@@ -151,7 +151,7 @@ private fun SmallButton(label: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ProofForm(matchId: Long, ctx: android.content.Context, scope: kotlinx.coroutines.CoroutineScope, onDone: () -> Unit) {
+private fun ProofForm(matchId: String, ctx: android.content.Context, scope: kotlinx.coroutines.CoroutineScope, onDone: () -> Unit) {
     var note by remember { mutableStateOf("") }
     var img by remember { mutableStateOf<ByteArray?>(null) }
     var msg by remember { mutableStateOf<String?>(null) }
@@ -188,7 +188,7 @@ private fun ProofForm(matchId: Long, ctx: android.content.Context, scope: kotlin
 }
 
 @Composable
-private fun ReportForm(matchId: Long, ctx: android.content.Context, scope: kotlinx.coroutines.CoroutineScope, onDone: () -> Unit) {
+private fun ReportForm(matchId: String, ctx: android.content.Context, scope: kotlinx.coroutines.CoroutineScope, onDone: () -> Unit) {
     var name by remember { mutableStateOf("") }
     var reason by remember { mutableStateOf("") }
     var msg by remember { mutableStateOf<String?>(null) }
