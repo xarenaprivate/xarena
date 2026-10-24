@@ -34,6 +34,11 @@ function boot(){
     (st.room_id?'':'<button class="xrn-btn xrn-ghost" data-room="'+nm.id+'">REVEAL ROOM ID</button>')+
     '<div class="xrn-msg" data-msg></div></div>';
   }
+  var post=matches.filter(function(m){return api.isPostponed(m);});
+  if(post.length){
+   html+='<div class="xrn-sect">Postponed</div>';
+   html+=post.map(function(m){return '<div class="xrn-res"><div class="ric">'+ICO.clock+'</div><div><h4>'+esc(m.title)+'</h4><p>'+esc(m.tournament_id||'')+'</p><p>'+fmt(m)+'</p></div><div class="rst">POSTPONED</div></div>';}).join('');
+  }
   html+='<div class="xrn-sect">Live Results <span style="float:right;font-size:11px;color:#7ee787">● '+(matches.some(function(m){return m.status==='live';})?'LIVE':'SCHEDULED')+'</span></div>';
   html+=done.length?done.map(function(m){return '<div class="xrn-res"><div class="ric">'+ICO.trophy+'</div><div><h4>'+esc(m.title)+'</h4><p>'+esc(m.tournament_id||'')+'</p><p>Finished · '+fmt(m)+'</p></div><div class="rst">COMPLETED</div></div>';}).join(''):'<div class="xrn-empty" style="padding:14px"><p>No finished matches yet. Results appear here after each match.</p></div>';
   html+='</div>';
