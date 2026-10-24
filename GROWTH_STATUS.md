@@ -3,6 +3,7 @@ Legend: DONE=in tonight's build | SHIP=already live | BACK=waiting on web/backen
 
 ## 25-point list
 SHIPPED v0.17.19-native (64), Oct 24 ~8:08 PM IST: Ignition Cup postponement display fix - the 4 postponed xr-5oar matches render POSTPONED (not CANCELLED), no countdown/check-in/room-reveal UI, excluded from next-match pickers, LIVE NOW swiper and chat chips; inert on reschedule (NATIVE_CONTRACTS.md 6195e0c). Untested on a real phone.
+SHIPPED v0.17.20-native (65), Oct 24 ~8:22 PM IST: fixed Match Center room/check-in/proof/report RPCs sending p_match=0 (match id is a UUID string; optLong silently yielded 0) - UUID now passed end to end in MatchCenter, Home next-match card, X panel. Supersedes v0.17.19 (64). 15 OTA patches incl 63->65. Untested on a real phone.
 1 Daily check-in streak: DONE (home card + StreakScreen)
 2 Daily challenge: SHIP (Play screen - daily_missions_v2 + quiz)
 3 Daily quiz: SHIP (quiz_feed/quiz_answer in Play)
