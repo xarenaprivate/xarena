@@ -305,6 +305,7 @@ object Fx {
 fun FxSwitchRows() {
     var h by remember { mutableStateOf(Fx.hapticsOn) }
     var so by remember { mutableStateOf(Fx.soundsOn) }
+    var t3 by remember { mutableStateOf(Fx3D.on) }
     Column {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("Button vibration" + (if (DataSaver.on) " (off while Data Saver is on)" else ""), color = Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
@@ -313,6 +314,10 @@ fun FxSwitchRows() {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("Soft sounds on wins and claims" + (if (DataSaver.on) " (off while Data Saver is on)" else ""), color = Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
             Switch(checked = so, onCheckedChange = { so = it; Fx.soundsOn = it })
+        }
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text("3D effects - tilt cards, champions stage, 3D arena" + (if (DataSaver.on) " (off while Data Saver is on)" else ""), color = Muted, fontSize = 12.sp, modifier = Modifier.weight(1f))
+            Switch(checked = t3, onCheckedChange = { t3 = it; Fx3D.on = it })
         }
     }
 }

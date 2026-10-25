@@ -33,6 +33,7 @@ import org.json.JSONObject
 @Composable
 fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
     var tick by remember { mutableIntStateOf(0) }
+    DisposableEffect(Unit) { Tilt3D.start(); onDispose { Tilt3D.stop() } }
     val ptr = rememberPullToRefreshState()
     if (ptr.isRefreshing) {
         LaunchedEffect(true) { tick++; kotlinx.coroutines.delay(1200); ptr.endRefresh() }
@@ -82,16 +83,17 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                     val par = if (DataSaver.on || listState.firstVisibleItemIndex != 0) 0f else listState.firstVisibleItemScrollOffset.toFloat()
                     Box(Modifier.graphicsLayer {
                         translationY = -par * 0.18f
-                        rotationX = (par / 240f).coerceIn(0f, 6f)
+                        rotationX = (par / 240f).coerceIn(0f, 6f) - Tilt3D.y * 5f
+                        rotationY = Tilt3D.x * 5f
                         cameraDistance = 14f * density
                     }) { CupHeroCard(d.cup, d.slotsTaken) { onOpenFeature("register") } }
                 }
-                AajKyaHaiCard(d.matches) { onOpenFeature("live") }
-                CheckinHomeCard { onOpenFeature("streak") }
-                FanVoteHomeCard { onOpenFeature("vote") }
-                DailyAvatarHomeCard()
-                TipHomeCard()
-                CreatorSpotlightCard { onOpenFeature("creator") }
+                Box(Modifier.tilt3d(3f)) { AajKyaHaiCard(d.matches) { onOpenFeature("live") } }
+                Box(Modifier.tilt3d(3f)) { CheckinHomeCard { onOpenFeature("streak") } }
+                Box(Modifier.tilt3d(3f)) { FanVoteHomeCard { onOpenFeature("vote") } }
+                Box(Modifier.tilt3d(3f)) { DailyAvatarHomeCard() }
+                Box(Modifier.tilt3d(3f)) { TipHomeCard() }
+                Box(Modifier.tilt3d(3f)) { CreatorSpotlightCard { onOpenFeature("creator") } }
             }
             item { WinnersStrip { onOpenFeature("winners") } }
             item { SpotlightsRow { f -> onOpenFeature(f) } }

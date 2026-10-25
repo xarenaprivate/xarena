@@ -16,8 +16,14 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -134,6 +140,52 @@ private fun ChallengeButton(target: LbRow, onDone: (String) -> Unit) {
             }
         }.padding(horizontal = 12.dp, vertical = 8.dp)) {
         Text(if (sent) "Challenged" else if (busy) "..." else "Challenge · 100 AP stake", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+
+private fun podiumShade(c: Color, f: Float): Color =
+    Color((c.red * f).coerceIn(0f, 1f), (c.green * f).coerceIn(0f, 1f), (c.blue * f).coerceIn(0f, 1f), 1f)
+
+/** Champions stage: top 3 on pseudo-3D podium blocks (slanted lit top faces + gradient fronts),
+    crown pulse on #1. Pure Compose drawing - no assets. Static when 3D effects are off. */
+@Composable
+private fun Podium3D(top: List<LbRow>) {
+    val first = top.getOrNull(0) ?: return
+    val second = top.getOrNull(1); val third = top.getOrNull(2)
+    val crownScale = if (Fx3D.active()) {
+        val t = rememberInfiniteTransition(label = "crown")
+        t.animateFloat(0.9f, 1.14f, infiniteRepeatable(tween(1100), RepeatMode.Reverse), label = "cs").value
+    } else 1f
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)
+        .clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg)
+        .border(1.dp, Gold.copy(alpha = .5f), RoundedCornerShape(Look.cardRadius)).padding(top = 12.dp, bottom = 0.dp)) {
+        Text("CHAMPIONS STAGE", color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.align(Alignment.CenterHorizontally))
+        Row(Modifier.fillMaxWidth().padding(horizontal = 10.dp), verticalAlignment = Alignment.Bottom) {
+            listOfNotNull(second?.let { Triple(it, 2, 84) }, Triple(first, 1, 122), third?.let { Triple(it, 3, 68) }).forEach { (r, rank, h) ->
+                val accent = when (rank) { 1 -> LbGold; 2 -> LbSilver; else -> LbBronze }
+                Column(Modifier.weight(1f).padding(horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (rank == 1) Text("\uD83D\uDC51", fontSize = 26.sp,
+                        modifier = Modifier.graphicsLayer { scaleX = crownScale; scaleY = crownScale; rotationZ = (crownScale - 1f) * 40f })
+                    else Spacer(Modifier.height(30.dp))
+                    LbAvatar(r, if (rank == 1) 52 else 42, accent)
+                    Spacer(Modifier.height(3.dp))
+                    Text(r.name, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    Text("#" + rank, color = accent, fontSize = 13.sp, fontWeight = FontWeight.Black)
+                    Spacer(Modifier.height(4.dp))
+                    androidx.compose.foundation.Canvas(Modifier.fillMaxWidth().height(h.dp)) {
+                        val w = size.width; val hh = size.height
+                        val tf = hh * 0.18f; val inset = w * 0.14f
+                        val topF = androidx.compose.ui.graphics.Path().apply {
+                            moveTo(0f, tf); lineTo(inset, 0f); lineTo(w - inset, 0f); lineTo(w, tf); close() }
+                        drawPath(topF, podiumShade(accent, 1.25f))
+                        val front = androidx.compose.ui.graphics.Path().apply {
+                            moveTo(0f, tf); lineTo(w, tf); lineTo(w, hh); lineTo(0f, hh); close() }
+                        drawPath(front, androidx.compose.ui.graphics.Brush.verticalGradient(listOf(podiumShade(accent, .95f), podiumShade(accent, .35f))))
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -327,6 +379,7 @@ fun LeaderboardScreen() {
                             EmptyNote(if (rows.isEmpty()) "No players here yet" else "No player matches " + query.trim(),
                                 if (rows.isEmpty()) "Be the first to earn EXP here." else "Try a different name.")
                         }
+                        if (query.isBlank() && shown.isNotEmpty()) item { Podium3D(shown.take(3)) }
                         itemsIndexed(shown.take(3)) { i, r -> TopCard(i + 1, r) { toast = it; tick++ } }
                         itemsIndexed(shown.drop(3)) { i, r -> CompactRow(i + 4, r) { toast = it; tick++ } }
                     }

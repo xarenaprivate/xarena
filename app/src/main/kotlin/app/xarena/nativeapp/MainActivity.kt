@@ -130,16 +130,21 @@ object Txt {
 @Composable
 fun SplashAnim() {
     val oneShot = remember { androidx.compose.animation.core.Animatable(0.6f) }
+    val spin = remember { androidx.compose.animation.core.Animatable(if (Fx3D.active()) -540f else 0f) }
     androidx.compose.runtime.LaunchedEffect(Unit) {
         oneShot.animateTo(1f, androidx.compose.animation.core.spring(
             dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy,
             stiffness = androidx.compose.animation.core.Spring.StiffnessLow))
     }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        spin.animateTo(0f, tween(1100, easing = androidx.compose.animation.core.FastOutSlowInEasing))
+    }
     val pulse = rememberInfiniteTransition(label = "splash")
     val glow by pulse.animateFloat(0.75f, 1f, infiniteRepeatable(tween(900), RepeatMode.Reverse), label = "glow")
     Box(Modifier.fillMaxSize().background(Ink), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.graphicsLayer { scaleX = oneShot.value; scaleY = oneShot.value; alpha = oneShot.value.coerceIn(0f, 1f) }) {
+            modifier = Modifier.graphicsLayer { scaleX = oneShot.value; scaleY = oneShot.value; alpha = oneShot.value.coerceIn(0f, 1f)
+                rotationY = spin.value; cameraDistance = 12f * density }) {
             Box(Modifier.size(110.dp).clip(RoundedCornerShape(28.dp))
                 .background(Gold.copy(alpha = 0.18f * glow)).border(2.dp, Gold.copy(alpha = glow), RoundedCornerShape(28.dp)),
                 contentAlignment = Alignment.Center) {
@@ -484,6 +489,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "squads" -> { SquadsScreen(onBack = { feature = null }); return }
         "store" -> { StoreScreen(onBack = { feature = null }); return }
         "profile" -> { ProfileScreen(onLogout, onBack = { feature = null }); return }
+        "arena3d" -> { Arena3DScreen(onBack = { feature = null }); return }
         "play" -> { PlayScreen(onBack = { feature = null }); return }
         "season" -> { SeasonPassScreen(onBack = { feature = null }); return }
     }
@@ -608,6 +614,7 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("coaches", "Coaches", "Learn from verified players", Icons.Default.Star),
         GridItem("cup", "Sponsor a Cup", "Your brand on a real tournament", Icons.Default.ShoppingCart),
         GridItem("search", "Search", "Squads, players, tournaments", Icons.Default.Search),
+        GridItem("arena3d", "3D Arena", "Live 3D X arena - tilts with your phone", Icons.Default.Star),
         GridItem("teams", "Teams", "Registered squads", Icons.Default.AccountBox),
         GridItem("players", "Players", "Verified player profiles", Icons.Default.Person),
         GridItem("howto", "How to Play", "3 steps to your first match", Icons.Default.Info),
@@ -799,21 +806,55 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
             LazyColumn(contentPadding = PaddingValues(bottom = 24.dp)) {
                 // header: avatar + name + level pill
                 item {
-                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(contentAlignment = Alignment.Center) {
-                            val avUrl = p?.s("avatar_url") ?: ""
-                            ProfileAvatarRing(name.first().uppercase(), verified)
-                            if (avUrl.isNotBlank()) coil.compose.AsyncImage(model = xrImageModel(Api.ctx, avUrl), contentDescription = "avatar",
-                                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-                                modifier = Modifier.size(64.dp).clip(CircleShape))
-                            else Text(name.first().uppercase(), color = NeonName, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
-                        }
-                        Spacer(Modifier.width(14.dp))
-                        Column {
-                            Text(name, color = NeonName, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold)
-                            Spacer(Modifier.height(4.dp))
-                            Text("LEVEL " + level, color = Color(0xFF2A1450), fontSize = 12.sp, fontWeight = FontWeight.Bold,
-                                modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(NeonYellow).padding(horizontal = 10.dp, vertical = 3.dp))
+                    var flipped by remember { mutableStateOf(false) }
+                    val flipRot by androidx.compose.animation.core.animateFloatAsState(if (flipped) 180f else 0f, tween(480), label = "flip")
+                    Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).height(132.dp)
+                        .graphicsLayer { rotationY = if (Fx3D.active()) flipRot else 0f; cameraDistance = 12f * density }
+                        .clip(RoundedCornerShape(18.dp)).background(Look.cardBg)
+                        .border(1.dp, Gold.copy(alpha = .45f), RoundedCornerShape(18.dp))
+                        .clickable { flipped = !flipped }
+                        .holoShine()
+                        .padding(14.dp)) {
+                        if (flipRot <= 90f) {
+                            Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    val avUrl = p?.s("avatar_url") ?: ""
+                                    ProfileAvatarRing(name.first().uppercase(), verified)
+                                    if (avUrl.isNotBlank()) coil.compose.AsyncImage(model = xrImageModel(Api.ctx, avUrl), contentDescription = "avatar",
+                                        contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                        modifier = Modifier.size(64.dp).clip(CircleShape))
+                                    else Text(name.first().uppercase(), color = NeonName, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold)
+                                }
+                                Spacer(Modifier.width(14.dp))
+                                Column {
+                                    Text(name, color = NeonName, fontSize = 26.sp, fontWeight = FontWeight.ExtraBold)
+                                    Spacer(Modifier.height(4.dp))
+                                    Text("LEVEL " + level, color = Color(0xFF2A1450), fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(NeonYellow).padding(horizontal = 10.dp, vertical = 3.dp))
+                                }
+                                Spacer(Modifier.weight(1f))
+                                Text("TAP TO\nFLIP", color = Muted, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            }
+                        } else {
+                            Column(Modifier.fillMaxSize().graphicsLayer { rotationY = 180f }, verticalArrangement = Arrangement.Center) {
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                                    listOf("MATCHES" to matches, "WINS" to wins, "XP" to xp).forEach { (l, v) ->
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text(v.toString(), color = NeonYellow, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                                            Text(l, color = Muted, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+                                Spacer(Modifier.height(12.dp))
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                                    listOf("STREAK" to streak, "SPINS" to spins, "QUIZ" to (if (qa > 0) "$qc/$qa" else "-")).forEach { (l, v) ->
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text(v.toString(), color = NeonYellow, fontSize = 20.sp, fontWeight = FontWeight.Black)
+                                            Text(l, color = Muted, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
