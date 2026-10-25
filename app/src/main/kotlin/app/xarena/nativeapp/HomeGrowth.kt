@@ -73,7 +73,7 @@ fun CupHeroCard(t: JSONObject, slotsTaken: Int, onRegister: () -> Unit) {
         }
         Spacer(Modifier.height(12.dp))
         Row {
-            if (t.optBoolean("reg_open")) GoldButton(Txt.t("REGISTER YOUR SQUAD", "SQUAD REGISTER KARO")) { onRegister() }
+            if (t.optBoolean("reg_open")) GoldButton(Txt.t("REGISTER YOUR SQUAD", "SQUAD REGISTER KARO"), modifier = Modifier.weight(1f)) { onRegister() }
             Spacer(Modifier.width(10.dp))
             Text("SHARE", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
