@@ -29,7 +29,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Build debug APK and tests (no signing secrets)
-        run: gradle :app:assembleDebug :app:assembleDebugAndroidTest --console=plain -Dorg.gradle.jvmargs=-Xmx3g -Pkotlin.compiler.execution.strategy=in-process
+        run: gradle :app:assembleDebug :app:assembleDebugAndroidTest --console=plain -Dorg.gradle.jvmargs=-Xmx3g -Pkotlin.compiler.execution.strategy=in-process -PnativeTestAbi=x86_64
       - uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 29
