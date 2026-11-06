@@ -133,7 +133,7 @@ window.addEventListener("load", function () {
       '<form id="login-form"><div class="field"><label>Phone number or email</label><input id="l-email" required inputmode="text" placeholder="10-digit number or email"></div>' +
       '<div class="field"><label>Password</label><input id="l-pass" type="password" required minlength="6"></div>' +
       errBox() + '<button class="btn btn-red" type="submit">Login</button></form>' +
-      '<p style="margin-top:14px;color:var(--muted);font-size:13.5px">New player? <a href="#" id="go-signup" style="color:var(--gold2)">Create a free account</a><br>Forgot your password? Message the owner (contact page or World Chat) and they will reset it for you.</p>';
+      '<p style="margin-top:14px;color:var(--muted);font-size:13.5px">New player? <a href="#" id="go-signup" style="color:var(--gold2)">Create a free account</a><br>Forgot your password? <a href="recover.html">Password recovery</a>. Phone-only accounts need owner-assisted identity verification. A username alone is not enough.</p>';
     document.getElementById("go-signup").addEventListener("click", function (e) { e.preventDefault(); showSignup(); });
     document.getElementById("login-form").addEventListener("submit", function (e) {
       e.preventDefault();
