@@ -413,7 +413,7 @@ fun <T> LoadState2(tick: Int, load: suspend () -> T, content: @Composable (T) ->
 }
 
 /* Renders the same certificate layout as the web's drawCert (1000x640) and opens the share sheet. */
-private fun certPngBitmap(kindRaw: String, name: String, tournament: String, date: String): android.graphics.Bitmap {
+internal fun certPngBitmap(kindRaw: String, name: String, tournament: String, date: String): android.graphics.Bitmap {
     val w = 1000; val h = 640
     val bmp = android.graphics.Bitmap.createBitmap(w, h, android.graphics.Bitmap.Config.ARGB_8888)
     val c = android.graphics.Canvas(bmp)

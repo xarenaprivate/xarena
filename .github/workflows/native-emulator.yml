@@ -1,4 +1,5 @@
 name: Native Android smoke test
+# Final staged69 coverage: real poster/certificate renderers and all share launcher shapes.
 on:
   workflow_dispatch:
   push:
