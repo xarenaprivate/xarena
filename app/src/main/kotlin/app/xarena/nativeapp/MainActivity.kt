@@ -229,7 +229,7 @@ fun XarenaApp() {
         val minCode = runCatching { RemoteConfig.get().optInt("min_version_code", 0) }.getOrDefault(0)
         if (latest != null && latest.url.startsWith("https://github.com/xarenaprivate/xarena/releases/")) {
             val mandatory = latest.mandatory || minCode > BuildConfig.VERSION_CODE
-            if (latest.code > BuildConfig.VERSION_CODE)
+            if (UpdateChecker.shouldOffer(latest.code, BuildConfig.VERSION_CODE, false, mandatory))
                 update = if (mandatory) latest.copy(mandatory = true) else latest
         }
     }

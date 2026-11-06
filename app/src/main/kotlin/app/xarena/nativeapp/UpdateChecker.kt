@@ -40,6 +40,9 @@ object UpdateChecker {
         fun downloadBytes(versionCode: Int): Long = patchFor(versionCode)?.bytes ?: apkBytes
     }
 
+    fun shouldOffer(code: Int, installedCode: Int, dismissedThisSession: Boolean, mandatory: Boolean): Boolean =
+        code > installedCode && (!dismissedThisSession || mandatory)
+
     suspend fun latest(): Info? = withContext(Dispatchers.IO) {
         try {
             val text = URL(MANIFEST).openConnection().apply { connectTimeout = 10000; readTimeout = 10000 }
@@ -350,6 +353,7 @@ fun ManualUpdateControl() {
     var available by remember { mutableStateOf<UpdateChecker.Info?>(null) }
     var status by remember { mutableStateOf<String?>(null) }
     var show by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { available = UpdateChecker.latest()?.takeIf { it.code > BuildConfig.VERSION_CODE && it.url.startsWith("https://github.com/xarenaprivate/xarena/releases/") } }
     if (show) available?.let { UpdateDialog(it) { show = false } }
     Column {
         TextButton(enabled = !checking, onClick = {
