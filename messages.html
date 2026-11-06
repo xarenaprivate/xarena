@@ -228,6 +228,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /* ---------- CHATS ---------- */
   function renderChats() {
+    openThread=null;
     window.xrDm.rest("GET", "/rest/v1/dm_threads?or=(user_a.eq." + me.id + ",user_b.eq." + me.id + ")&select=*&order=created_at.desc").then(function (threads) {
       var peers = (threads || []).map(function (t) { return t.user_a === me.id ? t.user_b : t.user_a; });
       var openThreads = (threads || []).filter(function (t) { return t.status !== "requested"; });
@@ -258,6 +259,9 @@ document.addEventListener("DOMContentLoaded", function () {
             }).join("");
           }
           app.innerHTML = html;
+    window.xrApi.uRpc('dm_unread_summary',{}).then(function(r){if(!r||!r.ok||openThread)return;(r.threads||[]).forEach(function(t){var row=app.querySelector('[data-th="'+t.thread_id+'"]');if(!row||!t.unread_count)return;var badge=document.createElement('span');badge.className='dm-unread';badge.style.cssText='padding:5px 9px;border-radius:16px;background:#8b5cf6;color:#fff;font-size:12px';badge.textContent=t.unread_count+' new message'+(t.unread_count===1?'':'s');row.appendChild(badge);});}).catch(function(){});
+
+
           bindTabs();
           refreshPresence(peers.concat([me.id]));
           var act = app.querySelector("#dm-act");
@@ -495,15 +499,18 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   new MutationObserver(function () { paintBanner(); }).observe(app, { childList: true });
 
+  var readObserver=null;
   function loadMsgs(threadId, peerId, key, scroll) {
     return window.xrDm.rest("GET", "/rest/v1/dm_messages?thread_id=eq." + threadId + "&select=*&order=created_at.asc&limit=100").then(function (rows) {
       var box = app.querySelector("#dm-msgs");
       if (!box || openThread !== threadId) return;
+      if(readObserver)readObserver.disconnect();
       box.innerHTML = "";
       if (!rows || !rows.length) { box.innerHTML = '<p class="dm-sub">No messages yet. Say hello 👋</p>'; return; }
       var jobs = rows.map(function (m) {
         var mine = m.sender_id === me.id;
         var bub = document.createElement("div");
+        bub.dataset.messageId=m.id;bub.dataset.incoming=mine?"0":"1";
         bub.className = "dm-bub" + (mine ? " me" : " them");
         var lbl = keyLabel(m, mine);
         if (lbl && lbl.final) {
@@ -538,6 +545,8 @@ document.addEventListener("DOMContentLoaded", function () {
         box.appendChild(bub);
       });
       if (scroll) box.scrollTop = box.scrollHeight;
+      readObserver=new IntersectionObserver(function(entries){if(document.hidden||openThread!==threadId)return;var visible=entries.filter(function(x){return x.isIntersecting&&x.intersectionRatio>=0.75&&x.target.dataset.incoming==='1';}).map(function(x){return x.target.dataset.messageId;});var displayed=rows.filter(function(m){return visible.indexOf(m.id)>=0;});var last=displayed[displayed.length-1];if(last)window.xrApi.uRpc('dm_mark_read',{p_thread:threadId,p_message:last.id}).catch(function(){});},{root:box,threshold:0.75});
+      box.querySelectorAll('[data-incoming="1"]').forEach(function(x){readObserver.observe(x);});
     });
   }
 
