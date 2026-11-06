@@ -59,3 +59,8 @@ value; they are POSTPONED, not cancelled. Display contract:
   override goes inert automatically. No app update required for the restore.
 - Web reference implementation: `api.matchLabel()` / `api.isPostponed()` in
   `assets/js/api.js` (commit 5570942).
+
+## Gift mailbox (Nov 6, live)
+Authenticated RPC `my_gift_mailbox()` -> `{ok:true,gifts:[{id,title,body,reward_kind,item_id,amount,created_at,expires_at,claimed_at,reward_title}]}`. Latest 100, recipient only. Kinds currently `ap`, `avatar`, `logo`. Banner remains under assessment, not supported yet. `claim_gift({p_gift:UUID})` -> `{ok:true,gift_id,already,already_owned?,balance?}` or `{ok:false,error}`. Claims serialized by mailbox row lock, AP/inventory and claimed_at committed together. Already owned items consume gift with no AP compensation and no auto-equip. Marking notification read does NOT claim gifts. On retry, `already:true` means successful earlier claim. Refresh balance/inventory/mailbox after success. Gift notification kind `gift`, link `notifications.html`; navigate to recipient mailbox and refresh authenticated RPC, never trust push payload as entitlement. Admin only RPC deliberately excluded from native UI.
+
+Recovery URL: `https://xarenaprivate.github.io/xarena/recover.html` accepts Supabase recovery fragment session only, updates authenticated session password. Never allow username-only reset. Email delivery currently blocked for general players by missing custom SMTP; callback page does not establish SMTP readiness.
