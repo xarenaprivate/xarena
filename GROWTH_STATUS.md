@@ -83,3 +83,15 @@ SHIPPED v0.17.21-native (66), Oct 25 ~1:07 PM IST: fixed stuck pull-to-refresh b
 ## SHIPPED v0.17.18-native (63) - 2026-10-22 ~3:17 PM IST
 - Fix: Home check-in + avatar-of-the-day cards and chat SEND row stretched blank (GoldButton fillMaxWidth inside weighted Row). GoldButton now takes a modifier; Row uses fixed width.
 - SHA256 5e1fe740425a38ed957c530d3c421b06ec0a1734259af6dcc0b72cada7acc75b, 28849548 B, 14 patches (48-52,54-62), PatchCheck 14/14, CDN vc 63
+
+## Native69 staging - 2026-11-06 evening (NOT PUBLISHED)
+- Added finalized server unread summary/cursors, visible-message-only read acknowledgment while resumed. No local read baseline.
+- Added recipient-side DM decrypt notifications with private/public generic Android lockscreen versions and generic encrypted fallback. Data-only push is a signal, no plaintext server payload.
+- Added More list layout/search/sections alongside retained grid; unread bold count + blue dot. Native layout renderer pixels inspected with explicitly labeled test fixtures. Not phone proof.
+- Added recipient Gift mailbox, atomic server Claim UI, owned personal banner picker/header. No real gifts issued/claimed during tests.
+- Added approved free recovery-key enrollment/reset UI with secure-window flag and no logs/clipboard/persistence of keys/passwords. No real key enrollment or password reset tests.
+- Removed persistent skipped-update suppression; session-only dismissal, Settings Check for updates + actionable Update now. Two update-policy regression tests pass.
+- Audited every ACTION_SEND entry and centralized sharing on foreground Activity with explicit ClipData/URI grants. User reports68stillfails. Root cause NOT proven; runtime/emulator/device validation is a release blocker.
+- Initial signed release69: 28,915,084B, +49,152B (+48KiB) vs68. Size approval required, no publish or update-manifest change yet. Current staged SHA84c60b19cb7184bcea95e6d79c91f7403b63a30d67153eec134f7c0c703a515e.
+- Actual API29 cloud emulator test run42249290569 in progress (test-only x86 ABI, no keystore/account credentials,20min limit,1day evidence). Account GitHubFree includedCompute$0/$12 and Actions$0 paidbudget usageblocked verified live before run. Old wrong-ABI run42248833259 cancelled. This is a debug/test APK, not final signed release/his hardware.
+- Prior68ShareCard-only fix was not sufficient on user's phone; don't repeat it as verified fixed.
