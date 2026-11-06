@@ -453,5 +453,5 @@ private fun shareCertPng(kindRaw: String, name: String, tournament: String, date
         val f = java.io.File(dir, "xarena-certificate-" + kindRaw + ".png")
         f.outputStream().use { certPngBitmap(kindRaw, name, tournament, date).compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
         ShareLauncher.image(Api.ctx, "Share certificate", f)
-    } catch (e: Exception) { }
+    } catch (e: Exception) { android.widget.Toast.makeText(Api.ctx, "Could not create certificate image. Try again.", android.widget.Toast.LENGTH_LONG).show() }
 }

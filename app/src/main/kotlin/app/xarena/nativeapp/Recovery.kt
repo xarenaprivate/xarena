@@ -3,6 +3,8 @@ package app.xarena.nativeapp
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -49,7 +51,7 @@ fun RecoveryDialog(enroll: Boolean, onClose: () -> Unit) {
     var complete by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     AlertDialog(properties = androidx.compose.ui.window.DialogProperties(securePolicy = androidx.compose.ui.window.SecureFlagPolicy.SecureOn), onDismissRequest = { if (!busy) onClose() }, title = { Text(if (enroll) "Private recovery key" else "Reset password") },
-        text = { Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        text = { Column(Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(if (enroll) "Create a private one-time key while signed in. Creating a new key replaces your old key. Save it somewhere private, not in chat. It is shown once."
                 else "Use the private recovery key you saved while logged in. Already locked out without a saved key? This method cannot recover your account.")
             generated?.let { Text(it, color = Gold2); Text("Write this key down privately now. It cannot be shown again. Never share it. After using it, sign in and create a new key.") }

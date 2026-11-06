@@ -89,7 +89,7 @@ class XarenaMessagingService : FirebaseMessagingService() {
                     } ?: false
                 }
             }.getOrDefault(false)
-            if (!posted) post(title, body, 90001, "messages", true, 0)
+            if (!posted && Api.loggedIn) post(title, body, 90001, "messages", true, 0)
         } else post(title, body, (System.currentTimeMillis() % 100000).toInt(), if (kind == "gift") "notifications" else null, false, 0)
     }
 
