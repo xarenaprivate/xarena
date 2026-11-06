@@ -13,6 +13,7 @@ android {
         applicationId = "app.xarena.esports.native"
         minSdk = 24
         targetSdk = 34
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         versionCode = 69
         versionName = "0.17.24-native"
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
@@ -54,6 +55,10 @@ android {
 }
 dependencies {
     testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:rules:1.6.1")
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
     implementation("io.github.webrtc-sdk:android:150.7871.01")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("androidx.compose.material:material-icons-core:1.6.8")
