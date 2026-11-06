@@ -342,3 +342,28 @@ fun UpdateDialog(info: UpdateChecker.Info, onDismiss: () -> Unit) {
         }
     }
 }
+
+@Composable
+fun ManualUpdateControl() {
+    val scope = rememberCoroutineScope()
+    var checking by remember { mutableStateOf(false) }
+    var available by remember { mutableStateOf<UpdateChecker.Info?>(null) }
+    var status by remember { mutableStateOf<String?>(null) }
+    var show by remember { mutableStateOf(false) }
+    if (show) available?.let { UpdateDialog(it) { show = false } }
+    Column {
+        TextButton(enabled = !checking, onClick = {
+            checking = true; status = null
+            scope.launch {
+                val latest = UpdateChecker.latest()
+                available = latest?.takeIf { it.code > BuildConfig.VERSION_CODE && it.url.startsWith("https://github.com/xarenaprivate/xarena/releases/") }
+                status = if (latest == null) "Could not check updates. Check your connection and try again."
+                    else if (available == null) "You have the latest published version."
+                    else "Version ${latest.name} is available."
+                checking = false
+            }
+        }) { Text(if (checking) "Checking..." else "Check for updates", color = Gold) }
+        status?.let { Text(it, color = Muted) }
+        if (available != null) GoldButton("UPDATE NOW") { show = true }
+    }
+}

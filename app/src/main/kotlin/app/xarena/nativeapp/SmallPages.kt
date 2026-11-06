@@ -351,8 +351,14 @@ fun RulesScreen(onBack: () -> Unit) {
 fun NotificationsScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     var tick by remember { mutableIntStateOf(0) }
+    var gifts by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().background(Ink)) {
-        PageHeader("Notifications", "Alerts from XARENA", onBack)
+        PageHeader("Notifications", "Alerts and gift mailbox", onBack)
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            FilterChip(selected = !gifts, onClick = { gifts = false }, label = { Text("Alerts") })
+            FilterChip(selected = gifts, onClick = { gifts = true }, label = { Text("Gift mailbox") })
+        }
+        if (gifts) { GiftMailbox(); return@Column }
         LoadState2(tick, { Api.authedRpc("my_notifications", JSONObject()) }) { r ->
             val list = if (r.optBoolean("ok")) r.optJSONArray("list") ?: JSONArray() else JSONArray()
             LazyColumn {
@@ -446,10 +452,6 @@ private fun shareCertPng(kindRaw: String, name: String, tournament: String, date
         val dir = java.io.File(Api.ctx.cacheDir, "certs"); dir.mkdirs()
         val f = java.io.File(dir, "xarena-certificate-" + kindRaw + ".png")
         f.outputStream().use { certPngBitmap(kindRaw, name, tournament, date).compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
-        val uri = androidx.core.content.FileProvider.getUriForFile(Api.ctx, "app.xarena.esports.native.fileprovider", f)
-        val i = android.content.Intent(android.content.Intent.ACTION_SEND)
-        i.type = "image/png"; i.putExtra(android.content.Intent.EXTRA_STREAM, uri)
-        i.addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-        Api.ctx.startActivity(android.content.Intent.createChooser(i, "Share certificate").addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+        ShareLauncher.image(Api.ctx, "Share certificate", f)
     } catch (e: Exception) { }
 }

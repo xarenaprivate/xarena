@@ -105,12 +105,14 @@ fun MessagesScreen(onBack: () -> Unit, onOpenConv: (String, String, String, Stri
             } catch (e: Exception) { err = e.message ?: "Could not load." }
         }
     }
-    LaunchedEffect(tick) { reload() }
-    LaunchedEffect(Unit) { while (isActive) { delay(15000); reload() } }
+    LaunchedEffect(tick) { reload(); runCatching { DmUnread.refresh() } }
+    LaunchedEffect(Unit) { while (isActive) { delay(15000); reload(); runCatching { DmUnread.refresh() } } }
 
     val reqCount = (incReqs?.length() ?: 0) + (msgReqs?.length() ?: 0)
     Column(Modifier.fillMaxSize().background(Ink)) {
         DmHeader("Messages", "End-to-end encrypted - only you two can read", onBack)
+        if (DmUnread.total > 0) Text(if (DmUnread.total == 1) "1 new message" else DmUnread.total.toString() + " new messages",
+            color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp))
         if (keyMismatch) {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 6.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp))
                 .background(Color(0x22FFD700)).border(1.dp, Gold, RoundedCornerShape(12.dp)).padding(12.dp)) {
@@ -134,7 +136,7 @@ fun MessagesScreen(onBack: () -> Unit, onOpenConv: (String, String, String, Stri
         Spacer(Modifier.height(8.dp))
         err?.let { Text(it, color = ErrRed, fontSize = 13.sp, modifier = Modifier.padding(16.dp)) }
         when (seg) {
-            0 -> ChatsPane(threads, names) { id, peer, st, reqByMe -> onOpenConv(id, peer, names[peer] ?: "Player", st, reqByMe) }
+            0 -> ChatsPane(threads, names, DmUnread.perThread, DmUnread.newestAt) { id, peer, st, reqByMe -> onOpenConv(id, peer, names[peer] ?: "Player", st, reqByMe) }
             1 -> FriendsPane(friends, names, { reload() }, { fid ->
                 scope.launch {
                     try {
@@ -149,7 +151,7 @@ fun MessagesScreen(onBack: () -> Unit, onOpenConv: (String, String, String, Stri
 }
 
 @Composable
-private fun ChatsPane(threads: JSONArray?, names: Map<String, String>, open: (String, String, String, Boolean) -> Unit) {
+internal fun ChatsPane(threads: JSONArray?, names: Map<String, String>, unread: Map<String, Int>, unreadAt: Map<String, String>, open: (String, String, String, Boolean) -> Unit) {
     if (threads == null) { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Gold) }; return }
     val me = Api.uid
     val open2 = (0 until threads.length()).map { threads.getJSONObject(it) }.filter { it.s("status") != "requested" }
@@ -159,15 +161,23 @@ private fun ChatsPane(threads: JSONArray?, names: Map<String, String>, open: (St
         items(open2) { t ->
             val peer = if (t.getString("user_a") == me) t.getString("user_b") else t.getString("user_a")
             val nm = names[peer] ?: "Player"
+            val uc = unread[t.getString("id")] ?: 0
             Row(Modifier.fillMaxWidth().padding(vertical = 5.dp).clip(RoundedCornerShape(14.dp)).background(Card.copy(alpha = .85f))
-                .border(1.dp, Gold.copy(alpha = .25f), RoundedCornerShape(14.dp)).clickable { open(t.getString("id"), peer, "open", false) }.padding(12.dp),
+                .border(1.dp, (if (uc > 0) Gold.copy(alpha = .6f) else Gold.copy(alpha = .25f)), RoundedCornerShape(14.dp))
+                .clickable { open(t.getString("id"), peer, "open", false) }.padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically) {
                 DmAvatar(nm); Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(nm, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                    Text("Encrypted" + if (t.optBoolean("locked")) " - locked" else "", color = Muted, fontSize = 12.sp)
+                    Text(nm, color = Color.White, fontSize = 15.sp, fontWeight = if (uc > 0) FontWeight.Bold else FontWeight.Normal)
+                    Text(
+                        if (uc > 0) (if (uc > 4) "4+ new messages" else "$uc new message" + (if (uc > 1) "s" else "")) +
+                            (unreadAt[t.getString("id")]?.takeIf { it.isNotBlank() }?.let { " · " + dmTime(it) } ?: "")
+                        else "Encrypted" + if (t.optBoolean("locked")) " - locked" else "",
+                        color = if (uc > 0) Color.White else Muted, fontSize = 12.sp,
+                        fontWeight = if (uc > 0) FontWeight.Bold else FontWeight.Normal)
                 }
-                Text(dmTime(t.s("created_at")), color = Muted, fontSize = 11.sp)
+                if (uc > 0) Box(Modifier.size(10.dp).clip(CircleShape).background(Color(0xFF536DFE)))
+                else Text(dmTime(t.s("created_at")), color = Muted, fontSize = 11.sp)
             }
         }
         if (mine.isNotEmpty()) {
@@ -422,8 +432,29 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
             try {
                 msgs = withContext(Dispatchers.Default) { decode(Api.dmMessages(threadId), k) }
                 if (listState.layoutInfo.totalItemsCount > 0) listState.scrollToItem(listState.layoutInfo.totalItemsCount - 1)
+
             } catch (e: Exception) { }
             delay(4000)
+        }
+    }
+
+    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    var resumed by remember { mutableStateOf(lifecycleOwner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, _ ->
+            resumed = lifecycleOwner.lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    var acknowledged by remember(threadId) { mutableStateOf("") }
+    LaunchedEffect(threadId, msgs, resumed) {
+        if (!resumed) return@LaunchedEffect
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.map { it.key.toString() } }.collect { visible ->
+            val shown = msgs.lastOrNull { it.id in visible }
+            if (shown != null && shown.id != acknowledged) {
+                runCatching { DmUnread.markRead(threadId, shown.id) }.onSuccess { acknowledged = shown.id }
+            }
         }
     }
 
@@ -518,7 +549,7 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
         if (locked) Text("This conversation is locked pending owner review.", color = ErrRed, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
         LazyColumn(state = listState, modifier = Modifier.weight(1f).fillMaxWidth().padding(horizontal = 12.dp)) {
             if ((key != null || peerDevs.isNotEmpty()) && msgs.isEmpty()) item { Text("No messages yet. Say hello.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(20.dp)) }
-            items(msgs) { m ->
+            items(msgs, key = { it.id }) { m ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = if (m.mine) Arrangement.End else Arrangement.Start) {
                     Column(Modifier.padding(vertical = 3.dp).clip(RoundedCornerShape(14.dp))
                         .background(if (m.mine) Gold.copy(alpha = .9f) else Card)

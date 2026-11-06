@@ -127,9 +127,7 @@ fun SquadProfileScreen(squadId: String, onBack: () -> Unit) {
             Text("SHARE SQUAD LINK", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
                     .clickable {
-                        val i = android.content.Intent(android.content.Intent.ACTION_SEND).setType("text/plain")
-                            .putExtra(android.content.Intent.EXTRA_TEXT, "Check out our squad on XARENA: https://xarenaprivate.github.io/xarena/more.html?squad=" + squadId + "#squad")
-                        ctx.startActivity(android.content.Intent.createChooser(i, "Share squad link"))
+                        ShareLauncher.text(ctx, "Share squad link", "Check out our squad on XARENA: https://xarenaprivate.github.io/xarena/more.html?squad=" + squadId + "#squad")
                     }.padding(horizontal = 14.dp, vertical = 8.dp))
         }
         LoadState2(tick, { runCatching { Api.authedRpc("squad_profile", JSONObject().put("p_squad", squadId)) }.getOrNull() }) { r ->

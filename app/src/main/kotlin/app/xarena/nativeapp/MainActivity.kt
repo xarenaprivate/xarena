@@ -173,6 +173,8 @@ class MainActivity : ComponentActivity() {
         runCatching { XPanelStore.sync(this) }
         setContent { XarenaApp() }
     }
+    override fun onResume() { super.onResume(); ShareLauncher.attach(this) }
+    override fun onDestroy() { ShareLauncher.detach(this); super.onDestroy() }
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         pendingOpen = intent.getStringExtra("open")
@@ -227,7 +229,7 @@ fun XarenaApp() {
         val minCode = runCatching { RemoteConfig.get().optInt("min_version_code", 0) }.getOrDefault(0)
         if (latest != null && latest.url.startsWith("https://github.com/xarenaprivate/xarena/releases/")) {
             val mandatory = latest.mandatory || minCode > BuildConfig.VERSION_CODE
-            if (latest.code > BuildConfig.VERSION_CODE && (mandatory || latest.code != Api.prefs.getInt("skipped_update_code", -1)))
+            if (latest.code > BuildConfig.VERSION_CODE)
                 update = if (mandatory) latest.copy(mandatory = true) else latest
         }
     }
@@ -257,7 +259,7 @@ fun XarenaApp() {
         val u = update
         if (u != null && !updateDismissed) UpdateDialog(u) {
             updateDismissed = true
-            Api.prefs.edit().putInt("skipped_update_code", u.code).apply()
+            Api.prefs.edit().remove("skipped_update_code").apply()
         }
     }
 }
@@ -317,6 +319,8 @@ fun LoginScreen(onDone: () -> Unit, onGoSignup: () -> Unit) {
     var busy by remember { mutableStateOf(false) }
     var err by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    var recovery by remember { mutableStateOf(false) }
+    if (recovery) RecoveryDialog(false) { recovery = false }
     AuthCard("Login") {
         OutlinedTextField(id, { id = it }, label = { Text("Phone number or email") }, singleLine = true, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(10.dp))
@@ -332,6 +336,7 @@ fun LoginScreen(onDone: () -> Unit, onGoSignup: () -> Unit) {
             }
         }
         Spacer(Modifier.height(10.dp))
+        Text("Forgot password?", color = Gold2, modifier = Modifier.clickable { recovery = true }.padding(vertical = 8.dp))
         Text("New player? Create a free account", color = Gold2, fontSize = 13.sp, modifier = Modifier.clickable { onGoSignup() })
     }
 }
@@ -407,7 +412,7 @@ fun HomeShell(onLogout: () -> Unit) {
     var feature by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(MainActivity.pendingOpen) {
         when (MainActivity.pendingOpen) {
-            "voice" -> tab = 3; "live" -> tab = 2; "messages" -> feature = "messages"; "squads" -> feature = "squads"
+            "voice" -> tab = 3; "live" -> tab = 2; "notifications" -> feature = "notifications"; "messages" -> feature = "messages"; "squads" -> feature = "squads"
         }
         if (MainActivity.pendingOpen != null) MainActivity.pendingOpen = null
     }
@@ -498,11 +503,12 @@ fun HomeShell(onLogout: () -> Unit) {
         while (true) { runCatching { Api.presencePing() }; kotlinx.coroutines.delay(60_000) }
     }
     LaunchedEffect(Unit) { runCatching { RemoteConfig.get() } } // prefetch remote config
-    var msgBadge by remember { mutableIntStateOf(0) }
-    LaunchedEffect(feature, conv) {
-        msgBadge = runCatching {
-            Api.dmRequestsIncoming().length() + Api.dmMessageRequests().length()
-        }.getOrDefault(0)
+    val msgBadge = DmUnread.total
+    LaunchedEffect(feature, conv, Api.uid) {
+        while (true) {
+            runCatching { DmUnread.refresh() }
+            kotlinx.coroutines.delay(15_000)
+        }
     }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -590,7 +596,7 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("h2h", "Head to Head", "Squad vs squad record", Icons.Default.Star),
         GridItem("notices", "Notice Board", "Official announcements", Icons.Default.Notifications),
         GridItem("feedback", "Feedback", "Report bugs, cheaters, ideas", Icons.Default.MailOutline),
-        GridItem("guide", "Beginner Guide", "Naya player? Shuru yahan se", Icons.Default.Info),
+        GridItem("guide", "Beginner Guide", "New player? Start here", Icons.Default.Info),
         GridItem("notifications", "Notifications", "Your alerts", Icons.Default.Notifications),
         GridItem("stories", "Stories", "24-hour highlights from players", Icons.Default.Face),
         GridItem("clips", "Clips", "Approved community clips", Icons.Default.PlayArrow),
@@ -632,9 +638,57 @@ fun MoreGrid(onOpen: (String) -> Unit) {
     )
     val items = itemsAll.filter { RemoteConfig.featureEnabled(it.key) } +
         gated.filter { flagState?.optBoolean(it.third, false) == true }.map { it.second }
-    Column(Modifier.fillMaxSize()) {
-        Brand()
-        LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
+    MoreOptionsContent(items, onOpen)
+}
+
+@Composable
+internal fun MoreOptionsContent(items: List<GridItem>, onOpen: (String) -> Unit, initialListLayout: Boolean? = null) {
+    var listLayout by remember { mutableStateOf(initialListLayout ?: Api.prefs.getBoolean("more_list_layout", false)) }
+    var query by remember { mutableStateOf("") }
+    Column(Modifier.fillMaxSize().background(if (listLayout) Color.White else Ink)) {
+        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("More options", color = if (listLayout) Color.Black else Gold2, fontWeight = FontWeight.Bold, fontSize = 22.sp, modifier = Modifier.weight(1f))
+            Text(if (listLayout) "Grid layout" else "List layout", color = if (listLayout) Color(0xFF50586A) else Gold,
+                modifier = Modifier.clickable { listLayout = !listLayout; Api.prefs.edit().putBoolean("more_list_layout", listLayout).apply() }.padding(8.dp))
+        }
+        if (listLayout) {
+            OutlinedTextField(query, { query = it }, placeholder = { Text("Search", color = Color.Gray) }, singleLine = true,
+                leadingIcon = { Icon(Icons.Default.Search, "Search", tint = Color.Gray) }, shape = RoundedCornerShape(14.dp),
+                colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.Black, unfocusedTextColor = Color.Black,
+                    focusedContainerColor = Color(0xFFF0F1F4), unfocusedContainerColor = Color(0xFFF0F1F4), focusedBorderColor = Color.Transparent, unfocusedBorderColor = Color.Transparent),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
+            val groups = linkedMapOf(
+                "Your account" to setOf("profile", "settings", "playercard", "verify", "notifications"),
+                "Messages and community" to setOf("messages", "chat", "squads", "room", "feed", "stories", "clips", "voice", "players", "teams", "search", "teamfinder"),
+                "Matches and play" to setOf("match", "calendar", "checklist", "pointstable", "h2h", "scrims", "live", "creator", "cup", "roles", "winners", "winner"),
+                "Rewards and progress" to setOf("play", "season", "store", "streak", "certs", "stats", "tasks", "refer", "vote"),
+                "Tools and learning" to setOf("luna", "academy", "guide", "howto", "ping", "sensitivity", "coaches", "arena3d", "xpanel", "recorder"))
+            val assigned = groups.values.flatten().toSet()
+            val sections = groups.map { (title, keys) -> title to items.filter { it.key in keys } } +
+                listOf("Information and support" to items.filter { it.key !in assigned })
+            LazyColumn(Modifier.fillMaxSize()) {
+                sections.forEach { (title, entries) ->
+                    val filtered = entries.filter { query.isBlank() || (it.name + " " + it.sub).contains(query, ignoreCase = true) }
+                    if (filtered.isNotEmpty()) {
+                        item { Text(title, color = Color(0xFF6B6E73), fontSize = 14.sp, fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.fillMaxWidth().background(Color(0xFFF5F5F7)).padding(horizontal = 18.dp, vertical = 16.dp)) }
+                        items(filtered) { entry ->
+                            Row(Modifier.fillMaxWidth().clickable { onOpen(entry.key) }.padding(horizontal = 20.dp, vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(entry.icon, entry.name, tint = Color(0xFF15171A), modifier = Modifier.size(26.dp))
+                                Spacer(Modifier.width(18.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(entry.name, color = Color(0xFF15171A), fontSize = 18.sp)
+                                    Text(entry.sub, color = Color(0xFF71757B), fontSize = 13.sp)
+                                }
+                                Text("›", color = Color(0xFF70747A), fontSize = 28.sp)
+                            }
+                        }
+                    }
+                }
+                if (items.none { query.isBlank() || (it.name + " " + it.sub).contains(query, ignoreCase = true) })
+                    item { Text("No matching options", color = Color.Gray, modifier = Modifier.padding(24.dp)) }
+            }
+        } else LazyVerticalGrid(columns = GridCells.Fixed(2), modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
             items(items) { it ->
                 Column(Modifier.padding(6.dp).clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg)
                     .border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).clickable { onOpen(it.key) }.padding(16.dp)) {
@@ -804,6 +858,7 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
             var shareMsg by remember { mutableStateOf<String?>(null) }
             val profScope = rememberCoroutineScope()
             LazyColumn(contentPadding = PaddingValues(bottom = 24.dp)) {
+                item { Box(Modifier.padding(horizontal = 16.dp)) { PlayerBanner(p?.s("username") ?: "", true) } }
                 // header: avatar + name + level pill
                 item {
                     var flipped by remember { mutableStateOf(false) }
@@ -997,6 +1052,7 @@ fun ProfileScreenClassic(onLogout: () -> Unit, onBack: (() -> Unit)? = null, onS
         shareMsg?.let { Text(it, color = ErrRed, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp)) }
         LoadState({ Api.myProfile() to Api.myStats() }) { (p, s) ->
             LazyColumn {
+                item { Box(Modifier.padding(horizontal = 16.dp)) { PlayerBanner(p?.s("username") ?: "", true) } }
                 item {
                     PanelCard {
                         Text(p?.s("ign").takeUnless { it.isNullOrBlank() || it == "null" } ?: p?.s("username") ?: "Player",

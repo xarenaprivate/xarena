@@ -113,7 +113,7 @@ object Api {
         saveSession(JSONObject(text)); return true
     }
 
-    fun logout() { access = null; uid = null; prefs.edit().clear().apply() }
+    fun logout() { DmUnread.clear(); access = null; uid = null; prefs.edit().clear().apply() }
 
     /** Binds this install to the account (anti-fake-account). Best-effort; no-op when logged out. */
     fun bindDevice() {
@@ -615,7 +615,8 @@ object Api {
         authedGetArray("/rest/v1/dm_threads?or=(user_a.eq." + uid + ",user_b.eq." + uid + ")&status=eq.requested&requested_by=neq." + uid + "&select=*")
     }
     suspend fun dmMessages(threadId: String): JSONArray = withContext(Dispatchers.IO) {
-        authedGetArray("/rest/v1/dm_messages?thread_id=eq." + threadId + "&select=*&order=created_at.asc&limit=100")
+        val rows = authedGetArray("/rest/v1/dm_messages?thread_id=eq." + threadId + "&select=*&order=created_at.desc&limit=100")
+        JSONArray().apply { for (i in rows.length() - 1 downTo 0) put(rows.getJSONObject(i)) }
     }
     suspend fun dmFriends(): JSONArray = withContext(Dispatchers.IO) {
         authedGetArray("/rest/v1/friends?user_id=eq." + uid + "&select=friend_id")

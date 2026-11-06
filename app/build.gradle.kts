@@ -2,6 +2,7 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("app.cash.paparazzi") version "1.3.5"
 }
 val hasGServices = file("google-services.json").exists()
 if (hasGServices) apply(plugin = "com.google.gms.google-services")
@@ -12,8 +13,8 @@ android {
         applicationId = "app.xarena.esports.native"
         minSdk = 24
         targetSdk = 34
-        versionCode = 68
-        versionName = "0.17.23-native"
+        versionCode = 69
+        versionName = "0.17.24-native"
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
     }
     val keyInfo = rootProject.file("keystore/KEY_INFO.txt")
@@ -52,6 +53,7 @@ android {
     packaging { resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}", "META-INF/*.version") }
 }
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     implementation("io.github.webrtc-sdk:android:150.7871.01")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("androidx.compose.material:material-icons-core:1.6.8")

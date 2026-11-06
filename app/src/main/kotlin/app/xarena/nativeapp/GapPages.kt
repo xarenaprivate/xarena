@@ -192,9 +192,7 @@ fun ReferScreen(onBack: () -> Unit) {
                     }
                     Spacer(Modifier.height(10.dp))
                     GoldButton("Share Code with Friends") {
-                        val i = Intent(Intent.ACTION_SEND); i.type = "text/plain"
-                        i.putExtra(Intent.EXTRA_TEXT, "Join me on XARENA ESPORTS - use my invite code $code when you sign up: https://xarena.gg")
-                        Api.ctx.startActivity(Intent.createChooser(i, "Share invite code").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                        ShareLauncher.text(Api.ctx, "Share invite code", "Join me on XARENA ESPORTS - use my invite code $code when you sign up: https://xarena.gg")
                     }
                     Spacer(Modifier.height(10.dp))
                     SmallCard {
@@ -510,9 +508,7 @@ fun WinnerScreen(onBack: () -> Unit) {
                         }
                         Spacer(Modifier.height(8.dp))
                         GoldButton("Share Victory") {
-                            val i = Intent(Intent.ACTION_SEND); i.type = "text/plain"
-                            i.putExtra(Intent.EXTRA_TEXT, "$winner are the $tname champions! Booyah! - XARENA ESPORTS")
-                            Api.ctx.startActivity(Intent.createChooser(i, "Share victory").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                            ShareLauncher.text(Api.ctx, "Share victory", "$winner are the $tname champions! Booyah! - XARENA ESPORTS")
                         }
                         msg?.let { Spacer(Modifier.height(8.dp)); Text(it, color = Gold2, fontSize = 13.sp, textAlign = TextAlign.Center) }
                         Spacer(Modifier.height(8.dp))

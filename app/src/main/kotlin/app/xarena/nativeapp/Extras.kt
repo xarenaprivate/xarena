@@ -1,5 +1,8 @@
 package app.xarena.nativeapp
 
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,10 +41,11 @@ private fun ExtrasHeader(title: String, sub: String, onBack: () -> Unit) {
 /* ============ Settings ============ */
 @Composable
 fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
+    var recovery by remember { mutableStateOf(false) }
+    if (recovery) RecoveryDialog(true) { recovery = false }
     val scope = rememberCoroutineScope()
     var activityOn by remember { mutableStateOf<Boolean?>(null) }
     var msg by remember { mutableStateOf<String?>(null) }
-    var updateInfo by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
         activityOn = runCatching {
             val r = Api.authedRpc("presence_of", JSONObject().put("p_ids", org.json.JSONArray().put(Api.uid)))
@@ -49,27 +53,17 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
             if (arr != null && arr.length() > 0) arr.getJSONObject(0).optBoolean("show", true) else true
         }.getOrDefault(true)
     }
-    Column(Modifier.fillMaxSize().background(Ink)) {
+    Column(Modifier.fillMaxSize().background(Ink).verticalScroll(rememberScrollState())) {
         ExtrasHeader("Settings", "App and account options", onBack)
         Column(Modifier.padding(16.dp).clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).padding(16.dp)) {
             Text("App", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             Spacer(Modifier.height(6.dp))
+            ManualUpdateControl()
+            TextButton(onClick = { recovery = true }) { Text("Create private recovery key", color = Gold) }
             Text("Version: " + BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", color = Color.White, fontSize = 14.sp)
             Spacer(Modifier.height(4.dp))
             Text("Updates: checked automatically on start", color = Muted, fontSize = 12.sp)
             Spacer(Modifier.height(4.dp))
-            Text("Check now", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable {
-                scope.launch {
-                    updateInfo = "Checking..."
-                    val latest = UpdateChecker.latest()
-                    updateInfo = when {
-                        latest == null -> "Could not check right now."
-                        latest.code > BuildConfig.VERSION_CODE -> "Update available: " + latest.name + " - reopen the app to use the update popup."
-                        else -> "You are on the latest version."
-                    }
-                }
-            }.padding(vertical = 4.dp))
-            updateInfo?.let { Text(it, color = Muted, fontSize = 12.sp) }
             Spacer(Modifier.height(14.dp))
             Text("X-Panel (floating)", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Text("Floating tools over your game - full details in More > X-Panel.", color = Muted, fontSize = 12.sp)
@@ -186,6 +180,7 @@ fun PlayerCardScreen(onBack: () -> Unit, onOpenConv: (String?, String, String) -
             val uname = p.getString("username")
             val isMe = uname == myName
             LazyColumn(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+                item { PlayerBanner(uname, isMe) }
                 item {
                     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).background(Card.copy(alpha = .85f)).border(1.dp, Gold.copy(alpha = .35f), RoundedCornerShape(18.dp)).padding(18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(Modifier.size(84.dp).clip(CircleShape).background(Ink).border(2.dp, Gold2, CircleShape), contentAlignment = Alignment.Center) {
