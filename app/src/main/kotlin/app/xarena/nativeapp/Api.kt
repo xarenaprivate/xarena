@@ -25,10 +25,10 @@ object Api {
 
     class ApiError(msg: String) : Exception(msg)
 
-    private fun call(method: String, path: String, body: JSONObject?, token: String?, headers: Map<String, String> = emptyMap()): Pair<Int, String> {
+    private fun call(method: String, path: String, body: JSONObject?, token: String?, headers: Map<String, String> = emptyMap(), readTimeoutMs: Int = 20000): Pair<Int, String> {
         val c = URL(BASE + path).openConnection() as HttpURLConnection
         c.requestMethod = method
-        c.connectTimeout = 15000; c.readTimeout = 20000
+        c.connectTimeout = 15000; c.readTimeout = readTimeoutMs
         c.setRequestProperty("apikey", KEY)
         c.setRequestProperty("Authorization", "Bearer " + (token ?: KEY))
         c.setRequestProperty("Content-Type", "application/json")
@@ -360,7 +360,7 @@ object Api {
     suspend fun lunaSend(message: String, history: JSONArray): String = withContext(Dispatchers.IO) {
         val sid = "native-" + (uid ?: "anon")
         val body = JSONObject().put("session_id", sid).put("message", message).put("history", history)
-        val (code, text) = call("POST", "/functions/v1/luna-chat", body, null)
+        val (code, text) = call("POST", "/functions/v1/luna-chat", body, null, readTimeoutMs = 90000)
         if (code == 404 || code == 503) throw LunaOffline("Luna is offline right now. The team is bringing her back - try again later.")
         if (code !in 200..299) throw ApiError("Luna could not reply just now ($code). Try again in a bit.")
         val r = JSONObject(text).s("reply")

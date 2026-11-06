@@ -259,6 +259,7 @@ object ShareCard {
     }
 
     fun share(ctx: android.content.Context, f: File) {
+        try {
         val uri = androidx.core.content.FileProvider.getUriForFile(ctx, "app.xarena.esports.native.fileprovider", f)
         val i = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
             type = "image/png"
@@ -266,6 +267,9 @@ object ShareCard {
             putExtra(android.content.Intent.EXTRA_TEXT, if (f.name.contains("recap")) "My XARENA season recap" else "My XARENA stats")
             addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        ctx.startActivity(android.content.Intent.createChooser(i, "Share your stats card"))
+        ctx.startActivity(android.content.Intent.createChooser(i, "Share your stats card").addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+        } catch (t: Throwable) {
+            android.widget.Toast.makeText(ctx, "Could not open the share sheet - try again.", android.widget.Toast.LENGTH_SHORT).show()
+        }
     }
 }
