@@ -65,4 +65,10 @@ class NativeVisualTest {
         } }
     }
 
+    @Test fun manualCoarseLocationForm() {
+        paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
+            MyLocationForm("", "", false, null, {}, {}, {}, {}, {})
+        } } }
+    }
+
 }

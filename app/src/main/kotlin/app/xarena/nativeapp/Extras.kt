@@ -41,6 +41,8 @@ private fun ExtrasHeader(title: String, sub: String, onBack: () -> Unit) {
 /* ============ Settings ============ */
 @Composable
 fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
+    var location by remember { mutableStateOf(false) }
+    if (location) MyLocationDialog { location = false }
     var recovery by remember { mutableStateOf(false) }
     if (recovery) RecoveryDialog(true) { recovery = false }
     val scope = rememberCoroutineScope()
@@ -58,6 +60,7 @@ fun SettingsScreen(onBack: () -> Unit, onLogout: () -> Unit) {
         Column(Modifier.padding(16.dp).clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).padding(16.dp)) {
             Text("App", color = Gold2, fontWeight = FontWeight.Bold, fontSize = 15.sp)
             Spacer(Modifier.height(6.dp))
+            TextButton(onClick = { location = true }) { Text("My location", color = Gold) }
             ManualUpdateControl()
             TextButton(onClick = { recovery = true }) { Text("Create private recovery key", color = Gold) }
             Text("Version: " + BuildConfig.VERSION_NAME + " (" + BuildConfig.VERSION_CODE + ")", color = Color.White, fontSize = 14.sp)

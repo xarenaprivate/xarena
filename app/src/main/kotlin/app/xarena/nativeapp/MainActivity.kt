@@ -829,6 +829,8 @@ fun NeonRing(fraction: Float?, label: String, value: String, emoji: String) {
 
 @Composable
 fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
+    var location by remember { mutableStateOf(false) }
+    if (location) MyLocationDialog { location = false }
     val uiPrefs = remember { Api.ctx.getSharedPreferences("xr_ui", 0) }
     var classic by remember { mutableStateOf(uiPrefs.getBoolean("profile_classic", false)) }
     if (classic) {
@@ -859,6 +861,7 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
             val profScope = rememberCoroutineScope()
             LazyColumn(contentPadding = PaddingValues(bottom = 24.dp)) {
                 item { Box(Modifier.padding(horizontal = 16.dp)) { PlayerBanner(p?.s("username") ?: "", true) } }
+                item { TextButton(onClick = { location = true }) { Text("My location", color = Gold) } }
                 // header: avatar + name + level pill
                 item {
                     var flipped by remember { mutableStateOf(false) }
@@ -1029,6 +1032,8 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
 
 @Composable
 fun ProfileScreenClassic(onLogout: () -> Unit, onBack: (() -> Unit)? = null, onSwitchToNew: (() -> Unit)? = null) {
+    var location by remember { mutableStateOf(false) }
+    if (location) MyLocationDialog { location = false }
     val clipboard = LocalClipboardManager.current
     var copied by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize()) {
@@ -1052,6 +1057,7 @@ fun ProfileScreenClassic(onLogout: () -> Unit, onBack: (() -> Unit)? = null, onS
         shareMsg?.let { Text(it, color = ErrRed, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp)) }
         LoadState({ Api.myProfile() to Api.myStats() }) { (p, s) ->
             LazyColumn {
+                item { TextButton(onClick = { location = true }) { Text("My location", color = Gold) } }
                 item { Box(Modifier.padding(horizontal = 16.dp)) { PlayerBanner(p?.s("username") ?: "", true) } }
                 item {
                     PanelCard {

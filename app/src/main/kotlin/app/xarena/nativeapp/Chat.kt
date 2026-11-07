@@ -154,7 +154,7 @@ fun ChatRoom() {
                 val lm = Api.ctx.getSystemService(Context.LOCATION_SERVICE) as LocationManager
                 var loc = runCatching { lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER) }.getOrNull()
                     ?: runCatching { lm.getLastKnownLocation(LocationManager.GPS_PROVIDER) }.getOrNull()
-                if (loc == null) { areaMsg = "No location fix yet - turn location on and try again."; return@launch }
+                if (loc == null || System.currentTimeMillis() - loc.time >= 15 * 60_000L) { areaMsg = "No location fix yet - turn location on and try again."; return@launch }
                 val state = Api.reverseGeocodeState(loc.latitude, loc.longitude)
                 if (state.isNullOrBlank()) { areaMsg = "Could not work out your state - you stay in General."; return@launch }
                 val r = Api.setMyArea(state)

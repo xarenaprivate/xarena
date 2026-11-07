@@ -52,20 +52,24 @@ object LocStore {
 }
 
 /** On-device coarse detection: last-known location + Android Geocoder, then set_my_area. No paid APIs. */
-suspend fun detectLocationNow(ctx: Context): Boolean = withContext(Dispatchers.IO) {
+suspend fun detectLocationNow(ctx: Context, enableNearby: Boolean = false): Boolean = withContext(Dispatchers.IO) {
     runCatching {
         val lm = ctx.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val loc = lm.getProviders(true).mapNotNull { runCatching { lm.getLastKnownLocation(it) }.getOrNull() }
             .maxByOrNull { it.time } ?: return@withContext false
+        if (System.currentTimeMillis() - loc.time >= 15 * 60_000L || loc.time > System.currentTimeMillis() + 60_000L) return@withContext false
         if (!Geocoder.isPresent()) return@withContext false
         val a = runCatching { Geocoder(ctx, Locale.ENGLISH).getFromLocation(loc.latitude, loc.longitude, 1)?.firstOrNull() }.getOrNull() ?: return@withContext false
         val st = a.adminArea?.trim()?.takeIf { it.isNotBlank() } ?: return@withContext false
         val di = (a.subAdminArea ?: a.locality)?.trim() ?: ""
-        LocStore.state = st.uppercase(); LocStore.district = di.uppercase()
+        val r = Api.authedRpc("set_my_area", JSONObject().put("p_state", st).put("p_district", di)
+            .put("p_lat", if (enableNearby) loc.latitude else JSONObject.NULL)
+            .put("p_lon", if (enableNearby) loc.longitude else JSONObject.NULL))
+        if (!r.optBoolean("ok")) return@withContext false
+        LocStore.state = st; LocStore.district = di
         LocStore.updatedAt = System.currentTimeMillis()
-        // Server rounds coordinates to a ~5 km grid; only sent because the user opted in
-        Api.authedRpc("set_my_area", JSONObject().put("p_state", st).put("p_district", di)
-            .put("p_lat", loc.latitude).put("p_lon", loc.longitude))
+        LocStore.consent = false // one-shot consent, never background auto-detection
+
         true
     }.getOrDefault(false)
 }
@@ -305,13 +309,13 @@ private fun ConsentCard(onEnable: () -> Unit) {
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
                 Text("Turn on leaderboard location", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                Text("Used only to place you on the State and District boards. Detection is automatic and we store a coarse area only - never your exact location. Skip it and you still appear on Global.",
+                Text("Used only to place you on the State and District boards. Choose a state and district manually, or use optional one-time GPS. These labels may appear on public leaderboards. Skip it and you still appear on Global.",
                     color = Muted, fontSize = 12.sp)
             }
         }
         Spacer(Modifier.height(10.dp))
         Box(Modifier.clip(RoundedCornerShape(10.dp)).background(Gold).clickable { onEnable() }.padding(horizontal = 16.dp, vertical = 10.dp)) {
-            Text("Enable location", color = Color(0xFF1A0E33), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Text("Choose my location", color = Color(0xFF1A0E33), fontWeight = FontWeight.Bold, fontSize = 13.sp)
         }
     }
 }
@@ -322,25 +326,16 @@ fun LeaderboardScreen() {
     var scope by remember { mutableIntStateOf(if (LocStore.known() && LocStore.district.isNotBlank()) 2 else 0) }
     var query by remember { mutableStateOf("") }
     var toast by remember { mutableStateOf<String?>(null) }
-    val ctx = Api.ctx
-    val permLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) { LocStore.consent = true; tick++ }
-    }
-    LaunchedEffect(Unit) {
-        if (LocStore.consent && LocStore.stale() &&
-            androidx.core.content.ContextCompat.checkSelfPermission(ctx, android.Manifest.permission.ACCESS_COARSE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            detectLocationNow(ctx); tick++
-        }
-    }
+    var chooseArea by remember { mutableStateOf(false) }
+    if (chooseArea) MyLocationDialog { chooseArea = false; tick++ }
     LoadState2(tick, {
-        if (scope > 0 && LocStore.consent && !LocStore.known()) detectLocationNow(ctx)
         val res = lbFetch(scope)
         val ranks = runCatching { Api.authedRpc("my_ranks", JSONObject()) }.getOrNull()
         res to ranks
     }) { (res, ranks) ->
         Column(Modifier.fillMaxSize()) {
             Brand()
+            androidx.compose.material3.TextButton(onClick = { chooseArea = true }) { Text("Choose / change my location", color = Gold) }
             (ranks?.takeIf { it.optBoolean("ok") }?.let { "STATE: " + it.s("state_name").uppercase() + " | DISTRICT: " + it.s("district_name").uppercase() }
                 ?: LocStore.pill())?.let { pill ->
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -370,7 +365,7 @@ fun LeaderboardScreen() {
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp))
             LazyColumn(Modifier.weight(1f)) {
                 when (res) {
-                    is LbResult.LocationRequired -> item { ConsentCard { permLauncher.launch(android.Manifest.permission.ACCESS_COARSE_LOCATION) } }
+                    is LbResult.LocationRequired -> item { ConsentCard { chooseArea = true } }
                     is LbResult.Unavailable -> item { EmptyNote("This board is not available right now", "Global rankings are live on the first tab.") }
                     is LbResult.Rows -> {
                         val rows = res.rows
