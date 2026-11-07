@@ -175,6 +175,30 @@
       "bytes": 3992225
     },
     {
+      "from": 64,
+      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.24-native/patch-64-to-69.bs",
+      "sha256": "372ad8b957f6de241d2d82e738d2f7bb937f0ea13b6244ef234de80892fc4abd",
+      "bytes": 3993748
+    },
+    {
+      "from": 65,
+      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.24-native/patch-65-to-69.bs",
+      "sha256": "eb3e12ea6fe535101f995eae1e71eff3a8254ed8f6b5fe1b1e619bc7987477d0",
+      "bytes": 3994466
+    },
+    {
+      "from": 66,
+      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.24-native/patch-66-to-69.bs",
+      "sha256": "5e1defe33cf0320ce7850c55d4aaea38d0c2710005234194dfe314d7092dc368",
+      "bytes": 3994592
+    },
+    {
+      "from": 67,
+      "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.24-native/patch-67-to-69.bs",
+      "sha256": "90397ab8333fcf803e69c38469e6b8a636f8804ab6245f90e2163c3ca228b7bb",
+      "bytes": 3997659
+    },
+    {
       "from": 68,
       "url": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.24-native/patch-68-to-69.bs",
       "sha256": "596d0d84a9e0c1b30851e7106bd802002437c98c591d7cfd74ddf638d7e59824",
