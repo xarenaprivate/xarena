@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.background
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import org.json.JSONArray
@@ -53,6 +54,15 @@ class NativeVisualTest {
     }
     @Test fun bannerFixture() {
         paparazzi.snapshot { MaterialTheme { BannerSwatch(JSONObject().put("title", "Arena Violet").put("color_start", "#24113D").put("color_end", "#7C3AED")) } }
+    }
+
+    @Test fun fullDownloadConsentAfterPatchFailure() {
+        paparazzi.snapshot { MaterialTheme {
+            Column(Modifier.fillMaxSize().background(Ink).padding(20.dp)) {
+                androidx.compose.material3.Text("Quick update failed. No full APK has been downloaded.", color = ErrRed)
+                FullUpdateConsent(28915084) {}
+            }
+        } }
     }
 
 }

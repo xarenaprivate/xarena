@@ -14,4 +14,26 @@ class UpdatePolicyTest {
         assertFalse(UpdateChecker.shouldOffer(69, 69, false, false))
         assertFalse(UpdateChecker.shouldOffer(68, 69, false, true))
     }
+    @Test fun failedPatchNeverStartsFullDownload() = kotlinx.coroutines.runBlocking {
+        var fullCalls = 0
+        val result = UpdateTransfer.run(true, false, { "network failure" }, { fullCalls++; null })
+        assertTrue(result.needsFullConsent); assertEquals(0, fullCalls)
+    }
+    @Test fun explicitFullSelectionSkipsPatchAndCallsFullOnlyOnce() = kotlinx.coroutines.runBlocking {
+        var patchCalls = 0; var fullCalls = 0
+        val result = UpdateTransfer.run(true, true, { patchCalls++; null }, { fullCalls++; null })
+        assertNull(result.error); assertFalse(result.needsFullConsent)
+        assertEquals(0, patchCalls); assertEquals(1, fullCalls)
+    }
+    @Test fun successfulPatchDoesNotCallFull() = kotlinx.coroutines.runBlocking {
+        var fullCalls = 0
+        val result = UpdateTransfer.run(true, false, { null }, { fullCalls++; null })
+        assertNull(result.error); assertEquals(0, fullCalls)
+    }
+    @Test fun noPatchUsesExplicitInitialFullUpdateChoice() = kotlinx.coroutines.runBlocking {
+        var patchCalls = 0; var fullCalls = 0
+        UpdateTransfer.run(false, false, { patchCalls++; null }, { fullCalls++; "offline" })
+        assertEquals(0, patchCalls); assertEquals(1, fullCalls)
+    }
+
 }

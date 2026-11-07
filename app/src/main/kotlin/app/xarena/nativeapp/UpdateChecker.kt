@@ -245,17 +245,15 @@ fun UpdateDialog(info: UpdateChecker.Info, onDismiss: () -> Unit) {
     fun startUpdate(useFullApk: Boolean = false) {
         downloading = true; err = null; done = 0
         scope.launch {
-            var e: String? = null
-            if (patch != null && !useFullApk) {
-                // A failed delta must not silently spend data on the full APK.
-                e = UpdateChecker.downloadPatchAndApply(ctx, info, patch) { d, t, s2 -> done = d; total = t; bps = s2 }
-                if (e != null) {
-                    note = e; err = "Quick update failed. No full APK has been downloaded. Retry the patch or explicitly choose the full download below."
-                    fullDownloadConsent = true; downloading = false
-                    return@launch
-                }
-            } else {
-                e = UpdateChecker.download(ctx, info) { d, t, s2 -> done = d; total = t; bps = s2 }
+            if (!useFullApk) sizeKnown = info.downloadBytes(BuildConfig.VERSION_CODE)
+            val result = UpdateTransfer.run(patch != null, useFullApk,
+                patchAttempt = { UpdateChecker.downloadPatchAndApply(ctx, info, requireNotNull(patch)) { d, t, speed -> done = d; total = t; bps = speed } },
+                fullAttempt = { UpdateChecker.download(ctx, info) { d, t, speed -> done = d; total = t; bps = speed } })
+            val e = result.error
+            if (result.needsFullConsent) {
+                note = e; err = "Quick update failed. No full APK has been downloaded. Retry the patch or explicitly choose the full download below."
+                fullDownloadConsent = true; downloading = false
+                return@launch
             }
             if (e != null) { err = e; downloading = false }
             else {
@@ -295,13 +293,10 @@ fun UpdateDialog(info: UpdateChecker.Info, onDismiss: () -> Unit) {
                     Spacer(Modifier.height(14.dp))
                 }
                 err?.let { Text(it, color = ErrRed, fontSize = 13.sp, textAlign = TextAlign.Center); Spacer(Modifier.height(8.dp)) }
-                GoldButton("UPDATE NOW" + if (sizeKnown > 0) " - " + mb(sizeKnown) + " MB" else "") { startUpdate() }
+                GoldButton((if (fullDownloadConsent) "RETRY PATCH" else "UPDATE NOW") + if (sizeKnown > 0) " - " + mb(sizeKnown) + " MB" else "") { startUpdate() }
                 if (fullDownloadConsent) {
                     Spacer(Modifier.height(8.dp))
-                    Text("Full APK download: " + mb(info.apkBytes) + " MB. This uses more mobile data.", color = Muted, fontSize = 12.sp)
-                    TextButton(onClick = { fullDownloadConsent = false; sizeKnown = info.apkBytes; startUpdate(true) }) {
-                        Text("DOWNLOAD FULL APK - " + mb(info.apkBytes) + " MB", color = Gold)
-                    }
+                    FullUpdateConsent(info.apkBytes) { fullDownloadConsent = false; sizeKnown = info.apkBytes; startUpdate(true) }
                 }
                 if (sizeKnown > 0 && patch != null) {
                     Spacer(Modifier.height(6.dp))
@@ -381,5 +376,14 @@ fun ManualUpdateControl() {
         }) { Text(if (checking) "Checking..." else "Check for updates", color = Gold) }
         status?.let { Text(it, color = Muted) }
         if (available != null) GoldButton("UPDATE NOW") { show = true }
+    }
+}
+
+
+@Composable
+internal fun FullUpdateConsent(bytes: Long, onFullApproved: () -> Unit) {
+    Column {
+        Text("Full APK download: " + mb(bytes) + " MB. This uses more mobile data.", color = Muted, fontSize = 12.sp)
+        TextButton(onClick = onFullApproved) { Text("DOWNLOAD FULL APK - " + mb(bytes) + " MB", color = Gold) }
     }
 }
