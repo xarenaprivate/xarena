@@ -74,6 +74,12 @@ class NativeVisualTest {
     @Test fun optionalGpsConsentDefaultOff() {
         paparazzi.snapshot { MaterialTheme { AreaGpsConsent(false, {}, {}, {}) } }
     }
+    @Test fun homeClanRoomShortcut() {
+        paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
+            androidx.compose.material3.Text("YOUR STATS", color = Gold, modifier = Modifier.padding(16.dp))
+            HomeClanRoomOption {}
+        } } }
+    }
     @Test fun manualAreaPayloadNeverContainsCoordinates() {
         val p = AreaPayload.manual("  Bihar  ", "  Munger  ")
         org.junit.Assert.assertEquals("Bihar", p.getString("p_state"))

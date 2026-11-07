@@ -163,6 +163,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                         }
                     }
                 }
+                HomeClanRoomOption { onOpenFeature("room") }
                 Spacer(Modifier.height(24.dp))
             }
         }
@@ -235,5 +236,15 @@ fun WeeklyClipCard() {
             coil.compose.AsyncImage(model = xrImageModel(Api.ctx, url), contentDescription = c.s("caption"),
                 modifier = Modifier.fillMaxWidth().height(200.dp), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
         }
+    }
+}
+
+/** Existing private squad room, linked from Home below Your stats. */
+@Composable
+internal fun HomeClanRoomOption(onOpen: () -> Unit) {
+    PanelCard {
+        Text("Clan Room", color = Gold2, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text("Open your squad's private room. Join a squad first if you do not have one yet.", color = Muted, fontSize = 13.sp)
+        GoldButton("OPEN CLAN ROOM") { onOpen() }
     }
 }

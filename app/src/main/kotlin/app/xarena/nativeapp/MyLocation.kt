@@ -22,8 +22,9 @@ internal fun MyLocationForm(state: String, district: String, busy: Boolean, stat
     Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("My location", color = Gold2, style = MaterialTheme.typography.headlineSmall)
         Text("Choose your gaming area manually. GPS is optional. Do not enter a house number or street address.", color = Muted)
-        OutlinedTextField(state, onState, label = { Text("State / region") }, colors = areaFieldColors(), singleLine = true, enabled = !busy, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(district, onDistrict, label = { Text("City / district (optional)") }, colors = areaFieldColors(), singleLine = true, enabled = !busy, modifier = Modifier.fillMaxWidth())
+        Text("Country: India", color = Gold2)
+        OutlinedTextField(state, onState, label = { Text("State") }, colors = areaFieldColors(), singleLine = true, enabled = !busy, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(district, onDistrict, label = { Text("District (optional)") }, colors = areaFieldColors(), singleLine = true, enabled = !busy, modifier = Modifier.fillMaxWidth())
         Text("Your state and district may appear on PUBLIC leaderboards and select your regional chat. Manual entry sends no GPS coordinates and removes any saved nearby grid. This is a self-selected area, not proof of residence.", color = Muted)
         GoldButton(if (busy) "SAVING..." else "SAVE AREA", enabled = !busy && state.trim().isNotEmpty()) { onSave() }
         TextButton(enabled = !busy, onClick = onDetect) { Text("Detect my state and district once", color = Gold) }
