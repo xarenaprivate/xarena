@@ -82,9 +82,7 @@ fun MyLocationDialog(onClose: () -> Unit) {
                             busy = true; status = null
                             scope.launch {
                                 try {
-                                    val r = Api.authedRpc("set_my_area", JSONObject().put("p_state", state.trim())
-                                        .put("p_district", district.trim().ifBlank { null } ?: JSONObject.NULL)
-                                        .put("p_lat", JSONObject.NULL).put("p_lon", JSONObject.NULL))
+                                    val r = Api.authedRpc("set_my_area", AreaPayload.manual(state, district))
                                     check(r.optBoolean("ok")) { r.s("error", "Could not save area.") }
                                     LocStore.consent = false
                                     readBack(); Api.chatMyRoom()
@@ -110,10 +108,22 @@ fun MyLocationDialog(onClose: () -> Unit) {
             }
         }
     }
-    if (gpsConfirm) AlertDialog(onDismissRequest = { gpsConfirm = false }, title = { Text("Optional GPS lookup") },
+    if (gpsConfirm) AreaGpsConsent(nearby, { nearby = it },
+        { gpsConfirm = false; permission.launch(android.Manifest.permission.ACCESS_COARSE_LOCATION) }, { gpsConfirm = false })
+}
+
+@Composable
+internal fun AreaGpsConsent(nearby: Boolean, onNearby: (Boolean) -> Unit, onContinue: () -> Unit, onCancel: () -> Unit) {
+    AlertDialog(onDismissRequest = onCancel, title = { Text("Optional GPS lookup") },
         text = { Column {
             Text("Use device location once to find your state and district. Those labels may appear on public leaderboards and choose your regional chat. No house address is collected.")
-            Row { Checkbox(nearby, { nearby = it }); Text("Also enable the 10 km board. XARENA receives coordinates to save a rough 5 km grid, never shown to other players.") }
-        } }, confirmButton = { TextButton(onClick = { gpsConfirm = false; permission.launch(android.Manifest.permission.ACCESS_COARSE_LOCATION) }) { Text("Continue") } },
-        dismissButton = { TextButton(onClick = { gpsConfirm = false }) { Text("Cancel") } })
+            Row { Checkbox(nearby, onNearby); Text("Also enable the 10 km board. XARENA receives coordinates to save a rough 5 km grid, never shown to other players.") }
+        } }, confirmButton = { TextButton(onClick = onContinue) { Text("Continue") } },
+        dismissButton = { TextButton(onClick = onCancel) { Text("Cancel") } })
+}
+
+internal object AreaPayload {
+    fun manual(state: String, district: String): JSONObject = JSONObject().put("p_state", state.trim().take(60))
+        .put("p_district", district.trim().take(60).ifBlank { null } ?: JSONObject.NULL)
+        .put("p_lat", JSONObject.NULL).put("p_lon", JSONObject.NULL)
 }

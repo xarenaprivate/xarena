@@ -71,4 +71,15 @@ class NativeVisualTest {
         } } }
     }
 
+    @Test fun optionalGpsConsentDefaultOff() {
+        paparazzi.snapshot { MaterialTheme { AreaGpsConsent(false, {}, {}, {}) } }
+    }
+    @Test fun manualAreaPayloadNeverContainsCoordinates() {
+        val p = AreaPayload.manual("  Bihar  ", "  Munger  ")
+        org.junit.Assert.assertEquals("Bihar", p.getString("p_state"))
+        org.junit.Assert.assertEquals("Munger", p.getString("p_district"))
+        org.junit.Assert.assertTrue(p.isNull("p_lat")); org.junit.Assert.assertTrue(p.isNull("p_lon"))
+        org.junit.Assert.assertTrue(AreaPayload.manual("Bihar", " ").isNull("p_district"))
+    }
+
 }
