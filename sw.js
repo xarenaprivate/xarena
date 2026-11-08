@@ -1,5 +1,5 @@
 /* XARENA PWA service worker - static shell cache only; API/DB calls always live */
-var CACHE = "xarena-shell-v30";
+var CACHE = "xarena-shell-v31";
 var SHELL = [
   "./", "./index.html", "./manifest.webmanifest",
   "./assets/icon-192.png", "./assets/icon-512.png", "./assets/apple-touch-icon.png"
@@ -18,15 +18,16 @@ self.addEventListener("fetch", function (e) {
   // network-first for everything same-origin (updates always reach users); cache = offline fallback
   if (/\.(js|css|png|webp|jpg|svg|woff2?|webmanifest)$/.test(url.pathname)) {
     e.respondWith(fetch(e.request).then(function (res) {
-      var copy = res.clone();
-      caches.open(CACHE).then(function (c) { c.put(e.request, copy); });
+      if (res.ok) { var copy = res.clone();
+      caches.open(CACHE).then(function (c) { c.put(e.request, copy); }); }
       return res;
     }).catch(function () { return caches.match(e.request); }));
   } else {
-    // network-first for pages
-    e.respondWith(fetch(e.request).then(function (res) {
-      var copy = res.clone();
-      caches.open(CACHE).then(function (c) { c.put(e.request, copy); });
+    // Revalidate HTML instead of reusing the browser HTTP cache after a release.
+    // The saved shell still works when the network is unavailable.
+    e.respondWith(fetch(e.request, { cache: "no-cache" }).then(function (res) {
+      if (res.ok) { var copy = res.clone();
+      caches.open(CACHE).then(function (c) { c.put(e.request, copy); }); }
       return res;
     }).catch(function () { return caches.match(e.request); }));
   }
