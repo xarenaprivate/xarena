@@ -42,7 +42,7 @@ function boot(){
   fetch(api.url+'/rest/v1/bracket_matches?select=*&order=tournament_id.asc,round.asc,position.asc',{headers:{apikey:api.key}}).then(function(r){if(!r.ok)throw Error();return r.json();}),
   api.uRpc('bracket_prediction_stats'),api.uRpc('my_bracket_predictions'),
   fetch(api.url+'/rest/v1/tournaments?select=id,name',{headers:{apikey:api.key}}).then(function(r){if(!r.ok)return [];return r.json();})
- ]).then(function(d){rows=Array.isArray(d[0])?d[0]:[];counts=Array.isArray(d[1])?d[1]:[];mine=Array.isArray(d[2])?d[2]:[];tourMap={};(Array.isArray(d[3])?d[3]:[]).forEach(function(t){tourMap[t.id]=t.name;});render();}).catch(function(){root.innerHTML='<div class="xbn"><h2>TOURNAMENT BRACKET</h2><div class="empty"><h3>Could not load the bracket</h3><p>Check your connection and refresh. No result has been changed.</p></div></div>';});}
+ ]).then(function(d){rows=window.xrEventRows(Array.isArray(d[0])?d[0]:[]);counts=Array.isArray(d[1])?d[1]:[];mine=Array.isArray(d[2])?d[2]:[];tourMap={};(Array.isArray(d[3])?d[3]:[]).forEach(function(t){tourMap[t.id]=t.name;});render();}).catch(function(){root.innerHTML='<div class="xbn"><h2>TOURNAMENT BRACKET</h2><div class="empty"><h3>Could not load the bracket</h3><p>Check your connection and refresh. No result has been changed.</p></div></div>';});}
  load();
 }
 if(document.readyState==='complete')boot();else window.addEventListener('load',boot);

@@ -1,5 +1,8 @@
 /* Selected tournament IDs are opaque server strings. Do not normalize their case or spaces. */
 function xrValidTournamentId(id) { return typeof id === "string" && id.length > 0 && id.length <= 200 && !/[\u0000-\u001f\u007f]/.test(id); }
+function xrReadableSchedule(value) { var text = String(value || ""); return /^\d{1,2}(?:st|nd|rd|th)?\s*,\s*[A-Za-z]+\s*,\s*\d{4}$/.test(text) ? text.replace(/(\d)(?:st|nd|rd|th)\b/, "$1").replace(/\s*,\s*/g, " ").trim() : text; }
+function xrDetailsUrl(id) { return "tournaments.html?tournament=" + encodeURIComponent(id) + "#event-details"; }
+function xrNormalizePhone(value) { var n = String(value || "").replace(/[\s()+-]/g, ""); if (/^91[0-9]{10}$/.test(n)) n = n.slice(2); if (/^0[0-9]{10}$/.test(n)) n = n.slice(1); return n; }
 function xrRegistrationUrl(id) { return "tournaments.html?tournament=" + encodeURIComponent(id) + "#register"; }
 window.__xrRegT = null;
 function xrRegT() { return window.__xrRegT; }
@@ -17,14 +20,14 @@ window.xrRegReady = (function () {
 /* Load one exact event before any registration action or cost routing. Read-only. */
 window.xrRegQuote = window.xrRegReady.then(function (id) {
   if (!id) throw new Error("Choose a tournament from its Register button.");
-  return fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/tournaments?select=id,name,entry_cost_ap,reg_open,status,slots&id=eq." + encodeURIComponent(id), { headers: { apikey: "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7" } })
+  return fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/tournaments?select=id,name,entry_cost_ap,reg_open,status,slots,date_text,prize,mode,format,description&id=eq." + encodeURIComponent(id), { headers: { apikey: "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7" } })
     .then(function (r) { if (!r.ok) throw new Error("Could not check tournament details."); return r.json(); })
     .then(function (rows) {
       var event = rows && rows[0];
       if (!event || event.id !== id) throw new Error("Selected tournament was not found. Choose it again from Tournaments.");
       var cost = event.entry_cost_ap == null ? 0 : Number(event.entry_cost_ap);
       if (!Number.isInteger(cost) || cost < 0) throw new Error("Could not confirm the entry cost.");
-      return Object.freeze({id:id,name:event.name || id,cost:cost,open:event.reg_open === true && (event.status === "upcoming" || event.status === "live"),slots:event.slots});
+      return Object.freeze({id:id,name:event.name || id,cost:cost,open:event.reg_open === true && (event.status === "upcoming" || event.status === "live"),slots:event.slots,dateText:event.date_text,prize:event.prize,mode:event.mode,format:event.format,description:event.description});
     });
 });
 /* Attach a rejection handler immediately; the form shows the same error once mounted. */
@@ -99,11 +102,11 @@ window.xrRegQuote.catch(function () {});
       '<p>' + esc(t.description) + '</p>' +
       '<div class="tmeta">' +
       '<div><b>' + esc(t.mode) + '</b><span>Mode</span></div>' +
-      '<div><b>' + esc(t.dateText) + '</b><span>Schedule</span></div>' +
-      '<div><b>' + esc(t.prize) + '</b><span>Prize Pool</span></div>' +
+      '<div><b>' + esc(xrReadableSchedule(t.dateText)) + '</b><span>Schedule</span></div>' +
+      '<div><b>' + esc(t.prize && !/^x+\s*$/i.test(t.prize) ? t.prize : 'Not confirmed') + '</b><span>Prize Pool</span></div>' +
       '<div><b>' + t.slots + ' squads</b><span>Slots</span></div>' +
       '</div>' +
-      '<div class="tcard-foot">' + regBtn + '<a class="btn btn-ghost btn-sm" href="tournaments.html#' + esc(t.id) + '">Details</a></div>' +
+      '<div class="tcard-foot">' + regBtn + '<a class="btn btn-ghost btn-sm" href="' + esc(xrDetailsUrl(t.id)) + '">Details</a></div>' +
       '</article>';
   }
 
@@ -293,6 +296,7 @@ window.xrRegQuote.catch(function () {});
       var ok = true;
       els("[data-req]", form).forEach(function (inp) {
         var f = inp.closest(".field");
+        if (opts.type === "tournament_registration" && inp.name === "phone") inp.value = xrNormalizePhone(inp.value);
         var val = (inp.value || "").trim();
         var valid = !!val;
         if (valid && inp.dataset.pattern) valid = new RegExp(inp.dataset.pattern).test(val);
@@ -375,7 +379,9 @@ window.xrRegQuote.catch(function () {});
     return d;
   }
   function uploadProof(regId, file) {
-    if (!file) return Promise.resolve(null);
+    if (!file) return Promise.reject(new Error("Attach your UID screenshot first."));
+    if (!/^image\//.test(file.type || "")) return Promise.reject(new Error("Choose an image screenshot."));
+    if (file.size > 8 * 1024 * 1024) return Promise.reject(new Error("Image too large (max 8 MB)."));
     var ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
     var path = regId + "." + ext;
     return fetch(xrApi.url + "/storage/v1/object/proofs/" + path, {
@@ -389,8 +395,11 @@ window.xrRegQuote.catch(function () {});
     var rf = document.getElementById("reg-form");
     if (!rf || !window.xrApi || !xrApi.user) return;
     xrApi.user().then(function (u) {
+      rf.dataset.authenticated = u ? "true" : "false";
       if (u) return;
+      rf.querySelectorAll("input,button,select,textarea").forEach(function (control) { control.disabled = true; });
       var note = document.createElement("div");
+      note.id = "xr-reg-login-notice";
       note.style.cssText = "background:rgba(255,60,60,.08);border:1px solid rgba(255,60,60,.35);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px";
       note.innerHTML = "To register a squad, first <a href='account.html' style='color:var(--gold2)'>create a free account or log in</a> — it takes a minute. Then come right back here.";
       rf.parentNode.insertBefore(note, rf);
@@ -455,7 +464,8 @@ window.xrRegQuote.catch(function () {});
       var n = document.createElement("div"); n.className = "xr-entry-quote";
       n.style.cssText = "padding:10px 14px;margin-bottom:14px;font-size:13px;border:1px solid #8885;border-radius:8px";
       n.textContent = event.cost > 0 ? "Entry cost: " + event.cost + " AP (Arena Points). It is deducted when you register, and refunded if the registration is rejected or cancelled." : "Free entry. No AP is charged.";
-      rf.parentNode.insertBefore(n,rf);btn.disabled = !event.open;
+      rf.parentNode.insertBefore(n,rf);
+      return xrApi.user().then(function (u) { btn.disabled = !event.open || !u; });
     }).catch(function (e) { var eb = rf.querySelector(".server-err");if(eb){eb.textContent=e.message;eb.style.display="block";}btn.disabled=true; });
   });
 
@@ -468,7 +478,7 @@ window.xrRegQuote.catch(function () {});
       var file = fileInput && fileInput.files && fileInput.files[0];
       return window.xrRegQuote.then(function (event) {
         if (!event.open) throw new Error("Registration is closed for this tournament.");
-        return uploadProof(rec.id, file).then(function (proofPath) {
+        return xrApi.user().then(function (u) { if (!u) throw new Error("Log in before registering your squad."); return uploadProof(rec.id, file); }).then(function (proofPath) {
         return xrApi.uRpc(event.cost > 0 ? "enter_tournament_with_ap" : "register_squad", {
           p_id: rec.id, p_tournament: event.id, p_squad: rec.squad, p_captain: rec.captain,
           p_uid: rec.uid, p_ign: rec.captain, p_phone: rec.phone, p_proof: proofPath,
@@ -776,7 +786,7 @@ window.xrUploadTeamLogo = function (file) {
     s.src = "assets/js/vendor/three.min.js";
     s.onload = function () {
       var t = document.createElement("script");
-      t.src = "assets/js/theme3d.js";
+      t.src = "assets/js/theme3d.js?v=20261108-audit1";
       document.body.appendChild(t);
     };
     document.body.appendChild(s);

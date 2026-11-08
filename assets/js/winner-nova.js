@@ -50,7 +50,7 @@ function boot(){
  if(!window.xrApi)return;
  var api=window.xrApi;
  fetch(api.url+'/rest/v1/bracket_matches?winner=not.is.null&order=updated_at.desc&limit=20&select=tournament_id,winner,round,updated_at,starts_at',{headers:{apikey:api.key}}).then(function(r){return r.json();}).then(function(rows){
-  if(!Array.isArray(rows)||!rows.length)return;
+  rows=window.xrEventRows(rows);if(!rows.length)return;
   var byT={};rows.forEach(function(m){(byT[m.tournament_id]=byT[m.tournament_id]||[]).push(m);});
   var best=null;
   Object.keys(byT).forEach(function(t){var ms=byT[t];var maxR=Math.max.apply(null,ms.map(function(m){return m.round;}));var fin=ms.filter(function(m){return m.round===maxR;})[0];if(!best||new Date(fin.updated_at)>new Date(best.updated_at))best=fin;});

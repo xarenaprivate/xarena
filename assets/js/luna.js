@@ -80,7 +80,7 @@
     function setChips() {
       chips.innerHTML = "";
       if (hist.length > 1) return;
-      ["When is Season 1?", "How do I register?", "Where is the leaderboard?", "What are scrims?"].forEach(function (q) {
+      ["Which tournaments are open?", "How do I register?", "Where is the leaderboard?", "What are scrims?"].forEach(function (q) {
         var b = document.createElement("button");
         b.type = "button"; b.textContent = q;
         b.addEventListener("click", function () { input.value = q; form.requestSubmit(); });

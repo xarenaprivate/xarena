@@ -84,11 +84,12 @@
     }
 
     var t0 = performance.now();
-    var running = true;
+    var running = true, inView = true;
+    if ("IntersectionObserver" in window) new IntersectionObserver(function(entries){inView=entries[0].isIntersecting;}).observe(el);
     document.addEventListener("visibilitychange", function () { running = !document.hidden; });
     (function loop() {
       requestAnimationFrame(loop);
-      if (!running) return;
+      if (!running || !inView) return;
       var t = (performance.now() - t0) / 1000;
       if (!REDUCED) {
         trophy.rotation.y = t * 0.5;
@@ -119,10 +120,15 @@
   function init() {
     // real WebGL scenes
     if (!REDUCED && webglOK() && window.THREE) {
-      var hero = document.getElementById("hero3d");
-      if (hero) { try { mountScene(hero, { trophyX: MOBILE ? 0.9 : 2.3, tilt: 0 }); } catch (e) { hero.remove(); } }
-      var tr = document.getElementById("trophy3d");
-      if (tr) { try { mountScene(tr, { trophyX: 0, tilt: 0 }); } catch (e) { tr.remove(); } }
+      function lazyScene(el, opts) {
+        if (!el) return;
+        function mount() { try { mountScene(el, opts); } catch(e) { el.remove(); } }
+        if (!("IntersectionObserver" in window)) { mount(); return; }
+        var io = new IntersectionObserver(function(entries){ if(entries[0].isIntersecting){io.disconnect();mount();} },{rootMargin:"100px"});
+        io.observe(el);
+      }
+      lazyScene(document.getElementById("hero3d"), {trophyX:MOBILE?0.9:2.3,tilt:0});
+      lazyScene(document.getElementById("trophy3d"), {trophyX:0,tilt:0});
     } else {
       var h2 = document.getElementById("hero3d"); if (h2) h2.remove();
     }

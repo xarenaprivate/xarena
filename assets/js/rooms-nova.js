@@ -16,7 +16,7 @@ function boot(){
  function apply(){var nova=look==='nova';root.style.display=nova?'':'none';anchor.style.display=nova?'none':'';toggle.textContent=nova?'Classic rooms':'Nova rooms';}
  toggle.addEventListener('click',function(){look=look==='nova'?'classic':'nova';localStorage.setItem('xr_rooms_look',look);apply();});apply();
  var matches=[],me=null,status={};
- function nextMatch(){var up=matches.filter(function(m){return m.status!=='done'&&!api.isPostponed(m)&&m.starts_at;});up.sort(function(a,b){return new Date(a.starts_at)-new Date(b.starts_at);});return up[0]||null;}
+ function nextMatch(){var up=matches.filter(function(m){return m.status!=='done'&&m.status!=='cancelled'&&!api.isPostponed(m)&&m.starts_at;});up.sort(function(a,b){return new Date(a.starts_at)-new Date(b.starts_at);});return up[0]||null;}
  function cdText(m){if(!m)return '';var t=new Date(m.starts_at).getTime()-Date.now();if(t<=0)return '00:00:00';var s=Math.floor(t/1e3),h=Math.floor(s/3600),mm=Math.floor(s%3600/60),ss=s%60;function p(n){return (n<10?'0':'')+n;}return p(h)+':'+p(mm)+':'+p(ss);}
  function fmt(m){return m.starts_at?new Date(m.starts_at).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+' IST':'time TBA';}
  function render(){
@@ -34,10 +34,10 @@ function boot(){
     (st.room_id?'':'<button class="xrn-btn xrn-ghost" data-room="'+nm.id+'">REVEAL ROOM ID</button>')+
     '<div class="xrn-msg" data-msg></div></div>';
   }
-  var post=matches.filter(function(m){return api.isPostponed(m);});
+  var post=matches.filter(function(m){return api.isPostponed(m)||m.status==='cancelled';});
   if(post.length){
-   html+='<div class="xrn-sect">Postponed</div>';
-   html+=post.map(function(m){return '<div class="xrn-res"><div class="ric">'+ICO.clock+'</div><div><h4>'+esc(m.title)+'</h4><p>'+esc(m.tournament_id||'')+'</p><p>'+fmt(m)+'</p></div><div class="rst">POSTPONED</div></div>';}).join('');
+   html+='<div class="xrn-sect">Cancelled / postponed</div>';
+   html+=post.map(function(m){return '<div class="xrn-res"><div class="ric">'+ICO.clock+'</div><div><h4>'+esc(m.title)+'</h4><p>'+esc(m.tournament_id||'')+'</p><p>'+fmt(m)+'</p></div><div class="rst">'+esc(api.matchLabel(m))+'</div></div>';}).join('');
   }
   html+='<div class="xrn-sect">Live Results <span style="float:right;font-size:11px;color:#7ee787">● '+(matches.some(function(m){return m.status==='live';})?'LIVE':'SCHEDULED')+'</span></div>';
   html+=done.length?done.map(function(m){return '<div class="xrn-res"><div class="ric">'+ICO.trophy+'</div><div><h4>'+esc(m.title)+'</h4><p>'+esc(m.tournament_id||'')+'</p><p>Finished · '+fmt(m)+'</p></div><div class="rst">COMPLETED</div></div>';}).join(''):'<div class="xrn-empty" style="padding:14px"><p>No finished matches yet. Results appear here after each match.</p></div>';
@@ -59,8 +59,8 @@ function boot(){
    fetch(api.url+'/rest/v1/matches_public?select=*&order=starts_at.asc.nullslast',{headers:{apikey:api.key}}).then(function(r){return r.json();}).catch(function(){return [];}),
    api.user().catch(function(){return null;})
   ]).then(function(d){
-   matches=Array.isArray(d[0])?d[0]:[];me=d[1];
-   var ups=matches.filter(function(m){return m.status!=='done'&&!api.isPostponed(m);});
+   matches=window.xrEventRows(Array.isArray(d[0])?d[0]:[]);me=d[1];
+   var ups=matches.filter(function(m){return m.status!=='done'&&m.status!=='cancelled'&&!api.isPostponed(m);});
    return Promise.all(ups.map(function(m){return api.uRpc('match_checkin_status',{p_match:m.id}).then(function(st){status[m.id]=(st&&st.ok)?st:{count:0,me:false};}).catch(function(){status[m.id]={count:0,me:false};});}));
   }).then(function(){render();if(!timer)timer=setInterval(tick,1000);}).catch(function(){root.innerHTML='<div class="xrn"><div class="xrn-head"><h2>MATCH ROOMS</h2></div><div class="xrn-empty"><h3>Could not load</h3><p>Check your connection and refresh.</p></div></div>';});
  }
