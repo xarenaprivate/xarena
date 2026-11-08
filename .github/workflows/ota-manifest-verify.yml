@@ -1,0 +1,62 @@
+name: OTA manifest verify
+# Release gate at the publication point: runs whenever xarena-native-version.json
+# changes on main. Verifies the advertised APK + every listed patch against the
+# release assets BEFORE the update can be considered live. A red run = do not announce.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['xarena-native-version.json']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Fetch manifest
+        run: |
+          curl -sL -o manifest.json https://raw.githubusercontent.com/xarenaprivate/xarena/main/xarena-native-version.json
+          cat manifest.json
+      - name: Verify advertised APK (sha + apksigner v2)
+        run: |
+          URL=$(python3 -c "import json;print(json.load(open('manifest.json'))['apkUrl'])")
+          SHA=$(python3 -c "import json;print(json.load(open('manifest.json'))['sha256'])")
+          BYTES=$(python3 -c "import json;print(json.load(open('manifest.json'))['apkBytes'])")
+          curl -sL -o target.apk "$URL"
+          [ "$(stat -c%s target.apk)" = "$BYTES" ]
+          echo "$SHA  target.apk" | sha256sum -c -
+          APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | tail -1)
+          $APKSIGNER verify --verbose target.apk | tee verify.txt
+          grep -q "Verified using v2 scheme (APK Signature Scheme v2): true" verify.txt
+      - name: Verify every listed patch (download + sha + size)
+        run: |
+          python3 - <<'PYEOF'
+          import json, subprocess, sys
+          m = json.load(open('manifest.json'))
+          patches = m.get('patches', [])
+          if not patches: sys.exit('no patches in manifest')
+          for p in patches:
+              subprocess.run(['curl','-sL','-o','p.bs',p['url']], check=True)
+              import hashlib, os
+              h = hashlib.sha256(open('p.bs','rb').read()).hexdigest()
+              assert h == p['sha256'], f"sha mismatch from={p['from']}"
+              assert os.path.getsize('p.bs') == p['bytes'], f"size mismatch from={p['from']}"
+              print(f"patch {p['from']} ok", flush=True)
+          PYEOF
+      - name: Roundtrip newest-base patch
+        run: |
+          sudo apt-get install -y bsdiff >/dev/null
+          python3 - <<'PYEOF'
+          import json
+          m = json.load(open('manifest.json'))
+          patches = sorted(m.get('patches', []), key=lambda p: -p['from'])
+          p = patches[0]
+          open('baseurl.txt','w').write(f"https://github.com/xarenaprivate/xarena/releases/download/v0.17.{p['from']-45}-native/xarena-native.apk")
+          open('patchurl.txt','w').write(p['url'])
+          open('targetsha.txt','w').write(m['sha256'])
+          PYEOF
+          curl -sL -o base.apk "$(cat baseurl.txt)"
+          curl -sL -o patch.bs "$(cat patchurl.txt)"
+          bspatch base.apk rebuilt.apk patch.bs
+          echo "$(cat targetsha.txt)  rebuilt.apk" | sha256sum -c -
