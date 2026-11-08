@@ -29,6 +29,8 @@ jobs:
           APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | tail -1)
           $APKSIGNER verify --verbose target.apk | tee verify.txt
           grep -q "Verified using v2 scheme (APK Signature Scheme v2): true" verify.txt
+          ZIPALIGN=$(ls $ANDROID_HOME/build-tools/*/zipalign | tail -1)
+          $ZIPALIGN -c 4 target.apk
       - name: Verify every listed patch (download + sha + size)
         run: |
           python3 - <<'PYEOF'
