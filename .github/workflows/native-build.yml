@@ -81,10 +81,7 @@ jobs:
             adb exec-out screencap -p > emu-live-fixture.png
             adb shell uiautomator dump /sdcard/ui.xml
             adb shell cat /sdcard/ui.xml > ui.xml
-            B=$(python3 -c "import re;s=open('ui.xml').read();m=re.search(r'text=\"FULLSCREEN\"[^>]*bounds=\"\[(\d+),(\d+)\]\[(\d+),(\d+)\]\"',s);print(str((int(m.group(1))+int(m.group(3)))//2)+' '+str((int(m.group(2))+int(m.group(4)))//2) if m else '')")
-            if [ -z "$B" ]; then B="255 151"; fi
-            echo "tapping FULLSCREEN at $B"
-            adb shell input tap $B
+            python3 -c "import re,os;s=open('ui.xml').read();m=re.search(r'text=\"FULLSCREEN\"[^>]*bounds=\"\[(\d+),(\d+)\]\[(\d+),(\d+)\]\"',s);x,y=((int(m.group(1))+int(m.group(3)))//2,(int(m.group(2))+int(m.group(4)))//2) if m else (255,151);print('tapping FULLSCREEN at',x,y,'parsed' if m else 'fallback');os.system('adb shell input tap %d %d'%(x,y))"
             sleep 5
             adb exec-out screencap -p > emu-live-fullscreen.png
             adb shell input keyevent 4
