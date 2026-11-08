@@ -39,7 +39,7 @@ function boot(){
    html+='<div class="xrn-sect">Cancelled / postponed</div>';
    html+=post.map(function(m){return '<div class="xrn-res"><div class="ric">'+ICO.clock+'</div><div><h4>'+esc(m.title)+'</h4><p>'+esc(m.tournament_id||'')+'</p><p>'+fmt(m)+'</p></div><div class="rst">'+esc(api.matchLabel(m))+'</div></div>';}).join('');
   }
-  html+='<div class="xrn-sect">Live Results <span style="float:right;font-size:11px;color:#7ee787">● '+(matches.some(function(m){return m.status==='live';})?'LIVE':'SCHEDULED')+'</span></div>';
+  html+='<div class="xrn-sect">Live Results <span style="float:right;font-size:11px;color:#7ee787">● '+(matches.some(function(m){return m.status==='live';})?'LIVE':matches.some(function(m){return m.status!=='done'&&m.status!=='cancelled'&&!api.isPostponed(m);})?'SCHEDULED':'NO ACTIVE MATCH')+'</span></div>';
   html+=done.length?done.map(function(m){return '<div class="xrn-res"><div class="ric">'+ICO.trophy+'</div><div><h4>'+esc(m.title)+'</h4><p>'+esc(m.tournament_id||'')+'</p><p>Finished · '+fmt(m)+'</p></div><div class="rst">COMPLETED</div></div>';}).join(''):'<div class="xrn-empty" style="padding:14px"><p>No finished matches yet. Results appear here after each match.</p></div>';
   html+='</div>';
   root.innerHTML=html;

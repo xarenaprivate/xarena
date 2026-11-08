@@ -24,7 +24,7 @@ function boot(){
   }).join('');
   root.innerHTML='<div class="xbn"><h2>TOURNAMENT BRACKET</h2><div class="season">XARENA ESPORTS · OFFICIAL RESULTS</div>'+
    (rows.length?sections:'<div class="empty"><h3>Bracket not drawn yet</h3><p>Real squads, match times and results will appear after match control publishes the bracket.</p></div>')+
-   '<div class="note">XP only, no cash. Free predictions. One pick per account per match; changes close when the match starts.</div><div class="xbn-nav"><a href="#bracket">Bracket</a><a href="leaderboard.html">Standings</a><a href="tournaments.html#rooms">Matches</a><a href="play.html">Rewards</a><a href="profile.html">Profile</a></div></div>';
+   '<div class="note">XP only, no cash. Free predictions. One pick per account per match; changes close when the match starts.</div><div class="xbn-nav"><a href="#bracket">Bracket</a><a href="leaderboard.html">Standings</a><a href="#match-list">Matches</a><a href="play.html">Rewards</a><a href="profile.html">Profile</a></div></div>';
   root.querySelectorAll('[data-predict]').forEach(function(b){b.addEventListener('click',function(){
    var id=Number(b.dataset.predict),pick=b.dataset.pick,box=root.querySelector('[data-message="'+id+'"]');
    b.disabled=true;box.textContent='Saving your pick…';
