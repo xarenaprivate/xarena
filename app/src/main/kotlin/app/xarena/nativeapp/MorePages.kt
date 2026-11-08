@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -283,7 +284,15 @@ fun LiveFullscreen(videoId: String, onClose: () -> Unit) {
         }
     }
     androidx.compose.ui.window.Dialog(onDismissRequest = onClose,
-        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+        val dlgView = LocalView.current
+        SideEffect {
+            val w = (dlgView as? androidx.compose.ui.window.DialogWindowProvider)?.window
+                ?: (dlgView.parent as? androidx.compose.ui.window.DialogWindowProvider)?.window
+            w?.setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.MATCH_PARENT)
+            w?.addFlags(android.view.WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or android.view.WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
+            if (w != null) androidx.core.view.WindowCompat.getInsetsController(w, dlgView).hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+        }
         Box(Modifier.fillMaxSize().background(Color.Black)) {
             YouTubeEmbed(videoId, Modifier.fillMaxSize())
             Text("CLOSE", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
