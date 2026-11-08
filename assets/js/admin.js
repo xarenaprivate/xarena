@@ -2095,22 +2095,55 @@
 
   function renderLivestream() {
     var body = el("#admin-body");
-    call(function () { return api.aGet("site_settings", "?key=eq.youtube_live&select=value"); }).then(function (rows) {
-      var v = (rows && rows[0] && rows[0].value) || {};
+    body.innerHTML = '<p>Loading live stream settings...</p>';
+    Promise.all([
+      call(function () { return api.aGet("site_settings", "?key=eq.youtube_live&select=value"); }),
+      call(function () { return api.aGet("tournaments", "?select=id,name,status&order=sort.asc"); }),
+      call(function () { return api.aGet("matches", "?select=id,tournament_id,title&order=starts_at.asc&limit=1000"); }),
+      call(function () { return api.aGet("site_settings", "?key=eq.flags&select=value"); })
+    ]).then(function (res) {
+      var v = (res[0][0] && res[0][0].value) || {}, tournaments = res[1] || [], matches = res[2] || [], flags = (res[3][0] && res[3][0].value) || {};
       body.innerHTML = '<div class="card"><h3>YouTube live stream</h3>' +
-        '<p style="font-size:13px">When active, a LIVE card with the stream appears at the top of the home page. Paste the full YouTube link (watch, live, youtu.be, shorts or embed) or just the 11-character ID.</p>' +
-        '<div class="field" style="margin-top:10px"><label>Video / live ID</label><input id="lv-id" value="' + esc(v.video_id || "") + '" placeholder="e.g. dQw4w9WgXcQ"></div>' +
-        '<div class="field"><label>Title</label><input id="lv-title" maxlength="80" value="' + esc(v.title || "") + '" placeholder="e.g. XARENA Season 1 Finals - LIVE"></div>' +
-        '<label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:8px 0"><input type="checkbox" id="lv-active"' + (v.active ? " checked" : "") + "> Show the LIVE card on the home page</label>" +
-        '<button class="btn btn-red btn-sm" id="lv-save">Save</button> <span id="lv-msg" style="font-size:13px"></span></div>';
-      el("#lv-save", body).addEventListener("click", function () {
-        var rawId = el("#lv-id", body).value.trim(); var vid = rawId ? xrYtId(rawId) : ""; if (rawId && !vid) { el("#lv-msg", body).textContent = "Could not find a YouTube video ID in that link."; return; } var data = { video_id: vid, title: el("#lv-title", body).value.trim(), active: el("#lv-active", body).checked };
-        call(function () { return api.aUpsert("site_settings", { key: "youtube_live", value: data, updated_at: new Date().toISOString() }, "key"); })
-          .then(function () { return api.audit("livestream_set", { active: data.active }); })
-          .then(function () { el("#lv-msg", body).textContent = "Saved - home page updated."; })
-          .catch(function (e) { el("#lv-msg", body).textContent = "Save failed: " + e.message; });
+        '<p style="font-size:13px">Connect the video to its tournament yourself. Registered in-game names and squad names appear below the video in the app. Comments stay in XARENA, never on YouTube.</p>' +
+        '<div class="field"><label for="lv-id">Video / live ID</label><input id="lv-id" value="' + esc(v.video_id || '') + '" placeholder="YouTube URL or 11-character ID"></div>' +
+        '<div class="field"><label for="lv-title">Title</label><input id="lv-title" maxlength="80" value="' + esc(v.title || '') + '"></div>' +
+        '<div class="field"><label for="lv-tournament">Connected tournament</label><select id="lv-tournament"><option value="">Not connected</option>' + tournaments.map(function (t) { return '<option value="' + esc(t.id) + '"' + (t.id === v.tournament_id ? ' selected' : '') + '>' + esc(t.name) + ' (' + esc(t.status) + ')</option>'; }).join('') + '</select></div>' +
+        '<p style="font-size:12px">Only registration display names are shown, not phone numbers, game UIDs, email or private proofs. Registration does not contain a full squad roster.</p>' +
+        '<div class="field"><label for="lv-match">Match (optional, for existing match thread)</label><select id="lv-match"></select></div>' +
+        '<label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:8px 0"><input type="checkbox" id="lv-active"' + (v.active ? ' checked' : '') + '> Show the LIVE card</label>' +
+        '<p style="font-size:13px">App comments: ' + (flags.live_thread ? 'enabled by owner setting.' : 'OFF in owner settings. Connecting a tournament will not switch comments on.') + '</p>' +
+        '<button class="btn btn-red btn-sm" id="lv-save">Save stream connection</button> <span id="lv-msg" style="font-size:13px" role="status"></span></div>' +
+        '<div class="card"><h3>Live comments moderation</h3><button class="btn btn-sm" id="lv-load-posts">Load connected tournament comments</button><div id="lv-posts"></div></div>';
+      function matchOptions(selected) {
+        var tid = el('#lv-tournament', body).value;
+        el('#lv-match', body).innerHTML = '<option value="">No match selected</option>' + matches.filter(function (m) { return m.tournament_id === tid; }).map(function (m) { return '<option value="' + esc(m.id) + '"' + (m.id === selected ? ' selected' : '') + '>' + esc(m.title) + '</option>'; }).join('');
+      }
+      matchOptions(v.match_id);
+      el('#lv-tournament', body).addEventListener('change', function () { matchOptions(null); el('#lv-posts', body).textContent = ''; });
+      el('#lv-save', body).addEventListener('click', function () {
+        var button = this, msg = el('#lv-msg', body), raw = el('#lv-id', body).value.trim(), vid = raw ? xrYtId(raw) : '';
+        if (raw && !vid) { msg.textContent = 'Could not find a YouTube video ID in that link.'; return; }
+        var args = { p_video: vid, p_title: el('#lv-title', body).value.trim(), p_active: el('#lv-active', body).checked, p_tournament: el('#lv-tournament', body).value || null, p_match: el('#lv-match', body).value || null };
+        button.disabled = true; msg.textContent = 'Saving...';
+        call(function () { return api.rpc('admin_set_live_stream', args, true); }).then(function (r) {
+          if (!r || r.ok !== true) throw new Error((r && r.error) || 'Save was not confirmed.');
+          msg.textContent = 'Saved. Stream connection updated; comments setting unchanged.';
+          return api.audit('livestream_set', { active: args.p_active, tournament_id: args.p_tournament, match_id: args.p_match });
+        }).catch(function (e) { msg.textContent = 'Save failed: ' + e.message; }).finally(function () { button.disabled = false; });
       });
-    });
+      el('#lv-load-posts', body).addEventListener('click', function () {
+        var tid = el('#lv-tournament', body).value, box = el('#lv-posts', body);
+        if (!tid) { box.textContent = 'Choose a tournament first.'; return; }
+        box.textContent = 'Loading...';
+        call(function () { return api.aGet('live_tournament_posts', '?select=id,body,hidden,created_at&tournament_id=eq.' + encodeURIComponent(tid) + '&order=id.desc&limit=100'); }).then(function (rows) {
+          box.innerHTML = rows.length ? rows.map(function (p) { return '<div style="padding:12px 0;border-bottom:1px solid #ddd"><p>' + esc(p.body) + '</p><small>' + esc(p.created_at) + (p.hidden ? ' - Hidden' : '') + '</small> <button class="btn btn-sm" data-live-hide="' + esc(p.id) + '" data-hidden="' + (!p.hidden) + '">' + (p.hidden ? 'Restore' : 'Hide') + '</button></div>'; }).join('') : '<p>No comments yet.</p>';
+          els('[data-live-hide]', box).forEach(function (b) { b.addEventListener('click', function () {
+            var hide = b.getAttribute('data-hidden') === 'true'; b.disabled = true;
+            call(function () { return api.aPatch('live_tournament_posts', 'id=eq.' + encodeURIComponent(b.getAttribute('data-live-hide')), { hidden: hide }); }).then(function () { el('#lv-load-posts', body).click(); }).catch(function (e) { b.disabled = false; box.appendChild(document.createTextNode('Moderation failed: ' + e.message)); });
+          }); });
+        }).catch(function (e) { box.textContent = 'Could not load comments: ' + e.message; });
+      });
+    }).catch(function (e) { body.textContent = 'Could not load stream settings: ' + e.message; });
   }
 
   function renderProofs() {
