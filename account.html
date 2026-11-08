@@ -29,6 +29,8 @@
 <link rel="stylesheet" href="assets/css/app-shell.css">
 </head>
 <body>
+<noscript><style>#xr-splash{display:none!important}.reveal{opacity:1!important;transform:none!important}</style></noscript>
+<script>setTimeout(function(){var s=document.getElementById("xr-splash");if(s)s.remove();if(!window.XR)document.querySelectorAll(".reveal").forEach(function(e){e.classList.add("in");});},3000);</script>
 <style>
 #xr-splash{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;transition:opacity .3s ease;overflow:hidden}
 #xr-splash::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none}
