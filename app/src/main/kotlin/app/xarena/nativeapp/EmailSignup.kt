@@ -23,18 +23,19 @@ import org.json.JSONObject
    logs in normally with email + password. No recovery is offered here: email recovery is a separate,
    untested flow and is not claimed. */
 @Composable
-fun EmailSignupScreen(onDone: () -> Unit, onGoLogin: () -> Unit) {
-    var step by remember { mutableIntStateOf(0) } // 0 = email, 1 = code + password, 2 = created
+fun EmailSignupScreen(onDone: () -> Unit, onGoLogin: () -> Unit,
+    initStep: Int = 0, initChallenge: String? = null, initMasked: String = "", initErr: String? = null, initResendIn: Int = 0) {
+    var step by remember { mutableIntStateOf(initStep) } // 0 = email, 1 = code + password, 2 = created
     var email by remember { mutableStateOf("") }
-    var challenge by remember { mutableStateOf<String?>(null) }
-    var masked by remember { mutableStateOf("") }
-    var expiresIn by remember { mutableIntStateOf(0) }
+    var challenge by remember { mutableStateOf<String?>(initChallenge) }
+    var masked by remember { mutableStateOf(initMasked) }
+    var expiresIn by remember { mutableIntStateOf(if (initStep == 1) 600 else 0) }
     var code by remember { mutableStateOf("") }
     var pw by remember { mutableStateOf("") }
     var pw2 by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
-    var err by remember { mutableStateOf<String?>(null) }
-    var resendIn by remember { mutableIntStateOf(0) }
+    var err by remember { mutableStateOf<String?>(initErr) }
+    var resendIn by remember { mutableIntStateOf(initResendIn) }
     val scope = rememberCoroutineScope()
     LaunchedEffect(resendIn) { if (resendIn > 0) { kotlinx.coroutines.delay(1000); resendIn-- } }
     AuthCard("Sign up with email") {

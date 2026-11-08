@@ -23,16 +23,17 @@ import org.json.JSONObject
    Verify sets a new password server-side (old refresh sessions revoked by the server; already-issued
    access tokens may live until expiry) and returns NO session - the player logs in normally after. */
 @Composable
-fun EmailRecoveryScreen(onGoLogin: () -> Unit) {
-    var step by remember { mutableIntStateOf(0) } // 0 = email, 1 = code + new password, 2 = done
+fun EmailRecoveryScreen(onGoLogin: () -> Unit,
+    initStep: Int = 0, initChallenge: String? = null, initErr: String? = null, initResendIn: Int = 0) {
+    var step by remember { mutableIntStateOf(initStep) } // 0 = email, 1 = code + new password, 2 = done
     var email by remember { mutableStateOf("") }
-    var challenge by remember { mutableStateOf<String?>(null) }
+    var challenge by remember { mutableStateOf<String?>(initChallenge) }
     var code by remember { mutableStateOf("") }
     var pw by remember { mutableStateOf("") }
     var pw2 by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
-    var err by remember { mutableStateOf<String?>(null) }
-    var resendIn by remember { mutableIntStateOf(0) }
+    var err by remember { mutableStateOf<String?>(initErr) }
+    var resendIn by remember { mutableIntStateOf(initResendIn) }
     val scope = rememberCoroutineScope()
     LaunchedEffect(resendIn) { if (resendIn > 0) { kotlinx.coroutines.delay(1000); resendIn-- } }
     AuthCard("Recover with email") {
