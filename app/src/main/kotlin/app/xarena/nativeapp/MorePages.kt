@@ -214,27 +214,7 @@ fun LiveScreen(onBack: () -> Unit) {
                     Text("STREAM", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(6.dp))
                     if (live == null) Text("No stream is live right now. When XARENA goes live, the stream plays here inside the app.", color = Muted, fontSize = 13.sp)
-                    else {
-                        Text("Live now", color = Color(0xFF22C55E), fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        if (live.second.isNotBlank()) Text(live.second, color = Color.White, fontSize = 13.sp)
-                        Spacer(Modifier.height(6.dp))
-                        var fullscreen by remember { mutableStateOf(false) }
-                        Box {
-                            YouTubeEmbed(live.first, Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp))
-                                .border(1.dp, Gold.copy(alpha = .45f), RoundedCornerShape(12.dp)).background(Ink))
-                            Text("FULLSCREEN", color = Gold, fontSize = 10.sp, fontWeight = FontWeight.Bold,
-                                modifier = Modifier.align(Alignment.TopEnd).padding(10.dp).clip(RoundedCornerShape(6.dp))
-                                    .background(Color(0xAA000000)).clickable { fullscreen = true }.padding(horizontal = 8.dp, vertical = 5.dp))
-                        }
-                        if (fullscreen) LiveFullscreen(live.first) { fullscreen = false }
-                        Spacer(Modifier.height(6.dp))
-                        Text("Open in YouTube", color = Muted, fontSize = 12.sp,
-                            modifier = Modifier.clickable { openExternalUrl("https://youtu.be/" + live.first) }.padding(4.dp))
-                        Spacer(Modifier.height(6.dp))
-                        val ytJson = runCatching { JSONObject(if (yt.length() > 0) yt.getJSONObject(0).s("value") else "") }.getOrNull()
-                        LiveRoster(ytJson?.optString("tournament_id") ?: "")
-                        LiveComments(ytJson?.optString("tournament_id") ?: "")
-                    }
+                    else LiveStreamContent(yt, live)
                 } }
                 item { Text("UPCOMING MATCHES", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(14.dp)) }
                 if (matches.length() == 0) item { Text("No matches scheduled yet.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 16.dp)) }
@@ -248,6 +228,42 @@ fun LiveScreen(onBack: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+/* Live stream card content: embed + fullscreen entry, registered players and comments for the admin-connected tournament. */
+@Composable
+fun LiveStreamContent(yt: JSONArray, live: Pair<String, String>) {
+    Text("Live now", color = Color(0xFF22C55E), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+    if (live.second.isNotBlank()) Text(live.second, color = Color.White, fontSize = 13.sp)
+    Spacer(Modifier.height(6.dp))
+    var fullscreen by remember { mutableStateOf(false) }
+    Box {
+        YouTubeEmbed(live.first, Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp))
+            .border(1.dp, Gold.copy(alpha = .45f), RoundedCornerShape(12.dp)).background(Ink))
+        Text("FULLSCREEN", color = Gold, fontSize = 10.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.align(Alignment.TopEnd).padding(10.dp).clip(RoundedCornerShape(6.dp))
+                .background(Color(0xAA000000)).clickable { fullscreen = true }.padding(horizontal = 8.dp, vertical = 5.dp))
+    }
+    if (fullscreen) LiveFullscreen(live.first) { fullscreen = false }
+    Spacer(Modifier.height(6.dp))
+    Text("Open in YouTube", color = Muted, fontSize = 12.sp,
+        modifier = Modifier.clickable { openExternalUrl("https://youtu.be/" + live.first) }.padding(4.dp))
+    Spacer(Modifier.height(6.dp))
+    val ytJson = runCatching { JSONObject(if (yt.length() > 0) yt.getJSONObject(0).s("value") else "") }.getOrNull()
+    LiveRoster(ytJson?.optString("tournament_id") ?: "")
+    LiveComments(ytJson?.optString("tournament_id") ?: "")
+}
+
+/* DEBUG-ONLY fixture entry (adb am start --es fixture live): renders the Live tab stream section with a
+   fixture video id for visual verification. No login, no backend writes; never used by release navigation. */
+@Composable
+fun LiveFixtureScreen() {
+    val yt = JSONArray().put(JSONObject().put("value", "{\"video_id\":\"aqz-KE-bpKQ\",\"title\":\"Fixture stream\",\"tournament_id\":\"fixture-t\"}"))
+    val live = ytLiveInfo(yt.getJSONObject(0).s("value")) ?: return
+    Column(Modifier.fillMaxSize().background(Ink)) {
+        PageHeader("Live", "fixture - synthetic verification only", {})
+        LazyColumn { item { SmallCard { LiveStreamContent(yt, live) } } }
     }
 }
 
@@ -290,6 +306,7 @@ fun LiveComments(tournamentId: String) {
     var posts by remember { mutableStateOf(JSONArray()) }
     var open by remember { mutableStateOf(true) }
     var msg by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(tick) {
         if (allowed != true) return@LaunchedEffect
         val r = runCatching { Api.authedRpc("xr_live_thread_list", JSONObject().put("p_tournament", tournamentId).put("p_limit", 60)) }.getOrNull()
@@ -304,24 +321,36 @@ fun LiveComments(tournamentId: String) {
             for (i in posts.length() - 1 downTo 0) {
                 val p = posts.getJSONObject(i)
                 Column(Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
-                    Text(p.s("name").ifBlank { p.s("author").ifBlank { "Player" } }, color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(p.s("name").ifBlank { p.s("author").ifBlank { "Player" } }, color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.weight(1f))
+                        Text("report", color = Muted, fontSize = 10.sp, modifier = Modifier.clickable {
+                            val pid = p.optLong("id", -1)
+                            if (pid > 0) scope.launch {
+                                val rr = runCatching { Api.authedRpc("xr_live_thread_report", JSONObject().put("p_post", pid).put("p_reason", "reported from app")) }.getOrNull()
+                                msg = if (rr?.optBoolean("ok") == true) "Reported - mods review it." else rr?.s("error") ?: "Could not report."
+                            }
+                        }.padding(4.dp))
+                    }
                     Text(p.s("body"), color = Color.White, fontSize = 13.sp)
                 }
             }
         }
         msg?.let { Text(it, color = Gold2, fontSize = 11.sp) }
         var draft by remember { mutableStateOf("") }
-        val scope = rememberCoroutineScope()
+        var sending by remember { mutableStateOf(false) }
         Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(draft, { draft = it.take(200) }, placeholder = { Text("Comment...") }, singleLine = true, modifier = Modifier.weight(1f))
             Spacer(Modifier.width(8.dp))
-            Text("SEND", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable(enabled = draft.isNotBlank()) {
-                val body = draft.trim(); draft = ""
-                scope.launch {
-                    val rr = runCatching { Api.authedRpc("xr_live_thread_post", JSONObject().put("p_tournament", tournamentId).put("p_body", body)) }.getOrNull()
-                    if (rr?.optBoolean("ok") == true) tick++ else msg = rr?.s("error") ?: "Could not send."
-                }
-            }.padding(6.dp))
+            Text(if (sending) "SENDING..." else "SEND", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable(enabled = draft.isNotBlank() && !sending) {
+                    val body = draft.trim(); draft = ""; sending = true
+                    scope.launch {
+                        val rr = runCatching { Api.authedRpc("xr_live_thread_post", JSONObject().put("p_tournament", tournamentId).put("p_body", body)) }.getOrNull()
+                        sending = false
+                        if (rr?.optBoolean("ok") == true) tick++ else msg = rr?.s("error") ?: "Could not send - check before retrying, it may have posted."
+                    }
+                }.padding(6.dp))
         }
     }
 }

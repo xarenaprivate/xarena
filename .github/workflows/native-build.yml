@@ -75,6 +75,18 @@ jobs:
             adb shell input swipe 160 500 160 180
             sleep 2
             adb exec-out screencap -p > emu-login-scrolled.png
+            adb shell am force-stop app.xarena.esports.native
+            adb shell am start -n app.xarena.esports.native/.MainActivity --es fixture live
+            sleep 12
+            adb exec-out screencap -p > emu-live-fixture.png
+            adb shell uiautomator dump /sdcard/ui.xml
+            adb shell cat /sdcard/ui.xml > ui.xml
+            B=$(python3 -c "import re;s=open('ui.xml').read();m=re.search(r'text=\"FULLSCREEN\"[^>]*bounds=\"\[(\d+),(\d+)\]\[(\d+),(\d+)\]\"',s);print(str((int(m.group(1))+int(m.group(3)))//2)+' '+str((int(m.group(2))+int(m.group(4)))//2) if m else '')")
+            if [ -n "$B" ]; then adb shell input tap $B; sleep 5; fi
+            adb exec-out screencap -p > emu-live-fullscreen.png
+            adb shell input keyevent 4
+            sleep 3
+            adb exec-out screencap -p > emu-live-restored.png
             adb shell pidof app.xarena.esports.native
       - name: Upload emulator screenshot
         uses: actions/upload-artifact@v4

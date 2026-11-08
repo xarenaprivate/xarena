@@ -171,11 +171,12 @@ var Muted by mutableStateOf(Color(0xFFB79CE0)); private set
 val ErrRed = Color(0xFFFF8A8A)
 
 class MainActivity : ComponentActivity() {
-    companion object { var pendingOpen by mutableStateOf<String?>(null) }
+    companion object { var pendingOpen by mutableStateOf<String?>(null); var fixture: String? = null }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Api.init(this); Api.restore()
         pendingOpen = intent?.getStringExtra("open")
+        fixture = intent?.getStringExtra("fixture")
         runCatching { XPanelStore.sync(this) }
         setContent { XarenaApp() }
     }
@@ -212,6 +213,7 @@ fun XarenaApp() {
     androidx.compose.runtime.LaunchedEffect(Unit) { Look.init(Api.ctx); Txt.init(Api.ctx) }
     var splash by remember { mutableStateOf(true) }
     androidx.compose.runtime.LaunchedEffect(Unit) { kotlinx.coroutines.delay(if (DataSaver.on) 400 else 1500); splash = false }
+    if (BuildConfig.DEBUG && MainActivity.fixture == "live") { LiveFixtureScreen(); return }
     var screen by remember { mutableStateOf(if (Api.loggedIn) Screen.Home else Screen.Login) }
     var setupChecked by remember { mutableStateOf(false) }
     var update by remember { mutableStateOf<UpdateChecker.Info?>(null) }
