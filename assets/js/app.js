@@ -744,7 +744,7 @@ window.xrUploadTeamLogo = function (file) {
     var init = arguments[1] || {}, method = String(init.method || (a0 && a0.method) || "GET").toUpperCase();
     /* Background reads already have local loading/empty states. Never cover them with a page-wide busy card. */
     var readRpc = /\/rpc\/(tournament_reg_counts|live_board|bracket_prediction_stats|my_bracket_predictions|my_registrations|my_game_stats)(?:[?#]|$)/.test(u);
-    if (u.indexOf("supabase.co") < 0 || method === "GET" || readRpc) return orig.apply(this, arguments);
+    if (u.indexOf("supabase.co") < 0 || method === "GET" || readRpc || /\/functions\/v1\/(luna-chat|recommend)(?:[?#]|$)/.test(u)) return orig.apply(this, arguments);
     n++; scheduleShow();
     return orig.apply(this, arguments).then(function (r) { n = Math.max(0, n - 1); if (n === 0) scheduleHide(); return r; }, function (e) { n = Math.max(0, n - 1); if (n === 0) scheduleHide(); throw e; });
   };
