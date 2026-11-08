@@ -423,6 +423,22 @@ window.xrRegQuote.catch(function () {});
     }).catch(function () {});
   });
 
+  /* An explicit card selection opens the form first, above async cards/room widgets.
+     A hash-only jump before those widgets load can land on the old room section. */
+  (function () {
+    if (!new URLSearchParams(location.search).has("tournament")) return;
+    var section = document.getElementById("register"), main = document.querySelector("main");
+    if (!section || !main) return;
+    main.insertBefore(section, main.firstChild);
+    section.style.scrollMarginTop = "84px";
+    var back = document.createElement("a"); back.href = "tournaments.html";
+    back.textContent = "Back to tournaments"; back.className = "btn btn-ghost btn-sm";
+    back.style.marginBottom = "18px";
+    section.querySelector(".wrap").insertBefore(back,section.querySelector(".wrap").firstChild);
+    Array.prototype.forEach.call(document.querySelectorAll('a[href="tournaments.html#register"]'),function(a){a.href=xrRegistrationUrl(xrRegT());});
+    document.title = "Tournament registration | XARENA ESPORTS";
+  })();
+
   /* Show selected event and exact AP quote. A failed quote never becomes a free entry. */
   window.addEventListener("load", function () {
     var rf = document.getElementById("reg-form");
@@ -432,6 +448,7 @@ window.xrRegQuote.catch(function () {});
     window.xrRegQuote.then(function (event) {
       var title = document.getElementById("xr-reg-title"), info = document.getElementById("xr-reg-info");
       if (title) title.textContent = event.name + " - Squad Registration";
+      if (new URLSearchParams(location.search).has("tournament")) document.title = event.name + " - Registration | XARENA ESPORTS";
       if (info) info.textContent = event.open ? "Registration is open for this tournament. One registration per account per tournament." : "Registration is closed for this tournament.";
       var share = document.querySelector("#reg-success [data-xr-share]");
       if (share) { share.dataset.title = "My XARENA squad registration"; share.dataset.text = "My squad registration for " + event.name + ". Check the tournament page for current details:"; share.dataset.url = new URL(xrRegistrationUrl(event.id),location.href).href; }
