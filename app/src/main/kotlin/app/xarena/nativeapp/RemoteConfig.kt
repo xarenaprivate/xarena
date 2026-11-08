@@ -34,6 +34,8 @@ object RemoteConfig {
         cached?.optJSONObject("announcement")?.takeIf { it.optBoolean("active") && it.s("text").isNotBlank() }
     fun minVersionCode(): Int = cached?.optInt("min_version_code", 0) ?: 0
     fun featureEnabled(id: String): Boolean = cached?.optJSONObject("features")?.optBoolean(id, true) ?: true
+    /** True only when the server features map explicitly enables this flag - for dark-launched features. */
+    fun flagOn(id: String): Boolean = cached?.optJSONObject("features")?.optBoolean(id, false) ?: false
 
     /** Web OAuth client ID for native Google sign-in (Supabase Google provider). Verified from the live
      *  provider config 2026-11-08; overridable via site_settings "native" {google_web_client_id}. Empty = not set up. */

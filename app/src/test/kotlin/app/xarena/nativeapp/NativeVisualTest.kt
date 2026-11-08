@@ -132,6 +132,13 @@ class NativeVisualTest {
             MainBottomNav(0) {}
         } } }
     }
+    @Test fun emailSignupEntryStep() {
+        Api.init(paparazzi.context)
+        paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
+            Spacer(Modifier.height(40.dp))
+            EmailSignupScreen({}, {})
+        } } }
+    }
     @Test fun bottomNavNewDesign() {
         paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
             Spacer(Modifier.weight(1f))
