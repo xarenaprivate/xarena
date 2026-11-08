@@ -48,3 +48,13 @@ Rollback: turn server flagOFF first. Source-only branch changes do not alter any
 ## Prepared v5 source only
 
 The source on this branch now includes a recovery operation marker for the proposed guard migration. Neither v5 edge changes nor guard/cleanup migrations are deployed. Keep serverOFF. Deploy guard and edge together only after approved provider rollback testing. Guard/cleanup up/undo SQL are separate migration files. Existing installed endpoint remainsv4 until that gate passes. The new-address re-verification flow is still not built.
+
+## Deployed safety checkpoint, 2026-11-08 10:22 IST
+
+Supersedes the prepared-only status above. Edge runtime version7ACTIVE now carries the internal recovery operation marker. Narrow guard and binding-invalidation triggers are deployed after authorized synthetic and disposable provider tests. Public feature remainsOFF and exact test allowlist retained. API payloads unchanged. Global Auth autoconfirm, SMTP, mail-rate and old phone/Google/Luna flows unchanged.
+
+Actual provider test, zero emails: invalid operation returned500 and rolled back password plus session changes; original password and both prior refresh sessions still worked. Valid reserved operation reset200 and consumed challenge; both old refresh tokens failed400, new password login200. Disposable address changed away/back200, binding stayed absent. Exact disposable UUID deleted200; auth/binding/challenge/profile residual counts0/0/0/0. No real accounts were changed.
+
+Hourly isolated cleanup is installed, manual invocation passed, scheduled at17minutes past each UTC hour. First scheduled-run health confirmation pending. Up to about49h retention under normal job operation, longer on job failure/delay; no exact48h promise. Existing bindings remain, bound complete challenge identifiers are scrubbed after24h, nonbinding old challenges are removed after48h eligibility.
+
+Remaining public rollout gates: native UI/device integration and pixels; no new-address re-verification flow (changing email disables email-code recovery until separate flow exists); conservative shared10/hour unknown-IP bucket, not independently verified per-client IP; first cron run evidence. The controlled tests do not grant broad launch authority. KeepOFF until scope/readiness reconciled.
