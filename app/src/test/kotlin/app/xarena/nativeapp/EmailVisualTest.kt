@@ -1,6 +1,7 @@
 package app.xarena.nativeapp
 
 import app.cash.paparazzi.Paparazzi
+import app.cash.paparazzi.DeviceConfig
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Column
