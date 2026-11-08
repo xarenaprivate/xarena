@@ -20,6 +20,10 @@ jobs:
           gradle-version: "8.7"
       - name: Unit tests, Paparazzi renders, unsigned release APK, debug APK
         run: gradle :app:testDebugUnitTest :app:recordPaparazziDebug :app:assembleRelease :app:assembleDebug --no-daemon --stacktrace
+      - name: Zipalign unsigned release APK (AGP only aligns during signing; CI is unsigned)
+        run: |
+          $ANDROID_HOME/build-tools/34.0.0/zipalign -f -p 4 app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/app-release-unsigned-aligned.apk
+          $ANDROID_HOME/build-tools/34.0.0/zipalign -c 4 app/build/outputs/apk/release/app-release-unsigned-aligned.apk
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         if: always()
@@ -27,7 +31,7 @@ jobs:
           name: native-artifacts
           if-no-files-found: warn
           path: |
-            app/build/outputs/apk/release/
+            app/build/outputs/apk/release/app-release-unsigned-aligned.apk
             app/build/outputs/apk/debug/
             app/src/test/snapshots/
             app/build/reports/tests/
