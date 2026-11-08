@@ -76,7 +76,7 @@ jobs:
             sleep 2
             adb exec-out screencap -p > emu-login-scrolled.png
             adb shell am force-stop app.xarena.esports.native
-            adb shell am start -n app.xarena.esports.native/.MainActivity --es fixture live
+            adb shell am start -n app.xarena.esports.native/app.xarena.nativeapp.MainActivity --es fixture live
             sleep 12
             adb exec-out screencap -p > emu-live-fixture.png
             adb shell uiautomator dump /sdcard/ui.xml
