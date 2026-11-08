@@ -84,6 +84,13 @@ class NativeVisualTest {
         Api.init(paparazzi.context)
         paparazzi.snapshot { MaterialTheme { Box(Modifier.fillMaxSize().background(Ink)) { LoginScreen({}, {}) } } }
     }
+    @Test fun homeShellWithNewNav() {
+        Api.init(paparazzi.context)
+        paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
+            Box(Modifier.weight(1f).fillMaxWidth()) { HomeScreen({}, {}) }
+            MainBottomNav(0) {}
+        } } }
+    }
     @Test fun bottomNavNewDesign() {
         paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
             Spacer(Modifier.weight(1f))

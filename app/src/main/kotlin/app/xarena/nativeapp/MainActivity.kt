@@ -618,24 +618,82 @@ fun HomeShell(onLogout: () -> Unit) {
     }
 }
 
+// Custom icons matching the user's reference (avoids the heavy material-icons-extended dependency).
+private val TrophyIcon: androidx.compose.ui.graphics.vector.ImageVector by lazy {
+    androidx.compose.material.icons.materialIcon("Trophy") {
+        androidx.compose.material.icons.materialPath {
+            moveTo(19f, 5f)
+            horizontalLineToRelative(-2f)
+            verticalLineTo(3f)
+            horizontalLineTo(7f)
+            verticalLineToRelative(2f)
+            horizontalLineTo(5f)
+            curveTo(3.9f, 5f, 3f, 5.9f, 3f, 7f)
+            verticalLineToRelative(1f)
+            curveToRelative(0f, 2.55f, 1.92f, 4.63f, 4.39f, 4.94f)
+            curveTo(7.02f, 14.44f, 9.31f, 15.5f, 11f, 15.9f)
+            verticalLineTo(19f)
+            horizontalLineTo(7f)
+            verticalLineToRelative(2f)
+            horizontalLineToRelative(10f)
+            verticalLineToRelative(-2f)
+            horizontalLineToRelative(-4f)
+            verticalLineToRelative(-3.1f)
+            curveToRelative(1.69f, -0.4f, 3.48f, -1.46f, 4.61f, -2.96f)
+            curveTo(20.08f, 12.63f, 22f, 10.55f, 22f, 8f)
+            verticalLineTo(7f)
+            curveTo(22f, 5.9f, 21.1f, 5f, 20f, 5f)
+            close()
+            moveTo(5f, 8f)
+            verticalLineTo(7f)
+            horizontalLineToRelative(2f)
+            verticalLineToRelative(3.82f)
+            curveTo(5.84f, 10.4f, 5f, 9.3f, 5f, 8f)
+            close()
+            moveTo(19f, 8f)
+            curveToRelative(0f, 1.3f, -0.84f, 2.4f, -2f, 2.82f)
+            verticalLineTo(7f)
+            horizontalLineToRelative(2f)
+            verticalLineToRelative(1f)
+            close()
+        }
+    }
+}
+private val ChatBubbleIcon: androidx.compose.ui.graphics.vector.ImageVector by lazy {
+    androidx.compose.material.icons.materialIcon("ChatBubble") {
+        androidx.compose.material.icons.materialPath {
+            moveTo(20f, 2f)
+            horizontalLineTo(4f)
+            curveTo(2.9f, 2f, 2f, 2.9f, 2f, 4f)
+            verticalLineToRelative(18f)
+            lineToRelative(4f, -4f)
+            horizontalLineToRelative(14f)
+            curveToRelative(1.1f, 0f, 2f, -0.9f, 2f, -2f)
+            verticalLineTo(4f)
+            curveTo(22f, 2.9f, 21.1f, 2f, 20f, 2f)
+            close()
+        }
+    }
+}
+
 // Bottom nav per the new design: Home, Tournaments, raised Live orb, Chat, Profile, More. Old theme colors.
 @Composable
 fun MainBottomNav(tab: Int, onSelect: (Int) -> Unit) {
     val tabs = listOf(
         Txt.t("Home", "Home") to Icons.Default.Home,
-        Txt.t("Tournaments", "Tournaments") to Icons.Default.Star,
+        Txt.t("Tournaments", "Tournaments") to TrophyIcon,
         Txt.t("Live", "LIVE") to Icons.Default.PlayArrow,
-        Txt.t("Chat", "Chat") to Icons.Default.MailOutline,
+        Txt.t("Chat", "Chat") to ChatBubbleIcon,
         Txt.t("Profile", "Profile") to Icons.Default.Person)
     Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(bottom = 6.dp)) {
         tabs.forEachIndexed { i, (label, icon) ->
             Column(Modifier.weight(1f).clickable { onSelect(i) }.padding(top = 6.dp, bottom = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(Modifier.height(28.dp), contentAlignment = Alignment.Center) {
                     if (i == 2) {
-                        Box(Modifier.offset(y = (-12).dp).size(46.dp).clip(CircleShape)
+                        Box(Modifier.offset(y = (-20).dp).size(54.dp).clip(CircleShape)
                             .background(Brush.horizontalGradient(listOf(Gold2, Gold)))
                             .border(3.dp, Color(0xFF1A0E33), CircleShape), contentAlignment = Alignment.Center) {
-                            Icon(icon, contentDescription = label, tint = Color(0xFF2A1400), modifier = Modifier.size(24.dp))
+                            Icon(icon, contentDescription = label, tint = Color(0xFF2A1400), modifier = Modifier.size(28.dp))
                         }
                     } else {
                         Icon(icon, contentDescription = label, tint = if (tab == i) Gold else Muted, modifier = Modifier.size(20.dp))
