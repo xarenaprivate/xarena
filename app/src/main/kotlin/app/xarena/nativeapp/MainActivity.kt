@@ -547,6 +547,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "luna" -> { LunaScreen(onBack = { feature = null }); return }
         "squads" -> { SquadsScreen(onBack = { feature = null }); return }
         "board" -> { LeaderboardScreen(); return }
+        "more" -> { MoreGrid { feature = it }; return }
         "store" -> { StoreScreen(onBack = { feature = null }); return }
         "profile" -> { ProfileScreen(onLogout, onBack = { feature = null }); return }
         "arena3d" -> { Arena3DScreen(onBack = { feature = null }); return }
@@ -604,10 +605,11 @@ fun HomeShell(onLogout: () -> Unit) {
                     modifier = Modifier.align(Alignment.TopEnd).offset(x = 8.dp, y = (-4).dp).clip(CircleShape).background(Color(0xFFE10600)).padding(horizontal = 4.dp, vertical = 1.dp))
             }
             Icon(Icons.Default.Settings, contentDescription = "Settings", tint = Gold, modifier = Modifier.size(20.dp).clip(RoundedCornerShape(8.dp)).clickable { feature = "settings" }.padding(2.dp))
+            Icon(Icons.Default.Menu, contentDescription = "More", tint = Gold, modifier = Modifier.size(20.dp).clip(RoundedCornerShape(8.dp)).clickable { feature = "more" }.padding(2.dp))
         }
         BackHandler(enabled = tab != 0) { tab = 0 }
         Box(Modifier.weight(1f)) {
-            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> TournamentsScreen(); 2 -> LiveScreen(onBack = { tab = 0 }); 3 -> ChatScreen(onGoTab = { i -> when (i) { 1 -> tab = 1; 2 -> feature = "board"; else -> feature = "squads" } }); 4 -> ProfileScreen(onLogout, onBack = { tab = 0 }); else -> MoreGrid { feature = it } }
+            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> TournamentsScreen(); 2 -> LiveScreen(onBack = { tab = 0 }); 3 -> ChatScreen(onGoTab = { i -> when (i) { 1 -> tab = 1; 2 -> feature = "board"; else -> feature = "squads" } }); else -> ProfileScreen(onLogout, onBack = { tab = 0 }) }
         }
         MainBottomNav(tab) { tab = it }
     }
@@ -621,8 +623,7 @@ fun MainBottomNav(tab: Int, onSelect: (Int) -> Unit) {
         Txt.t("Tournaments", "Tournaments") to Icons.Default.Star,
         Txt.t("Live", "LIVE") to Icons.Default.PlayArrow,
         Txt.t("Chat", "Chat") to Icons.Default.MailOutline,
-        Txt.t("Profile", "Profile") to Icons.Default.Person,
-        "More" to Icons.Default.Menu)
+        Txt.t("Profile", "Profile") to Icons.Default.Person)
     Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(bottom = 6.dp)) {
         tabs.forEachIndexed { i, (label, icon) ->
             Column(Modifier.weight(1f).clickable { onSelect(i) }.padding(top = 6.dp, bottom = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {

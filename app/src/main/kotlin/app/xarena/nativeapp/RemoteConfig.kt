@@ -35,6 +35,9 @@ object RemoteConfig {
     fun minVersionCode(): Int = cached?.optInt("min_version_code", 0) ?: 0
     fun featureEnabled(id: String): Boolean = cached?.optJSONObject("features")?.optBoolean(id, true) ?: true
 
-    /** Web OAuth client ID for native Google sign-in (Supabase Google provider). Empty = not set up yet. */
-    fun googleWebClientId(): String = cached?.optString("google_web_client_id", "") ?: ""
+    /** Web OAuth client ID for native Google sign-in (Supabase Google provider). Verified from the live
+     *  provider config 2026-11-08; overridable via site_settings "native" {google_web_client_id}. Empty = not set up. */
+    fun googleWebClientId(): String = cached?.optString("google_web_client_id", "")
+        ?.ifBlank { "4204930429-kiejfmrbohqhhan328hb7as596k2rlbf.apps.googleusercontent.com" }
+        ?: "4204930429-kiejfmrbohqhhan328hb7as596k2rlbf.apps.googleusercontent.com"
 }
