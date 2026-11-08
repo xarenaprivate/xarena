@@ -59,10 +59,10 @@
     var box = el("td-reg"), t = T.t, slots = +t.slots || 0, n = count == null ? null : +count;
     var pct = slots && n != null ? Math.min(100, Math.round(n / slots * 100)) : 0;
     var full = slots && n != null && n >= slots;
-    var cta;
-    if (mine) cta = '<a class="td-btn td-ok" href="tournaments.html#register">You are registered &#10003; (' + esc(mine.status) + ")</a>";
+    var cta, registerUrl = "tournaments.html?tournament=" + encodeURIComponent(t.id) + "#register";
+    if (mine) cta = '<a class="td-btn td-ok" href="' + esc(registerUrl) + '">You are registered &#10003; (' + esc(mine.status) + ")</a>";
     else if (full) cta = '<div class="td-sub">Registrations are full.</div>';
-    else if (t.reg_open) cta = '<a class="td-btn" href="tournaments.html#register">Register your squad</a>';
+    else if (t.reg_open) cta = '<a class="td-btn" href="' + esc(registerUrl) + '">Register your squad</a>';
     else cta = '<div class="td-sub">Registration is not open yet.</div>';
     box.innerHTML = '<div class="td-t">Squads registered</div><div class="td-big">' + (n == null ? "-" : n) + " / " + (slots || "-") + '</div><div class="td-bar"><i style="width:' + pct + '%"></i></div><div class="td-sub">' + esc(t.name) + " &middot; free entry</div>" + cta;
   }
@@ -176,7 +176,7 @@
         var regs = x[1] && x[1].ok ? x[1].registrations : [];
         mine = (regs || []).filter(function (r) { return r.tournament_id === best.t.id && r.status !== "rejected"; })[0] || null;
         setRegister(c ? c.registered : null);
-        var up = (x[2] || []).filter(function (m) { return !m.starts_at || new Date(m.starts_at).getTime() > Date.now() - 3 * 3600000; });
+        var up = (x[2] || []).filter(function (m) { return !/^(cancelled|canceled|finished|completed)$/i.test(m.status || "") && (!m.starts_at || new Date(m.starts_at).getTime() > Date.now() - 3 * 3600000); });
         setMatch(up);
       });
     }).catch(function () {});
