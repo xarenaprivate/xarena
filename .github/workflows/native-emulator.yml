@@ -69,7 +69,7 @@ jobs:
           curl -sL -o target72.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.27-native/xarena-native.apk
           sha256sum base71.apk target72.apk
           echo "122448cf23265cd70c86f4737e383ddcd364921b3406b6c1e7857e753c262254  base71.apk" | sha256sum -c -
-          echo "1834ef1582726b070392994d596871b8111110bec8730bde12d983b40266cacb  target72.apk" | sha256sum -c -
+          echo "efcd8caaf99410aa8ea779405d7f3d940e150236555722b46b4181b5ea240e8b  target72.apk" | sha256sum -c -
       - name: Verify v2 signature scheme on both APKs
         run: |
           APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | tail -1)
@@ -77,6 +77,9 @@ jobs:
           $APKSIGNER verify --verbose target72.apk | tee v72.txt
           grep -q "Verified using v2 scheme (APK Signature Scheme v2): true" v71.txt
           grep -q "Verified using v2 scheme (APK Signature Scheme v2): true" v72.txt
+          ZIPALIGN=$(ls $ANDROID_HOME/build-tools/*/zipalign | tail -1)
+          $ZIPALIGN -c 4 base71.apk
+          $ZIPALIGN -c 4 target72.apk
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -115,3 +118,35 @@ jobs:
           name: ota-upgrade-verify-evidence
           path: device-evidence/
           retention-days: 7
+
+
+  ota-parse-check:
+    # Fast parse evidence on x86_64 (KVM): the release APK ships arm-only ABIs, so the
+    # emulator CANNOT install it - the expected outcome is INSTALL_FAILED_NO_MATCHING_ABIS,
+    # which proves PackageManager PARSED the package. A parse defect (bad alignment/manifest)
+    # instead fails with INSTALL_PARSE_FAILED_*, which this job treats as failure.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Download published 72 APK
+        run: |
+          curl -sL -o target72.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.27-native/xarena-native.apk
+          echo "efcd8caaf99410aa8ea779405d7f3d940e150236555722b46b4181b5ea240e8b  target72.apk" | sha256sum -c -
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          target: default
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            adb install target72.apk | tee install.txt
+            cat install.txt
+            if grep -q "INSTALL_PARSE_FAILED" install.txt; then exit 1; fi
+            grep -q "INSTALL_FAILED_NO_MATCHING_ABIS" install.txt
