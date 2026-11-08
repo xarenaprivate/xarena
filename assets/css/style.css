@@ -436,3 +436,10 @@ html{overflow-x:clip}
   #xr-splash,#xr-busy{left:0!important;right:auto!important;width:100vw!important;max-width:100vw!important}
   #xr-splash .xs-tip{max-width:100%;overflow-wrap:anywhere}
 }
+/* Keep every desktop navigation item reachable without widening the page. */
+@media(min-width:901px){
+  .nav-in{gap:20px}
+  .nav-in>.brand{flex-shrink:0}
+  .nav-links{min-width:0;flex:1;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin}
+  .nav-links>li{flex-shrink:0}
+}
