@@ -54,3 +54,54 @@ jobs:
           name: native-android-api29-evidence
           path: device-evidence/
           retention-days: 1
+
+  ota-upgrade-verify:
+    # Release-gate: verifies the PUBLISHED OTA assets, not a fresh build.
+    # 1) apksigner v2 verification of the live 71 base and live 72 target APKs.
+    # 2) Real install path: install published 71, then `adb install -r` published 72
+    #    on an API 33 emulator (API 30+ enforces v2 signatures for targetSdk 34).
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Download published APKs
+        run: |
+          curl -sL -o base71.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.26-native/xarena-native.apk
+          curl -sL -o target72.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.27-native/xarena-native.apk
+          sha256sum base71.apk target72.apk
+          echo "122448cf23265cd70c86f4737e383ddcd364921b3406b6c1e7857e753c262254  base71.apk" | sha256sum -c -
+          echo "1834ef1582726b070392994d596871b8111110bec8730bde12d983b40266cacb  target72.apk" | sha256sum -c -
+      - name: Verify v2 signature scheme on both APKs
+        run: |
+          APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | tail -1)
+          $APKSIGNER verify --verbose base71.apk | tee v71.txt
+          $APKSIGNER verify --verbose target72.apk | tee v72.txt
+          grep -q "Verified using v2 scheme (APK Signature Scheme v2): true" v71.txt
+          grep -q "Verified using v2 scheme (APK Signature Scheme v2): true" v72.txt
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          arch: x86_64
+          target: default
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            adb install base71.apk | tee install71.txt
+            grep -q Success install71.txt
+            adb shell dumpsys package app.xarena.esports.native | grep -m1 versionCode
+            adb install -r target72.apk | tee install72.txt
+            grep -q Success install72.txt
+            adb shell dumpsys package app.xarena.esports.native | grep -m1 "versionCode=72"
+            mkdir -p device-evidence
+            adb shell dumpsys package app.xarena.esports.native | grep -E "versionCode|signatures|Signer" > device-evidence/post-upgrade.txt || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ota-upgrade-verify-evidence
+          path: device-evidence/
+          retention-days: 7
