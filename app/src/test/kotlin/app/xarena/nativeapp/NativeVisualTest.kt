@@ -80,6 +80,12 @@ class NativeVisualTest {
             HomeClanRoomOption {}
         } } }
     }
+    @Test fun bottomNavNewDesign() {
+        paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
+            Spacer(Modifier.weight(1f))
+            MainBottomNav(2) {}
+        } } }
+    }
     @Test fun tournamentCardShowsPerCardRegister() {
         Api.init(paparazzi.context)
         paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {

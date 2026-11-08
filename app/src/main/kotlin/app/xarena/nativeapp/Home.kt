@@ -97,7 +97,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
             }
             item { WinnersStrip { onOpenFeature("winners") } }
             item { SpotlightsRow { f -> onOpenFeature(f) } }
-            item { TopSquadsCard({ onGoTab(5) }, { id -> onOpenFeature("squadprofile:" + id) }) }
+            item { TopSquadsCard({ onOpenFeature("board") }, { id -> onOpenFeature("squadprofile:" + id) }) }
             item { WeeklyClipCard() }
             item {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {

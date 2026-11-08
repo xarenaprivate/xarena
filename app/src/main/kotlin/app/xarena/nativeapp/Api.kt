@@ -39,25 +39,16 @@ object Api {
         return code to text
     }
 
-    private fun saveSession(j: JSONObject) {
+    private fun saveSession(j: JSONObject, persist: Boolean = true) {
         access = j.getString("access_token")
         uid = j.getJSONObject("user").getString("id")
-        prefs.edit().putString("access", access).putString("refresh", j.s("refresh_token"))
+        if (persist) prefs.edit().putString("access", access).putString("refresh", j.s("refresh_token"))
             .putString("uid", uid).apply()
     }
-
-    /** Same rule as the website's normPhone(): 10 digits -> "91"+digits, or already 91XXXXXXXXXX. */
-    private fun normPhone(v: String): String? {
-        val d = v.filter { it.isDigit() }
-        if (Regex("^[6-9][0-9]{9}$").matches(d)) return "91" + d
-        if (Regex("^91[6-9][0-9]{9}$").matches(d)) return d
-        return null
-    }
-
-    suspend fun login(identifier: String, password: String) = try { loginInner(identifier, password) }
+    suspend fun login(identifier: String, password: String, persist: Boolean = true) = try { loginInner(identifier, password, persist) }
         catch (e: java.io.IOException) { throw ApiError("Network problem - check your internet and try again.") }
 
-    private suspend fun loginInner(identifier: String, password: String) = withContext(Dispatchers.IO) {
+    private suspend fun loginInner(identifier: String, password: String, persist: Boolean) = withContext(Dispatchers.IO) {
         val id = identifier.trim()
         val email = if (id.contains("@")) id else {
             val ph = normPhone(id) ?: throw ApiError("Enter your 10-digit phone number or email.")
@@ -66,8 +57,28 @@ object Api {
         val (code, text) = call("POST", "/auth/v1/token?grant_type=password",
             JSONObject().put("email", email).put("password", password), null)
         if (code !in 200..299) throw ApiError(if (code == 400) "Wrong phone/email or password." else "Login failed ($code).")
-        saveSession(JSONObject(text))
+        saveSession(JSONObject(text), persist)
         bindDevice()
+    }
+
+    /** Google sign-in: exchange a Google ID token (native Credential Manager) for a Supabase session. */
+    suspend fun loginWithGoogle(idToken: String, persist: Boolean = true) = withContext(Dispatchers.IO) {
+        val (code, text) = call("POST", "/auth/v1/token?grant_type=id_token",
+            JSONObject().put("provider", "google").put("id_token", idToken), null)
+        if (code !in 200..299) {
+            val j = runCatching { JSONObject(text) }.getOrNull()
+            throw ApiError(j?.optString("error_description")?.ifBlank { null } ?: j?.optString("msg")?.ifBlank { null } ?: "Google sign-in failed ($code).")
+        }
+        saveSession(JSONObject(text), persist)
+        bindDevice()
+    }
+
+    /** Same rule as the website's normPhone(): 10 digits -> "91"+digits, or already 91XXXXXXXXXX. */
+    private fun normPhone(v: String): String? {
+        val d = v.filter { it.isDigit() }
+        if (Regex("^[6-9][0-9]{9}$").matches(d)) return "91" + d
+        if (Regex("^91[6-9][0-9]{9}$").matches(d)) return d
+        return null
     }
 
     /** Phone signup identical to the site: phone_available check, then Supabase signup with phone metadata. */

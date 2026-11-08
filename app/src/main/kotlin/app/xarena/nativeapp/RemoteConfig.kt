@@ -34,4 +34,7 @@ object RemoteConfig {
         cached?.optJSONObject("announcement")?.takeIf { it.optBoolean("active") && it.s("text").isNotBlank() }
     fun minVersionCode(): Int = cached?.optInt("min_version_code", 0) ?: 0
     fun featureEnabled(id: String): Boolean = cached?.optJSONObject("features")?.optBoolean(id, true) ?: true
+
+    /** Web OAuth client ID for native Google sign-in (Supabase Google provider). Empty = not set up yet. */
+    fun googleWebClientId(): String = cached?.optString("google_web_client_id", "") ?: ""
 }

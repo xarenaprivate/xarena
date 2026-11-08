@@ -316,28 +316,85 @@ fun AuthCard(title: String, content: @Composable ColumnScope.() -> Unit) {
 fun LoginScreen(onDone: () -> Unit, onGoSignup: () -> Unit) {
     var id by remember { mutableStateOf("") }
     var pw by remember { mutableStateOf("") }
+    var showPw by remember { mutableStateOf(false) }
+    var rememberMe by remember { mutableStateOf(true) }
     var busy by remember { mutableStateOf(false) }
     var err by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    val ctx = LocalContext.current
     var recovery by remember { mutableStateOf(false) }
     if (recovery) RecoveryDialog(false) { recovery = false }
-    AuthCard("Login") {
-        OutlinedTextField(id, { id = it }, label = { Text("Phone number or email") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        Spacer(Modifier.height(10.dp))
-        OutlinedTextField(pw, { pw = it }, label = { Text("Password") }, singleLine = true, visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
-        err?.let { Spacer(Modifier.height(8.dp)); Text(it, color = ErrRed, fontSize = 13.sp) }
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.Center) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Image(painter = painterResource(R.drawable.xarena_logo), contentDescription = "XARENA",
+                modifier = Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)))
+            Spacer(Modifier.width(10.dp))
+            Text("XARENA", color = Gold2, fontSize = 20.sp, fontWeight = FontWeight.Black)
+        }
+        Spacer(Modifier.height(24.dp))
+        Text("WELCOME, WARRIOR", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
+        Text("Join the Arena", color = Color.White, fontSize = 30.sp, fontWeight = FontWeight.Black)
+        Spacer(Modifier.height(6.dp))
+        Text("Free account. Register squads, unlock match rooms and earn Arena Points.", color = Muted, fontSize = 13.sp)
+        Spacer(Modifier.height(18.dp))
+        Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Card).padding(4.dp)) {
+            Box(Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).background(Brush.horizontalGradient(listOf(Gold2, Gold))).padding(vertical = 10.dp), contentAlignment = Alignment.Center) {
+                Text("LOG IN", color = Color(0xFF2A1400), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            }
+            Box(Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).clickable { onGoSignup() }.padding(vertical = 10.dp), contentAlignment = Alignment.Center) {
+                Text("SIGN UP", color = Muted, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            }
+        }
         Spacer(Modifier.height(16.dp))
-        GoldButton(if (busy) "LOGGING IN..." else "LOGIN", enabled = !busy && id.isNotBlank() && pw.length >= 6) {
+        OutlinedTextField(id, { id = it }, label = { Text("Phone number or email") }, singleLine = true,
+            leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = Muted) }, modifier = Modifier.fillMaxWidth())
+        Spacer(Modifier.height(10.dp))
+        OutlinedTextField(pw, { pw = it }, label = { Text("Password") }, singleLine = true,
+            visualTransformation = if (showPw) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = Muted) },
+            trailingIcon = { Text(if (showPw) "HIDE" else "SHOW", color = Gold2, fontSize = 12.sp, modifier = Modifier.clickable { showPw = !showPw }.padding(8.dp)) },
+            modifier = Modifier.fillMaxWidth())
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(rememberMe, { rememberMe = it })
+            Text("Remember me", color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f))
+            Text("Forgot password?", color = Gold2, fontSize = 13.sp, modifier = Modifier.clickable { recovery = true }.padding(4.dp))
+        }
+        err?.let { Spacer(Modifier.height(6.dp)); Text(it, color = ErrRed, fontSize = 13.sp) }
+        Spacer(Modifier.height(10.dp))
+        GoldButton(if (busy) "ENTERING..." else "ENTER ARENA", enabled = !busy && id.isNotBlank() && pw.length >= 6) {
             busy = true; err = null
             scope.launch {
-                try { Api.login(id, pw); onDone() } catch (e: Exception) { err = e.message ?: "Login failed." }
+                try { Api.login(id, pw, rememberMe); onDone() } catch (e: Exception) { err = e.message ?: "Login failed." }
                 busy = false
             }
         }
-        Spacer(Modifier.height(10.dp))
-        Text("Forgot password?", color = Gold2, modifier = Modifier.clickable { recovery = true }.padding(vertical = 8.dp))
-        Text("New player? Create a free account", color = Gold2, fontSize = 13.sp, modifier = Modifier.clickable { onGoSignup() })
+        Spacer(Modifier.height(14.dp))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.weight(1f).height(1.dp).background(Color(0x22FFFFFF)))
+            Text("  OR  ", color = Muted, fontSize = 12.sp)
+            Box(Modifier.weight(1f).height(1.dp).background(Color(0x22FFFFFF)))
+        }
+        Spacer(Modifier.height(14.dp))
+        Box(Modifier.fillMaxWidth().height(52.dp).clip(RoundedCornerShape(14.dp)).border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(14.dp))
+            .clickable(enabled = !busy) {
+                busy = true; err = null
+                scope.launch {
+                    try {
+                        runCatching { RemoteConfig.get() }
+                        val tok = GoogleAuth.signIn(ctx as android.app.Activity)
+                        Api.loginWithGoogle(tok, rememberMe); onDone()
+                    } catch (e: androidx.credentials.exceptions.GetCredentialCancellationException) {
+                        err = null
+                    } catch (e: Exception) { err = e.message ?: "Google sign-in failed." }
+                    busy = false
+                }
+            }, contentAlignment = Alignment.Center) {
+            Text("CONTINUE WITH GOOGLE", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        }
+        Spacer(Modifier.height(12.dp))
+        Text("Recover account with your saved recovery key", color = Muted, fontSize = 12.sp,
+            modifier = Modifier.align(Alignment.CenterHorizontally).clickable { recovery = true }.padding(6.dp))
     }
 }
 
@@ -412,7 +469,7 @@ fun HomeShell(onLogout: () -> Unit) {
     var feature by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(MainActivity.pendingOpen) {
         when (MainActivity.pendingOpen) {
-            "voice" -> tab = 3; "live" -> tab = 2; "notifications" -> feature = "notifications"; "messages" -> feature = "messages"; "squads" -> feature = "squads"
+            "voice" -> feature = "voice"; "live" -> tab = 2; "notifications" -> feature = "notifications"; "messages" -> feature = "messages"; "squads" -> feature = "squads"
         }
         if (MainActivity.pendingOpen != null) MainActivity.pendingOpen = null
     }
@@ -424,9 +481,6 @@ fun HomeShell(onLogout: () -> Unit) {
     }
     var conv by remember { mutableStateOf<DmConv?>(null) }
     var playerId by remember { mutableStateOf<String?>(null) }
-    val tabs = listOf(
-        Txt.t("Home", "Home") to Icons.Default.Home, Txt.t("Feed", "Feed") to Icons.Default.FavoriteBorder, Txt.t("Live", "LIVE") to Icons.Default.PlayArrow, Txt.t("Voice", "Voice") to Icons.Default.Call, Txt.t("Tournaments", "Tournaments") to Icons.Default.Star, Txt.t("Board", "Board") to Icons.Default.List,
-        "More" to Icons.Default.Menu)
     val c = conv
     if (c != null) { BackHandler { conv = null }; ConversationScreen(c.threadId, c.peerId, c.peerName, c.status, c.reqByMe) { conv = null }; return }
     val pid = playerId
@@ -489,9 +543,10 @@ fun HomeShell(onLogout: () -> Unit) {
         "voice" -> { VoiceScreen(onBack = { feature = null }); return }
         "creator" -> { CreatorScreen(onBack = { feature = null }); return }
         "donate" -> { DonateScreen(onBack = { feature = null }); return }
-        "chat" -> { ChatScreen(onGoTab = { i -> when (i) { 1 -> { feature = null; tab = 4 }; 2 -> { feature = null; tab = 5 }; else -> feature = "squads" } }, onBack = { feature = null }); return }
+        "chat" -> { ChatScreen(onGoTab = { i -> when (i) { 1 -> { feature = null; tab = 1 }; 2 -> feature = "board"; else -> feature = "squads" } }, onBack = { feature = null }); return }
         "luna" -> { LunaScreen(onBack = { feature = null }); return }
         "squads" -> { SquadsScreen(onBack = { feature = null }); return }
+        "board" -> { LeaderboardScreen(); return }
         "store" -> { StoreScreen(onBack = { feature = null }); return }
         "profile" -> { ProfileScreen(onLogout, onBack = { feature = null }); return }
         "arena3d" -> { Arena3DScreen(onBack = { feature = null }); return }
@@ -552,15 +607,38 @@ fun HomeShell(onLogout: () -> Unit) {
         }
         BackHandler(enabled = tab != 0) { tab = 0 }
         Box(Modifier.weight(1f)) {
-            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> FeedScreen(onBack = { tab = 0 }); 2 -> LiveScreen(onBack = { tab = 0 }); 3 -> VoiceScreen(onBack = { tab = 0 }); 4 -> TournamentsScreen(); 5 -> LeaderboardScreen(); else -> MoreGrid { feature = it } }
+            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> TournamentsScreen(); 2 -> LiveScreen(onBack = { tab = 0 }); 3 -> ChatScreen(onGoTab = { i -> when (i) { 1 -> tab = 1; 2 -> feature = "board"; else -> feature = "squads" } }); 4 -> ProfileScreen(onLogout, onBack = { tab = 0 }); else -> MoreGrid { feature = it } }
         }
-        Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(vertical = 6.dp)) {
-            tabs.forEachIndexed { i, (label, icon) ->
-                Column(Modifier.width(78.dp).clickable { tab = i }.padding(vertical = 6.dp, horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(icon, contentDescription = label, tint = if (tab == i) Gold else Muted, modifier = Modifier.size(20.dp))
-                    Spacer(Modifier.height(2.dp))
-                    Text(label, color = if (tab == i) Gold else Muted, fontSize = 11.sp, maxLines = 1, fontWeight = if (tab == i) FontWeight.Bold else FontWeight.Medium)
+        MainBottomNav(tab) { tab = it }
+    }
+}
+
+// Bottom nav per the new design: Home, Tournaments, raised Live orb, Chat, Profile, More. Old theme colors.
+@Composable
+fun MainBottomNav(tab: Int, onSelect: (Int) -> Unit) {
+    val tabs = listOf(
+        Txt.t("Home", "Home") to Icons.Default.Home,
+        Txt.t("Tournaments", "Tournaments") to Icons.Default.Star,
+        Txt.t("Live", "LIVE") to Icons.Default.PlayArrow,
+        Txt.t("Chat", "Chat") to Icons.Default.MailOutline,
+        Txt.t("Profile", "Profile") to Icons.Default.Person,
+        "More" to Icons.Default.Menu)
+    Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(bottom = 6.dp)) {
+        tabs.forEachIndexed { i, (label, icon) ->
+            Column(Modifier.weight(1f).clickable { onSelect(i) }.padding(top = 6.dp, bottom = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(Modifier.height(28.dp), contentAlignment = Alignment.Center) {
+                    if (i == 2) {
+                        Box(Modifier.offset(y = (-12).dp).size(46.dp).clip(CircleShape)
+                            .background(Brush.horizontalGradient(listOf(Gold2, Gold)))
+                            .border(3.dp, Color(0xFF1A0E33), CircleShape), contentAlignment = Alignment.Center) {
+                            Icon(icon, contentDescription = label, tint = Color(0xFF2A1400), modifier = Modifier.size(24.dp))
+                        }
+                    } else {
+                        Icon(icon, contentDescription = label, tint = if (tab == i) Gold else Muted, modifier = Modifier.size(20.dp))
+                    }
                 }
+                Spacer(Modifier.height(2.dp))
+                Text(label, color = if (tab == i) Gold else Muted, fontSize = 11.sp, maxLines = 1, fontWeight = if (tab == i) FontWeight.Bold else FontWeight.Medium)
             }
         }
     }
@@ -580,6 +658,7 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("creator", "Creator", "Host free tournaments, sponsors, city team", Icons.Default.Star),
         GridItem("luna", "Luna", "AI analyst and caster", Icons.Default.Face),
         GridItem("squads", "Squads", "Find or build your squad", Icons.Default.AccountBox),
+        GridItem("board", "Leaderboard", "Top squads and players", Icons.Default.List),
         GridItem("store", "Store", "Spend AP on real rewards", Icons.Default.ShoppingCart),
         GridItem("profile", "Profile", "Your account and settings", Icons.Default.Person),
         GridItem("messages", "Messages", "Private end-to-end encrypted chats", Icons.Default.Email),
