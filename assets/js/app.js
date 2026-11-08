@@ -1,7 +1,34 @@
-/* Registration target tournament: site_settings key reg_tournament {id} (default xr-s1 = unchanged behaviour). */
-window.__xrRegT = "xr-s1";
-function xrRegT() { return window.__xrRegT || "xr-s1"; }
-try { fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/site_settings?key=eq.reg_tournament&select=value", { headers: { apikey: "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7" } }).then(function (r) { return r.json(); }).then(function (r) { var v = r && r[0] && r[0].value; if (v && /^[a-z0-9-]{2,40}$/.test(v.id || "")) window.__xrRegT = v.id; }).catch(function () {}); } catch (e) {}
+/* Selected tournament IDs are opaque server strings. Do not normalize their case or spaces. */
+function xrValidTournamentId(id) { return typeof id === "string" && id.length > 0 && id.length <= 200 && !/[\u0000-\u001f\u007f]/.test(id); }
+function xrRegistrationUrl(id) { return "tournaments.html?tournament=" + encodeURIComponent(id) + "#register"; }
+window.__xrRegT = null;
+function xrRegT() { return window.__xrRegT; }
+window.xrRegReady = (function () {
+  var selected = new URLSearchParams(location.search).get("tournament");
+  if (selected !== null) {
+    if (xrValidTournamentId(selected)) window.__xrRegT = selected;
+    return Promise.resolve(window.__xrRegT);
+  }
+  return fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/site_settings?key=eq.reg_tournament&select=value", { headers: { apikey: "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7" } })
+    .then(function (r) { if (!r.ok) throw new Error("Could not load tournament selection."); return r.json(); })
+    .then(function (r) { var id = r && r[0] && r[0].value && r[0].value.id; if (xrValidTournamentId(id)) window.__xrRegT = id; return window.__xrRegT; })
+    .catch(function () { return null; });
+})();
+/* Load one exact event before any registration action or cost routing. Read-only. */
+window.xrRegQuote = window.xrRegReady.then(function (id) {
+  if (!id) throw new Error("Choose a tournament from its Register button.");
+  return fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/tournaments?select=id,name,entry_cost_ap,reg_open,status,slots&id=eq." + encodeURIComponent(id), { headers: { apikey: "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7" } })
+    .then(function (r) { if (!r.ok) throw new Error("Could not check tournament details."); return r.json(); })
+    .then(function (rows) {
+      var event = rows && rows[0];
+      if (!event || event.id !== id) throw new Error("Selected tournament was not found. Choose it again from Tournaments.");
+      var cost = event.entry_cost_ap == null ? 0 : Number(event.entry_cost_ap);
+      if (!Number.isInteger(cost) || cost < 0) throw new Error("Could not confirm the entry cost.");
+      return Object.freeze({id:id,name:event.name || id,cost:cost,open:event.reg_open === true && (event.status === "upcoming" || event.status === "live"),slots:event.slots});
+    });
+});
+/* Attach a rejection handler immediately; the form shows the same error once mounted. */
+window.xrRegQuote.catch(function () {});
 /* Hybrid OS embed mode: pages opened inside Hybrid OS windows hide the website chrome. */
 (function () {
   try {
@@ -65,7 +92,7 @@ try { fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/site_settings?key=
   }
   function tCard(t) {
     var regBtn = t.regOpen
-      ? '<a class="btn btn-red btn-sm" href="tournaments.html#register">Register Squad</a>'
+      ? '<a class="btn btn-red btn-sm" href="' + esc(xrRegistrationUrl(t.id)) + '">Register Squad</a>'
       : '<span class="badge info">REGISTRATION CLOSED</span>';
     return '<article class="card tcard reveal">' +
       '<div class="tcard-top"><h3>' + esc(t.name) + '</h3>' + statusBadge(t) + '</div>' +
@@ -276,12 +303,13 @@ try { fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/site_settings?key=
       if (agree && !agree.checked) { ok = false; xrToast("Please accept the fair-play rules first."); }
       if (!ok) { xrToast("Fix the highlighted fields and try again."); return; }
 
-      var rec = { id: genId(opts.prefix), type: opts.type };
+      var rec = { id: opts.type === "tournament_registration" ? "XR-" + crypto.randomUUID() : genId(opts.prefix), type: opts.type };
       els("[data-req],[data-opt]", form).forEach(function (inp) { rec[inp.name] = (inp.value || "").trim(); });
 
       var btn = el("button[type=submit]", form);
       if (btn) { btn.disabled = true; btn.textContent = "SUBMITTING..."; }
       function done(serverSide, res) {
+        if (serverSide && opts.type === "tournament_registration") saveLocal(opts.store, Object.assign({ at: new Date().toISOString(), tournament_id: xrRegT() }, rec));
         try { sessionStorage.removeItem(pKey); } catch (e) {}
         if (btn) { btn.disabled = false; btn.textContent = opts.btn; }
         var eb = el(".server-err", form); if (eb) eb.style.display = "none";
@@ -306,7 +334,7 @@ try { fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/site_settings?key=
       }
       /* server first when backend is live; local copy always kept */
       var row = opts.row(rec);
-      saveLocal(opts.store, Object.assign({ at: new Date().toISOString() }, rec));
+      if (opts.type !== "tournament_registration") saveLocal(opts.store, Object.assign({ at: new Date().toISOString() }, rec));
       function failMsg(msg) {
         if (btn) { btn.disabled = false; btn.textContent = opts.btn; }
         var eb = el(".server-err", form);
@@ -324,7 +352,9 @@ try { fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/site_settings?key=
           }
           if (res && res.ok) { done(true, res); }
           else { saveLocal("xarena_regs_failed", Object.assign({ at: new Date().toISOString() }, rec)); failMsg((res && res.error) || null); }
-        }).catch(function () { failMsg(null); });
+        }).catch(function (e) { failMsg(e && e.message); });
+      } else if (opts.rpcSubmit) {
+        failMsg("Registration needs a live connection. Nothing was registered. Try again online.");
       } else if (window.xrApi && xrApi.connected) {
         xrApi.submit(opts.table, row).then(function () { done(true); }).catch(function () { done(false); });
       } else {
@@ -371,7 +401,8 @@ try { fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/site_settings?key=
   /* One registration per account: show a "Registered" state instead of the register form/buttons */
   window.addEventListener("load", function () {
     if (!window.xrApi || !xrApi.uRpc) return;
-    xrApi.uRpc("my_registrations", {}).then(function (r) {
+    window.xrRegQuote.then(function (event) { return xrApi.uRpc("my_registrations", {}).then(function (r) { return {event:event,result:r}; }); }).then(function (loaded) {
+      var event = loaded.event, r = loaded.result;
       if (!r || !r.ok) return;
       var mine = (r.registrations || []).filter(function (x) { return x.tournament_id === xrRegT(); })[0];
       if (!mine) return;
@@ -381,34 +412,34 @@ try { fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/site_settings?key=
         var card = document.createElement("div");
         card.style.cssText = "background:rgba(60,200,120,.08);border:1px solid rgba(60,200,120,.4);border-radius:8px;padding:16px;margin:8px 0";
         var h = document.createElement("p"); h.style.cssText = "color:var(--gold2);font-weight:700;letter-spacing:2px;text-transform:uppercase;font-size:13px"; h.textContent = "Registered";
-        var d = document.createElement("p"); d.textContent = "Your squad \u201C" + mine.squad + "\u201D is registered for Season 1. Status: " + st + ". Registration ID: " + mine.id + ". One registration per account.";
+        var d = document.createElement("p"); d.textContent = "Your squad \u201C" + mine.squad + "\u201D is registered for " + event.name + ". Status: " + st + ". Registration ID: " + mine.id + ". One registration per account.";
         card.appendChild(h); card.appendChild(d);
         rf.style.display = "none"; rf.parentNode.insertBefore(card, rf);
       }
-      var markBtns = function () { els('a[href$="tournaments.html#register"]').forEach(function (a) {
+      var markBtns = function () { els('a[href]').filter(function (a) { try { return new URL(a.href, location.href).searchParams.get('tournament') === event.id; } catch (e) { return false; } }).forEach(function (a) {
         a.textContent = "Registered \u2713"; a.classList.add("disabled"); a.setAttribute("aria-disabled", "true");
       }); };
       markBtns(); setTimeout(markBtns, 1500); setTimeout(markBtns, 4000);
     }).catch(function () {});
   });
 
-  /* optional AP entry cost (additive): free tournaments keep the exact register_squad path */
-  var xrEntryCost = 0;
+  /* Show selected event and exact AP quote. A failed quote never becomes a free entry. */
   window.addEventListener("load", function () {
     var rf = document.getElementById("reg-form");
     if (!rf) return;
-    try {
-      fetch(xrApi.url + "/rest/v1/tournaments?select=entry_cost_ap&id=eq." + xrRegT(), { headers: { apikey: "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7" } })
-        .then(function (r) { return r.json(); }).then(function (d) {
-          var c = d && d[0] && parseInt(d[0].entry_cost_ap, 10);
-          if (!(c > 0)) return;
-          xrEntryCost = c;
-          var n = document.createElement("div");
-          n.style.cssText = "background:rgba(255,200,60,.08);border:1px solid rgba(255,200,60,.35);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px";
-          n.textContent = "Entry cost: " + c + " AP (Arena Points). It is deducted from your AP balance when you register, and refunded if your registration is rejected or cancelled.";
-          rf.parentNode.insertBefore(n, rf);
-        }).catch(function () {});
-    } catch (e) {}
+    var btn = rf.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    window.xrRegQuote.then(function (event) {
+      var title = document.getElementById("xr-reg-title"), info = document.getElementById("xr-reg-info");
+      if (title) title.textContent = event.name + " - Squad Registration";
+      if (info) info.textContent = event.open ? "Registration is open for this tournament. One registration per account per tournament." : "Registration is closed for this tournament.";
+      var share = document.querySelector("#reg-success [data-xr-share]");
+      if (share) { share.dataset.title = "My XARENA squad registration"; share.dataset.text = "My squad registration for " + event.name + ". Check the tournament page for current details:"; share.dataset.url = new URL(xrRegistrationUrl(event.id),location.href).href; }
+      var n = document.createElement("div"); n.className = "xr-entry-quote";
+      n.style.cssText = "padding:10px 14px;margin-bottom:14px;font-size:13px;border:1px solid #8885;border-radius:8px";
+      n.textContent = event.cost > 0 ? "Entry cost: " + event.cost + " AP (Arena Points). It is deducted when you register, and refunded if the registration is rejected or cancelled." : "Free entry. No AP is charged.";
+      rf.parentNode.insertBefore(n,rf);btn.disabled = !event.open;
+    }).catch(function (e) { var eb = rf.querySelector(".server-err");if(eb){eb.textContent=e.message;eb.style.display="block";}btn.disabled=true; });
   });
 
   bindForm("reg-form", {
@@ -418,11 +449,14 @@ try { fetch("https://oskccuajgbyabogbvedj.supabase.co/rest/v1/site_settings?key=
     rpcSubmit: function (rec) {
       var fileInput = el("#proof");
       var file = fileInput && fileInput.files && fileInput.files[0];
-      return uploadProof(rec.id, file).then(function (proofPath) {
-        return xrApi.uRpc(xrEntryCost > 0 ? "enter_tournament_with_ap" : "register_squad", {
-          p_id: rec.id, p_tournament: xrRegT(), p_squad: rec.squad, p_captain: rec.captain,
+      return window.xrRegQuote.then(function (event) {
+        if (!event.open) throw new Error("Registration is closed for this tournament.");
+        return uploadProof(rec.id, file).then(function (proofPath) {
+        return xrApi.uRpc(event.cost > 0 ? "enter_tournament_with_ap" : "register_squad", {
+          p_id: rec.id, p_tournament: event.id, p_squad: rec.squad, p_captain: rec.captain,
           p_uid: rec.uid, p_ign: rec.captain, p_phone: rec.phone, p_proof: proofPath,
           p_client: deviceId(), p_ip: null
+        });
         });
       });
     }
