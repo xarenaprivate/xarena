@@ -455,3 +455,18 @@ html{overflow-x:clip}
   .nav-links{height:64px}
   .nav-links a img{display:inline-block}
 }
+/* Break long footer link lists into readable columns without removing destinations. */
+.foot-grid>div:not(.foot-brand)>ul{display:block;columns:2;column-gap:22px}
+.foot-grid>div:not(.foot-brand)>ul>li{break-inside:avoid;margin-bottom:9px}
+@media(min-width:901px){.foot-grid{grid-template-columns:1.2fr 1.6fr 1fr}}
+@media(max-width:420px){.foot-grid>div:not(.foot-brand)>ul{column-gap:16px}}
+@media(min-width:901px){
+ .nav-links{overflow:visible;justify-content:flex-end;gap:0}
+ .nav-links>a,.nav-links>li>a{font-size:13px;padding:8px 9px;letter-spacing:1px}
+ .xr-nav-more{position:relative;list-style:none}
+ .xr-nav-more summary{cursor:pointer;color:var(--text);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:8px 12px}
+ .xr-nav-more-list{position:absolute;right:0;top:100%;width:300px;max-height:calc(100dvh - 85px);overflow-y:auto;list-style:none;padding:12px;border:1px solid var(--line2);border-radius:12px;background:var(--bg1);box-shadow:0 12px 32px #0007;z-index:100}
+ .xr-nav-more-list a{display:block;min-height:44px;white-space:normal}
+ .xr-nav-more-list .nav-cta{margin:8px 0 0;flex-wrap:wrap}
+ body.look-liquid .xr-nav-more-list{background:#f9f9fb}
+}

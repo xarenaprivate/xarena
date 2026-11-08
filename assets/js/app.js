@@ -906,3 +906,28 @@ window.xrUploadTeamLogo = function (file) {
     try { window.XarenaApp.logJsError("promise: " + String((e.reason && e.reason.message) || e.reason || "").slice(0, 120)); } catch (x) {}
   });
 })();
+
+/* Optional floating shortcuts must not cover a focused phone form. */
+(function(){
+ document.addEventListener("focusin",function(e){if(e.target.closest("form"))document.body.classList.add("xr-form-focus");});
+ document.addEventListener("focusout",function(){setTimeout(function(){if(!document.activeElement.closest("form"))document.body.classList.remove("xr-form-focus");},0);});
+})();
+/* Keep core desktop destinations visible; preserve every other route under More. */
+(function(){
+ var nav=document.querySelector('.nav-links');if(!nav||!window.matchMedia)return;
+ var original=Array.prototype.slice.call(nav.children),mq=matchMedia('(min-width:901px)'),more=null;
+ var primary=['index.html','tournaments.html','squads.html','leaderboard.html','live.html','account.html'];
+ function arrange(){
+  if(more){original.forEach(function(li){nav.appendChild(li);});more.remove();more=null;}
+  if(!mq.matches)return;
+  more=document.createElement('li');more.className='xr-nav-more';
+  var details=document.createElement('details'),summary=document.createElement('summary'),list=document.createElement('ul');
+  summary.textContent='More';list.className='xr-nav-more-list';details.append(summary,list);more.append(details);
+  original.forEach(function(li){var a=li.querySelector('a'),path=a&&new URL(a.href,location.href).pathname.split('/').pop();if(!primary.includes(path)||li.classList.contains('nav-cta'))list.appendChild(li);});
+  nav.appendChild(more);
+  list.addEventListener('click',function(e){if(e.target.closest('a'))details.open=false;});
+ }
+ arrange();if(mq.addEventListener)mq.addEventListener('change',arrange);else mq.addListener(arrange);
+ document.addEventListener('click',function(e){if(more&&!more.contains(e.target))more.querySelector('details').open=false;});
+ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&more)more.querySelector('details').open=false;});
+})();

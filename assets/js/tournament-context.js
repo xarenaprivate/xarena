@@ -9,10 +9,10 @@
   function txt(el, value) { if (el) el.textContent = value; }
   function ready() {
     document.addEventListener('focusin', function (e) {
-      if (e.target.closest('#reg-form')) document.body.classList.add('xr-form-focus');
+      if (e.target.closest('form')) document.body.classList.add('xr-form-focus');
     });
     document.addEventListener('focusout', function () {
-      setTimeout(function () { if (!document.activeElement.closest('#reg-form')) document.body.classList.remove('xr-form-focus'); }, 0);
+      setTimeout(function () { if (!document.activeElement.closest('form')) document.body.classList.remove('xr-form-focus'); }, 0);
     });
     if (selected === null || !window.xrRegQuote) return;
     var section = document.getElementById('register');

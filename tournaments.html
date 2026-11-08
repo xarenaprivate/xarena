@@ -31,7 +31,7 @@
 <meta name="apple-mobile-web-app-title" content="XARENA">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="icon" type="image/png" href="assets/favicon-64.png">
-<link rel="stylesheet" href="assets/css/style.css?v=20261108-audit2">
+<link rel="stylesheet" href="assets/css/style.css?v=20261108-audit3">
 <link rel="stylesheet" href="assets/css/app-shell.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"CollectionPage","name":"XARENA Tournaments","url":"https://xarenaprivate.github.io/xarena/tournaments.html","description":"Tournament registration, match rooms and published results."}</script>
 </head>
@@ -129,7 +129,7 @@
       <li><b>Mode:</b> Squad Battle Royale (4 players per squad, up to 2 substitutes).</li>
       <li><b>Structure:</b> 48 squads split into 3 qualifier groups. Top 16 overall advance to the Grand Finals.</li>
       <li><b>Points:</b> placement points + 1 point per kill. Full points table published before match day.</li>
-      <li><b>Fair play:</b> no hacks, no teaming, no emulators unless the lobby is marked emulator-allowed. Violations = instant disqualification.</li>
+      <li><b>Fair play:</b> no hacks, no teaming, no emulators unless the lobby is marked emulator-allowed. Penalties follow the published Rules and Regulations.</li>
       <li><b>Schedule &amp; prize pool:</b> revealed on this page as soon as registrations close — announced by the management, never guessed.</li>
     </ul>
   </div>
@@ -165,7 +165,7 @@
         <div class="field"><label for="uid">Captain Free Fire UID</label><input id="uid" name="uid" data-req data-pattern="^[0-9]{8,12}$" inputmode="numeric" placeholder="8–12 digit UID"><div class="err">Enter a valid 8–12 digit Free Fire UID.</div></div>
         <div class="field"><label for="phone">WhatsApp number</label><input id="phone" name="phone" data-req data-pattern="^[0-9]{10}$" inputmode="numeric" placeholder="10-digit mobile"><div class="err">Enter a valid 10-digit number.</div></div>
       </div>
-      <label class="check"><input type="checkbox" data-agree> <span>We accept the <a href="rules.html" style="color:var(--gold2)">XARENA Rules and Regulations</a> — no hacks, no teaming, no match-fixing. Violations mean instant disqualification.</span></label>
+      <label class="check"><input type="checkbox" data-agree> <span>We accept the <a href="rules.html" style="color:var(--gold2)">XARENA Rules and Regulations</a> — no hacks, no teaming, no match-fixing. Penalties follow the published rules, including warnings for small offences and bans for cheating or fake proof.</span></label>
       <div class="field" style="margin-top:14px"><label for="proof">UID screenshot proof (required)</label><input id="proof" name="proof" type="file" accept="image/*" data-req style="padding:12px"><div class="err">Attach a screenshot of your Free Fire profile showing the UID.</div>
       <p style="color:var(--muted);font-size:12px;margin-top:6px">Image screenshot, maximum 8 MB. Take a screenshot of your Free Fire lobby profile with your UID visible. The owner personally verifies it — that is the only way to get the VERIFIED badge. Fake proof = rejected + reported.</p></div>
       <div class="server-err" style="display:none;background:rgba(225,6,0,.12);border:1px solid var(--red);color:#ffb4ae;padding:10px 14px;margin:12px 0;font-size:14px;border-radius:6px"></div>
@@ -529,8 +529,8 @@ window.addEventListener("load", function () {
 </div>
 </div></footer>
 <script src="assets/js/data.js" defer></script>
-<script src="assets/js/app.js?v=20261108-audit1" defer></script>
-<script src="assets/js/tournament-context.js?v=20261108-audit1" defer></script>
+<script src="assets/js/app.js?v=20261108-audit3" defer></script>
+<script src="assets/js/tournament-context.js?v=20261108-audit3" defer></script>
 <script src="assets/js/vendor/supabase.min.js" defer></script>
 <script src="assets/js/vendor/qrcode.min.js" defer></script>
 <script src="assets/js/api.js?v=20261108-audit1" defer></script>
