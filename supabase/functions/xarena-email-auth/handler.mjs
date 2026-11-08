@@ -40,7 +40,7 @@ export function makeHandler({rpc,adminCreate,adminReset,deliver,pepper,enabled=f
     if(b.action==='recovery_verify'){
      if(!reserved.user_id)return response({ok:false,error:'Recovery could not be completed.'},400);
      try{
-      const reset=await adminReset(reserved.user_id,b.password,reserved.email);
+      const reset=await adminReset(reserved.user_id,b.password,reserved.email,operation);
       if(!reset.ok)throw Error('Reset failed');
       const finish=await rpc('xr_email_finish',{p_id:b.challenge_id,p_operation:operation,p_user:reserved.user_id,p_state:'recovered'});
       if(!finish.ok)throw Error('Reset result ambiguous');

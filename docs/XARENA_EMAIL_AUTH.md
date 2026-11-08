@@ -44,3 +44,7 @@ A separately authorized disposable-only test completed three code deliveries: si
 5. Retained shared Auth preclaim behavior needs clear acceptance or a separately scoped migration.
 
 Rollback: turn server flagOFF first. Source-only branch changes do not alter any account. Additive SQL removal is tools-migrations/xarena-email-auth-undo.sql; do not delete real Auth users to roll back this feature.
+
+## Prepared v5 source only
+
+The source on this branch now includes a recovery operation marker for the proposed guard migration. Neither v5 edge changes nor guard/cleanup migrations are deployed. Keep serverOFF. Deploy guard and edge together only after approved provider rollback testing. Guard/cleanup up/undo SQL are separate migration files. Existing installed endpoint remainsv4 until that gate passes. The new-address re-verification flow is still not built.

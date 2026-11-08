@@ -30,3 +30,15 @@ Proposed rollback: featureOFF; remove only the two uniquely named XARENA trigger
 - Forwarded-header trust requirements: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Forwarded-For
 - Local CLI gateway change, not managed-ingress proof: https://github.com/supabase/cli/pull/7345
 - Official Edge example, not an anti-spoofing contract: https://supabase.com/docs/guides/functions/examples/cloudflare-turnstile
+
+## Prepared guard and cleanup checkpoint
+
+Deployed Auth health reports v2.197.0; that exact release source confirms the same transaction layout:
+https://github.com/supabase/auth/blob/v2.197.0/internal/api/admin.go
+https://github.com/supabase/auth/blob/v2.197.0/internal/models/user.go
+
+The guard migration is PREPARED, NOT DEPLOYED. A metadata transition containing a fresh server recovery operation validates a reserved purpose/UUID/address/binding and consumes that operation within the Auth transaction. Finish accepts only the same successful recovered operation. Email changes delete only the affected binding. No immutable-address restriction. Synthetic SQL rollback fixtures pass for password-before-metadata rollback, successful consume, away/back invalidation and ordinary no-binding updates. Actual provider-role execution and provider rollback E2E are still pending authorization for a new disposable-only test. Managed SQL cannot impersonate supabase_auth_admin; no shared-schema permission was widened to bypass that limitation.
+
+Actual PostgreSQL contention test used isolated copies of the current functions and tables: eight parallel same-email starts produced one acceptance and seven cooldown denials; eight parallel same-challenge verifies produced one reservation and seven denials. The fixture schema was removed afterward. No Auth accounts, emails, production quota rows or existing user data were used.
+
+Hourly cleanup migration is also PREPARED, NOT DEPLOYED. Synthetic rollback fixture verified old nonbinding rows removed, bound complete challenge identifiers scrubbed, fresh rows and bindings preserved. pg_cron exists; matching job absent. An hourly cadence would normally make nonbinding retention about49h maximum, not an exact48h guarantee. Cron failures would still require monitoring.
