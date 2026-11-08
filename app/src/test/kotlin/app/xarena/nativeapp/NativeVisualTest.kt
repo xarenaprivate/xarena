@@ -186,4 +186,15 @@ class NativeVisualTest {
         org.junit.Assert.assertTrue(AreaPayload.manual("Bihar", " ").isNull("p_district"))
     }
 
+
+    /* Live tab: owner live_thread flag OFF shows a clear disabled state (no fake comments). */
+    @Test fun liveCommentsOwnerOffFixture() {
+        Api.init(paparazzi.context)
+        paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxWidth().background(Ink)) { LiveComments("fixture-tournament") } } }
+    }
+    /* Live tab: registered-players panel honest unavailable state before the roster RPC responds. */
+    @Test fun liveRosterUnavailableFixture() {
+        Api.init(paparazzi.context)
+        paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxWidth().background(Ink)) { LiveRoster("fixture-tournament") } } }
+    }
 }
