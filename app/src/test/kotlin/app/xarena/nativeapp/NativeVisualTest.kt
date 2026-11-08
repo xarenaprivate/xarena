@@ -80,6 +80,46 @@ class NativeVisualTest {
             HomeClanRoomOption {}
         } } }
     }
+    @Test fun tournamentCardShowsPerCardRegister() {
+        Api.init(paparazzi.context)
+        paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
+            TournamentCard(JSONObject()
+                .put("id", "XR - S2").put("name", "Xarena Season 2").put("mode", "Squad").put("slots", 12)
+                .put("date_text", "Date to be announced").put("prize", "Prize pool TBA")
+                .put("status", "upcoming").put("reg_open", true), false, false) {}
+        } } }
+    }
+    @Test fun registeredReceiptNamesSelectedTournament() {
+        paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
+            RegisteredReceiptCard("Xarena Season 2", JSONObject()
+                .put("id", "XR-9f2a41c7-0000-0000-0000-000000000000").put("squad", "UNDEFEATED")
+                .put("status", "VERIFIED").put("verified", true)) {}
+        } } }
+    }
+    @Test fun registrationFailClosedWithoutTarget() {
+        paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink).padding(20.dp)) {
+            RegisterUnavailable("Tournament registration is not configured right now. Check back soon.") {}
+        } } }
+    }
+    @Test fun regTargetResolutionOpaqueAndFailClosed() {
+        org.junit.Assert.assertEquals("XR - S2", Api.regTargetOrThrow("XR - S2"))
+        org.junit.Assert.assertEquals("xr-5oar", Api.regTargetOrThrow(" xr-5oar "))
+        for (bad in listOf(null, "", "   ")) {
+            try { Api.regTargetOrThrow(bad); org.junit.Assert.fail("expected fail-closed for " + bad) }
+            catch (e: Api.ApiError) { org.junit.Assert.assertTrue(e.message!!.contains("not configured")) }
+        }
+    }
+    @Test fun regTargetUrlEncoding() {
+        org.junit.Assert.assertEquals("XR%20-%20S2", Api.encodeEq("XR - S2"))
+        org.junit.Assert.assertEquals("xr-5oar", Api.encodeEq("xr-5oar"))
+    }
+    @Test fun newRegistrationIdNeutralAndUnique() {
+        val a = Api.newRegistrationId(); val b = Api.newRegistrationId()
+        org.junit.Assert.assertTrue(a.startsWith("XR-"))
+        org.junit.Assert.assertFalse(a.startsWith("XR-S1-"))
+        org.junit.Assert.assertNotEquals(a, b)
+    }
+
     @Test fun manualAreaPayloadNeverContainsCoordinates() {
         val p = AreaPayload.manual("  Bihar  ", "  Munger  ")
         org.junit.Assert.assertEquals("Bihar", p.getString("p_state"))

@@ -235,18 +235,29 @@ object Api {
     }
 
     /* Registration target tournament - resolved from site_settings key reg_tournament {id}, same as the site.
-       Fallback xr-5oar (Ignition Cup, user-confirmed). Cached per process. */
-    @Volatile private var regTCached: String? = null
+       The id is an opaque server value passed through unmodified (no case/space normalization, no legacy
+       fallback). Fails closed: throws when the setting is missing/unreachable instead of silently targeting
+       a past tournament. Not cached, so an admin change is picked up without an app restart. */
     suspend fun regTournament(): String = withContext(Dispatchers.IO) {
-        regTCached?.let { return@withContext it }
         val t = try {
             val a = publicGet("/rest/v1/site_settings?key=eq.reg_tournament&select=value")
-            if (a.length() > 0) a.getJSONObject(0).optJSONObject("value")?.optString("id", "") ?: "" else ""
-        } catch (e: Exception) { "" }
-        val v = if (Regex("^[a-z0-9-]{2,40}$").matches(t)) t else "xr-5oar"
-        regTCached = v
-        v
+            if (a.length() > 0) a.getJSONObject(0).optJSONObject("value")?.optString("id", "") else ""
+        } catch (e: Exception) { null }
+        regTargetOrThrow(t)
     }
+
+    /** Opaque tournament id from settings, or fail closed. Never normalizes or substitutes another tournament. */
+    internal fun regTargetOrThrow(id: String?): String {
+        val t = id?.trim().orEmpty()
+        if (t.isEmpty()) throw ApiError("Tournament registration is not configured right now. Check back soon.")
+        return t
+    }
+
+    /** URL-encode a PostgREST filter value (spaces as %20, not '+'). */
+    internal fun encodeEq(v: String): String = URLEncoder.encode(v, "UTF-8").replace("+", "%20")
+
+    /** New registration id: neutral XR- + UUID. Server ids are opaque TEXT with no season prefix. */
+    internal fun newRegistrationId(): String = "XR-" + java.util.UUID.randomUUID().toString()
 
     suspend fun registerSquad(tournament: String, id: String, squad: String, captain: String, uid: String, phone: String, proofPath: String?): JSONObject =
         withContext(Dispatchers.IO) {
@@ -268,7 +279,7 @@ object Api {
 
     suspend fun tournamentEntryCost(id: String): Int = withContext(Dispatchers.IO) {
         try {
-            val a = publicGet("/rest/v1/tournaments?select=entry_cost_ap&id=eq." + id)
+            val a = publicGet("/rest/v1/tournaments?select=entry_cost_ap&id=eq." + encodeEq(id))
             if (a.length() > 0) a.getJSONObject(0).optInt("entry_cost_ap", 0) else 0
         } catch (e: Exception) { 0 }
     }

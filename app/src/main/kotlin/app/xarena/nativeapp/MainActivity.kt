@@ -728,12 +728,13 @@ fun PanelCard(content: @Composable ColumnScope.() -> Unit) {
 @Composable
 fun TournamentsScreen() {
     var showRegister by remember { mutableStateOf(false) }
+    var regTarget by remember { mutableStateOf<String?>(null) }
     var showMatches by remember { mutableStateOf(false) }
-    if (showRegister) { androidx.activity.compose.BackHandler { showRegister = false }; RegisterScreen(onBack = { showRegister = false }); return }
+    if (showRegister) { androidx.activity.compose.BackHandler { showRegister = false; regTarget = null }; RegisterScreen(onBack = { showRegister = false; regTarget = null }, target = regTarget); return }
     if (showMatches) { androidx.activity.compose.BackHandler { showMatches = false }; MatchCenterScreen(onBack = { showMatches = false }); return }
     Column(Modifier.fillMaxSize()) {
         Brand()
-        Box(Modifier.padding(horizontal = 16.dp, vertical = 2.dp)) { GoldButton(Txt.t("REGISTER YOUR SQUAD", "SQUAD REGISTER KARO")) { showRegister = true } }
+        Box(Modifier.padding(horizontal = 16.dp, vertical = 2.dp)) { GoldButton(Txt.t("REGISTER YOUR SQUAD", "SQUAD REGISTER KARO")) { regTarget = null; showRegister = true } }
         Box(Modifier.padding(horizontal = 16.dp, vertical = 2.dp)) { GoldButton("MATCH CENTER - ROOMS, CHECK-IN, RESULTS") { showMatches = true } }
         LoadState({
             val arr = Api.publicGet("/rest/v1/tournaments?select=id,name,status,slots,prize,date_text,reg_open,mode&order=sort.asc")
@@ -747,21 +748,31 @@ fun TournamentsScreen() {
             val optedOut = d.optJSONArray("opted")?.let { (0 until it.length()).map { i -> it.optString(i) }.toSet() } ?: emptySet()
             if (arr.length() == 0) EmptyNote("No tournaments yet", "Tournaments appear here as soon as the admin creates them.")
             else LazyColumn { items((0 until arr.length()).map { arr.getJSONObject(it) }) { t ->
-                PanelCard {
-                    Text(t.s("name"), color = Gold2, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    Text(t.s("mode") + " - " + t.optInt("slots") + " slots", color = Muted, fontSize = 13.sp)
-                    Spacer(Modifier.height(6.dp))
-                    Text(t.s("date_text"), color = Color.White, fontSize = 14.sp)
-                    Text(t.s("prize"), color = Color.White, fontSize = 14.sp)
-                    Spacer(Modifier.height(6.dp))
-                    Text((t.s("status").uppercase()) + if (t.optBoolean("reg_open")) " - REGISTRATION OPEN" else " - REGISTRATION CLOSED",
-                        color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    if (Api.loggedIn && (t.optBoolean("reg_open") || t.s("status").equals("live", true))) {
-                        Spacer(Modifier.height(8.dp))
-                        MatchReminderRow(t.s("id"), t.s("id") !in optedOut)
-                    }
-                }
+                TournamentCard(t, Api.loggedIn, t.s("id") in optedOut, onRegister = { regTarget = t.s("id"); showRegister = true })
             } }
+        }
+    }
+}
+
+/** One tournament row: details, per-card registration (passes the exact tournament id) and reminder toggle. */
+@Composable
+fun TournamentCard(t: JSONObject, loggedIn: Boolean, optedOut: Boolean, onRegister: () -> Unit) {
+    PanelCard {
+        Text(t.s("name"), color = Gold2, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text(t.s("mode") + " - " + t.optInt("slots") + " slots", color = Muted, fontSize = 13.sp)
+        Spacer(Modifier.height(6.dp))
+        Text(t.s("date_text"), color = Color.White, fontSize = 14.sp)
+        Text(t.s("prize"), color = Color.White, fontSize = 14.sp)
+        Spacer(Modifier.height(6.dp))
+        Text((t.s("status").uppercase()) + if (t.optBoolean("reg_open")) " - REGISTRATION OPEN" else " - REGISTRATION CLOSED",
+            color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        if (t.optBoolean("reg_open")) {
+            Spacer(Modifier.height(8.dp))
+            GoldButton("REGISTER FOR " + t.s("name").uppercase(), onClick = onRegister)
+        }
+        if (loggedIn && (t.optBoolean("reg_open") || t.s("status").equals("live", true))) {
+            Spacer(Modifier.height(8.dp))
+            MatchReminderRow(t.s("id"), !optedOut)
         }
     }
 }

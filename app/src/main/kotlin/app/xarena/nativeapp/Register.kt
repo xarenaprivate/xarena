@@ -30,7 +30,6 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
-import kotlin.random.Random
 
 /** This account's registration for the current target tournament, or null. One account = one registration. */
 private suspend fun findMySeasonReg(target: String): JSONObject? = try {
@@ -55,9 +54,40 @@ private fun regStatusLine(o: JSONObject): String {
     }
 }
 
-/** Tournament squad registration - same fields, proof upload and register_squad RPC as the site's form. */
+/** Receipt card for this account's existing registration in the selected tournament. */
 @Composable
-fun RegisterScreen(onBack: () -> Unit) {
+fun RegisteredReceiptCard(tourneyName: String, reg: JSONObject, onBack: () -> Unit) {
+    PanelCard {
+        Text("REGISTERED - " + tourneyName.uppercase(), color = Color(0xFF4ADE80), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Spacer(Modifier.height(8.dp))
+        Text(reg.s("id"), color = Gold, fontSize = 26.sp, fontWeight = FontWeight.Black)
+        Spacer(Modifier.height(6.dp))
+        Text("Squad: " + reg.s("squad"), color = Color.White, fontSize = 14.sp)
+        Spacer(Modifier.height(4.dp))
+        Text("Status: " + regStatusLine(reg), color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(6.dp))
+        Text("One account gets one registration per tournament. Screenshot your ID - it is your proof of entry.", color = Muted, fontSize = 12.sp)
+        Spacer(Modifier.height(12.dp))
+        GoldButton("BACK TO TOURNAMENTS", onClick = onBack)
+    }
+}
+
+/** Fail-closed state: no tournament target resolved, never opens the wrong tournament. */
+@Composable
+fun RegisterUnavailable(msg: String, onBack: () -> Unit) {
+    PanelCard {
+        Text("Registration unavailable", color = ErrRed, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Spacer(Modifier.height(6.dp))
+        Text(msg, color = Muted, fontSize = 13.sp)
+        Spacer(Modifier.height(12.dp))
+        GoldButton("BACK TO TOURNAMENTS", onClick = onBack)
+    }
+}
+
+/** Tournament squad registration - same fields, proof upload and register_squad RPC as the site's form.
+    [target] is the exact tournament id from the card the user tapped; null resolves the site-wide setting. */
+@Composable
+fun RegisterScreen(onBack: () -> Unit, target: String? = null) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     var squad by remember { mutableStateOf("") }
@@ -76,16 +106,19 @@ fun RegisterScreen(onBack: () -> Unit) {
     var apNote by remember { mutableStateOf<String?>(null) }
     var myReg by remember { mutableStateOf<JSONObject?>(null) }
     var regChecked by remember { mutableStateOf(false) }
-    var regTarget by remember { mutableStateOf("xr-5oar") }
+    var regTarget by remember { mutableStateOf("") }
+    var regErr by remember { mutableStateOf<String?>(null) }
     var tourneyName by remember { mutableStateOf("Tournament") }
     LaunchedEffect(Unit) {
-        regTarget = Api.regTournament()
-        tourneyName = try {
-            val a = Api.publicGet("/rest/v1/tournaments?id=eq." + regTarget + "&select=name")
-            if (a.length() > 0) a.getJSONObject(0).s("name").ifBlank { "Tournament" } else "Tournament"
-        } catch (e: Exception) { "Tournament" }
-        entryCost = Api.tournamentEntryCost(regTarget)
-        myReg = findMySeasonReg(regTarget)
+        regTarget = target ?: (try { Api.regTournament() } catch (e: Exception) { regErr = e.message; "" })
+        if (regTarget.isNotBlank()) {
+            tourneyName = try {
+                val a = Api.publicGet("/rest/v1/tournaments?id=eq." + Api.encodeEq(regTarget) + "&select=name")
+                if (a.length() > 0) a.getJSONObject(0).s("name").ifBlank { "Tournament" } else "Tournament"
+            } catch (e: Exception) { "Tournament" }
+            entryCost = Api.tournamentEntryCost(regTarget)
+            myReg = findMySeasonReg(regTarget)
+        }
         regChecked = true
     }
 
@@ -133,21 +166,12 @@ fun RegisterScreen(onBack: () -> Unit) {
             }
             return@Column
         }
+        if (regChecked && regTarget.isBlank()) {
+            RegisterUnavailable(regErr ?: "The tournament could not be identified. Open registration from the tournament card on the Tournaments page.", onBack)
+            return@Column
+        }
         if (regChecked && myReg != null) {
-            val reg = myReg!!
-            PanelCard {
-                Text("REGISTERED - " + tourneyName.uppercase(), color = Color(0xFF4ADE80), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                Spacer(Modifier.height(8.dp))
-                Text(reg.s("id"), color = Gold, fontSize = 26.sp, fontWeight = FontWeight.Black)
-                Spacer(Modifier.height(6.dp))
-                Text("Squad: " + reg.s("squad"), color = Color.White, fontSize = 14.sp)
-                Spacer(Modifier.height(4.dp))
-                Text("Status: " + regStatusLine(reg), color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(6.dp))
-                Text("One account gets one registration per tournament. Screenshot your ID - it is your proof of entry.", color = Muted, fontSize = 12.sp)
-                Spacer(Modifier.height(12.dp))
-                GoldButton("BACK TO TOURNAMENTS", onClick = onBack)
-            }
+            RegisteredReceiptCard(tourneyName, myReg!!, onBack)
             return@Column
         }
         PanelCard {
@@ -190,7 +214,7 @@ fun RegisterScreen(onBack: () -> Unit) {
                             val existing = findMySeasonReg(regTarget)
                             if (existing != null) { myReg = existing; busy = false; return@launch }
                         }
-                        val regId = "XR-S1-" + Random.nextInt(1000, 10000)
+                        val regId = Api.newRegistrationId()
                         val path = Api.uploadProof(regId, proofBytes!!)
                         val r = if (entryCost > 0) Api.registerSquadAp(regTarget, regId, squad.trim(), captain.trim(), uid, phone, path)
                             else Api.registerSquad(regTarget, regId, squad.trim(), captain.trim(), uid, phone, path)
