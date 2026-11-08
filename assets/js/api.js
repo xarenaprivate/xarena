@@ -111,7 +111,40 @@
       regOpen: t.reg_open, format: t.format, description: t.description
     };
   }
+  function publicCache() {
+    try { var c = JSON.parse(localStorage.getItem("xr_cache_public") || "null"); return c && c.data && typeof c.data === "object" ? c : null; } catch (e) { return null; }
+  }
+  function paintPublic(data, state) {
+    var D = window.XARENA; if (!D) return;
+    Object.keys(data).forEach(function (k) {
+      var v = data[k]; if (!Array.isArray(v)) return;
+      if (k === "tournaments") D.tournaments = v.map(mapTournament);
+      if (k === "news") D.news = v.map(function (n) { return { date: (n.published_at || "").slice(0, 10), tag: n.tag, title: n.title, body: n.body }; });
+      if (k === "scrims") D.scrims = v.map(function (r) { return { title: r.title, day: r.day_text, time: r.time_text, note: r.note }; });
+      if (k === "leaderboard") D.leaderboard = { season: "SEASON 1", rows: v.map(function (r) { return { name: r.name, squad: r.squad, kills: r.kills, points: r.points, wins: r.wins, status: "OFFICIAL" }; }) };
+      if (k === "teams") D.teams = v;
+      if (k === "players") D.players = v;
+    });
+    if (Array.isArray(data.regcounts)) (D.tournaments || []).forEach(function (t) { var c = data.regcounts.filter(function (r) { return r.tournament_id === t.id; })[0]; if (c) t.registered = c.registered; });
+    api.publicState = state;
+    if (window.XR && window.XR.render) window.XR.render();
+    ["tournament-list", "featured-tournaments", "news-all", "news-home", "leaderboard", "teams-mount", "players-mount", "scrims-mount"].forEach(function (id) {
+      var list = document.getElementById(id); if (!list) return;
+      var note = document.getElementById(id + "-data-status");
+      if (!note) { note = document.createElement("div"); note.id = id + "-data-status"; note.className = "xr-data-status"; note.setAttribute("role", "status"); list.parentNode.insertBefore(note, list); }
+      note.textContent = state === "cached" ? "Showing saved data. Checking for updates..." : state === "stale" ? "Some data could not be refreshed. Saved results may be out of date. " : state === "error" ? "Could not load current data. " : "";
+      if (state === "stale" || state === "error") { var retry = document.createElement("button"); retry.type = "button"; retry.className = "btn btn-sm"; retry.textContent = "Retry"; retry.addEventListener("click", function () { retry.disabled = true; retry.textContent = "Retrying..."; loadPublic().finally(function () { retry.disabled = false; }); }); note.appendChild(retry); }
+      note.hidden = state === "live";
+      if (state === "loading" && /tournament/.test(id)) list.innerHTML = '<div class="xr-skeleton" aria-hidden="true"></div><div class="xr-skeleton" aria-hidden="true"></div><div class="xr-skeleton" aria-hidden="true"></div><span class="xr-sr-only">Loading tournaments...</span>';
+    });
+  }
+  var publicPending = null;
   function loadPublic() {
+    if (publicPending) return publicPending;
+    var cache = publicCache(), saved = cache ? cache.data : {};
+    var initial = {tournaments:[],news:[],scrims:[],leaderboard:[],teams:[],players:[],regcounts:[]};
+    Object.keys(initial).forEach(function (k) { if (Array.isArray(saved[k])) initial[k] = saved[k]; });
+    paintPublic(initial, Object.keys(saved).length ? "cached" : "loading");
     var jobs = {
       tournaments: api.get("tournaments", "?select=*&order=sort.asc,created_at.asc"),
       news: api.get("news", "?select=*&published=eq.true&order=published_at.desc"),
@@ -121,33 +154,17 @@
       players: api.get("players", "?select=*,teams(name,tag)&active=eq.true&order=created_at.asc"),
       regcounts: api.rpc("tournament_reg_counts", {})
     };
-    var cache = {};
-    try { cache = JSON.parse(localStorage.getItem("xr_cache_public") || "{}").data || {}; } catch (e) { cache = {}; }
-    var keys = Object.keys(jobs);
-    return Promise.all(keys.map(function (k) {
-      return jobs[k].then(function (v) { return [k, v]; }).catch(function () { return [k, cache[k] || []]; });
-    }))
-      .then(function (pairs) {
-        try {
-          var store = {};
-          pairs.forEach(function (p) { if (p[1] && p[1].length) store[p[0]] = p[1]; });
-          if (Object.keys(store).length) localStorage.setItem("xr_cache_public", JSON.stringify({ at: Date.now(), data: store }));
-        } catch (e) { /* storage full or blocked - caching is best effort */ }
-        var D = window.XARENA;
-        pairs.forEach(function (p) {
-          var k = p[0], v = p[1];
-          if (k === "tournaments" && v.length) D.tournaments = v.map(mapTournament);
-          if (k === "news" && v.length) D.news = v.map(function (n) { return { date: (n.published_at || "").slice(0, 10), tag: n.tag, title: n.title, body: n.body }; });
-          if (k === "scrims") D.scrims = v.map(function (s) { return { title: s.title, day: s.day_text, time: s.time_text, note: s.note }; });
-          if (k === "leaderboard") D.leaderboard = { season: "SEASON 1", rows: v.map(function (r) { return { name: r.name, squad: r.squad, kills: r.kills, points: r.points, wins: r.wins, status: "OFFICIAL" }; }) };
-          if (k === "teams") D.teams = v;
-          if (k === "players") D.players = v;
-        });
-        pairs.forEach(function (p) { if (p[0] === "regcounts" && Array.isArray(p[1])) (D.tournaments || []).forEach(function (t) { var c = p[1].filter(function (r) { return r.tournament_id === t.id; })[0]; if (c) t.registered = c.registered; }); });
-        api.connected = true;
-        if (window.XR && window.XR.render) window.XR.render();
-        document.dispatchEvent(new CustomEvent("xr-backend-live"));
-      });
+    var keys = Object.keys(jobs), failed = 0, fresh = {}, shown = {};
+    publicPending = Promise.all(keys.map(function (k) {
+      return jobs[k].then(function (v) { if (!Array.isArray(v)) throw new Error("Invalid public data"); fresh[k] = v; shown[k] = v; }).catch(function () { failed++; shown[k] = Array.isArray(saved[k]) ? saved[k] : []; });
+    })).then(function () {
+      /* Cache only successful reads, including honest empty arrays. Failed reads never renew old data's timestamp. */
+      if (!failed) { try { localStorage.setItem("xr_cache_public", JSON.stringify({ at: Date.now(), data: fresh })); } catch (e) {} }
+      api.connected = failed < keys.length;
+      paintPublic(shown, failed ? (Object.keys(saved).length || failed < keys.length ? "stale" : "error") : "live");
+      document.dispatchEvent(new CustomEvent("xr-backend-live"));
+    }).finally(function () { publicPending = null; });
+    return publicPending;
   }
 
   api.loadPublic = loadPublic;

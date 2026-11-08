@@ -248,6 +248,7 @@ window.xrRegQuote.catch(function () {});
       if (feat) feat.innerHTML = D().tournaments.map(tCard).join("");
       var tlist = el("#tournament-list");
       if (tlist) tlist.innerHTML = D().tournaments.map(tCard).join("");
+      if (window.xrApi && window.xrApi.publicState === "loading") [feat, tlist].forEach(function (list) { if (list) list.innerHTML = '<div class="xr-skeleton" aria-hidden="true"></div><div class="xr-skeleton" aria-hidden="true"></div><div class="xr-skeleton" aria-hidden="true"></div><span class="xr-sr-only">Loading tournaments...</span>'; });
       var newsHome = el("#news-home");
       if (newsHome) newsHome.innerHTML = D().news.slice(0, 3).map(newsItem).join("");
       var newsAll = el("#news-all");
@@ -740,7 +741,10 @@ window.xrUploadTeamLogo = function (file) {
   window.fetch = function () {
     var a0 = arguments[0];
     var u = String((a0 && a0.url) || a0 || "");
-    if (u.indexOf("supabase.co") < 0) return orig.apply(this, arguments);
+    var init = arguments[1] || {}, method = String(init.method || (a0 && a0.method) || "GET").toUpperCase();
+    /* Background reads already have local loading/empty states. Never cover them with a page-wide busy card. */
+    var readRpc = /\/rpc\/(tournament_reg_counts|live_board|bracket_prediction_stats|my_bracket_predictions|my_registrations|my_game_stats)(?:[?#]|$)/.test(u);
+    if (u.indexOf("supabase.co") < 0 || method === "GET" || readRpc) return orig.apply(this, arguments);
     n++; scheduleShow();
     return orig.apply(this, arguments).then(function (r) { n = Math.max(0, n - 1); if (n === 0) scheduleHide(); return r; }, function (e) { n = Math.max(0, n - 1); if (n === 0) scheduleHide(); throw e; });
   };

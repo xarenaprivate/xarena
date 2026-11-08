@@ -470,3 +470,9 @@ html{overflow-x:clip}
  .xr-nav-more-list .nav-cta{margin:8px 0 0;flex-wrap:wrap}
  body.look-liquid .xr-nav-more-list{background:#f9f9fb}
 }
+
+/* Public-data placeholders do not cover the page or intercept input. */
+.xr-skeleton{height:180px;border-radius:14px;background:color-mix(in srgb,currentColor 8%,transparent);position:relative;overflow:hidden}
+.xr-data-status{margin:12px 0;font-size:14px;color:var(--muted,#777)}
+.xr-sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+@media(prefers-reduced-motion:no-preference){.xr-skeleton::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(128,128,128,.15),transparent);animation:xrSkeleton 1.5s ease-in-out infinite}@keyframes xrSkeleton{from{transform:translateX(-100%)}to{transform:translateX(100%)}}}
