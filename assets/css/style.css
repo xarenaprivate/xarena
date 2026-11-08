@@ -422,3 +422,15 @@ footer{border-top:1px solid var(--line);background:#050508;padding:52px 0 30px;m
 .xr-prof-stats>button,.xr-prof-stats>div{background:none;border:none;cursor:pointer;text-align:center;padding:0;color:inherit;font:inherit}
 .xr-prof-stats b{display:block;font:800 20px Orbitron,sans-serif;color:var(--text)}
 .xr-prof-stats span{font-size:12px;color:var(--muted);letter-spacing:.5px}
+
+/* Mobile viewport: a translated closed drawer must not widen the layout viewport. */
+html{overflow-x:clip}
+@media(max-width:900px){
+  html,body{width:100%;max-width:100%}
+  /* Theme blur otherwise traps the fixed drawer in the 64px header. */
+  body header.nav{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  .nav-links{visibility:hidden;pointer-events:none;overflow-y:auto;overscroll-behavior:contain;max-height:calc(100dvh - 64px);transform:translateX(100%);transition:transform .22s ease,visibility .22s}
+  .nav-links.open{visibility:visible;pointer-events:auto;transform:translateX(0)}
+  #xr-splash,#xr-busy{left:0!important;right:auto!important;width:100vw!important;max-width:100vw!important}
+  #xr-splash .xs-tip{max-width:100%;overflow-wrap:anywhere}
+}

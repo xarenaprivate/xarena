@@ -680,17 +680,18 @@ window.xrUploadTeamLogo = function (file) {
       setTimeout(function () { if (sp.parentNode) sp.parentNode.removeChild(sp); }, reduced ? 0 : 320);
     }
     function ready() {
-      var min = inFrame ? 0 : 650;
+      var min = inFrame ? 0 : 120;
       setTimeout(hide, reduced ? 0 : Math.max(0, min - (Date.now() - t0)));
     }
-    if (document.readyState === "complete") ready(); else window.addEventListener("load", ready);
-    setTimeout(hide, 2400);
+    if (document.readyState !== "loading") ready(); else document.addEventListener("DOMContentLoaded", ready, { once: true });
+    setTimeout(hide, 1000);
   }
   /* busy overlay: shows only while real backend fetches are in flight */
   if (!window.fetch) return;
   var orig = window.fetch, n = 0, showTimer = null, shownAt = 0, el = null;
   function build() {
-    var st = document.createElement("style");
+    var st = document.getElementById("xr-busy-style") || document.createElement("style");
+    st.id = "xr-busy-style";
     st.textContent =
       "#xr-busy{position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .18s}" +
       "#xr-busy.on{opacity:1}" +
