@@ -29,6 +29,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.materialIcon
+import androidx.compose.material.icons.materialPath
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Create
@@ -619,9 +622,9 @@ fun HomeShell(onLogout: () -> Unit) {
 }
 
 // Custom icons matching the user's reference (avoids the heavy material-icons-extended dependency).
-private val TrophyIcon: androidx.compose.ui.graphics.vector.ImageVector by lazy {
-    androidx.compose.material.icons.materialIcon("Trophy") {
-        androidx.compose.material.icons.materialPath {
+private val TrophyIcon: ImageVector by lazy {
+    materialIcon("Trophy") {
+        materialPath {
             moveTo(19f, 5f)
             horizontalLineToRelative(-2f)
             verticalLineTo(3f)
@@ -659,9 +662,9 @@ private val TrophyIcon: androidx.compose.ui.graphics.vector.ImageVector by lazy 
         }
     }
 }
-private val ChatBubbleIcon: androidx.compose.ui.graphics.vector.ImageVector by lazy {
-    androidx.compose.material.icons.materialIcon("ChatBubble") {
-        androidx.compose.material.icons.materialPath {
+private val ChatBubbleIcon: ImageVector by lazy {
+    materialIcon("ChatBubble") {
+        materialPath {
             moveTo(20f, 2f)
             horizontalLineTo(4f)
             curveTo(2.9f, 2f, 2f, 2.9f, 2f, 4f)
