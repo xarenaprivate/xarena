@@ -697,7 +697,10 @@ window.xrUploadTeamLogo = function (file) {
     if (document.readyState !== "loading") ready(); else document.addEventListener("DOMContentLoaded", ready, { once: true });
     setTimeout(hide, 1000);
   }
-  /* busy overlay: shows only while real backend fetches are in flight */
+  /* Public tournament pages use local skeletons, status notes and form button states.
+     A global fetch overlay would keep flashing for unrelated background widgets. */
+  if (document.querySelector("#tournament-list, #featured-tournaments")) return;
+  /* Other pages retain their existing action busy indicator. */
   if (!window.fetch) return;
   var orig = window.fetch, n = 0, showTimer = null, shownAt = 0, el = null;
   function build() {

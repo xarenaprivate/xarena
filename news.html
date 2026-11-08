@@ -162,7 +162,7 @@
 </div>
 </div></footer>
 <script src="assets/js/data.js"></script>
-<script src="assets/js/app.js?v=20261108-smooth3"></script>
+<script src="assets/js/app.js?v=20261108-smooth4"></script>
 <script src="assets/js/vendor/supabase.min.js"></script>
 <script src="assets/js/vendor/qrcode.min.js"></script>
 <script src="assets/js/api.js?v=20261108-smooth1"></script>
@@ -175,5 +175,5 @@
 <script src="assets/js/dm.js"></script>
 <script src="assets/js/chat-style.js"></script>
 <script src="assets/js/app-shell.js?v=20261108-audit1"></script>
-<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});</script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(function(r){return r.update();}).catch(function(){});</script>
 </body></html>
