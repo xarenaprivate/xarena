@@ -68,7 +68,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
 
 /* Home body with loaded data - extracted so render tests can verify populated, empty and offline states without network. */
 @Composable
-internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
+internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit, skipWalkthrough: Boolean = false) {
     val listState = rememberLazyListState()
         LazyColumn(Modifier.fillMaxSize(), state = listState) {
             item {
@@ -84,7 +84,7 @@ internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (Strin
                         if (a.s("link").isNotBlank()) Text("Tap to open", color = Muted, fontSize = 11.sp)
                     }
                 }
-                WalkthroughOnce()
+                if (!skipWalkthrough) WalkthroughOnce()
                 if (d.cup == null) {
                     PanelCard { Text("No tournaments yet", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         Text("Tournaments appear here as soon as the admin creates them.", color = Muted, fontSize = 13.sp) }
