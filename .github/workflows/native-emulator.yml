@@ -119,5 +119,6 @@ jobs:
           script: |
             adb install target72.apk | tee install.txt
             cat install.txt
+            adb logcat -d | grep -iE "PackageManager|PackageParser" | tail -30 || true
             if grep -q "INSTALL_PARSE_FAILED" install.txt; then exit 1; fi
             grep -q "INSTALL_FAILED_NO_MATCHING_ABIS" install.txt
