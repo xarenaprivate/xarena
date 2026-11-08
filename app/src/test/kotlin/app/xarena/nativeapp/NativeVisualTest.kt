@@ -93,6 +93,7 @@ class NativeVisualTest {
     }
     @Test fun homeFirstRunWalkthrough() {
         Api.init(paparazzi.context)
+        DataSaver.testOverride = true
         val d = HomeData(JSONArray(), "", JSONArray(), null, null, null, -1)
         paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
             Box(Modifier.weight(1f).fillMaxWidth()) { HomeBody(d, {}, {}) }
@@ -101,6 +102,7 @@ class NativeVisualTest {
     }
     @Test fun homePopulatedFixture() {
         Api.init(paparazzi.context)
+        DataSaver.testOverride = true // freeze entrance animations so the single Paparazzi frame shows settled content
         val cup = JSONObject()
             .put("id", "XR-S2").put("name", "XARENA Season 2 Ignition Cup").put("mode", "Squad")
             .put("slots", 48).put("date_text", "Nov 15, 7:00 PM").put("prize", "5,000 XP prize pool")
@@ -116,6 +118,7 @@ class NativeVisualTest {
     }
     @Test fun homeEmptyFixture() {
         Api.init(paparazzi.context)
+        DataSaver.testOverride = true
         val d = HomeData(JSONArray(), "", JSONArray(), null, null, null, -1)
         paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
             Box(Modifier.weight(1f).fillMaxWidth()) { HomeBody(d, {}, {}) }

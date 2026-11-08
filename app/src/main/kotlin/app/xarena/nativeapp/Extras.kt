@@ -365,7 +365,8 @@ fun LookThemeRows() {
 /* ---- Data saver (low-data / low-FX mode for 2GB phones) ---- */
 object DataSaver {
     private val p get() = Api.ctx.getSharedPreferences("xr_prefs", 0)
-    var on: Boolean get() = p.getBoolean("data_saver", false); set(v) = p.edit().putBoolean("data_saver", v).apply()
+    var testOverride: Boolean? = null // render tests only (Paparazzi has no SharedPreferences)
+    var on: Boolean get() = testOverride ?: p.getBoolean("data_saver", false); set(v) = p.edit().putBoolean("data_saver", v).apply()
 }
 
 @Composable
