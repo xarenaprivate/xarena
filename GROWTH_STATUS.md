@@ -108,3 +108,11 @@ User approved48KiB feature growth/release via option1 reply09:51:08. Published e
 - OTA manifest xarena-native-version.json updated on main.
 - Contents: Season 2 registration fix; reference redesign (5-tab nav Home/Tournaments/Live/Chat/Profile, new login screen); native Google sign-in code (real-device signed-in session NOT yet verified).
 - Evidence: CI run 42448572939 BUILD SUCCESS + EMU-SMOKE SUCCESS, 28 unit tests green; debug x86_64 emu smoke (login render/scroll/keyboard); populated-home screenshots used synthetic fixture data.
+
+## v0.17.27-native (versionCode 72) - RELEASED 2026-11-08
+- Signed APK 29,340,645 bytes (+4,566 vs 71, approved by user 15:02 via numbered choice 1 after tests), SHA-256 281a7eeb4b34039a54fcaa4a11b255aa1e34c11535a7fa32c795c415e3c4bd99, same signing cert as 71.
+- Prerelease v0.17.27-native (release id 438149794) at commit e933309: xarena-native.apk + 36 delta patches (35-52, 54-71 -> 72), all 36 JVM-roundtrip-verified; APK download SHA verified.
+- OTA manifest xarena-native-version.json updated on main (commit ed06eae).
+- Contents: restored previous 7-button bottom nav (Home, Feed, Live, Voice, Tournaments, Board, More); live-tournament interactions - fullscreen landscape player, registered-players panel, app-only comments scoped to the admin-connected tournament (xr_live_thread_* and xr_live_roster RPCs, deployed by website worker).
+- Evidence: CI run 42460031770 build+emu SUCCESS; emulator pixels verified for 7-button nav, roster unavailable state, comments owner-OFF state, fullscreen fill 640x320 landscape + back-restore portrait (debug fixture entry, no production auth).
+- Caveats: YouTube showed its sign-in bot-check page inside the emulator player - real-device playback NOT verified. Comments stay OFF until owner turns live_thread ON; roster/comments need admin tournament selection (user does it himself). Email signup/recovery remains dark on email-signup/email-merge-prep, NOT in this release.
