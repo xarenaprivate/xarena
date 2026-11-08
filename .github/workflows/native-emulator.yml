@@ -94,10 +94,19 @@ jobs:
             adb install base71.apk | tee install71.txt
             grep -q Success install71.txt
             adb shell dumpsys package app.xarena.esports.native | grep -m1 versionCode
+            adb shell am start -n app.xarena.esports.native/.MainActivity || true
+            sleep 8
+            adb root || true
+            sleep 3
+            adb shell 'echo sentinel-ota-71 > /data/data/app.xarena.esports.native/files/ota_sentinel' 2>/dev/null || adb shell 'su 0 sh -c "echo sentinel-ota-71 > /data/data/app.xarena.esports.native/files/ota_sentinel"' || true
             adb install -r target72.apk | tee install72.txt
             grep -q Success install72.txt
             adb shell dumpsys package app.xarena.esports.native | grep -m1 "versionCode=72"
             mkdir -p device-evidence
+            adb shell 'cat /data/data/app.xarena.esports.native/files/ota_sentinel' | tee device-evidence/sentinel.txt || true
+            grep -q sentinel-ota-71 device-evidence/sentinel.txt
+            adb shell am start -n app.xarena.esports.native/.MainActivity || true
+            sleep 8
             adb shell dumpsys package app.xarena.esports.native | grep -E "versionCode|signatures|Signer" > device-evidence/post-upgrade.txt || true
       - uses: actions/upload-artifact@v4
         if: always()
