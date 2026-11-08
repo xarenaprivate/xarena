@@ -10,13 +10,13 @@ object GoogleAuth {
         val serverId = RemoteConfig.googleWebClientId()
         if (serverId.isBlank()) throw Api.ApiError("Google sign-in is being set up - use phone or email for now.")
         val cm = androidx.credentials.CredentialManager.create(activity)
-        val opt = androidx.credentials.googleid.GetGoogleIdOption.Builder()
+        val opt = com.google.android.libraries.identity.googleid.GetGoogleIdOption.Builder()
             .setServerClientId(serverId)
             .setFilterByAuthorizedAccounts(false)
             .build()
         val req = androidx.credentials.GetCredentialRequest.Builder().addCredentialOption(opt).build()
         val res = cm.getCredential(activity, req)
-        val cred = androidx.credentials.googleid.GoogleIdTokenCredential.createFrom(res.credential.data)
+        val cred = com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.createFrom(res.credential.data)
         return cred.idToken
     }
 }
