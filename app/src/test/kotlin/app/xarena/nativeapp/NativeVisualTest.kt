@@ -80,6 +80,10 @@ class NativeVisualTest {
             HomeClanRoomOption {}
         } } }
     }
+    @Test fun loginScreenNewDesign() {
+        Api.init(paparazzi.context)
+        paparazzi.snapshot { MaterialTheme { Box(Modifier.fillMaxSize().background(Ink)) { LoginScreen({}, {}) } } }
+    }
     @Test fun bottomNavNewDesign() {
         paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
             Spacer(Modifier.weight(1f))
