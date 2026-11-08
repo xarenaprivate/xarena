@@ -6,14 +6,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -215,11 +218,21 @@ fun LiveScreen(onBack: () -> Unit) {
                         Text("Live now", color = Color(0xFF22C55E), fontSize = 14.sp, fontWeight = FontWeight.Bold)
                         if (live.second.isNotBlank()) Text(live.second, color = Color.White, fontSize = 13.sp)
                         Spacer(Modifier.height(6.dp))
-                        YouTubeEmbed(live.first, Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp))
-                            .border(1.dp, Gold.copy(alpha = .45f), RoundedCornerShape(12.dp)).background(Ink))
+                        var fullscreen by remember { mutableStateOf(false) }
+                        Box {
+                            YouTubeEmbed(live.first, Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp))
+                                .border(1.dp, Gold.copy(alpha = .45f), RoundedCornerShape(12.dp)).background(Ink))
+                            Text("FULLSCREEN", color = Gold, fontSize = 10.sp, fontWeight = FontWeight.Bold,
+                                modifier = Modifier.align(Alignment.TopEnd).padding(10.dp).clip(RoundedCornerShape(6.dp))
+                                    .background(Color(0xAA000000)).clickable { fullscreen = true }.padding(horizontal = 8.dp, vertical = 5.dp))
+                        }
+                        if (fullscreen) LiveFullscreen(live.first) { fullscreen = false }
                         Spacer(Modifier.height(6.dp))
                         Text("Open in YouTube", color = Muted, fontSize = 12.sp,
                             modifier = Modifier.clickable { openExternalUrl("https://youtu.be/" + live.first) }.padding(4.dp))
+                        Spacer(Modifier.height(6.dp))
+                        LiveRoster(runCatching { JSONObject(if (yt.length() > 0) yt.getJSONObject(0).s("value") else "").optString("tournament_id") }.getOrDefault(""))
+                        LiveComments()
                     }
                 } }
                 item { Text("UPCOMING MATCHES", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(14.dp)) }
@@ -232,6 +245,107 @@ fun LiveScreen(onBack: () -> Unit) {
                         if (MatchLabels.isPostponed(m)) Text("POSTPONED", color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                 }
+            }
+        }
+    }
+}
+
+/* Fullscreen landscape playback overlay: hides system bars, rotates to landscape, restores cleanly on close. */
+@Composable
+fun LiveFullscreen(videoId: String, onClose: () -> Unit) {
+    val ctx = LocalContext.current
+    val act = ctx as? android.app.Activity
+    DisposableEffect(Unit) {
+        val win = act?.window
+        val ctl = win?.let { androidx.core.view.WindowCompat.getInsetsController(it, it.decorView) }
+        act?.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        ctl?.hide(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+        onDispose {
+            ctl?.show(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            act?.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+        }
+    }
+    androidx.compose.ui.window.Dialog(onDismissRequest = onClose,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        Box(Modifier.fillMaxSize().background(Color.Black)) {
+            YouTubeEmbed(videoId, Modifier.fillMaxSize())
+            Text("CLOSE", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.TopEnd).padding(14.dp).clip(RoundedCornerShape(6.dp))
+                    .background(Color(0xAA000000)).clickable { onClose() }.padding(horizontal = 10.dp, vertical = 6.dp))
+        }
+    }
+}
+
+/* In-app live comments under the stream. App-only: posts go to the XARENA match thread, never to YouTube.
+   Visible only when the owner has opened the live thread flag; if no open thread exists for the latest match, says so honestly. */
+@Composable
+fun LiveComments() {
+    var allowed by remember { mutableStateOf<Boolean?>(null) }
+    LaunchedEffect(Unit) { allowed = runCatching { Flags.on("live_thread") }.getOrDefault(false) }
+    if (allowed != true) return
+    var tick by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) { while (true) { kotlinx.coroutines.delay(15000); tick++ } }
+    var match by remember { mutableStateOf<JSONObject?>(null) }
+    var posts by remember { mutableStateOf(JSONArray()) }
+    var open by remember { mutableStateOf(true) }
+    var msg by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(tick) {
+        val ms = runCatching { Api.publicGet("/rest/v1/matches_public?select=*&order=starts_at.desc.nullslast&limit=1") }.getOrElse { JSONArray() }
+        if (ms.length() == 0) { match = null; return@LaunchedEffect }
+        val m = ms.getJSONObject(0); match = m
+        val r = runCatching { Api.authedRpc("thread_list", JSONObject().put("p_match", m.s("id")).put("p_limit", 60)) }.getOrNull()
+        if (r != null && r.optBoolean("ok", true)) { posts = r.optJSONArray("posts") ?: r.optJSONArray("thread") ?: JSONArray(); open = true }
+        else open = false
+    }
+    Column(Modifier.fillMaxWidth().padding(top = 4.dp)) {
+        Text("LIVE COMMENTS - app only, not YouTube", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        val m = match
+        if (m == null) { Text("Comments open during a scheduled match.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 4.dp)); return@Column }
+        if (!open) { Text("The comment thread is not open for this match yet.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 4.dp)); return@Column }
+        if (posts.length() == 0) Text("No messages yet - say something nice.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 4.dp))
+        Column(Modifier.fillMaxWidth().heightIn(max = 220.dp).verticalScroll(rememberScrollState())) {
+            for (i in posts.length() - 1 downTo 0) {
+                val p = posts.getJSONObject(i)
+                Column(Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
+                    Text(p.s("name").ifBlank { p.s("author").ifBlank { "Player" } }, color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(p.s("body"), color = Color.White, fontSize = 13.sp)
+                }
+            }
+        }
+        msg?.let { Text(it, color = Gold2, fontSize = 11.sp) }
+        var draft by remember { mutableStateOf("") }
+        val scope = rememberCoroutineScope()
+        Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(draft, { draft = it.take(200) }, placeholder = { Text("Comment...") }, singleLine = true, modifier = Modifier.weight(1f))
+            Spacer(Modifier.width(8.dp))
+            Text("SEND", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable(enabled = draft.isNotBlank()) {
+                val body = draft.trim(); draft = ""
+                scope.launch {
+                    val rr = runCatching { Api.authedRpc("thread_post", JSONObject().put("p_match", m.s("id")).put("p_body", body)) }.getOrNull()
+                    if (rr?.optBoolean("ok") == true) tick++ else msg = rr?.s("error") ?: "Could not send."
+                }
+            }.padding(6.dp))
+        }
+    }
+}
+
+/* Players registered for the tournament the admin connected to this stream (youtube_live JSON "tournament_id").
+   Public display names only (ign/squad via the public roster view); never phone/email/private registration fields. */
+@Composable
+fun LiveRoster(tournamentId: String) {
+    if (tournamentId.isBlank()) return
+    var rows by remember { mutableStateOf<JSONArray?>(null) }
+    LaunchedEffect(tournamentId) {
+        rows = runCatching { Api.publicGet("/rest/v1/public_tournament_roster?tournament_id=eq." + Api.encodeEq(tournamentId) + "&select=ign,squad&order=created_at.asc&limit=200") }.getOrNull()
+    }
+    val r = rows ?: return
+    Column(Modifier.fillMaxWidth().padding(top = 6.dp)) {
+        Text("REGISTERED PLAYERS", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        if (r.length() == 0) Text("No registered players to show yet.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 4.dp))
+        else Column(Modifier.fillMaxWidth().heightIn(max = 180.dp).verticalScroll(rememberScrollState())) {
+            for (i in 0 until r.length()) {
+                val p = r.getJSONObject(i)
+                Text(p.s("ign").ifBlank { "Player" } + if (p.s("squad").isNotBlank()) " - " + p.s("squad") else "", color = Color.White, fontSize = 13.sp, modifier = Modifier.padding(vertical = 2.dp))
             }
         }
     }
