@@ -187,7 +187,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-enum class Screen { Login, Signup, EmailSignup, CompleteProfile, Home }
+enum class Screen { Login, Signup, EmailSignup, EmailRecovery, CompleteProfile, Home }
 
 
 @Composable
@@ -252,6 +252,8 @@ fun XarenaApp() {
                     onGoEmailSignup = if (RemoteConfig.flagOn("email_signup")) ({ screen = Screen.EmailSignup }) else null)
                 Screen.EmailSignup -> EmailSignupScreen(
                     onDone = { setupChecked = false; screen = Screen.Home },
+                    onGoLogin = { screen = Screen.Login })
+                Screen.EmailRecovery -> EmailRecoveryScreen(
                     onGoLogin = { screen = Screen.Login })
                 Screen.CompleteProfile -> CompleteProfileScreen(onDone = { screen = Screen.Home })
                 Screen.Home -> {
@@ -333,7 +335,9 @@ fun LoginScreen(onDone: () -> Unit, onGoSignup: () -> Unit) {
     val scope = rememberCoroutineScope()
     val ctx = LocalContext.current
     var recovery by remember { mutableStateOf(false) }
+    var emailRecovery by remember { mutableStateOf(false) }
     if (recovery) RecoveryDialog(false) { recovery = false }
+    if (emailRecovery) { EmailRecoveryScreen(onGoLogin = { emailRecovery = false }); return }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.Center) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(painter = painterResource(R.drawable.xarena_logo), contentDescription = "XARENA",
@@ -368,7 +372,9 @@ fun LoginScreen(onDone: () -> Unit, onGoSignup: () -> Unit) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Checkbox(rememberMe, { rememberMe = it })
             Text("Remember me", color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f))
-            Text("Forgot password?", color = Gold2, fontSize = 13.sp, modifier = Modifier.clickable { recovery = true }.padding(4.dp))
+            Text("Forgot password?", color = Gold2, fontSize = 13.sp, modifier = Modifier.clickable {
+                if (RemoteConfig.flagOn("email_recovery")) emailRecovery = true else recovery = true
+            }.padding(4.dp))
         }
         err?.let { Spacer(Modifier.height(6.dp)); Text(it, color = ErrRed, fontSize = 13.sp) }
         Spacer(Modifier.height(10.dp))

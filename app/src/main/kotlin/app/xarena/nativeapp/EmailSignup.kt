@@ -50,6 +50,7 @@ fun EmailSignupScreen(onDone: () -> Unit, onGoLogin: () -> Unit) {
                     scope.launch {
                         try {
                             val j = Api.emailAuth("signup_start", JSONObject().put("email", email.trim()))
+                            if (!j.optBoolean("ok")) throw Api.ApiError(j.optString("error").ifBlank { "Could not start verification." })
                             challenge = j.optString("challenge_id")
                             if (challenge.isNullOrBlank()) throw Api.ApiError("Server did not start verification.")
                             masked = j.optString("masked_email").ifBlank { email.trim() }
@@ -78,7 +79,8 @@ fun EmailSignupScreen(onDone: () -> Unit, onGoLogin: () -> Unit) {
                     busy = true; err = null
                     scope.launch {
                         try {
-                            Api.emailAuth("signup_verify", JSONObject().put("challenge_id", challenge).put("code", code).put("password", pw))
+                            val j = Api.emailAuth("signup_verify", JSONObject().put("challenge_id", challenge).put("code", code).put("password", pw))
+                            if (!j.optBoolean("ok")) throw Api.ApiError(j.optString("error").ifBlank { "Verification failed." })
                             step = 2
                         } catch (e: Exception) { err = e.message ?: "Verification failed." }
                         busy = false
@@ -90,7 +92,8 @@ fun EmailSignupScreen(onDone: () -> Unit, onGoLogin: () -> Unit) {
                         busy = true; err = null
                         scope.launch {
                             try {
-                                val j = Api.emailAuth("signup_resend", JSONObject().put("challenge_id", challenge))
+                                val j = Api.emailAuth("signup_resend", JSONObject().put("email", email.trim()))
+                                if (!j.optBoolean("ok")) throw Api.ApiError(j.optString("error").ifBlank { "Could not resend." })
                                 challenge = j.optString("challenge_id").ifBlank { challenge }
                                 resendIn = j.optInt("resend_after", 60)
                                 code = ""
