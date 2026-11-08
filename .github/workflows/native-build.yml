@@ -67,6 +67,14 @@ jobs:
             adb shell monkey -p app.xarena.esports.native -c android.intent.category.LAUNCHER 1
             sleep 15
             adb exec-out screencap -p > emu-login.png
+            adb shell input tap 160 347
+            sleep 3
+            adb exec-out screencap -p > emu-login-keyboard.png
+            adb shell input keyevent 4
+            sleep 1
+            adb shell input swipe 160 500 160 180
+            sleep 2
+            adb exec-out screencap -p > emu-login-scrolled.png
             adb shell pidof app.xarena.esports.native
       - name: Upload emulator screenshot
         uses: actions/upload-artifact@v4
@@ -74,4 +82,4 @@ jobs:
         with:
           name: emu-smoke
           if-no-files-found: warn
-          path: emu-login.png
+          path: emu-*.png
