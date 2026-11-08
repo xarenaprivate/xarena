@@ -141,7 +141,7 @@
       <div id="my-proofs" style="margin-top:12px"></div>
     </div>
     <div class="card"><h3 style="margin-bottom:4px">Report a player</h3>
-      <p style="font-size:13px;color:var(--muted);margin:2px 0 12px">Hacks, teaming or match-fixing. Reports go straight to the owner; false reports cost your own standing.</p>
+      <p style="font-size:13px;color:var(--muted);margin:2px 0 12px">Report within 15 minutes of the match ending, with proof (Rule 5.1). Hacks, teaming or match-fixing reports go to the owner; false reports cost your own standing.</p>
       <div id="report-form"><p style="color:var(--muted);font-size:13px">Log in on the <a href="account.html" style="color:var(--gold2)">Account page</a> to report.</p></div>
     </div>
   </div>
@@ -152,6 +152,7 @@
   <p>Choose a tournament using its Register Squad button. Your registration belongs only to that tournament.</p></div>
   <div class="form-panel reveal">
     <h3 id="xr-reg-title">Squad Registration</h3><p id="xr-reg-info">Checking selected tournament...</p>
+    <noscript><p>This registration form needs JavaScript. Enable it and reload before entering your details.</p></noscript>
     <p class="fp-sub">Takes under a minute. Your Registration ID is your proof of entry — screenshot it.</p>
     <form id="reg-form" novalidate>
       <div class="frow">
@@ -204,6 +205,9 @@
   <div id="bracket-view" class="reveal"><p style="color:var(--muted)">Loading…</p></div>
 </div></section>
 </main>
+<script>
+(function(){setTimeout(function(){var info=document.getElementById("xr-reg-info");if(info&&info.textContent.indexOf("Checking selected tournament")>=0){info.textContent="Tournament details could not load. Check your connection and reload; nothing has been registered.";var form=document.getElementById("reg-form");if(form)form.querySelectorAll("input,button").forEach(function(c){c.disabled=true;});}},12000);})();
+</script>
 <script>
 window.addEventListener("load", function () {
   var esc = (window.xrGame && xrGame.esc) || function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };

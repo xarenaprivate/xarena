@@ -12,9 +12,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="XARENA ESPORTS">
-<meta property="og:title" content="XARENA ESPORTS - Free Fire tournaments, feed, stories, Luna">
-<meta property="og:description" content="India's Free Fire esports platform - tournaments, scrims, highlights feed, stories, encrypted messages and the Luna assistant. Free forever.">
-<meta property="og:url" content="https://xarenaprivate.github.io/xarena/">
+<meta property="og:title" content="Your Account | XARENA ESPORTS">
+<meta property="og:description" content="Log in or create your XARENA account to manage your player profile and tournament registrations.">
+<meta property="og:url" content="https://xarenaprivate.github.io/xarena/account.html">
 <meta property="og:image" content="https://xarenaprivate.github.io/xarena/assets/icon-512.png">
 <meta name="twitter:card" content="summary">
 <link rel="manifest" href="manifest.webmanifest">
@@ -105,10 +105,11 @@
 <main><section class="section"><div class="wrap" style="max-width:640px">
   <div class="section-head reveal"><div class="overline">Players</div><h2>Your <em>Account</em></h2>
   <p>One free account links your chat handle, squad registration and the VERIFIED badge. Just like Instagram, but for esports.</p></div>
-  <div class="form-panel reveal" id="acct-box"><p style="color:var(--muted)">Loading…</p></div>
+  <div class="form-panel reveal" id="acct-box"><p style="color:var(--muted)">Loading…</p><noscript><p>Account sign-in needs JavaScript. Enable it and reload.</p></noscript></div>
 </div></section></main>
 <script>
-window.addEventListener("load", function () {
+setTimeout(function(){var b=document.getElementById("acct-box");if(b&&b.textContent.trim().indexOf("Loading")===0)b.innerHTML='<h3>Accounts could not load</h3><p>Check your connection and reload. No account details have been submitted.</p>';},12000);
+window.addEventListener("DOMContentLoaded", function () {
   var box = document.getElementById("acct-box");
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function errBox(msg) { return '<div class="server-err" style="' + (msg ? "display:block" : "display:none") + ';background:rgba(225,6,0,.12);border:1px solid var(--red);color:#ffb4ae;padding:10px 14px;margin:12px 0;font-size:14px;border-radius:6px">' + esc(msg || "") + "</div>"; }
