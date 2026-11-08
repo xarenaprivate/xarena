@@ -44,9 +44,12 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
       - name: Build x86_64 debug APK for emulator
-        run: ./gradlew assembleDebug -PnativeTestAbi=x86_64 --no-daemon
+        run: gradle assembleDebug -PnativeTestAbi=x86_64 --no-daemon
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
