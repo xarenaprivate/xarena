@@ -187,7 +187,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-enum class Screen { Login, Signup, CompleteProfile, Home }
+enum class Screen { Login, Signup, EmailSignup, CompleteProfile, Home }
 
 
 @Composable
@@ -247,6 +247,10 @@ fun XarenaApp() {
                     onDone = { setupChecked = false; screen = Screen.Home },
                     onGoSignup = { screen = Screen.Signup })
                 Screen.Signup -> SignupScreen(
+                    onDone = { setupChecked = false; screen = Screen.Home },
+                    onGoLogin = { screen = Screen.Login },
+                    onGoEmailSignup = if (RemoteConfig.flagOn("email_signup")) ({ screen = Screen.EmailSignup }) else null)
+                Screen.EmailSignup -> EmailSignupScreen(
                     onDone = { setupChecked = false; screen = Screen.Home },
                     onGoLogin = { screen = Screen.Login })
                 Screen.CompleteProfile -> CompleteProfileScreen(onDone = { screen = Screen.Home })
@@ -405,7 +409,7 @@ fun LoginScreen(onDone: () -> Unit, onGoSignup: () -> Unit) {
 }
 
 @Composable
-fun SignupScreen(onDone: () -> Unit, onGoLogin: () -> Unit) {
+fun SignupScreen(onDone: () -> Unit, onGoLogin: () -> Unit, onGoEmailSignup: (() -> Unit)? = null) {
     var phone by remember { mutableStateOf("") }
     var pw by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
@@ -431,6 +435,9 @@ fun SignupScreen(onDone: () -> Unit, onGoLogin: () -> Unit) {
         Text("No email needed. Right after signup you get a verification code - send it to the owner on Instagram @ud_speed (manual verification, completely free).",
             color = Muted, fontSize = 12.sp)
         Spacer(Modifier.height(6.dp))
+        if (onGoEmailSignup != null) {
+            Text("Sign up with email instead", color = Gold2, fontSize = 13.sp, modifier = Modifier.clickable { onGoEmailSignup() }.padding(6.dp))
+        }
         Text("Already have an account? Login", color = Gold2, fontSize = 13.sp, modifier = Modifier.clickable { onGoLogin() })
     }
 }

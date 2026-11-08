@@ -61,6 +61,17 @@ object Api {
         bindDevice()
     }
 
+    /** Additive email-code signup calls (xarena-email-auth edge function, provisional contract). */
+    suspend fun emailAuth(action: String, fields: JSONObject): JSONObject = withContext(Dispatchers.IO) {
+        val body = JSONObject().put("action", action)
+        fields.keys().forEach { body.put(it, fields.get(it)) }
+        body.put("device_id", DeviceIds.id)
+        val (code, text) = call("POST", "/functions/v1/xarena-email-auth", body, null)
+        val j = runCatching { JSONObject(text) }.getOrElse { throw ApiError("Unexpected server response.") }
+        if (code !in 200..299) throw ApiError(j.optString("error").ifBlank { j.optString("message").ifBlank { "Request failed ($code)." } })
+        j
+    }
+
     /** Google sign-in: exchange a Google ID token (native Credential Manager) for a Supabase session. */
     suspend fun loginWithGoogle(idToken: String, persist: Boolean = true) = withContext(Dispatchers.IO) {
         val (code, text) = call("POST", "/auth/v1/token?grant_type=id_token",
