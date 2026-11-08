@@ -91,6 +91,36 @@ class NativeVisualTest {
             MainBottomNav(0) {}
         } } }
     }
+    @Test fun homePopulatedFixture() {
+        Api.init(paparazzi.context)
+        val cup = JSONObject()
+            .put("id", "XR-S2").put("name", "XARENA Season 2 Ignition Cup").put("mode", "Squad")
+            .put("slots", 48).put("date_text", "Nov 15, 7:00 PM").put("prize", "5,000 XP prize pool")
+            .put("status", "upcoming").put("reg_open", true)
+        val ts = JSONArray().put(cup)
+        val stats = JSONObject().put("ok", true).put("rank", 7).put("wins", 12).put("kd", 2.4).put("xp", 1850)
+        val ann = JSONObject().put("text", "Season 2 registrations are open").put("link", "")
+        val d = HomeData(ts, "", JSONArray(), stats, ann, cup, 21)
+        paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
+            Box(Modifier.weight(1f).fillMaxWidth()) { HomeBody(d, {}, {}) }
+            MainBottomNav(0) {}
+        } } }
+    }
+    @Test fun homeEmptyFixture() {
+        Api.init(paparazzi.context)
+        val d = HomeData(JSONArray(), "", JSONArray(), null, null, null, -1)
+        paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
+            Box(Modifier.weight(1f).fillMaxWidth()) { HomeBody(d, {}, {}) }
+            MainBottomNav(0) {}
+        } } }
+    }
+    @Test fun homeOfflineError() {
+        Api.init(paparazzi.context)
+        paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
+            Box(Modifier.weight(1f).fillMaxWidth()) { LoadState2<Unit>(0, { throw RuntimeException("No internet connection") }) { } }
+            MainBottomNav(0) {}
+        } } }
+    }
     @Test fun bottomNavNewDesign() {
         paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxSize().background(Ink)) {
             Spacer(Modifier.weight(1f))

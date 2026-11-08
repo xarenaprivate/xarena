@@ -39,7 +39,6 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
         LaunchedEffect(true) { tick++; kotlinx.coroutines.delay(1200); ptr.endRefresh() }
     }
     Box(Modifier.fillMaxSize().nestedScroll(ptr.nestedScrollConnection)) {
-    val listState = rememberLazyListState()
     LoadState2(tick, {
         val ts = Api.publicGet("/rest/v1/tournaments?select=id,name,status,slots,prize,date_text,reg_open,mode&order=sort.asc")
         val yt = runCatching { Api.publicGet("/rest/v1/site_settings?key=eq.youtube_live&select=value") }.getOrElse { JSONArray() }
@@ -60,6 +59,17 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
         } ?: -1
         HomeData(ts, if (yt.length() > 0) yt.getJSONObject(0).s("value") else "", matches, stats, ann, cup, slotsTaken)
     }) { d ->
+        HomeBody(d, onGoTab, onOpenFeature)
+    }
+    if (ptr.isRefreshing) CircularProgressIndicator(color = Gold, modifier = Modifier.align(Alignment.TopCenter).padding(top = 12.dp))
+    }
+}
+
+
+/* Home body with loaded data - extracted so render tests can verify populated, empty and offline states without network. */
+@Composable
+internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
+    val listState = rememberLazyListState()
         LazyColumn(Modifier.fillMaxSize(), state = listState) {
             item {
                 Brand()
@@ -167,12 +177,9 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                 Spacer(Modifier.height(24.dp))
             }
         }
-    }
-    if (ptr.isRefreshing) CircularProgressIndicator(color = Gold, modifier = Modifier.align(Alignment.TopCenter).padding(top = 12.dp))
-    }
 }
 
-private data class HomeData(val ts: JSONArray, val ytUrl: String, val matches: JSONArray, val stats: JSONObject?, val ann: JSONObject? = null, val cup: JSONObject? = null, val slotsTaken: Int = -1)
+internal data class HomeData(val ts: JSONArray, val ytUrl: String, val matches: JSONArray, val stats: JSONObject?, val ann: JSONObject? = null, val cup: JSONObject? = null, val slotsTaken: Int = -1)
 
 @Composable
 private fun LiveStreamCard(onOpen: () -> Unit) {
