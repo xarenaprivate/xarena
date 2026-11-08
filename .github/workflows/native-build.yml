@@ -82,7 +82,10 @@ jobs:
             adb shell uiautomator dump /sdcard/ui.xml
             adb shell cat /sdcard/ui.xml > ui.xml
             B=$(python3 -c "import re;s=open('ui.xml').read();m=re.search(r'text=\"FULLSCREEN\"[^>]*bounds=\"\[(\d+),(\d+)\]\[(\d+),(\d+)\]\"',s);print(str((int(m.group(1))+int(m.group(3)))//2)+' '+str((int(m.group(2))+int(m.group(4)))//2) if m else '')")
-            if [ -n "$B" ]; then adb shell input tap $B; sleep 5; fi
+            if [ -z "$B" ]; then B="255 151"; fi
+            echo "tapping FULLSCREEN at $B"
+            adb shell input tap $B
+            sleep 5
             adb exec-out screencap -p > emu-live-fullscreen.png
             adb shell input keyevent 4
             sleep 3
