@@ -42,7 +42,7 @@ fun EmailRecoveryScreen(onGoLogin: () -> Unit,
                 Text("For accounts created with email verification. For phone accounts use your recovery key.", color = Muted, fontSize = 12.sp)
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(email, { email = it }, label = { Text("Your email address") }, singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth())
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), colors = authFieldColors(), modifier = Modifier.fillMaxWidth())
                 err?.let { Spacer(Modifier.height(6.dp)); Text(it, color = ErrRed, fontSize = 13.sp) }
                 Spacer(Modifier.height(10.dp))
                 GoldButton(if (busy) "SENDING CODE..." else "SEND CODE", enabled = !busy && email.contains("@")) {
@@ -64,13 +64,13 @@ fun EmailRecoveryScreen(onGoLogin: () -> Unit,
                 Text("Enter the 6-digit code sent to your email and choose a new password.", color = Color.White, fontSize = 13.sp)
                 Spacer(Modifier.height(10.dp))
                 OutlinedTextField(code, { v -> if (v.length <= 6 && v.all { it.isDigit() }) code = v }, label = { Text("6-digit code") }, singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword), modifier = Modifier.fillMaxWidth())
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword), colors = authFieldColors(), modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(10.dp))
                 OutlinedTextField(pw, { pw = it }, label = { Text("New password (8+ chars)") }, singleLine = true, visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), colors = authFieldColors(), modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(10.dp))
                 OutlinedTextField(pw2, { pw2 = it }, label = { Text("Confirm new password") }, singleLine = true, visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), colors = authFieldColors(), modifier = Modifier.fillMaxWidth())
                 err?.let { Spacer(Modifier.height(6.dp)); Text(it, color = ErrRed, fontSize = 13.sp) }
                 Spacer(Modifier.height(10.dp))
                 GoldButton(if (busy) "RESETTING..." else "SET NEW PASSWORD", enabled = !busy && code.length == 6 && pw.length >= 8 && pw == pw2) {

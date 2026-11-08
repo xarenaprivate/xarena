@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +23,16 @@ import org.json.JSONObject
    Verify creates the account server-side (email confirmed) and returns NO session - the player then
    logs in normally with email + password. No recovery is offered here: email recovery is a separate,
    untested flow and is not claimed. */
+
+/* Explicit readable field colors on the purple AuthCard - same pattern as MyLocation's areaFieldColors. */
+@Composable
+internal fun authFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = Color.White, unfocusedTextColor = Color.White,
+    focusedLabelColor = Gold2, unfocusedLabelColor = Muted,
+    focusedBorderColor = Gold, unfocusedBorderColor = Muted.copy(alpha = .6f),
+    cursorColor = Gold2,
+    errorTextColor = Color.White, errorLabelColor = ErrRed, errorBorderColor = ErrRed, errorCursorColor = ErrRed)
+
 @Composable
 fun EmailSignupScreen(onDone: () -> Unit, onGoLogin: () -> Unit,
     initStep: Int = 0, initChallenge: String? = null, initMasked: String = "", initErr: String? = null, initResendIn: Int = 0) {
@@ -42,7 +53,7 @@ fun EmailSignupScreen(onDone: () -> Unit, onGoLogin: () -> Unit,
         when (step) {
             0 -> {
                 OutlinedTextField(email, { email = it }, label = { Text("Your email address") }, singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), modifier = Modifier.fillMaxWidth())
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email), colors = authFieldColors(), modifier = Modifier.fillMaxWidth())
                 Text("We send a 6-digit verification code to this email. The email becomes your login ID.", color = Muted, fontSize = 12.sp)
                 err?.let { Spacer(Modifier.height(6.dp)); Text(it, color = ErrRed, fontSize = 13.sp) }
                 Spacer(Modifier.height(10.dp))
@@ -67,13 +78,13 @@ fun EmailSignupScreen(onDone: () -> Unit, onGoLogin: () -> Unit,
                 Text("Enter the 6-digit code sent to $masked." + if (expiresIn > 0) " It expires in ${expiresIn / 60} minutes." else "", color = Color.White, fontSize = 13.sp)
                 Spacer(Modifier.height(10.dp))
                 OutlinedTextField(code, { v -> if (v.length <= 6 && v.all { it.isDigit() }) code = v }, label = { Text("6-digit code") }, singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword), modifier = Modifier.fillMaxWidth())
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword), colors = authFieldColors(), modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(10.dp))
                 OutlinedTextField(pw, { pw = it }, label = { Text("Password (8+ chars)") }, singleLine = true, visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), colors = authFieldColors(), modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(10.dp))
                 OutlinedTextField(pw2, { pw2 = it }, label = { Text("Confirm password") }, singleLine = true, visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), modifier = Modifier.fillMaxWidth())
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password), colors = authFieldColors(), modifier = Modifier.fillMaxWidth())
                 err?.let { Spacer(Modifier.height(6.dp)); Text(it, color = ErrRed, fontSize = 13.sp) }
                 Spacer(Modifier.height(10.dp))
                 GoldButton(if (busy) "CREATING..." else "VERIFY + CREATE ACCOUNT", enabled = !busy && code.length == 6 && pw.length >= 8 && pw == pw2) {
