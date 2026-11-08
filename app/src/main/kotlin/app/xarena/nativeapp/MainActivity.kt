@@ -693,7 +693,7 @@ fun MainBottomNav(tab: Int, onSelect: (Int) -> Unit) {
             Column(Modifier.weight(1f).clickable { onSelect(i) }.padding(top = 6.dp, bottom = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Box(Modifier.height(28.dp), contentAlignment = Alignment.Center) {
                     if (i == 2) {
-                        Box(Modifier.offset(y = (-20).dp).size(54.dp).clip(CircleShape)
+                        Box(Modifier.requiredSize(54.dp).offset(y = (-20).dp).clip(CircleShape)
                             .background(Brush.horizontalGradient(listOf(Gold2, Gold)))
                             .border(3.dp, Color(0xFF1A0E33), CircleShape), contentAlignment = Alignment.Center) {
                             Icon(icon, contentDescription = label, tint = Color(0xFF2A1400), modifier = Modifier.size(28.dp))
