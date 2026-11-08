@@ -131,7 +131,7 @@ internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (Strin
             item {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(Txt.t("UPCOMING TOURNAMENTS", "AANE WALE TOURNAMENTS"), color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                    Text("See all →", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onGoTab(1) }.padding(4.dp))
+                    Text("See all →", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onGoTab(4) }.padding(4.dp))
                 }
                 if (d.ts.length() == 0) PanelCard { Text("No upcoming tournaments yet.", color = Muted, fontSize = 13.sp) }
                 else LazyRow(Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 12.dp)) {

@@ -475,7 +475,7 @@ fun HomeShell(onLogout: () -> Unit) {
     var feature by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(MainActivity.pendingOpen) {
         when (MainActivity.pendingOpen) {
-            "voice" -> feature = "voice"; "live" -> tab = 2; "notifications" -> feature = "notifications"; "messages" -> feature = "messages"; "squads" -> feature = "squads"
+            "voice" -> tab = 3; "live" -> tab = 2; "notifications" -> feature = "notifications"; "messages" -> feature = "messages"; "squads" -> feature = "squads"
         }
         if (MainActivity.pendingOpen != null) MainActivity.pendingOpen = null
     }
@@ -549,7 +549,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "voice" -> { VoiceScreen(onBack = { feature = null }); return }
         "creator" -> { CreatorScreen(onBack = { feature = null }); return }
         "donate" -> { DonateScreen(onBack = { feature = null }); return }
-        "chat" -> { ChatScreen(onGoTab = { i -> when (i) { 1 -> { feature = null; tab = 1 }; 2 -> feature = "board"; else -> feature = "squads" } }, onBack = { feature = null }); return }
+        "chat" -> { ChatScreen(onGoTab = { i -> when (i) { 1 -> { feature = null; tab = 4 }; 2 -> { feature = null; tab = 5 }; else -> feature = "squads" } }, onBack = { feature = null }); return }
         "luna" -> { LunaScreen(onBack = { feature = null }); return }
         "squads" -> { SquadsScreen(onBack = { feature = null }); return }
         "board" -> { LeaderboardScreen(); return }
@@ -615,7 +615,7 @@ fun HomeShell(onLogout: () -> Unit) {
         }
         BackHandler(enabled = tab != 0) { tab = 0 }
         Box(Modifier.weight(1f)) {
-            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> TournamentsScreen(); 2 -> LiveScreen(onBack = { tab = 0 }); 3 -> ChatScreen(onGoTab = { i -> when (i) { 1 -> tab = 1; 2 -> feature = "board"; else -> feature = "squads" } }); else -> ProfileScreen(onLogout, onBack = { tab = 0 }) }
+            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> FeedScreen(onBack = { tab = 0 }); 2 -> LiveScreen(onBack = { tab = 0 }); 3 -> VoiceScreen(onBack = { tab = 0 }); 4 -> TournamentsScreen(); 5 -> LeaderboardScreen(); else -> MoreGrid { feature = it } }
         }
         MainBottomNav(tab) { tab = it }
     }
@@ -679,29 +679,21 @@ private val ChatBubbleIcon: ImageVector by lazy {
     }
 }
 
-// Bottom nav per the new design: Home, Tournaments, raised Live orb, Chat, Profile, More. Old theme colors.
+// Bottom nav restored per user request: the previous 7 buttons Home, Feed, Live, Voice, Tournaments, Board, More.
 @Composable
 fun MainBottomNav(tab: Int, onSelect: (Int) -> Unit) {
     val tabs = listOf(
         Txt.t("Home", "Home") to Icons.Default.Home,
-        Txt.t("Tournaments", "Tournaments") to TrophyIcon,
+        Txt.t("Feed", "Feed") to Icons.Default.FavoriteBorder,
         Txt.t("Live", "LIVE") to Icons.Default.PlayArrow,
-        Txt.t("Chat", "Chat") to ChatBubbleIcon,
-        Txt.t("Profile", "Profile") to Icons.Default.Person)
-    Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(bottom = 6.dp)) {
+        Txt.t("Voice", "Voice") to Icons.Default.Call,
+        Txt.t("Tournaments", "Tournaments") to TrophyIcon,
+        Txt.t("Board", "Board") to Icons.Default.List,
+        "More" to Icons.Default.Menu)
+    Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(vertical = 6.dp)) {
         tabs.forEachIndexed { i, (label, icon) ->
-            Column(Modifier.weight(1f).clickable { onSelect(i) }.padding(top = 6.dp, bottom = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(Modifier.height(28.dp), contentAlignment = Alignment.Center) {
-                    if (i == 2) {
-                        Box(Modifier.requiredSize(54.dp).offset(y = (-20).dp).clip(CircleShape)
-                            .background(Brush.horizontalGradient(listOf(Gold2, Gold)))
-                            .border(3.dp, Color(0xFF1A0E33), CircleShape), contentAlignment = Alignment.Center) {
-                            Icon(icon, contentDescription = label, tint = Color(0xFF2A1400), modifier = Modifier.size(28.dp))
-                        }
-                    } else {
-                        Icon(icon, contentDescription = label, tint = if (tab == i) Gold else Muted, modifier = Modifier.size(20.dp))
-                    }
-                }
+            Column(Modifier.width(78.dp).clickable { onSelect(i) }.padding(vertical = 6.dp, horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(icon, contentDescription = label, tint = if (tab == i) Gold else Muted, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.height(2.dp))
                 Text(label, color = if (tab == i) Gold else Muted, fontSize = 11.sp, maxLines = 1, fontWeight = if (tab == i) FontWeight.Bold else FontWeight.Medium)
             }
