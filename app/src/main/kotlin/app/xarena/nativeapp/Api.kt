@@ -62,7 +62,10 @@ object Api {
     }
 
     /** Google sign-in: exchange a Google ID token (native Credential Manager) for a Supabase session. */
-    suspend fun loginWithGoogle(idToken: String, persist: Boolean = true) = withContext(Dispatchers.IO) {
+    suspend fun loginWithGoogle(idToken: String, persist: Boolean = true) = try { loginWithGoogleInner(idToken, persist) }
+        catch (e: java.io.IOException) { throw ApiError("Network problem - check your internet and try again.") }
+
+    private suspend fun loginWithGoogleInner(idToken: String, persist: Boolean) = withContext(Dispatchers.IO) {
         val (code, text) = call("POST", "/auth/v1/token?grant_type=id_token",
             JSONObject().put("provider", "google").put("id_token", idToken), null)
         if (code !in 200..299) {

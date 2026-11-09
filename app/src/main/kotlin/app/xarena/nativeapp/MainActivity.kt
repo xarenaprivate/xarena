@@ -402,6 +402,10 @@ fun LoginScreen(onDone: () -> Unit, onGoSignup: () -> Unit) {
                         Api.loginWithGoogle(tok, rememberMe); onDone()
                     } catch (e: androidx.credentials.exceptions.GetCredentialCancellationException) {
                         err = null
+                    } catch (e: androidx.credentials.exceptions.NoCredentialException) {
+                        err = "No Google account found on this phone. Add one in Settings, then try again."
+                    } catch (e: java.io.IOException) {
+                        err = "Network problem - check your internet and try again."
                     } catch (e: Exception) { err = e.message ?: "Google sign-in failed." }
                     busy = false
                 }
