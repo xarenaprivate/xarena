@@ -31,7 +31,7 @@ jobs:
         with:
           api-level: 33
           arch: x86_64
-          target: google_apis
+          target: google_apis_playstore
           profile: pixel_6
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
@@ -40,6 +40,10 @@ jobs:
             adb wait-for-device
             sleep 10
             adb shell getprop sys.boot_completed
+            echo "== translation presence =="
+            adb shell getprop ro.dalvik.vm.native.bridge
+            adb shell getprop ro.enable.native.bridge.exec
+            adb shell "ls /system/lib64/arm64 2>/dev/null | head -3" || true
             echo "== control 71 (expect Success) =="
             adb install base71.apk 2>&1 | tee i71.txt
             echo "== published 72 (expect Failure: extract native libraries) =="
