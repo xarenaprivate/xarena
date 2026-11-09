@@ -185,12 +185,9 @@ object Api {
         if (arr.length() == 0) return@withContext SetupInfo(true, "", "", "", false)
         val r = arr.getJSONObject(0)
         val un = r.s("username"); val ign = r.s("ign"); val uidv = r.s("ff_uid")
-        val placeholder = Regex("^user[0-9a-f]{8}$").matches(un)
-        if (placeholder) return@withContext SetupInfo(true, "", ign, uidv, false)
-        // Google accounts may get a server-derived (non-placeholder) username, so the placeholder check never fires.
-        // Server data decides: a Google account with neither IGN nor UID saved has not completed the form.
-        val g = ign.isBlank() && uidv.isBlank() && isGoogleAccount()
-        SetupInfo(g, un, ign, uidv, g)
+        // Provider is only read from the server when the cheap profile checks cannot already decide.
+        val needsProviderCheck = !ProfileGate.isPlaceholderUsername(un) && ign.isBlank() && uidv.isBlank()
+        ProfileGate.decideSetup(un, ign, uidv, if (needsProviderCheck) isGoogleAccount() else false)
     }
 
     suspend fun needsProfileSetup(): Boolean = profileSetupInfo().needs
@@ -779,4 +776,15 @@ fun openExternalUrl(u: String) {
 fun JSONObject.s(k: String, def: String = ""): String {
     val v = opt(k)
     return if (v == null || v == JSONObject.NULL) def else v.toString()
+}
+
+/** Pure profile-completion rule (unit tested). */
+object ProfileGate {
+    fun isPlaceholderUsername(u: String) = Regex("^user[0-9a-f]{8}$").matches(u)
+    /** Form is needed for a placeholder username, or for a Google account with neither IGN nor UID saved. */
+    fun decideSetup(username: String, ign: String, ffUid: String, isGoogle: Boolean): Api.SetupInfo {
+        if (isPlaceholderUsername(username)) return Api.SetupInfo(true, "", ign, ffUid, false)
+        val g = isGoogle && ign.isBlank() && ffUid.isBlank()
+        return Api.SetupInfo(g, username, ign, ffUid, g)
+    }
 }

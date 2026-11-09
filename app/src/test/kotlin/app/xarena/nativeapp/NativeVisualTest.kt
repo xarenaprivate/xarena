@@ -197,4 +197,13 @@ class NativeVisualTest {
         Api.init(paparazzi.context)
         paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxWidth().background(Ink)) { LiveRoster("fixture-tournament") } } }
     }
+    @Test fun profileFormGoogleGate() {
+        paparazzi.snapshot { MaterialTheme { CompleteProfileScreen(Api.SetupInfo(true, "rahul.sharma", "", "", true), {}, {}) } }
+    }
+    @Test fun profileFormPlaceholder() {
+        paparazzi.snapshot { MaterialTheme { CompleteProfileScreen(Api.SetupInfo(true, "", "", "", false), {}, {}) } }
+    }
+    @Test fun profileFormPartialPrefilled() {
+        paparazzi.snapshot { MaterialTheme { CompleteProfileScreen(Api.SetupInfo(true, "", "FixtureIGN", "123456789", false), {}, {}) } }
+    }
 }
