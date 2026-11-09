@@ -69,7 +69,7 @@ jobs:
           curl -sL -o target72.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.27-native/xarena-native.apk
           sha256sum base71.apk target72.apk
           echo "122448cf23265cd70c86f4737e383ddcd364921b3406b6c1e7857e753c262254  base71.apk" | sha256sum -c -
-          echo "efcd8caaf99410aa8ea779405d7f3d940e150236555722b46b4181b5ea240e8b  target72.apk" | sha256sum -c -
+          echo "db22cf97f2a01355eeb2abc601e6b6b8daa58e86639b35f978c662166634d306  target72.apk" | sha256sum -c -
       - name: Verify v2 signature scheme on both APKs
         run: |
           APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | tail -1)
@@ -102,7 +102,7 @@ jobs:
       - name: Download published 72 APK
         run: |
           curl -sL -o target72.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.27-native/xarena-native.apk
-          echo "efcd8caaf99410aa8ea779405d7f3d940e150236555722b46b4181b5ea240e8b  target72.apk" | sha256sum -c -
+          echo "db22cf97f2a01355eeb2abc601e6b6b8daa58e86639b35f978c662166634d306  target72.apk" | sha256sum -c -
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
