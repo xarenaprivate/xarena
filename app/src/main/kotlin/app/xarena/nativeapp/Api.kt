@@ -118,11 +118,21 @@ object Api {
         val r = JSONObject(authed("POST", "/rest/v1/rpc/complete_profile",
             JSONObject().put("p_username", username.trim()).put("p_ign", ign.trim()).put("p_ff_uid", ffUid.trim())))
         if (!r.optBoolean("ok")) throw ApiError(r.s("error").ifBlank { "Could not save. Try again." })
+        // The RPC returns ok even when it updated 0 rows (missing profile row): only a re-read proves it was saved.
+        val back = readProfileRow(uid ?: throw ApiError("Log in first."))
+        if (back == null || ProfileGate.needsForm(back.s("username")) || !back.s("username").equals(username.trim(), ignoreCase = true))
+            throw ApiError("Could not confirm your profile was saved. Try again.")
     }
 
+    /** Set when the refresh token was definitively rejected (not a network/server blip). UI returns to login with a reason. */
+    @Volatile var sessionExpired = false
+
     private fun refresh(): Boolean {
-        val r = prefs.getString("refresh", null) ?: return false
-        val (code, text) = call("POST", "/auth/v1/token?grant_type=refresh_token", JSONObject().put("refresh_token", r), null)
+        val r = prefs.getString("refresh", null)
+        if (r == null) { if (access != null) sessionExpired = true; return false }
+        val (code, text) = try { call("POST", "/auth/v1/token?grant_type=refresh_token", JSONObject().put("refresh_token", r), null) }
+            catch (e: java.io.IOException) { return false }
+        if (code in 400..401 || code == 403) sessionExpired = true // refresh token invalid/revoked/used: account data is untouched
         if (code !in 200..299) return false
         saveSession(JSONObject(text)); return true
     }
@@ -179,18 +189,20 @@ object Api {
         return false
     }
 
-    /** What the profile form must start from: existing row values (never overwritten blindly) and whether IGN is required. */
-    data class SetupInfo(val needs: Boolean, val username: String, val ign: String, val ffUid: String, val googleGate: Boolean)
+    /** needs = show the profile form; strict = new Google account, so username, IGN and Free Fire UID are all required. */
+    data class SetupInfo(val needs: Boolean, val username: String, val ign: String, val ffUid: String, val strict: Boolean)
+
+    private fun readProfileRow(u: String): JSONObject? {
+        val arr = JSONArray(authed("GET", "/rest/v1/profiles?id=eq.$u&select=username,ign,ff_uid", null))
+        return if (arr.length() == 0) null else arr.getJSONObject(0)
+    }
 
     suspend fun profileSetupInfo(): SetupInfo = withContext(Dispatchers.IO) {
         val u = uid ?: return@withContext SetupInfo(false, "", "", "", false)
-        val arr = JSONArray(authed("GET", "/rest/v1/profiles?id=eq.$u&select=username,ign,ff_uid", null))
-        if (arr.length() == 0) return@withContext SetupInfo(true, "", "", "", false)
-        val r = arr.getJSONObject(0)
-        val un = r.s("username"); val ign = r.s("ign"); val uidv = r.s("ff_uid")
-        // Provider is only read from the server when the cheap profile checks cannot already decide.
-        val needsProviderCheck = !ProfileGate.isPlaceholderUsername(un) && ign.isBlank() && uidv.isBlank()
-        ProfileGate.decideSetup(un, ign, uidv, if (needsProviderCheck) isGoogleAccount() else false)
+        val r = readProfileRow(u)
+        val needs = ProfileGate.needsForm(r?.s("username"))
+        if (!needs) return@withContext SetupInfo(false, r?.s("username") ?: "", r?.s("ign") ?: "", r?.s("ff_uid") ?: "", false)
+        SetupInfo(true, "", r?.s("ign") ?: "", r?.s("ff_uid") ?: "", isGoogleAccount())
     }
 
     suspend fun needsProfileSetup(): Boolean = profileSetupInfo().needs
@@ -781,13 +793,12 @@ fun JSONObject.s(k: String, def: String = ""): String {
     return if (v == null || v == JSONObject.NULL) def else v.toString()
 }
 
-/** Pure profile-completion rule (unit tested). */
+/** Pure profile-completion rules (unit tested). */
 object ProfileGate {
     fun isPlaceholderUsername(u: String) = Regex("^user[0-9a-f]{8}$").matches(u)
-    /** Form is needed for a placeholder username, or for a Google account with neither IGN nor UID saved. */
-    fun decideSetup(username: String, ign: String, ffUid: String, isGoogle: Boolean): Api.SetupInfo {
-        if (isPlaceholderUsername(username)) return Api.SetupInfo(true, "", ign, ffUid, false)
-        val g = isGoogle && ign.isBlank() && ffUid.isBlank()
-        return Api.SetupInfo(g, username, ign, ffUid, g)
-    }
+    /** Existing rule (same as the website): form needed when the profile row is missing or still has the server placeholder username. */
+    fun needsForm(username: String?) = username == null || isPlaceholderUsername(username)
+    fun usernameOk(u: String) = Regex("^[A-Za-z0-9_.]{3,16}$").matches(u)
+    fun uidOk(u: String, required: Boolean) = if (u.isBlank()) !required else Regex("^[0-9]{5,15}$").matches(u)
+    fun ignOk(i: String, required: Boolean) = i.length <= 24 && (!required || i.isNotBlank())
 }

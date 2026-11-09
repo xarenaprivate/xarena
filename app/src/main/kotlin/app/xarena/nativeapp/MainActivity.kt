@@ -219,6 +219,13 @@ fun XarenaApp() {
     var setupFailed by remember { mutableStateOf(false) }
     var setupTry by remember { mutableIntStateOf(0) }
     var setupInfo by remember { mutableStateOf<Api.SetupInfo?>(null) }
+    var expiredNote by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { // session rejected by the server (not a network blip): back to login, saved account data untouched
+        while (true) {
+            if (Api.sessionExpired && Api.loggedIn) { Api.logout(); Api.sessionExpired = false; expiredNote = true; setupChecked = false; screen = Screen.Login }
+            kotlinx.coroutines.delay(2000)
+        }
+    }
     var update by remember { mutableStateOf<UpdateChecker.Info?>(null) }
     var updateDismissed by remember { mutableStateOf(false) }
     val notifPerm = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -248,7 +255,7 @@ fun XarenaApp() {
         NovaBackground {
             if (splash) { SplashAnim(); return@NovaBackground }
             when (screen) {
-                Screen.Login -> LoginScreen(
+                Screen.Login -> LoginScreen(sessionNote = if (expiredNote) "Your session expired. Please log in again." else null,
                     onDone = { setupChecked = false; screen = Screen.Home },
                     onGoSignup = { screen = Screen.Signup })
                 Screen.Signup -> SignupScreen(
@@ -329,7 +336,7 @@ fun AuthCard(title: String, content: @Composable ColumnScope.() -> Unit) {
 }
 
 @Composable
-fun LoginScreen(onDone: () -> Unit, onGoSignup: () -> Unit) {
+fun LoginScreen(onDone: () -> Unit, onGoSignup: () -> Unit, sessionNote: String? = null) {
     var id by remember { mutableStateOf("") }
     var pw by remember { mutableStateOf("") }
     var showPw by remember { mutableStateOf(false) }
@@ -376,7 +383,7 @@ fun LoginScreen(onDone: () -> Unit, onGoSignup: () -> Unit) {
             Text("Remember me", color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f))
             Text("Forgot password?", color = Gold2, fontSize = 13.sp, modifier = Modifier.clickable { recovery = true }.padding(4.dp))
         }
-        err?.let { Spacer(Modifier.height(6.dp)); Text(it, color = ErrRed, fontSize = 13.sp) }
+        (err ?: sessionNote)?.let { Spacer(Modifier.height(6.dp)); Text(it, color = if (err != null) ErrRed else Muted, fontSize = 13.sp) }
         Spacer(Modifier.height(10.dp))
         GoldButton(if (busy) "ENTERING..." else "ENTER ARENA", enabled = !busy && id.isNotBlank() && pw.length >= 6) {
             busy = true; err = null
@@ -454,21 +461,21 @@ fun CompleteProfileScreen(info: Api.SetupInfo?, onDone: () -> Unit, onLogout: ()
     var username by remember { mutableStateOf(info?.username ?: "") }
     var ign by remember { mutableStateOf(info?.ign ?: "") }
     var ffUid by remember { mutableStateOf(info?.ffUid ?: "") }
-    val ignRequired = info?.googleGate == true
+    val strict = info?.strict == true
     var busy by remember { mutableStateOf(false) }
     var err by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val userOk = Regex("^[A-Za-z0-9_.]{3,16}$").matches(username)
-    val ignOk = !ignRequired || ign.isNotBlank()
-    val uidOk = ffUid.isBlank() || Regex("^[0-9]{5,15}$").matches(ffUid)
+    val ignOk = ProfileGate.ignOk(ign, strict)
+    val uidOk = ProfileGate.uidOk(ffUid, strict)
     AuthCard("Complete your profile") {
         Text("One-time setup - this is your XARENA identity.", color = Muted, fontSize = 13.sp)
         Spacer(Modifier.height(10.dp))
         OutlinedTextField(username, { username = it }, label = { Text("Username (3-16, e.g. night_hunter)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(10.dp))
-        OutlinedTextField(ign, { ign = it }, label = { Text(if (ignRequired) "In-game name (IGN) - required" else "In-game name (IGN)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(ign, { ign = it }, label = { Text(if (strict) "In-game name (IGN) - required" else "In-game name (IGN)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(10.dp))
-        OutlinedTextField(ffUid, { ffUid = it }, label = { Text("Free Fire UID") }, singleLine = true,
+        OutlinedTextField(ffUid, { ffUid = it }, label = { Text(if (strict) "Free Fire UID - required" else "Free Fire UID") }, singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
         Text("Your UID locks after verification.", color = Muted, fontSize = 12.sp)
         err?.let { Spacer(Modifier.height(8.dp)); Text(it, color = ErrRed, fontSize = 13.sp) }

@@ -4,28 +4,30 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ProfileGateTest {
-    @Test fun placeholderUsernameAlwaysNeedsForm() {
-        assertTrue(ProfileGate.decideSetup("user1a2b3c4d", "", "", false).needs)
-        assertTrue(ProfileGate.decideSetup("user1a2b3c4d", "X", "12345", true).needs)
-        assertFalse(ProfileGate.decideSetup("user1a2b3c4d", "", "", false).googleGate)
-        assertEquals("", ProfileGate.decideSetup("user1a2b3c4d", "", "", false).username)
+    @Test fun missingRowOrPlaceholderNeedsForm() {
+        assertTrue(ProfileGate.needsForm(null))
+        assertTrue(ProfileGate.needsForm("user1a2b3c4d"))
     }
-    @Test fun googleNonPlaceholderWithBlankIgnAndUidNeedsFormWithIgnRequired() {
-        val i = ProfileGate.decideSetup("rahul.sharma", "", "", true)
-        assertTrue(i.needs); assertTrue(i.googleGate); assertEquals("rahul.sharma", i.username)
-    }
-    @Test fun googleWithIgnOrUidIsComplete() {
-        assertFalse(ProfileGate.decideSetup("rahul", "RahulFF", "", true).needs)
-        assertFalse(ProfileGate.decideSetup("rahul", "", "123456789", true).needs)
-        assertFalse(ProfileGate.decideSetup("rahul", "RahulFF", "123456789", true).needs)
-    }
-    @Test fun phoneAndEmailAccountsNeverGatedByGoogleRule() {
-        assertFalse(ProfileGate.decideSetup("night_hunter", "", "", false).needs)
+    @Test fun realUsernameDoesNotNeedForm() {
+        assertFalse(ProfileGate.needsForm("night_hunter"))
+        assertFalse(ProfileGate.needsForm("rahul.sharma"))
     }
     @Test fun placeholderRegexIsExact() {
-        assertFalse(ProfileGate.isPlaceholderUsername("user1a2b3c4"))      // 7 hex
-        assertFalse(ProfileGate.isPlaceholderUsername("user1a2b3c4dd"))    // 9 hex
-        assertFalse(ProfileGate.isPlaceholderUsername("userABCDEF12"))     // uppercase
+        assertFalse(ProfileGate.isPlaceholderUsername("user1a2b3c4"))
+        assertFalse(ProfileGate.isPlaceholderUsername("user1a2b3c4dd"))
+        assertFalse(ProfileGate.isPlaceholderUsername("userABCDEF12"))
         assertFalse(ProfileGate.isPlaceholderUsername("user_hunter1"))
+    }
+    @Test fun usernameRule() {
+        assertTrue(ProfileGate.usernameOk("abc")); assertTrue(ProfileGate.usernameOk("Night_Hunter.1"))
+        assertFalse(ProfileGate.usernameOk("ab")); assertFalse(ProfileGate.usernameOk("a".repeat(17))); assertFalse(ProfileGate.usernameOk("bad name"))
+    }
+    @Test fun strictRequiresIgnAndUid() {
+        assertFalse(ProfileGate.ignOk("", true)); assertTrue(ProfileGate.ignOk("FF_Player", true))
+        assertFalse(ProfileGate.uidOk("", true)); assertFalse(ProfileGate.uidOk("1234", true)); assertTrue(ProfileGate.uidOk("123456789", true))
+    }
+    @Test fun nonStrictKeepsOptionalContract() {
+        assertTrue(ProfileGate.ignOk("", false)); assertTrue(ProfileGate.uidOk("", false))
+        assertFalse(ProfileGate.uidOk("12ab5", false)); assertFalse(ProfileGate.ignOk("x".repeat(25), false))
     }
 }
