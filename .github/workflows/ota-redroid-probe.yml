@@ -44,17 +44,18 @@ jobs:
           echo "== PackageManager logcat =="
           adb -s localhost:5555 logcat -d | grep -iE "PackageManager|installd|native librar" | tail -30 || true
           echo "== launch smoke (installed published 72) =="
-          adb -s localhost:5555 shell monkey -p app.xarena.esports.native -c android.intent.category.LAUNCHER 1 2>&1 | tail -2
+          adb -s localhost:5555 shell am start -n app.xarena.esports.native/app.xarena.nativeapp.MainActivity 2>&1 | tail -3
           sleep 20
-          adb -s localhost:5555 shell pidof app.xarena.esports.native || echo NO-PROCESS
-          adb -s localhost:5555 logcat -d | grep -E "FATAL|AndroidRuntime" | tail -10 || true
+          adb -s localhost:5555 shell pidof app.xarena.esports.native > pid.txt || echo NO-PROCESS > pid.txt
+          cat pid.txt
+          adb -s localhost:5555 logcat -d | grep -E "FATAL|Fatal signal|AndroidRuntime" | tail -15 || true
           adb -s localhost:5555 exec-out screencap -p > smoke.png
           ls -l smoke.png
           echo "== SUMMARY =="
           grep -E "Success|Failure" i71.txt i72.txt || true
           grep -q Success i71.txt
           grep -q Success i72.txt
-          adb -s localhost:5555 shell pidof app.xarena.esports.native
+          grep -qv NO-PROCESS pid.txt
       - name: Upload smoke screenshot
         if: always()
         uses: actions/upload-artifact@v4
