@@ -9,7 +9,7 @@ jobs:
   redroid-probe:
     # Real ARM Android in a container (redroid runs Android natively on the host kernel,
     # no KVM and no instruction translation). ARM64 runner + arm64 image = true install
-    # of control 71, published 72, and the page-aligned candidate. Fails fast if the
+    # of control 71, published 73, and the page-aligned candidate. Fails fast if the
     # runner kernel lacks binder support.
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 20
@@ -22,11 +22,11 @@ jobs:
           ls -l /dev/binder* /dev/ashmem 2>/dev/null || echo NO-BINDER
       - name: Download APKs
         run: |
-          curl -sL -o published72.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.27-native/xarena-native.apk
-          echo "db22cf97f2a01355eeb2abc601e6b6b8daa58e86639b35f978c662166634d306  published72.apk" | sha256sum -c -
-          curl -sL -o cand73.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.28-native/xarena-native-v0.17.28.apk
-          echo "40eb738389f37be388fd230346b95865e91b68f0f31529ca394891cb0dfe3d5d  cand73.apk" | sha256sum -c -
-      - name: Start redroid, upgrade 72 to 73, fresh install 73, launch
+          curl -sL -o published73.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.28-native/xarena-native-v0.17.28.apk
+          echo "40eb738389f37be388fd230346b95865e91b68f0f31529ca394891cb0dfe3d5d  published73.apk" | sha256sum -c -
+          curl -sL -o cand74.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.29-native/xarena-native-v0.17.29.apk
+          echo "fd5aa01afc7d139c5045ee5c9f2a1f64a400312d2086ebcd63cfb29857e9f760  cand74.apk" | sha256sum -c -
+      - name: Start redroid, upgrade 73 to 74, fresh install 74, launch
         run: |
           docker run -d --name redroid --privileged -p 5555:5555 redroid/redroid:13.0.0-latest androidboot.redroid_gpu_mode=guest
           for i in $(seq 1 60); do
@@ -37,8 +37,8 @@ jobs:
           sudo apt-get install -y adb > /dev/null 2>&1 || true
           adb connect localhost:5555
           A="adb -s localhost:5555"
-          echo "== A: install published 72 =="; $A install published72.apk 2>&1 | tee iA72.txt
-          echo "== A: UPGRADE to 73 (install -r, signature must match) =="; $A install -r cand73.apk 2>&1 | tee iA73.txt
+          echo "== A: install published 73 =="; $A install published73.apk 2>&1 | tee iA73.txt
+          echo "== A: UPGRADE to 74 (install -r, signature must match) =="; $A install -r cand74.apk 2>&1 | tee iA74.txt
           $A shell dumpsys package app.xarena.esports.native | grep -E "versionCode|versionName" | head -3 | tee verA.txt
           $A logcat -c
           $A shell am start -n app.xarena.esports.native/app.xarena.nativeapp.MainActivity 2>&1 | tail -3
@@ -47,9 +47,9 @@ jobs:
           cat pidA.txt
           $A logcat -d | grep -E "FATAL|Fatal signal|AndroidRuntime" | tail -15 | tee fatalA.txt || true
           $A exec-out screencap -p > smokeA.png
-          echo "== B: uninstall + FRESH install 73 =="
+          echo "== B: uninstall + FRESH install 74 =="
           $A uninstall app.xarena.esports.native
-          $A install cand73.apk 2>&1 | tee iB73.txt
+          $A install cand74.apk 2>&1 | tee iB74.txt
           $A logcat -c
           $A shell am start -n app.xarena.esports.native/app.xarena.nativeapp.MainActivity 2>&1 | tail -3
           sleep 25
@@ -59,12 +59,12 @@ jobs:
           $A exec-out screencap -p > smokeB.png
           ls -l smoke*.png
           echo "== SUMMARY =="
-          grep -E "Success|Failure" iA72.txt iA73.txt iB73.txt || true
+          grep -E "Success|Failure" iA73.txt iA74.txt iB74.txt || true
           cat verA.txt
-          grep -q Success iA72.txt
           grep -q Success iA73.txt
-          grep -q "versionCode=73" verA.txt
-          grep -q Success iB73.txt
+          grep -q Success iA74.txt
+          grep -q "versionCode=74" verA.txt
+          grep -q Success iB74.txt
           grep -qv NO-PROCESS pidA.txt
           grep -qv NO-PROCESS pidB.txt
           test ! -s fatalA.txt
