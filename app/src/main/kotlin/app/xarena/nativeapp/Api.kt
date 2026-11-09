@@ -70,6 +70,7 @@ object Api {
             throw ApiError(j?.optString("error_description")?.ifBlank { null } ?: j?.optString("msg")?.ifBlank { null } ?: "Google sign-in failed ($code).")
         }
         saveSession(JSONObject(text), persist)
+        prefs.edit().putBoolean("google_" + uid, true).apply()
         bindDevice()
     }
 
@@ -115,6 +116,7 @@ object Api {
         val r = JSONObject(authed("POST", "/rest/v1/rpc/complete_profile",
             JSONObject().put("p_username", username.trim()).put("p_ign", ign.trim()).put("p_ff_uid", ffUid.trim())))
         if (!r.optBoolean("ok")) throw ApiError(r.s("error").ifBlank { "Could not save. Try again." })
+        markProfileDone()
     }
 
     private fun refresh(): Boolean {
@@ -167,10 +169,17 @@ object Api {
     /** True when the account has no real profile yet (site shows the complete-profile form in that case). */
     suspend fun needsProfileSetup(): Boolean = withContext(Dispatchers.IO) {
         val u = uid ?: return@withContext false
-        val arr = JSONArray(authed("GET", "/rest/v1/profiles?id=eq.$u&select=username", null))
+        val arr = JSONArray(authed("GET", "/rest/v1/profiles?id=eq.$u&select=username,ign,ff_uid", null))
         if (arr.length() == 0) return@withContext true
-        Regex("^user[0-9a-f]{8}$").matches(arr.getJSONObject(0).s("username"))
+        val r = arr.getJSONObject(0)
+        if (Regex("^user[0-9a-f]{8}$").matches(r.s("username"))) return@withContext true
+        // Google sign-in: the server may give the new profile a name derived from the Google account, so the placeholder
+        // check above never fires. A Google account that has never saved the profile form (no IGN, no UID) must still see it.
+        prefs.getBoolean("google_" + u, false) && !prefs.getBoolean("profile_done_" + u, false) &&
+            r.s("ign").isBlank() && r.s("ff_uid").isBlank()
     }
+
+    fun markProfileDone() { uid?.let { prefs.edit().putBoolean("profile_done_" + it, true).apply() } }
 
     suspend fun myProfile(): JSONObject? = withContext(Dispatchers.IO) {
         val u = uid ?: return@withContext null

@@ -251,11 +251,11 @@ fun XarenaApp() {
                 Screen.Signup -> SignupScreen(
                     onDone = { setupChecked = false; screen = Screen.Home },
                     onGoLogin = { screen = Screen.Login })
-                Screen.CompleteProfile -> CompleteProfileScreen(onDone = { screen = Screen.Home })
+                Screen.CompleteProfile -> CompleteProfileScreen(onDone = { setupChecked = true; screen = Screen.Home })
                 Screen.Home -> {
                     if (!setupChecked) {
                         LaunchedEffect(Unit) {
-                            val needs = runCatching { Api.needsProfileSetup() }.getOrDefault(false)
+                            val needs = runCatching { Api.needsProfileSetup() }.getOrElse { kotlinx.coroutines.delay(1500); runCatching { Api.needsProfileSetup() }.getOrDefault(false) }
                             setupChecked = true
                             if (needs) screen = Screen.CompleteProfile
                         }
@@ -458,6 +458,8 @@ fun CompleteProfileScreen(onDone: () -> Unit) {
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
         Text("Your UID locks after verification.", color = Muted, fontSize = 12.sp)
         err?.let { Spacer(Modifier.height(8.dp)); Text(it, color = ErrRed, fontSize = 13.sp) }
+        if (err != null) Text("Continue without saving for now", color = Gold2, fontSize = 13.sp,
+            modifier = Modifier.padding(top = 8.dp).clickable { Api.markProfileDone(); onDone() }.padding(6.dp))
         Spacer(Modifier.height(16.dp))
         GoldButton(if (busy) "SAVING..." else "SAVE PROFILE", enabled = !busy && userOk && uidOk) {
             busy = true; err = null
