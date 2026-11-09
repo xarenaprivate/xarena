@@ -198,12 +198,12 @@ class NativeVisualTest {
         paparazzi.snapshot { MaterialTheme { Column(Modifier.fillMaxWidth().background(Ink)) { LiveRoster("fixture-tournament") } } }
     }
     @Test fun profileFormGoogleGate() {
-        paparazzi.snapshot { MaterialTheme { CompleteProfileScreen(Api.SetupInfo(true, "", "", "", true), {}, {}) } }
+        paparazzi.snapshot { MaterialTheme(colorScheme = androidx.compose.material3.darkColorScheme(primary = Gold, background = Ink, surface = Card, onSurface = androidx.compose.ui.graphics.Color.White)) { Box(Modifier.fillMaxSize().background(Ink)) { CompleteProfileScreen(Api.SetupInfo(true, "", "", "", true), {}, {}) } } }
     }
     @Test fun profileFormPlaceholder() {
-        paparazzi.snapshot { MaterialTheme { CompleteProfileScreen(Api.SetupInfo(true, "", "", "", false), {}, {}) } }
+        paparazzi.snapshot { MaterialTheme(colorScheme = androidx.compose.material3.darkColorScheme(primary = Gold, background = Ink, surface = Card, onSurface = androidx.compose.ui.graphics.Color.White)) { Box(Modifier.fillMaxSize().background(Ink)) { CompleteProfileScreen(Api.SetupInfo(true, "", "", "", false), {}, {}) } } }
     }
     @Test fun profileFormPartialPrefilled() {
-        paparazzi.snapshot { MaterialTheme { CompleteProfileScreen(Api.SetupInfo(true, "", "FixtureIGN", "123456789", false), {}, {}) } }
+        paparazzi.snapshot { MaterialTheme(colorScheme = androidx.compose.material3.darkColorScheme(primary = Gold, background = Ink, surface = Card, onSurface = androidx.compose.ui.graphics.Color.White)) { Box(Modifier.fillMaxSize().background(Ink)) { CompleteProfileScreen(Api.SetupInfo(true, "", "FixtureIGN", "123456789", false), {}, {}) } } }
     }
 }

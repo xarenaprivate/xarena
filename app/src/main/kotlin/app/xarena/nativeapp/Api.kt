@@ -119,11 +119,7 @@ object Api {
             JSONObject().put("p_username", username.trim()).put("p_ign", ign.trim()).put("p_ff_uid", ffUid.trim())))
         if (!r.optBoolean("ok")) throw ApiError(r.s("error").ifBlank { "Could not save. Try again." })
         // The RPC returns ok even when it updated 0 rows (missing profile row): only a re-read proves it was saved.
-        val back = readProfileRow(uid ?: throw ApiError("Log in first."))
-        if (back == null || ProfileGate.needsForm(back.s("username")) || !back.s("username").equals(username.trim(), ignoreCase = true))
-            throw ApiError("Could not confirm your profile was saved. Try again.")
-        if (strict && (back.s("ign").trim() != ign.trim() || ign.isBlank() || back.s("ff_uid").trim() != ffUid.trim() || ffUid.isBlank()))
-            throw ApiError("Could not confirm all your details were saved. Try again.")
+        ProfileGate.verifySaved(readProfileRow(uid ?: throw ApiError("Log in first.")), username, ign, ffUid, strict)
     }
 
     /** Set when the refresh token was definitively rejected (not a network/server blip). UI returns to login with a reason. */
@@ -134,12 +130,7 @@ object Api {
         if (r == null) { if (access != null) sessionExpired = true; return false }
         val (code, text) = try { call("POST", "/auth/v1/token?grant_type=refresh_token", JSONObject().put("refresh_token", r), null) }
             catch (e: java.io.IOException) { return false }
-        if (code in 400..401) { // only GoTrue's explicit invalid-refresh-token answers count; 403/5xx/other 4xx are not logout proof
-            val j = runCatching { JSONObject(text) }.getOrNull()
-            val tag = ((j?.optString("error_code") ?: "") + " " + (j?.optString("error") ?: "") + " " + (j?.optString("msg") ?: "") + " " + (j?.optString("error_description") ?: "")).lowercase()
-            if (tag.contains("refresh_token_not_found") || tag.contains("refresh_token_already_used") || tag.contains("invalid_grant") || tag.contains("invalid refresh token") || tag.contains("refresh token not found"))
-                sessionExpired = true
-        }
+        if (ProfileGate.isInvalidRefreshToken(code, text)) sessionExpired = true // 403/5xx/other 4xx are not logout proof
         if (code !in 200..299) return false
         saveSession(JSONObject(text)); return true
     }
@@ -188,12 +179,7 @@ object Api {
     /** Auth provider of the signed-in user, read from the server (survives reinstall / cleared prefs). */
     private fun isGoogleAccount(): Boolean {
         val (c, t) = call("GET", "/auth/v1/user", null, access)
-        if (c !in 200..299) throw ApiError("Could not check account ($c).")
-        val u = JSONObject(t)
-        if (u.optJSONObject("app_metadata")?.optString("provider") == "google") return true
-        val ids = u.optJSONArray("identities") ?: return false
-        for (i in 0 until ids.length()) if (ids.getJSONObject(i).optString("provider") == "google") return true
-        return false
+        return ProfileGate.parseIsGoogle(c, t)
     }
 
     /** needs = show the profile form; strict = new Google account, so username, IGN and Free Fire UID are all required. */
@@ -206,10 +192,7 @@ object Api {
 
     suspend fun profileSetupInfo(): SetupInfo = withContext(Dispatchers.IO) {
         val u = uid ?: return@withContext SetupInfo(false, "", "", "", false)
-        val r = readProfileRow(u)
-        val needs = ProfileGate.needsForm(r?.s("username"))
-        if (!needs) return@withContext SetupInfo(false, r?.s("username") ?: "", r?.s("ign") ?: "", r?.s("ff_uid") ?: "", false)
-        SetupInfo(true, "", r?.s("ign") ?: "", r?.s("ff_uid") ?: "", isGoogleAccount())
+        ProfileGate.setupInfoFrom(readProfileRow(u)) { isGoogleAccount() }
     }
 
     suspend fun needsProfileSetup(): Boolean = profileSetupInfo().needs
@@ -807,5 +790,41 @@ object ProfileGate {
     fun needsForm(username: String?) = username == null || isPlaceholderUsername(username)
     fun usernameOk(u: String) = Regex("^[A-Za-z0-9_.]{3,16}$").matches(u)
     fun uidOk(u: String, required: Boolean) = if (u.isBlank()) !required else Regex("^[0-9]{5,15}$").matches(u)
+
+    private fun JSONObject?.str(k: String): String = if (this == null || isNull(k)) "" else optString(k, "")
+
+    /** Provider read: any non-2xx is an error (never silently "not Google"). */
+    fun parseIsGoogle(code: Int, text: String): Boolean {
+        if (code !in 200..299) throw Api.ApiError("Could not check account ($code).")
+        val u = JSONObject(text)
+        if (u.optJSONObject("app_metadata")?.optString("provider") == "google") return true
+        val ids = u.optJSONArray("identities") ?: return false
+        for (i in 0 until ids.length()) if (ids.getJSONObject(i).optString("provider") == "google") return true
+        return false
+    }
+
+    /** Provider is read only when the form is needed; its failure propagates (no silent downgrade to optional fields). */
+    fun setupInfoFrom(row: JSONObject?, isGoogle: () -> Boolean): Api.SetupInfo {
+        val un = row.str("username"); val ign = row.str("ign"); val uid = row.str("ff_uid")
+        if (row != null && !needsForm(un)) return Api.SetupInfo(false, un, ign, uid, false)
+        return Api.SetupInfo(true, "", ign, uid, isGoogle())
+    }
+
+    /** Re-read after complete_profile: fail closed if the row is missing/placeholder/different, or (strict) IGN or UID missing/different. */
+    fun verifySaved(back: JSONObject?, username: String, ign: String, ffUid: String, strict: Boolean) {
+        val un = back.str("username")
+        if (back == null || needsForm(un) || !un.equals(username.trim(), ignoreCase = true))
+            throw Api.ApiError("Could not confirm your profile was saved. Try again.")
+        if (strict && (ign.isBlank() || ffUid.isBlank() || back.str("ign").trim() != ign.trim() || back.str("ff_uid").trim() != ffUid.trim()))
+            throw Api.ApiError("Could not confirm all your details were saved. Try again.")
+    }
+
+    /** Only GoTrue's explicit invalid-refresh-token answers (400/401) count as an expired session. */
+    fun isInvalidRefreshToken(code: Int, text: String): Boolean {
+        if (code != 400 && code != 401) return false
+        val j = runCatching { JSONObject(text) }.getOrNull() ?: return false
+        val tag = (j.optString("error_code") + " " + j.optString("error") + " " + j.optString("msg") + " " + j.optString("error_description")).lowercase()
+        return listOf("refresh_token_not_found", "refresh_token_already_used", "invalid_grant", "invalid refresh token", "refresh token not found").any { tag.contains(it) }
+    }
     fun ignOk(i: String, required: Boolean) = i.length <= 24 && (!required || i.isNotBlank())
 }
