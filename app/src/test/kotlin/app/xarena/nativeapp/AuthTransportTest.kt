@@ -66,7 +66,7 @@ class AuthTransportTest {
         Api.logout() // clears session state + prefs
         Api.sessionExpired = false
     }
-    @After fun tearDown() { Api.prefsOverride = null; Api.httpTransport = null; Api.logout() }
+    @After fun tearDown() { Api.logout(); Api.prefsOverride = null; Api.httpTransport = null }
 
     private fun stubLogin() = script.on("/auth/v1/token?grant_type=password", 200 to sessionJson("a1"))
     private fun stubBind() = script.on("/rest/v1/rpc/bind_device", 200 to """{"ok":true}""")
