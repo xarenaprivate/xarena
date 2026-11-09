@@ -40,6 +40,7 @@ object Api {
     }
 
     private fun saveSession(j: JSONObject, persist: Boolean = true) {
+        sessionExpired = false // a fresh successful login clears any stale expiry flag
         access = j.getString("access_token")
         uid = j.getJSONObject("user").getString("id")
         if (persist) prefs.edit().putString("access", access).putString("refresh", j.s("refresh_token"))
@@ -85,9 +86,15 @@ object Api {
     }
 
     /** Phone signup identical to the site: phone_available check, then Supabase signup with phone metadata. */
-    suspend fun signup(phone: String, password: String) = withContext(Dispatchers.IO) {
+    suspend fun signup(phone: String, password: String) = try { signupInner(phone, password) }
+        catch (e: java.io.IOException) { throw ApiError("Network problem - check your internet and try again.") }
+
+    private suspend fun signupInner(phone: String, password: String) = withContext(Dispatchers.IO) {
         if (password.length < 8) throw ApiError("Password must be at least 8 characters.")
+        if (password.length > 72) throw ApiError("Password must be 72 characters or fewer.") // bcrypt limit, same as the site's maxlength
         val ph = normPhone(phone) ?: throw ApiError("Enter a valid 10-digit Indian mobile number.")
+        if (ProfileGate.weakPassword(password, ph.removePrefix("91")))
+            throw ApiError("Choose a password that is harder to guess (not your phone number or a simple pattern).")
         val (c1, t1) = call("POST", "/rest/v1/rpc/phone_available", JSONObject().put("p_phone", ph), null)
         if (c1 !in 200..299) throw ApiError("Could not check right now. Try again.")
         val chk = JSONObject(t1)
@@ -135,7 +142,7 @@ object Api {
         saveSession(JSONObject(text)); return true
     }
 
-    fun logout() { DmUnread.clear(); access = null; uid = null; prefs.edit().clear().apply() }
+    fun logout() { DmUnread.clear(); access = null; uid = null; sessionExpired = false; prefs.edit().clear().apply() }
 
     /** Binds this install to the account (anti-fake-account). Best-effort; no-op when logged out. */
     fun bindDevice() {
@@ -176,9 +183,11 @@ object Api {
     }
 
     /** True when the account has no real profile yet (site shows the complete-profile form in that case). */
-    /** Auth provider of the signed-in user, read from the server (survives reinstall / cleared prefs). */
+    /** Auth provider of the signed-in user, read from the server (survives reinstall / cleared prefs).
+        One token-refresh retry on 401, like authed(), so an expired access token does not force a manual retry. */
     private fun isGoogleAccount(): Boolean {
-        val (c, t) = call("GET", "/auth/v1/user", null, access)
+        var (c, t) = call("GET", "/auth/v1/user", null, access)
+        if (c == 401 && refresh()) { val r = call("GET", "/auth/v1/user", null, access); c = r.first; t = r.second }
         return ProfileGate.parseIsGoogle(c, t)
     }
 
@@ -827,4 +836,10 @@ object ProfileGate {
         return listOf("refresh_token_not_found", "refresh_token_already_used", "invalid_grant", "invalid refresh token", "refresh token not found").any { tag.contains(it) }
     }
     fun ignOk(i: String, required: Boolean) = i.length <= 24 && (!required || i.isNotBlank())
+
+    /** Same weak-password guard as the site's signup form: not the phone number, not one repeated char, not a common pattern. */
+    fun weakPassword(pw: String, phoneLocal10: String): Boolean =
+        pw.filter { it.isDigit() } == phoneLocal10 || pw.contains(phoneLocal10) ||
+            Regex("^(.)\\1+$").matches(pw) ||
+            Regex("^(?:12345678|password|qwertyui|11111111|00000000)", RegexOption.IGNORE_CASE).containsMatchIn(pw)
 }

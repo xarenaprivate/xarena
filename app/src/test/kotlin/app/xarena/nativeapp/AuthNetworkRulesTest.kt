@@ -55,6 +55,17 @@ class AuthNetworkRulesTest {
         ProfileGate.verifySaved(row("rahul", "R", "123456789"), "Rahul", "R", "123456789", true)   // server lowercases username
         ProfileGate.verifySaved(row("rahul"), "rahul", "", "", false)                              // optional form, phone account
     }
+    // --- weak-password guard (signup) ---
+    @Test fun weakPasswordRulesMatchSite() {
+        assertTrue(ProfileGate.weakPassword("9876543210", "9876543210"))   // password = own phone
+        assertTrue(ProfileGate.weakPassword("x9876543210!", "9876543210")) // contains phone
+        assertTrue(ProfileGate.weakPassword("aaaaaaaa", "9876543210"))     // one repeated char
+        assertTrue(ProfileGate.weakPassword("12345678", "9876543210"))
+        assertTrue(ProfileGate.weakPassword("Password99", "9876543210"))   // starts with "password"
+        assertTrue(ProfileGate.weakPassword("qwertyuiop", "9876543210"))
+        assertFalse(ProfileGate.weakPassword("Kx9#mP2vQ8", "9876543210"))
+        assertFalse(ProfileGate.weakPassword("9876543211", "9876543210"))   // different number is fine
+    }
     // --- refresh classification ---
     @Test fun onlyInvalidRefreshTokenExpiresSession() {
         assertTrue(ProfileGate.isInvalidRefreshToken(400, """{"error_code":"refresh_token_not_found","msg":"Invalid Refresh Token: Refresh Token Not Found"}"""))

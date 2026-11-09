@@ -19,11 +19,17 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 private suspend fun recoveryRequest(body: JSONObject, enroll: Boolean): JSONObject = withContext(Dispatchers.IO) {
+    if (enroll) {
+        // authed() does one token-refresh retry on 401, so a stale access token does not fail key creation
+        if (!Api.loggedIn) throw Api.ApiError("Not logged in.")
+        val r = JSONObject(Api.authed("POST", "/functions/v1/player-recovery", body))
+        check(r.optBoolean("ok")) { r.optString("error", "Recovery request failed. Do not retry automatically.") }
+        return@withContext r
+    }
     val conn = URL(Api.BASE + "/functions/v1/player-recovery").openConnection() as HttpURLConnection
     try {
         conn.requestMethod = "POST"; conn.connectTimeout = 10000; conn.readTimeout = 25000; conn.doOutput = true
         conn.setRequestProperty("apikey", Api.KEY); conn.setRequestProperty("Content-Type", "application/json")
-        if (enroll) conn.setRequestProperty("Authorization", "Bearer " + (Api.access ?: error("Not logged in.")))
         conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
         val code = conn.responseCode
         val raw = (if (code in 200..299) conn.inputStream else conn.errorStream)?.bufferedReader()?.use { it.readText() } ?: "{}"

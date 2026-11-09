@@ -256,10 +256,10 @@ fun XarenaApp() {
             if (splash) { SplashAnim(); return@NovaBackground }
             when (screen) {
                 Screen.Login -> LoginScreen(sessionNote = if (expiredNote) "Your session expired. Please log in again." else null,
-                    onDone = { setupChecked = false; screen = Screen.Home },
+                    onDone = { expiredNote = false; setupChecked = false; screen = Screen.Home },
                     onGoSignup = { screen = Screen.Signup })
                 Screen.Signup -> SignupScreen(
-                    onDone = { setupChecked = false; screen = Screen.Home },
+                    onDone = { expiredNote = false; setupChecked = false; screen = Screen.Home },
                     onGoLogin = { screen = Screen.Login })
                 Screen.CompleteProfile -> CompleteProfileScreen(setupInfo, onDone = { setupChecked = true; screen = Screen.Home },
                     onLogout = { Api.logout(); setupChecked = false; screen = Screen.Login })
