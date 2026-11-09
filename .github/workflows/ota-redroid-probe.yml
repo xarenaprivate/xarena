@@ -21,13 +21,10 @@ jobs:
           sudo modprobe ashmem_linux 2>&1 || true
           ls -l /dev/binder* /dev/ashmem 2>/dev/null || echo NO-BINDER
       - name: Download APKs
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           curl -sL -o published72.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.27-native/xarena-native.apk
           echo "db22cf97f2a01355eeb2abc601e6b6b8daa58e86639b35f978c662166634d306  published72.apk" | sha256sum -c -
-          # candidate 73 lives in a DRAFT release until this gate passes (draft assets need the token)
-          curl -sL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" -o cand73.apk https://api.github.com/repos/xarenaprivate/xarena/releases/assets/727828603
+          curl -sL -o cand73.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.28-native/xarena-native-v0.17.28.apk
           echo "40eb738389f37be388fd230346b95865e91b68f0f31529ca394891cb0dfe3d5d  cand73.apk" | sha256sum -c -
       - name: Start redroid, upgrade 72 to 73, fresh install 73, launch
         run: |
