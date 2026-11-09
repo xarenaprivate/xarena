@@ -54,7 +54,7 @@ jobs:
           m = json.load(open('manifest.json'))
           patches = sorted(m.get('patches', []), key=lambda p: -p['from'])
           p = patches[0]
-          open('baseurl.txt','w').write(f"https://github.com/xarenaprivate/xarena/releases/download/v0.17.{p['from']-45}-native/xarena-native.apk")
+          open('baseurl.txt','w').write(p.get("baseApkUrl") or f"https://github.com/xarenaprivate/xarena/releases/download/v0.17.{p['from']-45}-native/xarena-native.apk")
           open('patchurl.txt','w').write(p['url'])
           open('targetsha.txt','w').write(m['sha256'])
           PYEOF
