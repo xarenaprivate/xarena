@@ -114,7 +114,7 @@ object Api {
     }
 
     /** One-time profile setup (same RPC the site's account page uses). */
-    suspend fun completeProfile(username: String, ign: String, ffUid: String) = withContext(Dispatchers.IO) {
+    suspend fun completeProfile(username: String, ign: String, ffUid: String, strict: Boolean = false) = withContext(Dispatchers.IO) {
         val r = JSONObject(authed("POST", "/rest/v1/rpc/complete_profile",
             JSONObject().put("p_username", username.trim()).put("p_ign", ign.trim()).put("p_ff_uid", ffUid.trim())))
         if (!r.optBoolean("ok")) throw ApiError(r.s("error").ifBlank { "Could not save. Try again." })
@@ -122,6 +122,8 @@ object Api {
         val back = readProfileRow(uid ?: throw ApiError("Log in first."))
         if (back == null || ProfileGate.needsForm(back.s("username")) || !back.s("username").equals(username.trim(), ignoreCase = true))
             throw ApiError("Could not confirm your profile was saved. Try again.")
+        if (strict && (back.s("ign").trim() != ign.trim() || ign.isBlank() || back.s("ff_uid").trim() != ffUid.trim() || ffUid.isBlank()))
+            throw ApiError("Could not confirm all your details were saved. Try again.")
     }
 
     /** Set when the refresh token was definitively rejected (not a network/server blip). UI returns to login with a reason. */
@@ -132,7 +134,12 @@ object Api {
         if (r == null) { if (access != null) sessionExpired = true; return false }
         val (code, text) = try { call("POST", "/auth/v1/token?grant_type=refresh_token", JSONObject().put("refresh_token", r), null) }
             catch (e: java.io.IOException) { return false }
-        if (code in 400..401 || code == 403) sessionExpired = true // refresh token invalid/revoked/used: account data is untouched
+        if (code in 400..401) { // only GoTrue's explicit invalid-refresh-token answers count; 403/5xx/other 4xx are not logout proof
+            val j = runCatching { JSONObject(text) }.getOrNull()
+            val tag = ((j?.optString("error_code") ?: "") + " " + (j?.optString("error") ?: "") + " " + (j?.optString("msg") ?: "") + " " + (j?.optString("error_description") ?: "")).lowercase()
+            if (tag.contains("refresh_token_not_found") || tag.contains("refresh_token_already_used") || tag.contains("invalid_grant") || tag.contains("invalid refresh token") || tag.contains("refresh token not found"))
+                sessionExpired = true
+        }
         if (code !in 200..299) return false
         saveSession(JSONObject(text)); return true
     }

@@ -483,7 +483,7 @@ fun CompleteProfileScreen(info: Api.SetupInfo?, onDone: () -> Unit, onLogout: ()
         GoldButton(if (busy) "SAVING..." else "SAVE PROFILE", enabled = !busy && userOk && uidOk && ignOk) {
             busy = true; err = null
             scope.launch {
-                try { Api.completeProfile(username, ign, ffUid); onDone() } catch (e: Exception) { err = e.message ?: "Could not save." }
+                try { Api.completeProfile(username, ign, ffUid, strict); onDone() } catch (e: Exception) { err = e.message ?: "Could not save." }
                 busy = false
             }
         }
