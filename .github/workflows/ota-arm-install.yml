@@ -1,0 +1,50 @@
+name: native-arm-install
+on:
+  push:
+    branches: [native]
+    paths: ['.github/workflows/ota-arm-install.yml']
+  workflow_dispatch:
+
+jobs:
+  arm-install:
+    # Real ARM install acceptance on a GitHub-hosted ARM64 runner (free for public repos).
+    # Installs BOTH the known-working 71 (control) and the published 72 (target) on an
+    # arm64 Android 13 emulator with hardware acceleration. This is the install evidence
+    # the x86 parse-check could not provide.
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 25
+    steps:
+      - name: KVM check
+        run: |
+          ls -l /dev/kvm || true
+          uname -m
+      - name: Download release APKs
+        run: |
+          curl -sL -o base71.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.26-native/xarena-native.apk
+          curl -sL -o target72.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.27-native/xarena-native.apk
+          echo "122448cf23265cd70c86f4737e383ddcd364921b3406b6c1e7857e753c262254  base71.apk" | sha256sum -c -
+          echo "efcd8caaf99410aa8ea779405d7f3d940e150236555722b46b4181b5ea240e8b  target72.apk" | sha256sum -c -
+      - name: Install system image
+        run: |
+          yes | sdkmanager "system-images;android-33;google_apis;arm64-v8a" > /dev/null
+          echo no | avdmanager create avd -n t33 -k "system-images;android-33;google_apis;arm64-v8a" -d pixel_6 --force
+      - name: Boot and install
+        run: |
+          $ANDROID_HOME/emulator/emulator -avd t33 -no-window -no-audio -no-boot-anim -accel on -gpu swiftshader_indirect &
+          adb wait-for-device
+          for i in $(seq 1 120); do
+            B=$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+            if [ "$B" = "1" ]; then echo BOOTED; break; fi
+            sleep 5
+          done
+          adb shell getprop sys.boot_completed
+          echo "== install control 71 =="
+          adb install base71.apk 2>&1 | tee i71.txt
+          echo "== install target 72 =="
+          adb install target72.apk 2>&1 | tee i72.txt
+          echo "== PackageManager logcat =="
+          adb logcat -d | grep -iE "PackageManager|PackageParser|installd" | tail -40 || true
+          echo "== results =="
+          grep -E "Success|Failure" i71.txt i72.txt
+          grep -q Success i71.txt
+          grep -q Success i72.txt
