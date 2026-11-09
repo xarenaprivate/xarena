@@ -15,7 +15,8 @@ object Api {
     const val KEY = "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7"
     lateinit var ctx: Context
     fun init(c: Context) { ctx = c.applicationContext }
-    val prefs get() = ctx.getSharedPreferences("xr_native_session", Context.MODE_PRIVATE)
+    internal var prefsOverride: android.content.SharedPreferences? = null
+    val prefs get() = prefsOverride ?: ctx.getSharedPreferences("xr_native_session", Context.MODE_PRIVATE)
 
     var access: String? = null; private set
     var uid: String? = null; private set
@@ -25,7 +26,11 @@ object Api {
 
     class ApiError(msg: String) : Exception(msg)
 
+    /** Test seam: when set, call() routes through it instead of the network. */
+    internal var httpTransport: ((String, String, JSONObject?, String?) -> Pair<Int, String>)? = null
+
     private fun call(method: String, path: String, body: JSONObject?, token: String?, headers: Map<String, String> = emptyMap(), readTimeoutMs: Int = 20000): Pair<Int, String> {
+        httpTransport?.let { return it(method, path, body, token) }
         val c = URL(BASE + path).openConnection() as HttpURLConnection
         c.requestMethod = method
         c.connectTimeout = 15000; c.readTimeout = readTimeoutMs
@@ -85,7 +90,7 @@ object Api {
         return null
     }
 
-    /** Phone signup identical to the site: phone_available check, then Supabase signup with phone metadata. */
+    /** Phone signup identical to the site: signup_precheck, then Supabase signup with phone metadata. */
     suspend fun signup(phone: String, password: String) = try { signupInner(phone, password) }
         catch (e: java.io.IOException) { throw ApiError("Network problem - check your internet and try again.") }
 
@@ -95,19 +100,17 @@ object Api {
         val ph = normPhone(phone) ?: throw ApiError("Enter a valid 10-digit Indian mobile number.")
         if (ProfileGate.weakPassword(password, ph.removePrefix("91")))
             throw ApiError("Choose a password that is harder to guess (not your phone number or a simple pattern).")
-        val (c1, t1) = call("POST", "/rest/v1/rpc/phone_available", JSONObject().put("p_phone", ph), null)
-        if (c1 !in 200..299) throw ApiError("Could not check right now. Try again.")
-        val chk = JSONObject(t1)
-        if (!chk.optBoolean("ok")) throw ApiError(chk.s("error").ifBlank { "Could not check right now. Try again." })
-        if (!chk.optBoolean("available")) throw ApiError("An account already exists with this number. Please log in.")
-        // Anti-fake-account gate: rate limits, one-phone-many-accounts and 2-accounts-per-device blocks. Show its reason plainly.
+        // Anti-fake-account gate (same RPC as the site): rate limits, one-phone-many-accounts and
+        // 2-accounts-per-device blocks. Fail-closed like the site: a check that could not run never opens the gate.
+        // Like the site, never confirm whether a number is registered - no phone_available call here.
+        val devId = runCatching { DeviceIds.id }.getOrDefault("") // the site sends "" when unavailable
+        val fp = runCatching { DeviceIds.fp }.getOrDefault("")
         val (cp, tp) = call("POST", "/rest/v1/rpc/signup_precheck",
-            JSONObject().put("p_phone", ph).put("p_device_id", DeviceIds.id).put("p_fp", DeviceIds.fp), null)
-        if (cp in 200..299) {
-            val pc = JSONObject(tp)
-            if (!pc.optBoolean("ok") || (pc.has("available") && !pc.optBoolean("available")))
-                throw ApiError(pc.s("error").ifBlank { pc.s("reason") }.ifBlank { "Sign-up is not allowed from this device right now." })
-        }
+            JSONObject().put("p_phone", ph).put("p_device_id", devId).put("p_fp", fp), null)
+        if (cp !in 200..299) throw ApiError("Could not check right now. Try again.")
+        val pc = JSONObject(tp)
+        if (!pc.optBoolean("ok") || (pc.has("available") && !pc.optBoolean("available")))
+            throw ApiError(pc.s("error").ifBlank { pc.s("reason") }.ifBlank { "Sign-up is not allowed from this device right now." })
         val fail = "We could not create an account with these details. If you already signed up, please log in instead."
         val (c2, t2) = try {
             call("POST", "/auth/v1/signup",
@@ -116,7 +119,10 @@ object Api {
         } catch (e: java.io.IOException) { throw ApiError("Network problem - check your internet and try again.") }
         if (c2 !in 200..299) throw ApiError(fail)
         val j = JSONObject(t2)
-        if (j.has("access_token")) { saveSession(j); bindDevice() }
+        // Same neutral duplicate handling as the site: an existing number comes back with no session
+        // (and empty identities) - generic failure, never confirm the number is registered.
+        val ids = j.optJSONObject("user")?.optJSONArray("identities")
+        if (j.has("access_token") && !(ids != null && ids.length() == 0)) { saveSession(j); bindDevice() }
         else throw ApiError(fail)
     }
 
