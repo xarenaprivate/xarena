@@ -1,0 +1,53 @@
+name: ota-redroid-probe
+on:
+  push:
+    branches: [native]
+    paths: ['.github/workflows/ota-redroid-probe.yml']
+  workflow_dispatch:
+
+jobs:
+  redroid-probe:
+    # Real ARM Android in a container (redroid runs Android natively on the host kernel,
+    # no KVM and no instruction translation). ARM64 runner + arm64 image = true install
+    # of control 71, published 72, and the page-aligned candidate. Fails fast if the
+    # runner kernel lacks binder support.
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    steps:
+      - name: Kernel binder probe
+        run: |
+          ls -l /dev/binder* /dev/ashmem 2>/dev/null || true
+          sudo modprobe binder_linux devices="binder,hwbinder,vndbinder" 2>&1 || true
+          sudo modprobe ashmem_linux 2>&1 || true
+          ls -l /dev/binder* /dev/ashmem 2>/dev/null || echo NO-BINDER
+      - name: Download APKs
+        run: |
+          curl -sL -o base71.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.26-native/xarena-native.apk
+          curl -sL -o published72.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.27-native/xarena-native.apk
+          curl -sL -o candidate.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.27-native/xarena-native-candidate.apk
+          echo "122448cf23265cd70c86f4737e383ddcd364921b3406b6c1e7857e753c262254  base71.apk" | sha256sum -c -
+          echo "efcd8caaf99410aa8ea779405d7f3d940e150236555722b46b4181b5ea240e8b  published72.apk" | sha256sum -c -
+          echo "db22cf97f2a01355eeb2abc601e6b6b8daa58e86639b35f978c662166634d306  candidate.apk" | sha256sum -c -
+      - name: Start redroid and install
+        run: |
+          docker run -d --name redroid --privileged -p 5555:5555 redroid/redroid:13.0.0-latest androidboot.redroid_gpu_mode=guest
+          for i in $(seq 1 60); do
+            sleep 5
+            S=$(docker exec redroid getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+            if [ "$S" = "1" ]; then echo BOOTED; break; fi
+          done
+          docker exec redroid getprop sys.boot_completed
+          sudo apt-get install -y adb > /dev/null 2>&1 || true
+          adb connect localhost:5555
+          echo "== control 71 (expect Success) =="
+          adb -s localhost:5555 install base71.apk 2>&1 | tee i71.txt
+          echo "== published 72 =="
+          adb -s localhost:5555 install published72.apk 2>&1 | tee i72.txt || true
+          echo "== candidate (expect Success) =="
+          adb -s localhost:5555 install candidate.apk 2>&1 | tee ic.txt
+          echo "== PackageManager logcat =="
+          adb -s localhost:5555 logcat -d | grep -iE "PackageManager|installd|native librar" | tail -30 || true
+          echo "== SUMMARY =="
+          grep -E "Success|Failure" i71.txt i72.txt ic.txt || true
+          grep -q Success i71.txt
+          grep -q Success ic.txt
