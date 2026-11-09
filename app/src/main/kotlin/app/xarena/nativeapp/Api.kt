@@ -70,7 +70,6 @@ object Api {
             throw ApiError(j?.optString("error_description")?.ifBlank { null } ?: j?.optString("msg")?.ifBlank { null } ?: "Google sign-in failed ($code).")
         }
         saveSession(JSONObject(text), persist)
-        prefs.edit().putBoolean("google_" + uid, true).apply()
         bindDevice()
     }
 
@@ -116,7 +115,6 @@ object Api {
         val r = JSONObject(authed("POST", "/rest/v1/rpc/complete_profile",
             JSONObject().put("p_username", username.trim()).put("p_ign", ign.trim()).put("p_ff_uid", ffUid.trim())))
         if (!r.optBoolean("ok")) throw ApiError(r.s("error").ifBlank { "Could not save. Try again." })
-        markProfileDone()
     }
 
     private fun refresh(): Boolean {
@@ -167,19 +165,35 @@ object Api {
     }
 
     /** True when the account has no real profile yet (site shows the complete-profile form in that case). */
-    suspend fun needsProfileSetup(): Boolean = withContext(Dispatchers.IO) {
-        val u = uid ?: return@withContext false
-        val arr = JSONArray(authed("GET", "/rest/v1/profiles?id=eq.$u&select=username,ign,ff_uid", null))
-        if (arr.length() == 0) return@withContext true
-        val r = arr.getJSONObject(0)
-        if (Regex("^user[0-9a-f]{8}$").matches(r.s("username"))) return@withContext true
-        // Google sign-in: the server may give the new profile a name derived from the Google account, so the placeholder
-        // check above never fires. A Google account that has never saved the profile form (no IGN, no UID) must still see it.
-        prefs.getBoolean("google_" + u, false) && !prefs.getBoolean("profile_done_" + u, false) &&
-            r.s("ign").isBlank() && r.s("ff_uid").isBlank()
+    /** Auth provider of the signed-in user, read from the server (survives reinstall / cleared prefs). */
+    private fun isGoogleAccount(): Boolean {
+        val (c, t) = call("GET", "/auth/v1/user", null, access)
+        if (c !in 200..299) throw ApiError("Could not check account ($c).")
+        val u = JSONObject(t)
+        if (u.optJSONObject("app_metadata")?.optString("provider") == "google") return true
+        val ids = u.optJSONArray("identities") ?: return false
+        for (i in 0 until ids.length()) if (ids.getJSONObject(i).optString("provider") == "google") return true
+        return false
     }
 
-    fun markProfileDone() { uid?.let { prefs.edit().putBoolean("profile_done_" + it, true).apply() } }
+    /** What the profile form must start from: existing row values (never overwritten blindly) and whether IGN is required. */
+    data class SetupInfo(val needs: Boolean, val username: String, val ign: String, val ffUid: String, val googleGate: Boolean)
+
+    suspend fun profileSetupInfo(): SetupInfo = withContext(Dispatchers.IO) {
+        val u = uid ?: return@withContext SetupInfo(false, "", "", "", false)
+        val arr = JSONArray(authed("GET", "/rest/v1/profiles?id=eq.$u&select=username,ign,ff_uid", null))
+        if (arr.length() == 0) return@withContext SetupInfo(true, "", "", "", false)
+        val r = arr.getJSONObject(0)
+        val un = r.s("username"); val ign = r.s("ign"); val uidv = r.s("ff_uid")
+        val placeholder = Regex("^user[0-9a-f]{8}$").matches(un)
+        if (placeholder) return@withContext SetupInfo(true, "", ign, uidv, false)
+        // Google accounts may get a server-derived (non-placeholder) username, so the placeholder check never fires.
+        // Server data decides: a Google account with neither IGN nor UID saved has not completed the form.
+        val g = ign.isBlank() && uidv.isBlank() && isGoogleAccount()
+        SetupInfo(g, un, ign, uidv, g)
+    }
+
+    suspend fun needsProfileSetup(): Boolean = profileSetupInfo().needs
 
     suspend fun myProfile(): JSONObject? = withContext(Dispatchers.IO) {
         val u = uid ?: return@withContext null

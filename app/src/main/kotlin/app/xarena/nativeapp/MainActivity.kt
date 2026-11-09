@@ -216,6 +216,9 @@ fun XarenaApp() {
     if (BuildConfig.DEBUG && MainActivity.fixture == "live") { LiveFixtureScreen(); return }
     var screen by remember { mutableStateOf(if (Api.loggedIn) Screen.Home else Screen.Login) }
     var setupChecked by remember { mutableStateOf(false) }
+    var setupFailed by remember { mutableStateOf(false) }
+    var setupTry by remember { mutableIntStateOf(0) }
+    var setupInfo by remember { mutableStateOf<Api.SetupInfo?>(null) }
     var update by remember { mutableStateOf<UpdateChecker.Info?>(null) }
     var updateDismissed by remember { mutableStateOf(false) }
     val notifPerm = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
@@ -251,15 +254,20 @@ fun XarenaApp() {
                 Screen.Signup -> SignupScreen(
                     onDone = { setupChecked = false; screen = Screen.Home },
                     onGoLogin = { screen = Screen.Login })
-                Screen.CompleteProfile -> CompleteProfileScreen(onDone = { setupChecked = true; screen = Screen.Home })
+                Screen.CompleteProfile -> CompleteProfileScreen(setupInfo, onDone = { setupChecked = true; screen = Screen.Home },
+                    onLogout = { Api.logout(); setupChecked = false; screen = Screen.Login })
                 Screen.Home -> {
                     if (!setupChecked) {
-                        LaunchedEffect(Unit) {
-                            val needs = runCatching { Api.needsProfileSetup() }.getOrElse { kotlinx.coroutines.delay(1500); runCatching { Api.needsProfileSetup() }.getOrDefault(false) }
-                            setupChecked = true
-                            if (needs) screen = Screen.CompleteProfile
+                        LaunchedEffect(setupTry) {
+                            val info = runCatching { Api.profileSetupInfo() }.getOrElse { kotlinx.coroutines.delay(1500); runCatching { Api.profileSetupInfo() }.getOrNull() }
+                            if (info == null) { setupFailed = true } else { setupInfo = info; setupChecked = true; if (info.needs) screen = Screen.CompleteProfile }
                         }
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Gold) }
+                        if (setupFailed) Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                            Text("Could not check your profile. Check your internet.", color = Color.White, fontSize = 14.sp)
+                            Spacer(Modifier.height(12.dp))
+                            GoldButton("RETRY") { setupFailed = false; setupTry++ }
+                            Text("Log out", color = Gold2, fontSize = 13.sp, modifier = Modifier.clickable { Api.logout(); setupFailed = false; screen = Screen.Login }.padding(12.dp))
+                        } else Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Gold) }
                     } else HomeShell(onLogout = { Api.logout(); screen = Screen.Login })
                 }
             }
@@ -438,36 +446,37 @@ fun SignupScreen(onDone: () -> Unit, onGoLogin: () -> Unit) {
 }
 
 @Composable
-fun CompleteProfileScreen(onDone: () -> Unit) {
-    var username by remember { mutableStateOf("") }
-    var ign by remember { mutableStateOf("") }
-    var ffUid by remember { mutableStateOf("") }
+fun CompleteProfileScreen(info: Api.SetupInfo?, onDone: () -> Unit, onLogout: () -> Unit) {
+    var username by remember { mutableStateOf(info?.username ?: "") }
+    var ign by remember { mutableStateOf(info?.ign ?: "") }
+    var ffUid by remember { mutableStateOf(info?.ffUid ?: "") }
+    val ignRequired = info?.googleGate == true
     var busy by remember { mutableStateOf(false) }
     var err by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val userOk = Regex("^[A-Za-z0-9_.]{3,16}$").matches(username)
+    val ignOk = !ignRequired || ign.isNotBlank()
     val uidOk = ffUid.isBlank() || Regex("^[0-9]{5,15}$").matches(ffUid)
     AuthCard("Complete your profile") {
         Text("One-time setup - this is your XARENA identity.", color = Muted, fontSize = 13.sp)
         Spacer(Modifier.height(10.dp))
         OutlinedTextField(username, { username = it }, label = { Text("Username (3-16, e.g. night_hunter)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(10.dp))
-        OutlinedTextField(ign, { ign = it }, label = { Text("In-game name (IGN)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(ign, { ign = it }, label = { Text(if (ignRequired) "In-game name (IGN) - required" else "In-game name (IGN)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
         Spacer(Modifier.height(10.dp))
         OutlinedTextField(ffUid, { ffUid = it }, label = { Text("Free Fire UID") }, singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
         Text("Your UID locks after verification.", color = Muted, fontSize = 12.sp)
         err?.let { Spacer(Modifier.height(8.dp)); Text(it, color = ErrRed, fontSize = 13.sp) }
-        if (err != null) Text("Continue without saving for now", color = Gold2, fontSize = 13.sp,
-            modifier = Modifier.padding(top = 8.dp).clickable { Api.markProfileDone(); onDone() }.padding(6.dp))
         Spacer(Modifier.height(16.dp))
-        GoldButton(if (busy) "SAVING..." else "SAVE PROFILE", enabled = !busy && userOk && uidOk) {
+        GoldButton(if (busy) "SAVING..." else "SAVE PROFILE", enabled = !busy && userOk && uidOk && ignOk) {
             busy = true; err = null
             scope.launch {
                 try { Api.completeProfile(username, ign, ffUid); onDone() } catch (e: Exception) { err = e.message ?: "Could not save." }
                 busy = false
             }
         }
+        Text("Log out", color = Gold2, fontSize = 13.sp, modifier = Modifier.padding(top = 10.dp).clickable { onLogout() }.padding(6.dp))
     }
 }
 
