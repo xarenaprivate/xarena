@@ -100,6 +100,28 @@ class AuthTransportTest {
         assertFalse(Api.sessionExpired)
     }
 
+    @Test fun rememberMeOffRefreshesCurrentSessionWithoutPersisting() {
+        // A prior persisted token must never be used for a new non-persistent login.
+        prefs.map["refresh"] = "stale-other-account"
+        stubLogin(); stubBind()
+        runBlocking { Api.login("9876543210", "password123", false) }
+        assertFalse(prefs.contains("access")); assertFalse(prefs.contains("refresh")); assertFalse(prefs.contains("uid"))
+        var usedRefresh: String? = null
+        var attempts = 0
+        Api.httpTransport = { _, path, body, _ ->
+            if (path.contains("grant_type=refresh_token")) {
+                usedRefresh = body?.optString("refresh_token"); 200 to sessionJson("a2")
+            } else {
+                attempts++
+                if (attempts == 1) 401 to "{}" else 200 to "{\"ok\":true}"
+            }
+        }
+        Api.authed("GET", "/test", null)
+        assertEquals("rt-a1", usedRefresh)
+        assertEquals("a2", Api.access)
+        assertFalse(prefs.contains("access")); assertFalse(prefs.contains("refresh")); assertFalse(prefs.contains("uid"))
+    }
+
     @Test fun invalidRefreshTokenMarksSessionExpired() {
         login()
         script.on("/rest/v1/profiles", 401 to """{"msg":"jwt expired"}""")

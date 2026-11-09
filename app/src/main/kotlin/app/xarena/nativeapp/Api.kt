@@ -20,9 +20,11 @@ object Api {
 
     var access: String? = null; private set
     var uid: String? = null; private set
+    private var refreshToken: String? = null
+    private var persistSession = true
     val loggedIn get() = access != null
 
-    fun restore() { access = prefs.getString("access", null); uid = prefs.getString("uid", null); restoreChat() }
+    fun restore() { access = prefs.getString("access", null); uid = prefs.getString("uid", null); refreshToken = prefs.getString("refresh", null); persistSession = true; restoreChat() }
 
     class ApiError(msg: String) : Exception(msg)
 
@@ -48,6 +50,9 @@ object Api {
         sessionExpired = false // a fresh successful login clears any stale expiry flag
         access = j.getString("access_token")
         uid = j.getJSONObject("user").getString("id")
+        refreshToken = j.s("refresh_token").ifBlank { null }
+        persistSession = persist
+        if (!persist) prefs.edit().remove("access").remove("refresh").remove("uid").apply()
         if (persist) prefs.edit().putString("access", access).putString("refresh", j.s("refresh_token"))
             .putString("uid", uid).apply()
     }
@@ -139,16 +144,16 @@ object Api {
     @Volatile var sessionExpired = false
 
     private fun refresh(): Boolean {
-        val r = prefs.getString("refresh", null)
+        val r = refreshToken
         if (r == null) { if (access != null) sessionExpired = true; return false }
         val (code, text) = try { call("POST", "/auth/v1/token?grant_type=refresh_token", JSONObject().put("refresh_token", r), null) }
             catch (e: java.io.IOException) { return false }
         if (ProfileGate.isInvalidRefreshToken(code, text)) sessionExpired = true // 403/5xx/other 4xx are not logout proof
         if (code !in 200..299) return false
-        saveSession(JSONObject(text)); return true
+        saveSession(JSONObject(text), persistSession); return true
     }
 
-    fun logout() { DmUnread.clear(); access = null; uid = null; sessionExpired = false; prefs.edit().clear().apply() }
+    fun logout() { DmUnread.clear(); access = null; uid = null; refreshToken = null; persistSession = true; sessionExpired = false; prefs.edit().clear().apply() }
 
     /** Binds this install to the account (anti-fake-account). Best-effort; no-op when logged out. */
     fun bindDevice() {
