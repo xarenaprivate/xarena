@@ -68,7 +68,7 @@ private class PhoenixChannel(
                 ref = 1; joinRef = "1"
                 send("phx_join", JSONObject().put("config", JSONObject()
                     .put("broadcast", JSONObject().put("ack", false).put("self", false))
-                    .put("presence", JSONObject().put("key", presenceKey).put("enabled", false))
+                    .put("presence", JSONObject().put("key", presenceKey))  // no "enabled" field: the realtime server disables presence relay when it is set
                     .put("postgres_changes", JSONArray())
                     .put("private", false)))
             }
@@ -87,14 +87,14 @@ private class PhoenixChannel(
                                 } else onState("join failed: " + payload.toString().take(80))
                             }
                         }
-                        "presence_state" -> onJoins(parsePresences(payload.optJSONObject("presences") ?: JSONObject()))
+                        "presence_state" -> onJoins(parsePresences(extractPresences(payload)))  // v2 server sends the presences map directly
                         "presence_diff" -> {
                             onJoins(parsePresences(payload.optJSONObject("joins") ?: JSONObject()))
                             onLeaves(parsePresences(payload.optJSONObject("leaves") ?: JSONObject()))
                         }
                         "broadcast" -> onBroadcast(payload.optJSONObject("payload") ?: JSONObject())
                     }
-                } catch (e: Exception) { }
+                } catch (e: Exception) { onState("signal error: " + (e.message ?: "parse").take(60)) }
             }
             override fun onFailure(webSocket: okhttp3.WebSocket, t: Throwable, response: okhttp3.Response?) {
                 open = false; onState("disconnected: " + (t.message ?: "network")); retry()
@@ -143,6 +143,8 @@ private class PhoenixChannel(
         ws?.close(1000, "bye"); client.dispatcher.executorService.shutdown()
     }
 }
+
+internal fun extractPresences(payload: JSONObject): JSONObject = payload.optJSONObject("presences") ?: payload
 
 private data class VoicePeer(val id: String, val handle: String, val muted: Boolean, val conn: String = "")
 
@@ -219,18 +221,23 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
             "offer" -> {
                 val pc = peerFor(from)
                 pc.setRemoteDescription(object : SimpleObserver() {
-                    override fun onSetSuccess() { flushIce(from) }
-                }, org.webrtc.SessionDescription(org.webrtc.SessionDescription.Type.OFFER, p.optJSONObject("data")?.s("sdp") ?: return))
-                pc.createAnswer(object : SimpleSdpObserver() {
-                    override fun onCreateSuccess(desc: org.webrtc.SessionDescription) {
-                        pc.setLocalDescription(SimpleObserver(), desc)
-                        chan?.broadcast("sig", JSONObject().put("kind", "answer").put("from", myId).put("to", from)
-                            .put("data", JSONObject().put("type", "answer").put("sdp", desc.description)).put("handle", myHandle))
+                    override fun onSetSuccess() {
+                        flushIce(from)
+                        pc.createAnswer(object : SimpleSdpObserver() {
+                            override fun onCreateSuccess(desc: org.webrtc.SessionDescription) {
+                                pc.setLocalDescription(SimpleObserver(), desc)
+                                chan?.broadcast("sig", JSONObject().put("kind", "answer").put("from", myId).put("to", from)
+                                    .put("data", JSONObject().put("type", "answer").put("sdp", desc.description)).put("handle", myHandle))
+                            }
+                            override fun onCreateFailure(err: String?) { main { onState("answer failed: " + (err ?: "")) } }
+                        }, org.webrtc.MediaConstraints())
                     }
-                }, org.webrtc.MediaConstraints())
+                    override fun onSetFailure(err: String?) { main { onState("offer failed: " + (err ?: "")) } }
+                }, org.webrtc.SessionDescription(org.webrtc.SessionDescription.Type.OFFER, p.optJSONObject("data")?.s("sdp") ?: return))
             }
             "answer" -> pcs[from]?.setRemoteDescription(object : SimpleObserver() {
                 override fun onSetSuccess() { flushIce(from) }
+                override fun onSetFailure(err: String?) { main { onState("answer rejected: " + (err ?: "")) } }
             }, org.webrtc.SessionDescription(org.webrtc.SessionDescription.Type.ANSWER, p.optJSONObject("data")?.s("sdp") ?: return))
             "ice" -> {
                 val d = p.optJSONObject("data") ?: return
@@ -261,7 +268,7 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
         pcs[id]?.let { return it }
         val ice = listOf(
             org.webrtc.PeerConnection.IceServer.builder(listOf("stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302")).createIceServer(),
-            org.webrtc.PeerConnection.IceServer.builder(listOf("turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turns:openrelay.metered.ca:443"))
+            org.webrtc.PeerConnection.IceServer.builder(listOf("turn:openrelay.metered.ca:80", "turn:openrelay.metered.ca:443", "turn:openrelay.metered.ca:80?transport=tcp", "turn:openrelay.metered.ca:443?transport=tcp", "turns:openrelay.metered.ca:443"))
                 .setUsername("openrelayproject").setPassword("openrelayproject").createIceServer())
         val pc = factory!!.createPeerConnection(org.webrtc.PeerConnection.RTCConfiguration(ice), object : org.webrtc.PeerConnection.Observer {
             override fun onIceCandidate(c: org.webrtc.IceCandidate) {
@@ -282,7 +289,10 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
                 }
                 main {
                     roster[id]?.let { roster[id] = it.copy(conn = label); onPeers(roster.values.sortedBy { p -> p.handle }) }
-                    if (st == org.webrtc.PeerConnection.IceConnectionState.FAILED) onState("a peer connection failed - rejoin to retry")
+                    if (st == org.webrtc.PeerConnection.IceConnectionState.FAILED) {
+                        roster[id]?.let { pcs[id]?.restartIce() }
+                        onState("a peer connection dropped - retrying")
+                    }
                 }
             }
             override fun onIceConnectionReceivingChange(b: Boolean) {}
