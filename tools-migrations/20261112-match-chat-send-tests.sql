@@ -1,0 +1,41 @@
+BEGIN;
+DO $test$
+DECLARE h text:='SFChat'||substr(replace(gen_random_uuid()::text,'-',''),1,12);tok uuid:=gen_random_uuid();m uuid:=gen_random_uuid();other uuid:=gen_random_uuid();t text:='__chat_test_'||gen_random_uuid()::text;r json;before_n bigint;i integer;
+BEGIN
+ INSERT INTO public.chat_handles(handle,token) VALUES(h,tok);
+ INSERT INTO public.tournaments(id,name,status,reg_open,slots,entry_cost_ap) VALUES(t,'ROLLBACK CHAT','upcoming',false,4,0);
+ INSERT INTO public.matches(id,tournament_id,title,status) VALUES(m,t,'ROLLBACK LIVE','live'),(other,t,'ROLLBACK SCHEDULED','scheduled');
+ ASSERT public.xr_match_chat_send(h,gen_random_uuid(),'Hi','match-'||m)->>'error'='unauthorized','Wrong token';
+ ASSERT public.xr_match_chat_send(h,tok,'Hi',NULL)->>'error'='invalid_room','Null room';
+ ASSERT public.xr_match_chat_send(h,tok,'Hi','general')->>'error'='invalid_room','No arbitrary rooms';
+ ASSERT public.xr_match_chat_send(h,tok,'Hi','match-bad')->>'error'='invalid_room','Malformed UUID';
+ ASSERT public.xr_match_chat_send(h,tok,'Hi','match-'||gen_random_uuid())->>'error'='match_not_live','Missing match';
+ ASSERT public.xr_match_chat_send(h,tok,'Hi','match-'||other)->>'error'='match_not_live','Scheduled match';
+ INSERT INTO public.chat_mutes(handle,until) VALUES(h,now()+interval '1 hour');
+ ASSERT public.xr_match_chat_send(h,tok,'Hi','match-'||m)->>'error'='muted','Mute same pipeline';DELETE FROM public.chat_mutes WHERE handle=h;
+ ASSERT public.xr_match_chat_send(h,tok,NULL,'match-'||m)->>'error'='invalid','Null body';
+ ASSERT public.xr_match_chat_send(h,tok,'','match-'||m)->>'error'='invalid','Empty body';
+ ASSERT public.xr_match_chat_send(h,tok,repeat('a',401),'match-'||m)->>'error'='invalid','Long body';
+ ASSERT public.xr_match_chat_send(h,tok,'<b>no</b>','match-'||m)->>'error'='invalid','HTML blocked';
+ ASSERT public.xr_match_chat_send(h,tok,'visit https://example.com','match-'||m)->>'error'='invalid','Link blocked';
+ ASSERT public.xr_match_chat_send(h,tok,'fuck','match-'||m)->>'error'='blocked_language','Same language filter';
+ ASSERT EXISTS(SELECT 1 FROM public.chat_violations WHERE handle=h),'Violation logged';
+ ASSERT (public.xr_match_chat_send(h,tok,'  Match hello  ','match-'||upper(m::text))->>'ok')::boolean,'Live send';
+ ASSERT EXISTS(SELECT 1 FROM public.chat_messages WHERE handle=h AND room='match-'||m AND body='Match hello'),'Canonical routing and trimmed';
+ ASSERT (public.chat_send(h,tok,'World hello')->>'ok')::boolean,'World signature unchanged';
+ ASSERT EXISTS(SELECT 1 FROM public.chat_messages WHERE handle=h AND room=public.chat_room_for(h) AND body='World hello'),'World routing unchanged';
+ FOR i IN 1..6 LOOP ASSERT (public.xr_match_chat_send(h,tok,'Message '||i,'match-'||m)->>'ok')::boolean,'Eight combined sends allowed';END LOOP;
+ ASSERT public.xr_match_chat_send(h,tok,'Ninth','match-'||m)->>'error'='rate_limited','Match counts world send';
+ ASSERT public.chat_send(h,tok,'Ninth world')->>'error'='rate_limited','World counts match sends';
+ DELETE FROM public.chat_messages WHERE handle=h;
+ UPDATE public.matches SET status='done' WHERE id=m;
+ ASSERT public.xr_match_chat_send(h,tok,'After match','match-'||m)->>'error'='match_not_live','Done match refuses';
+ UPDATE public.matches SET status='cancelled' WHERE id=m;
+ ASSERT public.xr_match_chat_send(h,tok,'Cancelled','match-'||m)->>'error'='match_not_live','Cancelled refuses';
+ ASSERT NOT EXISTS(SELECT 1 FROM public.chat_messages WHERE handle=h),'No write for rejected messages';
+END $test$;
+SET LOCAL ROLE anon;
+DO $g$ BEGIN ASSERT has_function_privilege(current_user,'public.xr_match_chat_send(text,uuid,text,text)','EXECUTE'),'Anon token auth callable';ASSERT has_function_privilege(current_user,'public.chat_send(text,uuid,text)','EXECUTE'),'Old callable';END $g$;
+RESET ROLE;
+
+ROLLBACK;
