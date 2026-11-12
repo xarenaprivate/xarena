@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -33,7 +34,7 @@ internal object TournamentOverviewCache {
 internal fun loadTournamentOverview(force: Boolean = false): HashMap<String, JSONObject>? {
     if (!Api.loggedIn) return null
     if (!force && System.currentTimeMillis() - TournamentOverviewCache.atMs < 30_000 && TournamentOverviewCache.byId.isNotEmpty()) return TournamentOverviewCache.byId
-    val r = runCatching { Api.authedRpc("xr_tournament_overview", JSONObject()) }.getOrNull() ?: return null
+    val r = runCatching { runBlocking { Api.authedRpc("xr_tournament_overview", JSONObject()) } }.getOrNull() ?: return null
     if (!r.optBoolean("ok")) return null
     val arr = r.optJSONArray("tournaments") ?: return null
     val map = HashMap<String, JSONObject>()
@@ -47,7 +48,7 @@ internal fun loadTournamentOverview(force: Boolean = false): HashMap<String, JSO
 }
 
 internal fun tournamentSeasonSummary(id: String): JSONObject? {
-    val r = runCatching { Api.authedRpc("xr_tournament_season_summary", JSONObject().put("p_tournament", id)) }.getOrNull() ?: return null
+    val r = runCatching { runBlocking { Api.authedRpc("xr_tournament_season_summary", JSONObject().put("p_tournament", id)) } }.getOrNull() ?: return null
     return if (r.optBoolean("ok")) r else null
 }
 
