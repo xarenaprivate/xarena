@@ -149,7 +149,7 @@ fun SquadLogoMakerSheet(squadId: String, squadName: String, onDone: (String?) ->
                         val bos = ByteArrayOutputStream()
                         bmp.compress(Bitmap.CompressFormat.JPEG, 92, bos)
                         val url = Api.cloudinaryUpload(bos.toByteArray())
-                        if (!url.startsWith("https://res.cloudinary.com")) throw ApiError("Upload returned an unexpected address - logo not saved.")
+                        if (!url.startsWith("https://res.cloudinary.com")) throw Exception("Upload returned an unexpected address - logo not saved.")
                         val r = Api.authedRpc("xr_squad_custom_logo_set", JSONObject().put("p_squad", squadId).put("p_logo_url", url))
                         if (r.optBoolean("ok")) { onDone("Logo updated for your squad."); onClose() }
                         else msg = when (r.s("error")) {
