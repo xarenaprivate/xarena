@@ -1,9 +1,9 @@
 {
-  "versionCode": 86,
-  "versionName": "0.17.41-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.41-native/xarena-native-v0.17.41.apk",
-  "sha256": "b039137b26d77305e3d6634fa8896d530e569175da8d39ac27f5824a6cdae67e",
+  "versionCode": 87,
+  "versionName": "0.17.42-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.42-native/xarena-native-v0.17.42.apk",
+  "sha256": "264121be8bb0c35b8941b3b06b6957e35fa22e09935156209a13ce01cd4be399",
   "apkBytes": 29647375,
-  "notes": "v86 Voice Lobby renovation: Listen Only mode (no mic needed - real receive-only join, no mic track), LIVE NOW strip with real presence/avatars/topic/history from the new control plane, server-admitted join with honest waitlist rank, 30s heartbeat, hand raise, live polls, bigger Mute/Leave controls. Sneak peek and secret rooms honestly hidden (phase 2).",
+  "notes": "Home/Tournament renovation part 1: MATCH CENTER primary, honest season states, slots line, chat empty copy, sponsor Fit",
   "patches": []
 }
