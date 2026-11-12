@@ -12,6 +12,8 @@ import org.junit.Test
 class HomeRevampVisualTest {
     @get:Rule val paparazzi = Paparazzi()
 
+    @org.junit.Before fun setUp() { DataSaver.testOverride = false }
+
     private fun liveMatches() = JSONArray("""[{"id":"m1","tournament_id":"t1","title":"Grand Finals - Map 3","status":"live","starts_at":"2026-11-12T09:00:00+00:00"},{"id":"m2","tournament_id":"t2","title":"Semi Final B","status":"live","starts_at":"2026-11-12T10:30:00+00:00"}]""")
     private fun noLiveMatches() = JSONArray("""[{"id":"m9","tournament_id":"t1","title":"Qualifier Lobby A","status":"cancelled","starts_at":"2026-10-25T14:30:00+00:00"}]""")
     private fun tournaments() = JSONArray("""[{"id":"t1","name":"XARENA Season 2","status":"upcoming","slots":12,"prize":"INR 21,000","date_text":"Friday, November 14, 2026 at 8:00 PM IST","reg_open":true,"mode":"Squad BR"},{"id":"t2","name":"BR Lord","status":"upcoming","slots":48,"prize":"INR 5,000","date_text":"Saturday, November 15, 2026 at 9:00 PM IST","reg_open":false,"mode":"Squad BR"}]""")
