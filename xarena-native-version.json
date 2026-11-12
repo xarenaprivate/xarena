@@ -1,9 +1,9 @@
 {
-  "versionCode": 88,
-  "versionName": "0.17.43-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.43-native/xarena-native-v0.17.43.apk",
-  "sha256": "3ed0786c30bc88bdf42fcd6c1141f6b5f4d64e3c90893487ab625758d5768b17",
+  "versionCode": 89,
+  "versionName": "0.17.44-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.44-native/xarena-native-v0.17.44.apk",
+  "sha256": "de013801050576c251b392b217dacb341cefe6fb82f1926a0cacc6739aef2521",
   "apkBytes": 29663759,
-  "notes": "Home/Tournament part 2: overview slots + growth lines + season summary, chat preview with XARENA pin, registration sharing consent toggles",
+  "notes": "Feed renovation: Latest/Trending/Saved tabs, growth lines (gated dark), throwback labels, city opt-in toggle, save counts, no coin claims",
   "patches": []
 }
