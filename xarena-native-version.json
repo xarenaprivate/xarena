@@ -1,9 +1,9 @@
 {
-  "versionCode": 79,
-  "versionName": "0.17.34-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.34-native/xarena-native-v0.17.34.apk",
-  "sha256": "eea52d240323b2c58c2ab33cba2ae4b25ab1e80ca9d11ec55a08c0574086c2cb",
+  "versionCode": 80,
+  "versionName": "0.17.35-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.35-native/xarena-native-v0.17.35.apk",
+  "sha256": "a3ee5c6a446dba1117dd02702fbc41891842d53f63d7bc2c656446e9191df41d",
   "apkBytes": 29450767,
-  "notes": "v79: naya Home design - matches, clips aur community ek hi feed mein. IMPORTANT: signing key changed - purana app uninstall karke fresh install karein (login phir se karna hoga).",
+  "notes": "v80: live match chat - real chat panel inside live matches (only while the match is live). IMPORTANT: signing key changed - purana app uninstall karke fresh install karein (login phir se karna hoga).",
   "patches": []
 }
