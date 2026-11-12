@@ -1,0 +1,22 @@
+R_DEF: Internal format may change without notice
+local
+drawable support_logo
+drawable xarena_logo
+id widget_countdown
+id widget_root
+id widget_sub
+id widget_title
+layout widget_cup
+mipmap ic_launcher
+mipmap ic_launcher_background
+mipmap ic_launcher_foreground
+mipmap ic_launcher_round
+string gcm_defaultSenderId
+string google_api_key
+string google_app_id
+string google_crash_reporting_api_key
+string google_storage_bucket
+string project_id
+style Theme.Xarena
+xml cup_widget_info
+xml file_paths
