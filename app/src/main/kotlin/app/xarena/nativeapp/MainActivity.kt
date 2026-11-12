@@ -174,6 +174,13 @@ class MainActivity : ComponentActivity() {
     companion object { var pendingOpen by mutableStateOf<String?>(null); var fixture: String? = null }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        runCatching {
+            val prev = Thread.getDefaultUncaughtExceptionHandler()
+            Thread.setDefaultUncaughtExceptionHandler { t, e ->
+                runCatching { java.io.File(filesDir, "last_crash.txt").writeText(android.util.Log.getStackTraceString(e)) }
+                prev?.uncaughtException(t, e)
+            }
+        }
         Api.init(this); Api.restore()
         pendingOpen = intent?.getStringExtra("open")
         fixture = intent?.getStringExtra("fixture")
