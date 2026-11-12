@@ -7,3 +7,5 @@
 .xh-brand img{display:block;margin:0 auto}.xh-switch span{flex-basis:auto}
 @media(max-width:700px){.xh-switch span{flex-basis:100%;margin:0}.xh-switch{justify-content:flex-end}.xh-switch span{text-align:left}.xh-head .xh-pill{font-size:10px;padding:4px 7px}.xh-kicker{color:var(--text)}}
 body.look-liquid #xr-arena-home .xh-kicker{color:#885400}body.look-liquid #xr-arena-home .xh-head a{color:#1c1c1e}
+.xh-media img+svg{display:none}.xh-status{max-width:100%;overflow-wrap:anywhere}.xh-highlights>.xh-highlight:only-child{grid-column:1/-1}.xh-highlights>.xh-highlight:only-child .xh-media{height:200px}.xh-media img{object-fit:contain}
+@media(max-width:360px){.xh-head{flex-wrap:wrap;gap:7px}.xh-grid,.xh-chat{grid-template-columns:1fr}.xh-brand h1{letter-spacing:2px}}
