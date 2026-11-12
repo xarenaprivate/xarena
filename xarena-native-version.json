@@ -1,9 +1,9 @@
 {
-  "versionCode": 84,
-  "versionName": "0.17.39-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.39-native/xarena-native-v0.17.39.apk",
-  "sha256": "19533b07397cc9d0aadc32a87b5eceb9da68818855e8b1ad5305a9b910e7ab41",
-  "apkBytes": 29614607,
-  "notes": "v0.17.39: card-draw crash fix; Edit Profile (real name/IGN/UID, backend-gated); Finder/Trust & Safety save buttons now show the real server error; JOIN THIS SQUAD fixed; poster crop fix; home scroll shimmer fix; ACTIVE NOW row of real online players; new home game grid (9 tiles + Notice Board + Creator); Creator Board button fix.",
+  "versionCode": 85,
+  "versionName": "0.17.40-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.40-native/xarena-native-v0.17.40.apk",
+  "sha256": "0d66dc091d5f10f24bef02132e1fdf91dd2eeb99acc62836e7e841265541dc7e",
+  "apkBytes": 29630991,
+  "notes": "v0.17.40: Creator tab v1 - real stage pipeline for creator applications, 30-sec apply form (name/city/Instagram/players) with explicit consent toggles and live per-city slot data (opens when applications go live), real creators leaderboard + Creator of the Week, live activity feed, friends-applied. Kill switch: Feed/Stories/Clips show an honest busy state when the backend sheds load; text-only home mode stops network images.",
   "patches": []
 }
