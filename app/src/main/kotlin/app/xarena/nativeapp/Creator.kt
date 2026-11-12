@@ -73,9 +73,9 @@ private fun jsonList(a: JSONArray?): List<JSONObject> =
 fun CreatorVerifiedPill(tier: String) {
     Row(verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, CrOrange, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 2.dp)) {
-        Text("✓", color = CrOrange, fontSize = 10.sp, fontWeight = FontWeight.Black)
+        Text("â", color = CrOrange, fontSize = 10.sp, fontWeight = FontWeight.Black)
         Spacer(Modifier.width(3.dp))
-        Text("VERIFIED CREATOR" + if (tier.isNotBlank()) " · " + tier.uppercase() else "",
+        Text("VERIFIED CREATOR" + if (tier.isNotBlank()) " Â· " + tier.uppercase() else "",
             color = CrOrange, fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.5.sp)
     }
 }
@@ -142,8 +142,8 @@ private fun CrEventCard(e: JSONObject, mine: Boolean, scope: kotlinx.coroutines.
             }
         }
         Spacer(Modifier.height(3.dp))
-        Text(listOf(e.s("mode"), e.s("map"), fmtCr(e.s("starts_at"))).filter { it.isNotBlank() }.joinToString(" · ") +
-            " · " + (if (e.has("joined")) e.optInt("joined").toString() + "/" else "") + e.optInt("slots") + " players · FREE entry",
+        Text(listOf(e.s("mode"), e.s("map"), fmtCr(e.s("starts_at"))).filter { it.isNotBlank() }.joinToString(" Â· ") +
+            " Â· " + (if (e.has("joined")) e.optInt("joined").toString() + "/" else "") + e.optInt("slots") + " players Â· FREE entry",
             color = Muted, fontSize = 12.sp)
         if (e.s("description").isNotBlank()) { Spacer(Modifier.height(2.dp)); Text(e.s("description"), color = Muted, fontSize = 12.sp) }
         Spacer(Modifier.height(8.dp))
@@ -295,15 +295,15 @@ fun CreatorScreen(onBack: () -> Unit) {
             CreatorProfileScreen(userId = pid, onBack = { profileId = null })
             return@Column
         }
+        if (section == "board") {
+            CreatorBoardScreen(onBack = { section = null }, onOpenProfile = { id -> profileId = id })
+            return@Column
+        }
         PageHeader("Creator", "Host free tournaments - grow your city team", onBack)
         Row(Modifier.padding(horizontal = 14.dp, vertical = 4.dp)) {
             Text("CREATOR BOARD", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
                     .clickable { section = "board" }.padding(horizontal = 14.dp, vertical = 8.dp))
-        }
-        if (section == "board") {
-            CreatorBoardScreen(onBack = { section = null }, onOpenProfile = { id -> profileId = id })
-            return@Column
         }
         if (isCreator && section == "bio") {
             Column(Modifier.padding(14.dp)) {
@@ -616,7 +616,7 @@ private fun MySquadRow(q: JSONObject, scope: kotlinx.coroutines.CoroutineScope, 
             Text(q.s("status").uppercase(), color = CrOrange, fontSize = 10.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.clip(RoundedCornerShape(4.dp)).border(1.dp, CrOrangeDim, RoundedCornerShape(4.dp)).padding(horizontal = 5.dp, vertical = 1.dp))
         }
-        Text(q.s("city") + " · " + q.optInt("members") + "/" + q.optInt("slots") + " members", color = Muted, fontSize = 12.sp)
+        Text(q.s("city") + " Â· " + q.optInt("members") + "/" + q.optInt("slots") + " members", color = Muted, fontSize = 12.sp)
         Spacer(Modifier.height(6.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             CrBtn(if (applicants == null) "Applicants" else "Hide") {
@@ -639,8 +639,8 @@ private fun MySquadRow(q: JSONObject, scope: kotlinx.coroutines.CoroutineScope, 
             list.forEach { a ->
                 Column(Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(a.s("name") + " · K/D " + (if (a.has("kd") && !a.isNull("kd")) a.optString("kd") else "-") + " · " + a.optInt("matches") + " matches · " + a.optInt("wins") + " wins" +
-                            (if (a.s("rank").isNotBlank()) " · " + a.s("rank") else "") + " (" + a.s("status") + ")",
+                        Text(a.s("name") + " Â· K/D " + (if (a.has("kd") && !a.isNull("kd")) a.optString("kd") else "-") + " Â· " + a.optInt("matches") + " matches Â· " + a.optInt("wins") + " wins" +
+                            (if (a.s("rank").isNotBlank()) " Â· " + a.s("rank") else "") + " (" + a.s("status") + ")",
                             color = Color.White, fontSize = 12.sp, modifier = Modifier.weight(1f))
                         if (a.s("status") == "pending") {
                             Text("accept", color = Color(0xFF22C55E), fontSize = 11.sp, fontWeight = FontWeight.Bold,
@@ -673,8 +673,8 @@ private fun CitySquadCard(q: JSONObject, scope: kotlinx.coroutines.CoroutineScop
         Row(verticalAlignment = Alignment.CenterVertically) {
             CreatorVerifiedPill("")
             Spacer(Modifier.width(6.dp))
-            Text(q.s("host_ign").ifBlank { q.s("host_username") } + " · " + q.s("city") + (if (q.s("state").isNotBlank()) ", " + q.s("state") else "") +
-                " · " + q.optInt("members") + "/" + q.optInt("slots") + " members", color = Muted, fontSize = 12.sp)
+            Text(q.s("host_ign").ifBlank { q.s("host_username") } + " Â· " + q.s("city") + (if (q.s("state").isNotBlank()) ", " + q.s("state") else "") +
+                " Â· " + q.optInt("members") + "/" + q.optInt("slots") + " members", color = Muted, fontSize = 12.sp)
         }
         if (q.s("description").isNotBlank()) { Spacer(Modifier.height(2.dp)); Text(q.s("description"), color = Muted, fontSize = 12.sp) }
         Spacer(Modifier.height(8.dp))
