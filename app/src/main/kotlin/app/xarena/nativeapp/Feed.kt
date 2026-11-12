@@ -56,13 +56,96 @@ fun feedMediaUrl(p: JSONObject): String? {
     return Api.BASE + "/storage/v1/object/feed-media/" + path
 }
 
+fun feedAgeLine(at: String): String {
+    val t = runCatching {
+        val f = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US)
+        f.timeZone = java.util.TimeZone.getTimeZone("UTC")
+        f.parse(at.take(19))?.time
+    }.getOrNull() ?: return dmTime(at)
+    val days = (System.currentTimeMillis() - t) / 86400000L
+    if (days < 7) return dmTime(at)
+    val out = java.text.SimpleDateFormat("d MMM", java.util.Locale.US)
+    return out.format(java.util.Date(t)) + " - Throwback post"
+}
+
+/* xr_feed_overview cache honoring cache_seconds:30 and count_refresh_seconds:300. */
+object FeedOverviewCache {
+    private var cached: JSONObject? = null
+    private var fetchedAt = 0L
+    private var countsAt = 0L
+    suspend fun get(): JSONObject? {
+        val now = System.currentTimeMillis()
+        val c = cached
+        if (c != null && now - fetchedAt < 30000) return c
+        val fresh = runCatching { Api.feedOverview() }.getOrNull() ?: return c
+        if (c != null && now - countsAt < 300000) {
+            for (k in listOf("new_today_count","friends_posted_today","my_post_activity","weekly_top_fan","my_streak","highlight_of_the_day","next_pick_at"))
+                if (c.has(k)) fresh.put(k, c.get(k))
+        } else countsAt = now
+        cached = fresh
+        fetchedAt = now
+        return fresh
+    }
+}
+
+@Composable
+private fun FeedGrowthLines(ov: JSONObject) {
+    if (!ov.optBoolean("growth_enabled")) return
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+        val streak = ov.optJSONObject("my_streak")
+        if (streak != null && streak.optInt("days") > 0) {
+            val d = streak.optInt("days")
+            Text("Posting streak: " + d + (if (d == 1) " day" else " days") + (if (streak.optBoolean("posted_today")) " - posted today" else ""), color = Gold2, fontSize = 12.sp)
+        }
+        val friends = ov.optJSONArray("friends_posted_today")
+        if (friends != null && friends.length() > 0) {
+            val names = ArrayList<String>()
+            for (i in 0 until friends.length()) {
+                val o = friends.optJSONObject(i)
+                val n = if (o != null) o.s("handle") else friends.optString(i)
+                if (n.isNotBlank()) names.add(n)
+            }
+            if (names.isNotEmpty()) Text(names.joinToString(", ") + (if (names.size == 1) " posted a highlight today" else " posted highlights today"), color = Muted, fontSize = 12.sp)
+        }
+        val fan = ov.optJSONObject("weekly_top_fan")
+        if (fan != null) {
+            var line = "Top fan this week: " + fan.s("handle")
+            if (fan.optInt("my_rank") > 0) line += " - you are #" + fan.optInt("my_rank")
+            Text(line, color = Muted, fontSize = 12.sp)
+        }
+        val hotd = ov.optJSONObject("highlight_of_the_day")
+        if (hotd != null && hotd.s("author").isNotBlank()) Text("Highlight of the day: " + hotd.s("author"), color = Gold2, fontSize = 12.sp)
+        if (!ov.isNull("activity_since")) {
+            val acts = ov.optJSONArray("my_post_activity")
+            if (acts != null) for (i in 0 until acts.length()) {
+                val a = acts.optJSONObject(i) ?: continue
+                val parts = ArrayList<String>()
+                val nl = a.optInt("new_likes")
+                val nc = a.optInt("new_comments")
+                if (nl > 0) parts.add(nl.toString() + (if (nl == 1) " new like" else " new likes"))
+                if (nc > 0) parts.add(nc.toString() + (if (nc == 1) " new comment" else " new comments"))
+                if (parts.isNotEmpty()) {
+                    var line = "Your post: " + parts.joinToString(", ")
+                    val lc = a.s("latest_commenter")
+                    if (lc.isNotBlank()) line += " - latest by " + lc
+                    Text(line, color = Muted, fontSize = 12.sp)
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun FeedScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     if (OpsShed("feed")) return
     var posts by remember { mutableStateOf<List<JSONObject>?>(null) }
     var err by remember { mutableStateOf<String?>(null) }
-    var savedMode by remember { mutableStateOf(false) }
+    var mode by remember { mutableStateOf("latest") }
+    var nextCursor by remember { mutableStateOf<JSONObject?>(null) }
+    var growthOn by remember { mutableStateOf(false) }
+    var overview by remember { mutableStateOf<JSONObject?>(null) }
+    var acked by remember { mutableStateOf(false) }
     var loadingMore by remember { mutableStateOf(false) }
     var hasMore by remember { mutableStateOf(false) }
     var tick by remember { mutableIntStateOf(0) }
@@ -70,32 +153,49 @@ fun FeedScreen(onBack: () -> Unit) {
     fun load(reset: Boolean) {
         scope.launch {
             try {
-                val before = if (reset) null else posts?.lastOrNull()?.optLong("id")?.takeIf { it > 0 }
-                val arr = if (savedMode) Api.feedSaved() else Api.feedList(before)
+                val r = Api.feedList2(mode, if (reset) null else nextCursor)
+                if (!r.optBoolean("ok")) { err = r.s("error").ifBlank { "Could not load the feed." }; if (reset) posts = emptyList(); return@launch }
+                val arr = r.optJSONArray("posts") ?: JSONArray()
                 val list = (0 until arr.length()).map { arr.getJSONObject(it) }
-                posts = if (reset || savedMode) list else (posts ?: emptyList()) + list
-                hasMore = !savedMode && list.size >= 20
+                posts = if (reset) list else (posts ?: emptyList()) + list
+                nextCursor = r.optJSONObject("next_cursor")
+                hasMore = nextCursor != null
+                growthOn = r.optBoolean("growth_enabled")
                 err = null
             } catch (e: Exception) { err = e.message }
         }
     }
-    LaunchedEffect(tick, savedMode) { load(true) }
+    LaunchedEffect(tick, mode) { load(true) }
+    LaunchedEffect(Unit) { overview = FeedOverviewCache.get() }
+    LaunchedEffect(overview) {
+        if (overview != null && !acked && Api.access != null) {
+            acked = true
+            runCatching { Api.feedActivityAck() }
+        }
+    }
 
     var showCompose by remember { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize().background(Ink)) {
         PageHeader("Feed", "Player highlights", onBack)
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(if (savedMode) "Saved" else "Latest", color = Muted, fontSize = 13.sp, modifier = Modifier.weight(1f))
-            Text(if (savedMode) "Show latest" else "Saved posts", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
-                modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { savedMode = !savedMode }.padding(8.dp))
+            for (m in listOf("latest" to "Latest", "trending" to "Trending", "saved" to "Saved")) {
+                Text(m.second, color = if (mode == m.first) Gold else Muted, fontSize = 13.sp,
+                    fontWeight = if (mode == m.first) FontWeight.Bold else FontWeight.Normal,
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable { mode = m.first }.padding(vertical = 8.dp, horizontal = 10.dp))
+            }
+        }
+        if (mode == "latest") overview?.optInt("new_today_count")?.takeIf { it > 0 }?.let {
+            Text(it.toString() + (if (it == 1) " new highlight today" else " new highlights today"), color = Muted, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 16.dp))
         }
         Box(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) { GoldButton("+ POST A HIGHLIGHT") { showCompose = true } }
+        Text("Photo or clip - posted in seconds.", color = Muted, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 16.dp))
+        overview?.let { FeedGrowthLines(it) }
         err?.let { Text(it, color = ErrRed, fontSize = 13.sp, modifier = Modifier.padding(16.dp)) }
         if (posts == null) Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Gold) }
-        else if (posts!!.isEmpty()) Text(if (savedMode) "Nothing saved yet. Tap the bookmark on any post." else "No highlights yet. Be the first - post your best Free Fire moment.", color = Muted, fontSize = 14.sp, modifier = Modifier.padding(24.dp))
+        else if (posts!!.isEmpty()) Text(when (mode) { "saved" -> "Nothing saved yet. Tap the bookmark on any post."; "trending" -> "No trending posts yet."; else -> "No highlights yet. Be the first - post your best Free Fire moment." }, color = Muted, fontSize = 14.sp, modifier = Modifier.padding(24.dp))
         else LazyColumn {
-            items(posts!!) { p -> PostCard(p, onChanged = { tick++ }) }
+            items(posts!!) { p -> PostCard(p, growthOn = growthOn, onChanged = { tick++ }) }
             if (hasMore) item {
                 Text(if (loadingMore) "Loading..." else "Load more", color = Gold, fontSize = 14.sp, fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth().clickable { loadingMore = true; load(false); loadingMore = false }.padding(16.dp))
@@ -106,7 +206,7 @@ fun FeedScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun PostCard(p: JSONObject, onChanged: () -> Unit) {
+private fun PostCard(p: JSONObject, growthOn: Boolean = false, onChanged: () -> Unit) {
     val scope = rememberCoroutineScope()
     var liked by remember { mutableStateOf(p.optBoolean("liked")) }
     var likes by remember { mutableIntStateOf(p.optInt("likes")) }
@@ -124,8 +224,13 @@ private fun PostCard(p: JSONObject, onChanged: () -> Unit) {
             }
             Spacer(Modifier.width(10.dp))
             Column {
-                Text(p.s("author"), color = Gold2, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                Text(dmTime(p.s("at")) + if (p.s("kind") == "clip") " - clip" else if (p.s("kind") == "photo") " - photo" else "", color = Muted, fontSize = 11.sp)
+                Text(p.s("author") + (p.s("author_city").takeIf { it.isNotBlank() }?.let { " - " + it } ?: ""), color = Gold2, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text(feedAgeLine(p.s("at")) + if (p.s("kind") == "clip") " - clip" else if (p.s("kind") == "photo") " - photo" else "", color = Muted, fontSize = 11.sp)
+            }
+            if (p.optBoolean("trending")) {
+                Spacer(Modifier.weight(1f))
+                Text("TRENDING", color = Gold, fontSize = 10.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clip(RoundedCornerShape(6.dp)).border(1.dp, Gold.copy(alpha = .5f), RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 2.dp))
             }
         }
         feedMediaUrl(p)?.let { url ->
@@ -149,7 +254,16 @@ private fun PostCard(p: JSONObject, onChanged: () -> Unit) {
                 if (!Ops.textOnlyHome()) AsyncImage(model = xrImageModel(androidx.compose.ui.platform.LocalContext.current, url), contentDescription = p.s("caption"), modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp).clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.Crop)
             }
         }
-        if (likes > 0) Text(likes.toString() + if (likes == 1) " like" else " likes", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+        if (likes > 0 || p.optInt("save_count") > 0) {
+            var statLine = if (likes > 0) likes.toString() + (if (likes == 1) " like" else " likes") else ""
+            val sc = p.optInt("save_count")
+            if (sc > 0) statLine += (if (statLine.isNotEmpty()) " - " else "") + sc.toString() + (if (sc == 1) " save" else " saves")
+            Text(statLine, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
+        }
+        if (growthOn) {
+            val ltt = p.optInt("likes_to_trending", -1)
+            if (ltt > 0) Text(ltt.toString() + (if (ltt == 1) " more like to reach Trending" else " more likes to reach Trending"), color = Muted, fontSize = 11.sp)
+        }
         Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(if (liked) "â¤ï¸" else "ð¤", fontSize = 18.sp, modifier = Modifier.clickable {
                 liked = !liked; likes += if (liked) 1 else -1
@@ -326,6 +440,15 @@ private fun ComposePostDialog(onDone: (Boolean) -> Unit) {
     var showGallery by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var msg by remember { mutableStateOf<String?>(null) }
+    var cityVisible by remember { mutableStateOf(false) }
+    var citySeeded by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        if (!citySeeded) {
+            citySeeded = true
+            val ov = FeedOverviewCache.get()
+            if (ov != null && ov.has("my_city_visible")) cityVisible = ov.optBoolean("my_city_visible")
+        }
+    }
     if (showGallery) {
         GallerySheet(picked,
             onPick = { uri ->
@@ -348,6 +471,14 @@ private fun ComposePostDialog(onDone: (Boolean) -> Unit) {
                 modifier = Modifier.clickable { showGallery = true }.padding(6.dp))
             if (picked.size > 1) Text("Each item posts separately (the feed shows one media per post).", color = Muted, fontSize = 11.sp)
             msg?.let { Text(it, color = ErrRed, fontSize = 12.sp) }
+            Spacer(Modifier.height(10.dp))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("Show my city on my posts", color = Color.White, fontSize = 13.sp)
+                    Text("Adds your city label next to your name on posts you make. Off by default.", color = Muted, fontSize = 11.sp)
+                }
+                Switch(checked = cityVisible, onCheckedChange = { v -> cityVisible = v; scope.launch { runCatching { Api.feedAuthorSharingSet(v) } } })
+            }
             Spacer(Modifier.height(10.dp))
             Row {
                 Text(if (busy) "Posting..." else "POST", color = Ink, fontWeight = FontWeight.Bold, fontSize = 14.sp,

@@ -590,6 +590,15 @@ object Api {
     suspend fun feedSaved(): JSONArray = withContext(Dispatchers.IO) {
         authedRpc("feed_saved", JSONObject()).optJSONArray("posts") ?: JSONArray()
     }
+    suspend fun feedList2(mode: String, cursor: JSONObject?): JSONObject {
+        val args = JSONObject().put("p_mode", mode).put("p_limit", 10)
+        if (cursor != null) args.put("p_cursor", cursor)
+        return authedRpc("xr_feed_list", args)
+    }
+    suspend fun feedOverview(): JSONObject = authedRpc("xr_feed_overview", JSONObject())
+    suspend fun feedActivityAck(): JSONObject = authedRpc("xr_feed_activity_ack", JSONObject())
+    suspend fun feedAuthorSharingSet(visible: Boolean): JSONObject =
+        authedRpc("xr_feed_author_sharing_set", JSONObject().put("p_city_visible", visible))
     suspend fun feedCreate(kind: String, mediaPath: String?, caption: String?): JSONObject = withContext(Dispatchers.IO) {
         val a = JSONObject().put("p_kind", kind)
         if (mediaPath != null) a.put("p_media_path", mediaPath)
