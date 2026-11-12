@@ -45,7 +45,7 @@ jobs:
           sleep 25
           $A shell pidof app.xarena.esports.native > pidA.txt || echo NO-PROCESS > pidA.txt
           cat pidA.txt
-          $A logcat -d | grep -E "FATAL|Fatal signal|AndroidRuntime" | tail -15 | tee fatalA.txt || true
+          $A logcat -d | grep "app.xarena" | grep -E "FATAL|Fatal signal|AndroidRuntime" | tail -15 | tee fatalA.txt || true
           $A exec-out screencap -p > smokeA.png
           echo "== B: uninstall + FRESH install 77 =="
           $A uninstall app.xarena.esports.native
@@ -55,7 +55,7 @@ jobs:
           sleep 25
           $A shell pidof app.xarena.esports.native > pidB.txt || echo NO-PROCESS > pidB.txt
           cat pidB.txt
-          $A logcat -d | grep -E "FATAL|Fatal signal|AndroidRuntime" | tail -15 | tee fatalB.txt || true
+          $A logcat -d | grep "app.xarena" | grep -E "FATAL|Fatal signal|AndroidRuntime" | tail -15 | tee fatalB.txt || true
           $A exec-out screencap -p > smokeB.png
           ls -l smoke*.png
           echo "== SUMMARY =="
