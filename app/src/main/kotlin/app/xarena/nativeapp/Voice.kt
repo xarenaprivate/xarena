@@ -346,7 +346,6 @@ private open class SimpleObserver : org.webrtc.SdpObserver {
 }
 private open class SimpleSdpObserver : SimpleObserver()
 
-@Composable
 /* Voice lobby control plane (xr_voice_* RPCs): authoritative lobby presence, seats,
    waitlist, hand raise, history and polls. Reads fail soft (feature hidden) so a
    backend where the control plane is still staged keeps today's behavior. Server
@@ -455,6 +454,7 @@ private fun voiceLobbyPollVote(pollId: String, choice: Int): Boolean {
     return o != null && (o.optBoolean("ok") || o.optBoolean("already_voted"))
 }
 
+@Composable
 fun VoiceScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     var engine by remember { mutableStateOf<VoiceEngine?>(null) }
@@ -554,7 +554,7 @@ fun VoiceScreen(onBack: () -> Unit) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(end = 10.dp)) {
                                     Box(Modifier.size(34.dp).clip(CircleShape).background(Look.cardBorder), contentAlignment = Alignment.Center) {
                                         if (pp.avatar.isNotBlank()) {
-                                            AsyncImage(model = xrImageModel(pp.avatar), contentDescription = pp.name, modifier = Modifier.fillMaxSize().clip(CircleShape), contentScale = ContentScale.Crop)
+                                            AsyncImage(model = xrImageModel(androidx.compose.ui.platform.LocalContext.current, pp.avatar), contentDescription = pp.name, modifier = Modifier.fillMaxSize().clip(CircleShape), contentScale = ContentScale.Crop)
                                         } else {
                                             Text(pp.name.firstOrNull()?.uppercase() ?: "P", color = Gold2, fontWeight = FontWeight.Bold)
                                         }
