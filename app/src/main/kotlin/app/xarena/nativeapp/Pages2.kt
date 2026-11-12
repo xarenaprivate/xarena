@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import coil.compose.AsyncImage
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -36,10 +37,16 @@ fun RoomScreen(onBack: () -> Unit) {
     var lastId by remember { mutableLongStateOf(0L) }
     var input by remember { mutableStateOf("") }
     var err by remember { mutableStateOf<String?>(null) }
+    var growth by remember { mutableStateOf<JSONObject?>(null) }
+    var growthAt by remember { mutableLongStateOf(0L) }
+    var showSquads by remember { mutableStateOf(false) }
+    if (showSquads) { SquadsScreen(onBack = { showSquads = false }); return }
     val listState = rememberLazyListState()
     LaunchedEffect(Unit) {
         info = runCatching { Api.authedRpc("room_info", JSONObject()) }.getOrNull()
         loaded = true
+        growth = runCatching { Api.authedRpc("xr_room_growth", JSONObject()) }.getOrNull()
+        growthAt = System.currentTimeMillis()
         while (isActive) {
             runCatching {
                 val r = Api.authedRpc("room_feed", JSONObject().put("p_after", lastId))
@@ -50,6 +57,10 @@ fun RoomScreen(onBack: () -> Unit) {
                         msgs.add(m); lastId = maxOf(lastId, m.optLong("id"))
                     }
                 }
+            }
+            if (System.currentTimeMillis() - growthAt > 300_000) {
+                growth = runCatching { Api.authedRpc("xr_room_growth", JSONObject()) }.getOrNull()
+                growthAt = System.currentTimeMillis()
             }
             delay(4000)
         }
@@ -69,8 +80,97 @@ fun RoomScreen(onBack: () -> Unit) {
                     color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 Text(info!!.optInt("members").toString() + " member" + (if (info!!.optInt("members") == 1) "" else "s"), color = Muted, fontSize = 12.sp)
             }
+            // growth overview - roster/capacity are real dark-safe reads; promotion blocks render only when the backend returns them
+            growth?.let { g ->
+                val sq = g.optJSONObject("squad")
+                if (sq != null) {
+                    val maxM = sq.optInt("max_members", 0)
+                    val openS = sq.optInt("open_seats", 0)
+                    val mems = sq.optJSONArray("members")
+                    if (maxM > 0 && mems != null) {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                for (i in 0 until mems.length()) {
+                                    val mm = mems.optJSONObject(i) ?: continue
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        val av = mm.s("avatar_url")
+                                        if (av.isNotBlank() && av != "null") AsyncImage(model = av, contentDescription = mm.s("name"), modifier = Modifier.size(44.dp).clip(CircleShape).border(1.dp, Gold.copy(alpha = .6f), CircleShape))
+                                        else Box(Modifier.size(44.dp).clip(CircleShape).background(Look.cardBg).border(1.dp, Gold.copy(alpha = .6f), CircleShape), contentAlignment = Alignment.Center) { Text(mm.s("name").take(1).uppercase(), color = Gold, fontWeight = FontWeight.Bold) }
+                                        Text(mm.s("name") + (if (mm.optBoolean("is_me")) " (you)" else ""), color = Muted, fontSize = 10.sp, maxLines = 1, modifier = Modifier.widthIn(max = 64.dp))
+                                        val roleLine = listOf(if (mm.optBoolean("is_captain")) "Captain" else "", if (mm.s("combat_role").isNotBlank() && mm.s("combat_role") != "null") mm.s("combat_role") else "").filter { it.isNotBlank() }.joinToString(" / ")
+                                        if (roleLine.isNotBlank()) Text(roleLine, color = Gold2, fontSize = 9.sp)
+                                    }
+                                }
+                                repeat(openS) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { showSquads = true }) {
+                                        Box(Modifier.size(44.dp).clip(CircleShape).border(1.dp, Muted, CircleShape), contentAlignment = Alignment.Center) { Text("+", color = Muted, fontSize = 18.sp, fontWeight = FontWeight.Bold) }
+                                        Text("Invite", color = Muted, fontSize = 10.sp)
+                                    }
+                                }
+                            }
+                            if (openS > 0) Text(openS.toString() + " seat" + (if (openS == 1) "" else "s") + " open - tap a seat to invite", color = Muted, fontSize = 11.sp, modifier = Modifier.padding(top = 4.dp))
+                        }
+                    }
+                    val reqs = if (g.isNull("pending_join_requests")) null else g.optInt("pending_join_requests")
+                    if (reqs != null && reqs > 0 && sq.optBoolean("is_captain")) {
+                        Text(reqs.toString() + " join request" + (if (reqs == 1) "" else "s") + " waiting - review in Squads", color = NeonYellow, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp).clickable { showSquads = true })
+                    }
+                }
+                val pin = g.optJSONObject("pin")
+                if (pin != null) {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).clip(RoundedCornerShape(12.dp)).background(Look.cardBg).border(1.dp, NeonYellow, RoundedCornerShape(12.dp)).padding(12.dp)) {
+                        Text("PINNED - Captain's plan", color = NeonYellow, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        Text(pin.s("body"), color = Color.White, fontSize = 13.sp)
+                        Text("Updated " + pin.s("updated_at").take(10), color = Muted, fontSize = 10.sp)
+                    }
+                }
+                val nm = g.optJSONObject("next_match")
+                if (nm != null) {
+                    val owner = nm.optJSONObject("registration_owner")
+                    val regBy = owner?.s("name") ?: ""
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).clip(RoundedCornerShape(12.dp)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(12.dp)).padding(12.dp)) {
+                        Text("NEXT MATCH", color = NeonName, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        Text(nm.s("title"), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text("Starts " + dmTime(nm.s("starts_at")), color = Muted, fontSize = 12.sp)
+                        if (regBy.isNotBlank()) Text("Registered by " + regBy + (if (nm.s("registered_squad_name").isNotBlank() && nm.s("registered_squad_name") != "null") " (" + nm.s("registered_squad_name") + ")" else "") + " - their entry, not a whole-clan one", color = Muted, fontSize = 11.sp)
+                        val closes = nm.s("checkin_closes_at")
+                        if (nm.optBoolean("access_enabled") && closes.isNotBlank() && closes != "null") {
+                            Text(if (nm.optBoolean("registration_owner_checked_in")) regBy + " is checked in" else regBy + " has not checked in yet", color = if (nm.optBoolean("registration_owner_checked_in")) Color(0xFF4ADE80) else NeonYellow, fontSize = 12.sp)
+                            Text("Check-in closes " + dmTime(closes), color = Muted, fontSize = 11.sp)
+                        }
+                    }
+                }
+                val riv = g.optJSONObject("rivalry")
+                if (riv != null) {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).clip(RoundedCornerShape(12.dp)).background(Look.cardBg).border(1.dp, NeonBorder, RoundedCornerShape(12.dp)).padding(12.dp)) {
+                        Text("SCHEDULED CLAN BATTLE", color = NeonName, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        Text("vs " + riv.s("opponent"), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text(dmTime(riv.s("scheduled_at")), color = Muted, fontSize = 12.sp)
+                    }
+                }
+                val act = g.optJSONObject("activity")
+                if (act != null) {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).clip(RoundedCornerShape(12.dp)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(12.dp)).padding(12.dp)) {
+                        Text("ROOM ACTIVITY", color = NeonName, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(4.dp))
+                        Text("Today: " + act.optInt("messages_today") + " messages", color = Color.White, fontSize = 13.sp)
+                        val sd = act.optInt("streak_days", 0)
+                        if (sd > 1) Text("Room active " + sd + " days in a row", color = Gold2, fontSize = 12.sp)
+                        val myDays = if (act.isNull("days_since_my_last_message")) null else act.optInt("days_since_my_last_message")
+                        if (myDays != null && myDays >= 2) Text("You last wrote " + myDays + " days ago - say hello", color = Muted, fontSize = 12.sp)
+                        val wc = act.optJSONArray("weekly_counts")
+                        if (wc != null && wc.length() > 0) {
+                            val top = wc.optJSONObject(0)
+                            if (top != null && top.optInt("messages") > 0) Text("Top contributor this week: " + top.s("handle") + " (" + top.optInt("messages") + " messages)", color = Muted, fontSize = 12.sp)
+                        }
+                    }
+                }
+            }
             LazyColumn(state = listState, modifier = Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 16.dp)) {
-                if (msgs.isEmpty()) item { Text("No messages yet - say hello to your squad.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(vertical = 12.dp)) }
+                if (msgs.isEmpty()) item { Text("No messages yet - write the first one and say hello to your squad.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(vertical = 12.dp)) }
                 items(msgs) { m ->
                     val mine = m.s("user_id") == Api.uid
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = if (mine) Arrangement.End else Arrangement.Start) {
@@ -84,6 +184,20 @@ fun RoomScreen(onBack: () -> Unit) {
                 }
             }
             err?.let { Text(it, color = ErrRed, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp)) }
+            Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(horizontal = 8.dp, vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf("READY", "GG WP", "1V1").forEach { quick ->
+                    Box(Modifier.clip(RoundedCornerShape(14.dp)).border(1.dp, Gold.copy(alpha = .7f), RoundedCornerShape(14.dp))
+                        .clickable {
+                            err = null
+                            scope.launch {
+                                try {
+                                    val r = Api.authedRpc("room_post", JSONObject().put("p_body", quick))
+                                    if (!r.optBoolean("ok")) err = r.s("error").ifBlank { "Could not send." }
+                                } catch (e: Exception) { err = "Network error - try again." }
+                            }
+                        }.padding(horizontal = 12.dp, vertical = 6.dp)) { Text(quick, color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
+                }
+            }
             Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(input, { input = it }, placeholder = { Text("Message your squad...") },
                     modifier = Modifier.weight(1f), maxLines = 3)
