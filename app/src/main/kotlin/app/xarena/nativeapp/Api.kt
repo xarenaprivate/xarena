@@ -598,10 +598,10 @@ object Api {
     suspend fun feedOverview(): JSONObject = authedRpc("xr_feed_overview", JSONObject())
     suspend fun feedActivityAck(): JSONObject = authedRpc("xr_feed_activity_ack", JSONObject())
     suspend fun feedAuthorSharingSet(visible: Boolean): JSONObject =
-        authedRpc("xr_feed_author_sharing_set", JSONObject().put("p_city_visible", visible)))
+        authedRpc("xr_feed_author_sharing_set", JSONObject().put("p_city_visible", visible))
     suspend fun liveOverview(): JSONObject = authedRpc("xr_live_overview", JSONObject())
     suspend fun livePollVote(pollId: String, choice: Int): JSONObject =
-        authedRpc("xr_live_poll_vote", JSONObject().put("p_poll", pollId).put("p_choice", choice)))
+        authedRpc("xr_live_poll_vote", JSONObject().put("p_poll", pollId).put("p_choice", choice))
     suspend fun liveFollowSet(on: Boolean): JSONObject =
         authedRpc("xr_live_follow_set", JSONObject().put("p_on", on))
     suspend fun feedCreate(kind: String, mediaPath: String?, caption: String?): JSONObject = withContext(Dispatchers.IO) {
