@@ -383,7 +383,6 @@ fun NotificationsScreen(onBack: () -> Unit) {
 }
 
 /* Simple loading wrapper with retry */
-@Composable
 internal val loadState2Cache = HashMap<String, Result<Any?>>()
 
 @Composable
