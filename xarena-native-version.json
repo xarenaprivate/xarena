@@ -1,9 +1,9 @@
 {
-  "versionCode": 91,
-  "versionName": "0.17.46-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.46-native/xarena-native-v0.17.46.apk",
-  "sha256": "a8549153d516f9d27ce3456920ba9d3d007f7b1b6d2d91f20bee97e86119acd7",
-  "apkBytes": 29680143,
-  "notes": "Profile renovation: real level/XP progress, positive verify CTA (real flow, no coin claims), dark-wired growth reads (badges, clips, check-in AP, completeness), honest zero states.",
+  "versionCode": 92,
+  "versionName": "0.17.47-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.47-native/xarena-native-v0.17.47.apk",
+  "sha256": "76691be4e11a2c409674d820e787a67427c37287d07400500d9585c17cb0f34a",
+  "apkBytes": 29696527,
+  "notes": "Clan Room renovation: real seat row (max_members/avatars/roles), quick-send READY/GG WP/1V1, dark-wired growth reads (captain plan pin, owner-labeled next match, scheduled rivalry, room activity, captain-only requests). No coins/polls/voice/ranks; auto-break inert.",
   "patches": []
 }
