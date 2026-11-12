@@ -93,11 +93,12 @@ jobs:
         run: |
           set -euo pipefail
           SHORT="${TAG#v}"; SHORT="${SHORT%-native}"
+          cp signed.apk "xarena-native-v${SHORT}.apk"
           gh release create "$TAG" \
             --repo "$REPO" --prerelease \
             --title "XARENA Native $TAG" \
             --notes "$NOTES" \
-            "signed.apk#xarena-native-v${SHORT}.apk" $(ls patches/*.bs 2>/dev/null || true)
+            "xarena-native-v${SHORT}.apk" $(ls patches/*.bs 2>/dev/null || true)
 
       - name: OTA verify (public asset URLs, sha256 must match)
         env:
@@ -107,7 +108,8 @@ jobs:
           set -euo pipefail
           SHA=$(cut -d' ' -f1 SHA.txt)
           SHORT="${TAG#v}"; SHORT="${SHORT%-native}"
-          curl -sfL -o dl.apk "https://github.com/$REPO/releases/download/$TAG/xarena-native-v${SHORT}.apk"
+          for i in 1 2 3 4 5 6; do curl -sfL -o dl.apk "https://github.com/$REPO/releases/download/$TAG/xarena-native-v${SHORT}.apk" && break || sleep 10; done
+          [ -s dl.apk ]
           echo "$SHA  dl.apk" | sha256sum -c -
           while read -r F PSHA PB; do
             curl -sfL -o p.bs "https://github.com/$REPO/releases/download/$TAG/patch-$F-to-$VC.bs"
