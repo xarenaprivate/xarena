@@ -1,9 +1,9 @@
 {
-  "versionCode": 81,
-  "versionName": "0.17.36-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.36-native/xarena-native-v0.17.36.apk",
-  "sha256": "ae756cdb104b4b10024eb07354c825c38e5be3040cf9bf9d1d218a14658af150",
-  "apkBytes": 29549071,
-  "notes": "v81: Squad Finder - find players by role/mic/language/Trust Score, squad discovery, tryout rooms, invites, IGL dashboard. All real data. IMPORTANT: signing key changed - purana app uninstall karke fresh install karein (login phir se karna hoga).",
+  "versionCode": 82,
+  "versionName": "0.17.37-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.37-native/xarena-native-v0.17.37.apk",
+  "sha256": "ae7162f55b604a2c4415c8647634a7ec622a91066373601d83945605622a1aa0",
+  "apkBytes": 29598223,
+  "notes": "Arena Live (fan poll, kill feed, app-only live comments, clip of the week), Trust & Safety (ID verification, trust score, backup slot), Rewards hub (AP balance, daily check-in, season free track - all earned free), squad logo maker, match center: slot fill, room copy, emergency pause request.",
   "patches": []
 }
