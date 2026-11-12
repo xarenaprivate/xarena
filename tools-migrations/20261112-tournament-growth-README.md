@@ -22,7 +22,7 @@ Each card returns id/title/game/status/enabled, slots_total/slots_taken, registr
 
 - No countdown when its timestamp is null. `enabled:false` means growth rules remain off, not that canonical registration is closed.
 - Counts come from canonical registrations, excluding waitlist/rejected/cancelled/declined. They are not a claim that squads played. Held entries remain in registration totals, but cannot use staged room access.
-- `my_registration` is null or `{squad_name,is_founding,checked_in}`. The check-in flag means the registered captain checked into any match in this tournament. Use the existing match-specific check-in read for one match.
+- `my_registration` is null or `{squad_name,is_founding,public_activity,friends_visible,city_visible,checked_in}`. The check-in flag means the registered captain checked into any match in this tournament. Use the existing match-specific check-in read for one match.
 - `checked_in_count` is distinct eligible nonheld registered captains across the tournament, not an online count or match-specific count.
 - `city_breakdown` has up to 10 real, consenting city groups. `friends_registered` has up to 10 consenting mutual friends with both activity settings on, excluding blocked/banned profiles. No phone, UID, device, or room credentials are returned.
 - `recent_registrations` has up to 5 consenting real joins with `squad_name`, `at`, and `registered_at` (alias).
@@ -84,3 +84,7 @@ Tournament writes with positive entry_cost_ap and registration inserts/updates t
 Files: `20261112-tournament-growth.sql`, `20261112-tournament-growth-tests.sql`, `20261112-tournament-growth-rollback.sql`.
 
 The migration is one-time, not rerunnable. Tests always roll back. Rollback disables settings, removes new functions/triggers, and restores the prior canonical register/check-in/room bodies. It keeps private history tables and the question pin row, but the new read RPCs no longer exist. It also restores the prior entry behavior: review free-only policy before executing rollback. Reapplying after rollback requires a deliberate repair migration because retained tables still exist. No UI, deployment monitoring, or automatic activation is bundled.
+
+## Consent-read follow-up
+
+`20261112-tournament-consent-read.sql` adds the three existing sharing flags to `my_registration` so consent toggles can restore their current values. Missing metadata returns false. Only the caller's own registration includes these values. No consent or activation state is changed.
