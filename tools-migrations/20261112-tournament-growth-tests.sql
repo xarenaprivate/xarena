@@ -1,0 +1,66 @@
+BEGIN;
+DO $test$
+DECLARE own uuid;a uuid;b uuid;tid text:='__tour_'||gen_random_uuid()::text;mid uuid:=gen_random_uuid();rid text;firstid text;j jsonb;i integer;
+BEGIN
+ SELECT user_id INTO own FROM public.admins LIMIT 1;SELECT id INTO a FROM public.profiles p WHERE NOT coalesce(banned,false)AND NOT EXISTS(SELECT 1 FROM public.admins WHERE user_id=p.id)ORDER BY id LIMIT 1;SELECT id INTO b FROM public.profiles p WHERE id<>a AND NOT coalesce(banned,false)AND NOT EXISTS(SELECT 1 FROM public.admins WHERE user_id=p.id)ORDER BY id LIMIT 1;
+ INSERT INTO public.tournaments(id,name,status,reg_open,slots,entry_cost_ap)VALUES(tid,'Rollback tournament','upcoming',true,12,0);
+ INSERT INTO public.matches(id,tournament_id,title,status,starts_at,room_id,room_pass)VALUES(mid,tid,'Rollback match','scheduled',now()+interval '1 hour','TESTROOM','TESTPASS');
+ INSERT INTO public.registrations(id,tournament_id,squad,captain,uid,phone,status,ign,user_id,hold)VALUES('__old_'||tid,tid,'Historical Squad','Captain','222220001','+910000000021','pending','Test',b,false);
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);
+ j:=public.xr_tournament_overview(tid);ASSERT jsonb_array_length(j->'tournaments')=1,'Bounded overview';ASSERT NOT(j->'tournaments'->0->>'enabled')::boolean,'Staged';ASSERT(j->'tournaments'->0->>'slots_taken')::integer=1,'Real prior registration';ASSERT j->'tournaments'->0->'prize_pool'='null'::jsonb,'No invented prize';
+ BEGIN PERFORM public.xr_tournament_settings_admin(tid,'{"enabled":true}');RAISE EXCEPTION 'Player admin bypass';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
+ PERFORM set_config('request.jwt.claim.sub',own::text,true);j:=public.xr_tournament_settings_admin(tid,'{"enabled":true,"waitlist_enabled":true}');ASSERT(j->>'ok')::boolean,'Activate test settings';
+ ASSERT NOT EXISTS(SELECT 1 FROM public.xr_tournament_registration_meta WHERE registration_id='__old_'||tid),'No retroactive founding';
+ FOR i IN 1..4 LOOP
+ rid:='__new_'||i||tid;IF i=1 THEN firstid:=rid;END IF;
+ INSERT INTO public.registrations(id,tournament_id,squad,captain,uid,phone,status,ign,user_id,hold)VALUES(rid,tid,'New Squad '||i,'Captain','11111000'||i,'+91000000000'||i,'pending','Test',CASE WHEN i=1 THEN a ELSE NULL END,false);
+ END LOOP;
+ ASSERT(SELECT count(*)FROM public.xr_tournament_registration_meta WHERE tournament_id=tid AND is_founding)=3,'First3 real new squads';ASSERT(SELECT count(*)FROM public.xr_tournament_registration_meta WHERE tournament_id=tid AND is_early_bird)=4,'First4 early free';
+ UPDATE public.registrations SET status='confirmed'WHERE id=firstid;ASSERT(SELECT registration_counter FROM public.xr_tournament_settings WHERE tournament_id=tid)=4,'Retry no extra award';
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);j:=public.xr_tournament_overview(tid);ASSERT(j->'tournaments'->0->'my_registration'->>'is_founding')::boolean,'Own founding flag';ASSERT(j->'tournaments'->0->>'early_bird_free_left')::integer=0,'Exhausted early';ASSERT j->'tournaments'->0->'recent_registrations'='[]'::jsonb,'Default sharing private';
+ PERFORM public.xr_tournament_registration_sharing(tid,true,true,true);j:=public.xr_tournament_overview(tid);ASSERT jsonb_array_length(j->'tournaments'->0->'recent_registrations')=1,'Consented real activity';
+ ASSERT(j::text NOT LIKE '%11111000%'AND j::text NOT LIKE '%+910000%'AND j::text NOT LIKE '%TESTPASS%'AND j::text NOT LIKE '%TESTROOM%'),'Overview privacy';
+ ASSERT NOT EXISTS(SELECT 1 FROM jsonb_array_elements(j->'tournaments')x,jsonb_object_keys(x)k WHERE k IN('phone','ff_uid','uid','device','status_token','room_pass','room_id')),'Private identifiers excluded';
+ ASSERT(public.xr_prize_reveal_subscribe(tid,true)->>'subscribed')::boolean,'Bell intent';ASSERT NOT(public.xr_prize_reveal_subscribe(tid,true)->>'notification_delivery_available')::boolean,'No fake push';ASSERT(SELECT count(*)FROM public.xr_prize_reveal_subscriptions WHERE tournament_id=tid)=1,'Bell idempotent';
+ PERFORM set_config('request.jwt.claim.sub',own::text,true);PERFORM public.xr_tournament_settings_admin(tid,jsonb_build_object('prize_pool','Real announced reward','prize_reveal_at',now()+interval '1 day','registration_closes_at',now()-interval '1 second'));
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);j:=public.xr_tournament_overview(tid);ASSERT NOT(j->'tournaments'->0->>'registration_open')::boolean,'Deadline closes';ASSERT j->'tournaments'->0->'prize_pool'='null'::jsonb,'Private until reveal';
+ j:=public.register_squad('__denied_'||tid,tid,'Attempt','Captain','111110008','+910000000008','Test',NULL,NULL,NULL);ASSERT j->>'code'='registration_closed','Old RPC cutoff';
+ PERFORM set_config('request.jwt.claim.sub',b::text,true);ASSERT public.xr_tournament_waitlist_join(tid,'Registered old')->>'error'='Already registered.','Registered cannot queue';
+ PERFORM set_config('request.jwt.claim.sub',own::text,true);j:=public.xr_tournament_waitlist_join(tid,'Waiter Squad');ASSERT(j->>'rank')::integer=1,'Real waitlist';ASSERT(public.xr_tournament_waitlist_join(tid,'Retry')->>'rank')::integer=1,'Waitlist idempotent';
+ BEGIN UPDATE public.tournaments SET entry_cost_ap=1 WHERE id=tid;RAISE EXCEPTION 'Paid tournament allowed';EXCEPTION WHEN SQLSTATE 'P1600'THEN NULL;END;
+ BEGIN INSERT INTO public.registrations(id,tournament_id,squad,captain,uid,phone,status,ign,ap_paid)VALUES('__paid_'||tid,tid,'Paid','Captain','111110009','+910000000009','pending','Test',1);RAISE EXCEPTION 'Paid registration allowed';EXCEPTION WHEN SQLSTATE 'P1600'THEN NULL;END;
+ ASSERT NOT(public.xr_tournament_settings_admin(tid,'{"winner_squad":"Fake Winner"}')->>'ok')::boolean,'Cannot invent winner';j:=public.xr_tournament_season_summary(tid);ASSERT j->'winner_squad'='null'::jsonb,'No fabricated season winner';
+ ASSERT NOT(public.xr_match_access_admin(mid,jsonb_build_object('enabled',true,'room_release_at',now()))->>'ok')::boolean,'No early release';
+ j:=public.xr_match_access_admin(mid,'{"enabled":true}');ASSERT(j->>'ok')::boolean,'Enable staged access for fixture';
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);ASSERT NOT(public.match_room(mid)->>'ok')::boolean,'Room before release blocked';
+ PERFORM set_config('request.jwt.claim.sub',own::text,true);UPDATE public.matches SET starts_at=now()+interval '10 minutes'WHERE id=mid;
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);ASSERT NOT(public.match_room(mid)->>'ok')::boolean,'Unchecked denied';ASSERT(public.match_checkin(mid)->>'ok')::boolean,'Eligible checkin';ASSERT(public.match_checkin(mid)->>'already')::boolean,'Checkin retry';ASSERT(public.match_room(mid)->>'ok')::boolean,'Checked-in eligible access';
+ PERFORM set_config('request.jwt.claim.sub',own::text,true);UPDATE public.registrations SET hold=true WHERE id=firstid;
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);ASSERT NOT(public.match_room(mid)->>'ok')::boolean,'Held denied after check-in';
+ PERFORM set_config('request.jwt.claim.sub',own::text,true);UPDATE public.registrations SET hold=false WHERE id=firstid;UPDATE public.matches SET starts_at=NULL WHERE id=mid;
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);ASSERT NOT(public.match_room(mid)->>'ok')::boolean,'Missing start fail closed';ASSERT NOT(public.match_checkin(mid)->>'ok')::boolean,'Missing start checkin fail closed';
+ -- Banned accounts, rejected/waitlist/held registrations never get staged rooms.
+ PERFORM set_config('request.jwt.claim.sub',own::text,true);UPDATE public.matches SET starts_at=now()+interval '10 minutes',reveal_minutes=5 WHERE id=mid;
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);ASSERT NOT(public.match_room(mid)->>'ok')::boolean,'Stricter reveal_minutes respected';
+ PERFORM set_config('request.jwt.claim.sub',own::text,true);UPDATE public.matches SET starts_at=now()+interval '3 minutes'WHERE id=mid;UPDATE public.registrations SET status='waitlist'WHERE id=firstid;
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);ASSERT NOT(public.match_room(mid)->>'ok')::boolean,'Waitlist denied';
+ PERFORM set_config('request.jwt.claim.sub',own::text,true);UPDATE public.registrations SET status='confirmed'WHERE id=firstid;UPDATE public.profiles SET banned=true WHERE id=a;
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);BEGIN PERFORM public.match_room(mid);RAISE EXCEPTION 'Banned room allowed';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
+ PERFORM set_config('request.jwt.claim.sub',own::text,true);UPDATE public.profiles SET banned=false WHERE id=a;
+ UPDATE public.matches SET status='done'WHERE id=mid;
+ INSERT INTO public.lb_entries(match_id,player_name,squad,kills,placement,points)VALUES(mid,'Test','New Squad 1',0,1,0);
+ UPDATE public.tournaments SET status='done',reg_open=false WHERE id=tid;
+ ASSERT(public.xr_tournament_settings_admin(tid,jsonb_build_object('winner_squad','New Squad 1','ended_at',now()))->>'ok')::boolean,'Source-backed admin winner';
+ ASSERT public.xr_tournament_season_summary(tid)->>'winner_squad'='New Squad 1','Completed season winner read';
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);
+ j:=public.xr_home_chat_preview();ASSERT j->'online_count'='null'::jsonb AND NOT(j->>'first_message_reward_available')::boolean,'No invented online/reward';ASSERT j->'pin'->>'author'='XARENA','Real authorized question pin';
+END $test$;
+SET LOCAL ROLE anon;
+DO $grants$BEGIN ASSERT NOT has_function_privilege(current_user,'public.xr_tournament_overview(text,text,integer)','EXECUTE'),'Anonymous overview denied';END $grants$;
+RESET ROLE;
+SET LOCAL ROLE authenticated;
+DO $grants$BEGIN ASSERT NOT has_table_privilege(current_user,'public.xr_tournament_settings','SELECT,INSERT,UPDATE,DELETE'),'Private settings';ASSERT NOT has_table_privilege(current_user,'public.xr_prize_reveal_subscriptions','SELECT,INSERT,UPDATE,DELETE'),'Private subscription';ASSERT has_function_privilege(current_user,'public.xr_tournament_overview(text,text,integer)','EXECUTE'),'Auth overview';END $grants$;
+RESET ROLE;
+
+SELECT 'tournament tests passed; fixtures reverted' result;
+ROLLBACK;
