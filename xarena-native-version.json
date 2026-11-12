@@ -1,9 +1,9 @@
 {
-  "versionCode": 89,
-  "versionName": "0.17.44-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.44-native/xarena-native-v0.17.44.apk",
-  "sha256": "de013801050576c251b392b217dacb341cefe6fb82f1926a0cacc6739aef2521",
-  "apkBytes": 29663759,
-  "notes": "Feed renovation: Latest/Trending/Saved tabs, growth lines (gated dark), throwback labels, city opt-in toggle, save counts, no coin claims",
+  "versionCode": 90,
+  "versionName": "0.17.45-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.45-native/xarena-native-v0.17.45.apk",
+  "sha256": "bce0b2a34508d791dbdabcfa876d4bbd188645662c58af778ee91a43c162c77d",
+  "apkBytes": 29680143,
+  "notes": "Live renovation: overview wiring (countdown/follow/polls/squads/welcome pin), BOOYAH+GG WP quick comments, Share, UP NEXT",
   "patches": []
 }
