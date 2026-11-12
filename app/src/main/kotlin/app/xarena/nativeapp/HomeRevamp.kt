@@ -127,12 +127,12 @@ private fun HighlightCard(c: JSONObject, onOpen: () -> Unit) {
             if (thumb != null) AsyncImage(model = xrImageModel(androidx.compose.ui.platform.LocalContext.current, thumb),
                 contentDescription = c.s("caption"), modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
             Box(Modifier.size(30.dp).clip(CircleShape).background(Color(0xB3000000)).border(1.dp, Gold, CircleShape), contentAlignment = Alignment.Center) {
-                Text("▶", color = Gold, fontSize = 12.sp)
+                Text("â¶", color = Gold, fontSize = 12.sp)
             }
         }
         Column(Modifier.padding(horizontal = 10.dp, vertical = 7.dp)) {
             Text(c.s("caption").ifBlank { "Clip" }, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text("Community clip" + (if (railAgo(c.s("created_at")).isNotBlank()) " · " + railAgo(c.s("created_at")) else ""), color = Muted, fontSize = 10.sp)
+            Text("Community clip" + (if (railAgo(c.s("created_at")).isNotBlank()) " Â· " + railAgo(c.s("created_at")) else ""), color = Muted, fontSize = 10.sp)
         }
     }
 }
@@ -217,7 +217,7 @@ fun LiveChatStrip(onOpenFeature: (String) -> Unit) {
             val arr = msgs
             if (!loaded) Text("Loading chat...", color = Muted, fontSize = 12.sp)
             else if (arr == null || arr.length() == 0) {
-                Text("No messages yet - be the first to say hi.", color = Muted, fontSize = 12.sp)
+                Text("Say hi to the lobby.", color = Muted, fontSize = 12.sp)
             } else {
                 (0 until minOf(arr.length(), 2)).forEach { i ->
                     val m = arr.getJSONObject(i)
@@ -256,7 +256,7 @@ fun UpcomingTournamentGrid(ts: JSONArray, onOpenFeature: (String) -> Unit) {
                         if (t.s("prize").isNotBlank()) bits.add(t.s("prize"))
                         if (t.optInt("slots") > 0) bits.add(t.optInt("slots").toString() + " slots")
                         if (t.s("mode").isNotBlank()) bits.add(t.s("mode"))
-                        if (bits.isNotEmpty()) Text(bits.joinToString(" · "), color = Muted, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        if (bits.isNotEmpty()) Text(bits.joinToString(" Â· "), color = Muted, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         Spacer(Modifier.height(6.dp))
                         val open = t.optBoolean("reg_open")
                         Box(Modifier.clip(RoundedCornerShape(8.dp)).background(if (open) Gold else Card).padding(horizontal = 10.dp, vertical = 5.dp)) {

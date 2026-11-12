@@ -871,7 +871,7 @@ internal fun MoreOptionsContent(items: List<GridItem>, onOpen: (String) -> Unit,
                                     Text(entry.name, color = Color(0xFF15171A), fontSize = 18.sp)
                                     Text(entry.sub, color = Color(0xFF71757B), fontSize = 13.sp)
                                 }
-                                Text("âº", color = Color(0xFF70747A), fontSize = 28.sp)
+                                Text("Ã¢ÂÂº", color = Color(0xFF70747A), fontSize = 28.sp)
                             }
                         }
                     }
@@ -925,8 +925,12 @@ fun TournamentsScreen() {
     if (showMatches) { androidx.activity.compose.BackHandler { showMatches = false }; MatchCenterScreen(onBack = { showMatches = false }); return }
     Column(Modifier.fillMaxSize()) {
         Brand()
-        Box(Modifier.padding(horizontal = 16.dp, vertical = 2.dp)) { GoldButton(Txt.t("REGISTER YOUR SQUAD", "SQUAD REGISTER KARO")) { regTarget = null; showRegister = true } }
-        Box(Modifier.padding(horizontal = 16.dp, vertical = 2.dp)) { GoldButton("MATCH CENTER - ROOMS, CHECK-IN, RESULTS") { showMatches = true } }
+        Box(Modifier.padding(horizontal = 16.dp, vertical = 6.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFF7C3AED)).clickable { showMatches = true }.padding(vertical = 16.dp), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("MATCH CENTER", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                Text("Room ID, Check-in, Results", color = Color(0xCCFFFFFF), fontSize = 11.sp)
+            }
+        }
         LoadState({
             val arr = Api.publicGet("/rest/v1/tournaments?select=id,name,status,slots,prize,date_text,reg_open,mode&order=sort.asc")
             val optedOut = if (Api.loggedIn) runCatching {
@@ -952,10 +956,14 @@ fun TournamentCard(t: JSONObject, loggedIn: Boolean, optedOut: Boolean, onRegist
         Text(t.s("name"), color = Gold2, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         Text(t.s("mode") + " - " + t.optInt("slots") + " slots", color = Muted, fontSize = 13.sp)
         Spacer(Modifier.height(6.dp))
-        Text(t.s("date_text"), color = Color.White, fontSize = 14.sp)
-        Text(t.s("prize"), color = Color.White, fontSize = 14.sp)
+        val tStatus = t.s("status")
+        val tFinished = tStatus.equals("done", true) || tStatus.equals("closed", true) || tStatus.equals("completed", true) || tStatus.equals("cancelled", true)
+        if (tFinished) Text("Season finished", color = Muted, fontSize = 14.sp)
+        else Text(t.s("date_text"), color = Color.White, fontSize = 14.sp)
+        val tPrize = t.s("prize").trim()
+        if (tPrize.isNotBlank() && !tPrize.matches(Regex("(?i)x+|tbd|tba"))) Text(tPrize, color = Color.White, fontSize = 14.sp)
         Spacer(Modifier.height(6.dp))
-        Text((t.s("status").uppercase()) + if (t.optBoolean("reg_open")) " - REGISTRATION OPEN" else " - REGISTRATION CLOSED",
+        Text(if (tFinished) "SEASON FINISHED" else (tStatus.uppercase() + if (t.optBoolean("reg_open")) " - REGISTRATION OPEN" else " - REGISTRATION CLOSED"),
             color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         if (t.optBoolean("reg_open")) {
             Spacer(Modifier.height(8.dp))
@@ -1274,7 +1282,7 @@ fun ProfileScreenClassic(onLogout: () -> Unit, onBack: (() -> Unit)? = null, onS
                     PanelCard {
                         Text(p?.s("ign").takeUnless { it.isNullOrBlank() || it == "null" } ?: p?.s("username") ?: "Player",
                             color = Gold2, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                        if (p?.optBoolean("verified") == true) Text("â Verified", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        if (p?.optBoolean("verified") == true) Text("Ã¢ÂÂ Verified", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         if (p != null) {
                             @Composable fun row(k: String, v: String?) { if (!v.isNullOrBlank() && v != "null") Text("$k: $v", color = Color.White, fontSize = 14.sp) }
                             row("Username", p.s("username"))
