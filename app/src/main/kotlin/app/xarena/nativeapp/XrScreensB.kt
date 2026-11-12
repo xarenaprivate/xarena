@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
-/* Release B (v78): Slot Booking, MVP Voting, Live Match (host kill feed, no chat yet).
+/* Release B (v78): Slot Booking, MVP Voting, Live Match (host kill feed; v80 added live match chat).
    Backend: xr_slot_* (5-min provisional hold, capacity server-side), xr_mvp_* (one immutable vote
    after match done, nominees from real lb_entries), xr_kill_feed_* (owner/helper/feed-only post),
    xr_feed_capability() gates host controls. Chat flag is OFF: render the honest disabled state. */
@@ -361,7 +361,7 @@ fun LiveMatchScreen(onBack: () -> Unit, onVote: () -> Unit) {
                 }
             }
             item {
-                Text("Live chat is off for now - it switches on in the next update.", color = Muted, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp))
+                MatchChatPanel(m.s("id"), live = m.s("status") == "live")
             }
         }
     }
@@ -371,3 +371,4 @@ private fun xrMatchWhen(iso: String): String = try {
     val t = java.time.Instant.parse(iso)
     java.time.format.DateTimeFormatter.ofPattern("EEE d MMM, h:mm a").withZone(java.time.ZoneId.systemDefault()).format(t)
 } catch (e: Exception) { iso }
+
