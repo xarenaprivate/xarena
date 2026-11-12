@@ -761,6 +761,10 @@ object Api {
     suspend fun playerHighlights(userId: String): JSONArray = withContext(Dispatchers.IO) {
         publicGet("/rest/v1/feed_posts?select=id,kind,media_path,caption,created_at&user_id=eq." + userId + "&status=eq.approved&kind=eq.video&order=created_at.desc&limit=20")
     }
+    /* v79 home highlights wall: newest approved community clips across players (public feed). */
+    suspend fun clipsWall(): JSONArray = withContext(Dispatchers.IO) {
+        publicGet("/rest/v1/feed_posts?select=id,kind,media_path,caption,created_at&status=eq.approved&kind=eq.video&order=created_at.desc&limit=6")
+    }
     suspend fun friendStateWith(userId: String): JSONObject = withContext(Dispatchers.IO) {
         val me = uid
         val out = JSONObject().put("state", "none")
