@@ -1,0 +1,1 @@
+BEGIN;UPDATE public.xr_room_growth_settings SET enabled=false,auto_break_requested=false;DROP FUNCTION public.xr_room_growth();DROP FUNCTION public.xr_room_growth_admin(jsonb);NOTIFY pgrst,'reload schema';COMMIT;
