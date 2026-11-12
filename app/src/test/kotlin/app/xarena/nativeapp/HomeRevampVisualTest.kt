@@ -5,6 +5,12 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Rule
 import org.junit.Test
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 
 /** v79 home revamp sections: populated fixture renders + all-empty hiding.
     Fixtures here are TEST data rendered by the same composables; the shipped UI never fabricates
@@ -62,5 +68,23 @@ class HomeRevampVisualTest {
     @Test fun liveChatStrip_emptyHonestLine() {
         HomeChatCache.msgs = JSONArray()
         paparazzi.snapshot { LiveChatStrip {} }
+    }
+    @Test fun allEmpty_onlyHonestLineOverRed() {
+        HighlightsCache.clips = JSONArray()
+        friendsRailSignedInOverride = true
+        FriendsRailCache.data = JSONObject("""{"ok":true,"friends":[]}""")
+        HomeChatCache.msgs = JSONArray()
+        paparazzi.snapshot {
+            Box(Modifier.fillMaxWidth().background(Color(0xFFB00020))) {
+                Column {
+                    LiveMatchesRail(noLiveMatches(), tournaments()) {}
+                    HighlightsWall {}
+                    FriendsActivityStrip {}
+                    LiveChatStrip {}
+                    UpcomingTournamentGrid(JSONArray()) {}
+                }
+            }
+        }
+        friendsRailSignedInOverride = null
     }
 }
