@@ -468,6 +468,12 @@ object Api {
         publicRpc("chat_send", JSONObject().put("p_handle", chatHandle).put("p_token", chatToken).put("p_body", body))
     }
 
+    /** v80: send to a specific room (e.g. "match-<id>" live-match chat). p_room is optional server-side;
+        when the deployed chat_send predates room support the server error is shown to the user as-is. */
+    suspend fun chatSendRoom(room: String, body: String): JSONObject = withContext(Dispatchers.IO) {
+        publicRpc("chat_send", JSONObject().put("p_handle", chatHandle).put("p_token", chatToken).put("p_body", body).put("p_room", room))
+    }
+
     suspend fun chatHistory(room: String): JSONArray = withContext(Dispatchers.IO) {
         publicGet("/rest/v1/chat_messages?select=id,handle,body,created_at&room=eq." + URLEncoder.encode(room, "UTF-8") + "&order=id.desc&limit=80")
     }
@@ -858,3 +864,4 @@ object ProfileGate {
             Regex("^(.)\\1+$").matches(pw) ||
             Regex("^(?:12345678|password|qwertyui|11111111|00000000)", RegexOption.IGNORE_CASE).containsMatchIn(pw)
 }
+
