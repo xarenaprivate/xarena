@@ -374,6 +374,13 @@ object Api {
         authed("POST", "/rest/v1/rpc/$name", args)
     }
 
+    /* Profile growth reads (tools-migrations/20261113-profile-growth). Deployed dark; every
+       unsupported field arrives null and the RPC may be absent after rollback, so any failure
+       reads as "no growth data" and never as a player-facing error. */
+    suspend fun profileGrowth(): JSONObject? = try {
+        authedRpc("xr_profile_growth", JSONObject())
+    } catch (e: Exception) { null }
+
     /* update_player_card requires the full param set (site profile.html sends all five);
        sending only p_role fails with PGRST202. Carry current values, change only the role. */
     suspend fun saveRole(role: String): JSONObject = withContext(Dispatchers.IO) {

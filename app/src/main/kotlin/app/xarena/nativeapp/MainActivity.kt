@@ -1054,6 +1054,8 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
     }
     var editing by remember { mutableStateOf(false) }
     if (editing) { EditProfileScreen(onBack = { editing = false }); return }
+    var verifying by remember { mutableStateOf(false) }
+    if (verifying) { VerifyScreen(onBack = { verifying = false }); return }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.weight(1f)) { if (onBack != null) PageHeader("Profile", "Your account", onBack) else Brand() }
@@ -1076,6 +1078,8 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
             var shareBusy by remember { mutableStateOf(false) }
             var shareMsg by remember { mutableStateOf<String?>(null) }
             val profScope = rememberCoroutineScope()
+            var growth by remember { mutableStateOf<JSONObject?>(null) }
+            LaunchedEffect(Unit) { growth = Api.profileGrowth() }
             LazyColumn(contentPadding = PaddingValues(bottom = 24.dp)) {
                 item { Box(Modifier.padding(horizontal = 16.dp)) { PlayerBanner(p?.s("username") ?: "", true) } }
                 item { TextButton(onClick = { location = true }) { Text("My location", color = Gold) } }
@@ -1160,11 +1164,120 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
                 // badges - only real states
                 item {
                     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(if (verified) "\u2713 VERIFIED" else "! Not yet verified",
-                            color = if (verified) Color(0xFF4ADE80) else Color(0xFFFF6B6B), fontSize = 12.sp, fontWeight = FontWeight.Bold,
-                            modifier = Modifier.clip(RoundedCornerShape(16.dp)).border(1.dp, if (verified) Color(0xFF4ADE80) else Color(0xFFFF6B6B), RoundedCornerShape(16.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
+                        Text(if (verified) "\u2713 VERIFIED" else "VERIFY NOW - get your tick",
+                            color = if (verified) Color(0xFF4ADE80) else Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clip(RoundedCornerShape(16.dp)).border(1.dp, if (verified) Color(0xFF4ADE80) else Gold, RoundedCornerShape(16.dp)).clickable(enabled = !verified) { verifying = true }.padding(horizontal = 10.dp, vertical = 4.dp))
                         if (matches == 0) Text("\u2B50 NEW PLAYER", color = NeonName, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                             modifier = Modifier.clip(RoundedCornerShape(16.dp)).border(1.dp, NeonYellow, RoundedCornerShape(16.dp)).padding(horizontal = 10.dp, vertical = 4.dp))
+                    }
+                }
+                // level progress - real XP math only
+                if (need > 0) {
+                    item {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("LEVEL " + level, color = NeonName, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(into.toString() + " / " + need + " XP to level " + (level + 1), color = Muted, fontSize = 12.sp)
+                            }
+                            Spacer(Modifier.height(4.dp))
+                            Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(NeonBorder)) {
+                                Box(Modifier.fillMaxWidth((into.toFloat() / need).coerceIn(0f, 1f)).height(6.dp).clip(RoundedCornerShape(3.dp)).background(NeonYellow))
+                            }
+                        }
+                    }
+                }
+                // profile growth - staged server-side; renders only what the backend really returns
+                growth?.let { g ->
+                    val badges = g.optJSONObject("badges")
+                    val earned = badges?.optJSONArray("earned")
+                    if (earned != null && earned.length() > 0) {
+                        item {
+                            PanelCard {
+                                Text("YOUR BADGES", color = NeonName, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Spacer(Modifier.height(6.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    val shown = minOf(earned.length(), 3)
+                                    for (i in 0 until shown) {
+                                        val b = earned.optJSONObject(i)
+                                        if (b != null) Text(b.s("name"), color = NeonName, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.clip(RoundedCornerShape(12.dp)).border(1.dp, NeonYellow, RoundedCornerShape(12.dp)).padding(horizontal = 8.dp, vertical = 3.dp))
+                                    }
+                                    if (earned.length() > 3) Text("+" + (earned.length() - 3) + " more", color = Muted, fontSize = 11.sp, modifier = Modifier.align(Alignment.CenterVertically))
+                                }
+                            }
+                        }
+                    }
+                    val clips = if (g.isNull("my_clips_count")) null else g.optInt("my_clips_count")
+                    if (clips != null && clips > 0) {
+                        item {
+                            PanelCard {
+                                Text("MY CLIPS (" + clips + ")", color = NeonName, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Spacer(Modifier.height(4.dp))
+                                Text("Your approved clips live in Feed.", color = Muted, fontSize = 12.sp)
+                            }
+                        }
+                    }
+                    if (g.optBoolean("growth_enabled", false)) {
+                        val reward = if (g.isNull("streak_reward_coins")) null else g.optInt("streak_reward_coins")
+                        val claimed = g.optBoolean("streak_reward_already_claimed", false)
+                        val sdays = g.optInt("streak_days", streak)
+                        if (reward != null) {
+                            item {
+                                PanelCard {
+                                    Text(if (claimed) "Checked in today: +" + reward + " AP" else "Check in today: +" + reward + " AP", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                    Spacer(Modifier.height(2.dp))
+                                    Text("Daily check-in" + (if (sdays > 0) " - " + sdays + " day streak" else ""), color = Muted, fontSize = 12.sp)
+                                    Spacer(Modifier.height(8.dp))
+                                    if (claimed) Text("Checked in today - come back tomorrow", color = Color(0xFF22C55E), fontSize = 13.sp)
+                                    else GoldButton("CHECK IN") {
+                                        profScope.launch {
+                                            try { Api.authedRpc("daily_checkin", JSONObject()) } catch (e: Exception) { }
+                                            growth = Api.profileGrowth()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        val nextBadge = badges?.optJSONObject("next")
+                        if (nextBadge != null) {
+                            item {
+                                PanelCard {
+                                    Text("Next badge: " + nextBadge.s("name"), color = NeonName, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                    Spacer(Modifier.height(2.dp))
+                                    Text(nextBadge.optInt("progress").toString() + " / " + nextBadge.optInt("target") + " day streak", color = Muted, fontSize = 12.sp)
+                                }
+                            }
+                        }
+                        val vf = if (g.isNull("verified_friends_count")) null else g.optInt("verified_friends_count")
+                        if (vf != null) {
+                            item {
+                                PanelCard {
+                                    Text("Verified friends: " + vf, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                        val pc = g.optJSONObject("profile_completeness")
+                        if (pc != null) {
+                            val missing = pc.optJSONArray("missing")
+                            item {
+                                PanelCard {
+                                    Text("Profile " + pc.optInt("percent") + "% complete", color = NeonName, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                    if (missing != null && missing.length() > 0) {
+                                        Spacer(Modifier.height(4.dp))
+                                        val labels = (0 until missing.length()).map { idx ->
+                                            when (missing.optString(idx)) {
+                                                "username" -> "username"
+                                                "ign" -> "IGN"
+                                                "avatar" -> "avatar"
+                                                "city" -> "city"
+                                                else -> missing.optString(idx)
+                                            }
+                                        }
+                                        Text("Add: " + labels.joinToString(", "), color = Muted, fontSize = 12.sp)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 // share stats card
@@ -1210,6 +1323,11 @@ fun ProfileScreen(onLogout: () -> Unit, onBack: (() -> Unit)? = null) {
                             NeonRing(null, "SPINS", spins.toString() + (if (spins == 1) " spin" else " spins"), "\uD83C\uDFB2")
                             NeonRing(null, "STREAK", streak.toString() + (if (streak == 1) " day" else " days"), "\uD83D\uDEE1\uFE0F")
                         }
+                    }
+                }
+                if (matches == 0) {
+                    item {
+                        Text("No matches yet - your record starts with your first match.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp))
                     }
                 }
                 // account details
