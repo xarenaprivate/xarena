@@ -1,0 +1,41 @@
+BEGIN;
+DO $test$
+DECLARE own uuid;a uuid;b uuid;post1 bigint;post2 bigint;oldpost bigint;j jsonb;cur jsonb;i integer;balance_before bigint;
+BEGIN
+ SELECT user_id INTO own FROM public.admins LIMIT 1;
+ SELECT id INTO a FROM public.profiles WHERE NOT coalesce(banned,false)AND id<>own ORDER BY id LIMIT 1;
+ SELECT id INTO b FROM public.profiles WHERE NOT coalesce(banned,false)AND id NOT IN(own,a)ORDER BY id LIMIT 1;
+ SELECT coalesce(sum(delta),0)INTO balance_before FROM public.points_ledger;
+ PERFORM set_config('request.jwt.claim.sub','',true);
+ j:=public.xr_feed_overview();ASSERT NOT(j->>'growth_enabled')::boolean,'Dark';ASSERT j->'my_streak'='null'::jsonb,'Public personal null';ASSERT j->'post_reward_coins'='null'::jsonb,'No fake post coins';ASSERT NOT(j->'first_comment_reward'->>'enabled')::boolean,'No fake first comment';ASSERT j->'battle'='null'::jsonb,'No invented battle';ASSERT NOT(j->>'notification_delivery_available')::boolean,'No reminder';
+ ASSERT public.xr_feed_list('saved')->>'error'='Login required.','Saved private';
+ INSERT INTO public.feed_posts(user_id,kind,caption,status,created_at)VALUES(a,'text','Fixture alpha','approved',now())RETURNING id INTO post1;
+ INSERT INTO public.feed_posts(user_id,kind,caption,status,created_at)VALUES(b,'text','Fixture beta','approved',now())RETURNING id INTO post2;
+ INSERT INTO public.feed_posts(user_id,kind,caption,status,created_at)VALUES(a,'text','Fixture throwback','approved',now()-interval '2 days')RETURNING id INTO oldpost;
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);
+ BEGIN PERFORM public.xr_feed_growth_admin('{"enabled":true}');RAISE EXCEPTION 'Player admin bypass';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
+ j:=public.xr_feed_list('latest');ASSERT jsonb_array_length(j->'posts')<=10,'Bounded page';ASSERT NOT EXISTS(SELECT 1 FROM jsonb_array_elements(j->'posts')z WHERE z?'phone'OR z?'uid'OR z?'device'),'Privacy';
+ j:=public.xr_feed_overview();ASSERT(j->'my_streak'->>'posted_today')::boolean,'Real posted today';ASSERT j->'my_streak'->'bonus_coins'='null'::jsonb,'No streak reward';
+ PERFORM public.xr_feed_author_sharing_set(true);ASSERT(public.xr_feed_overview()->>'my_city_visible')::boolean,'Consent read';PERFORM public.xr_feed_author_sharing_set(false);ASSERT NOT(public.xr_feed_overview()->>'my_city_visible')::boolean,'Consent off';
+ PERFORM public.xr_feed_activity_ack();UPDATE public.xr_feed_activity_state SET seen_at=now()-interval '1 minute'WHERE user_id=a;
+ INSERT INTO public.feed_likes(post_id,user_id)VALUES(post1,b),(post1,a)ON CONFLICT DO NOTHING;
+ INSERT INTO public.feed_comments(post_id,user_id,body)VALUES(post1,b,'Fixture comment');
+ INSERT INTO public.feed_saves(post_id,user_id)VALUES(post1,b)ON CONFLICT DO NOTHING;
+ PERFORM set_config('request.jwt.claim.sub',own::text,true);ASSERT(public.xr_feed_growth_admin('{"enabled":true,"trending_threshold":1}')->>'ok')::boolean,'Admin enables fixture';
+ ASSERT NOT(public.xr_feed_highlight_pick(oldpost)->>'ok')::boolean,'No old highlight pick';ASSERT(public.xr_feed_highlight_pick(post1)->>'ok')::boolean,'Actual pick';
+ PERFORM set_config('request.jwt.claim.sub',a::text,true);
+ j:=public.xr_feed_overview();ASSERT(j->'highlight_of_the_day'->>'post_id')::bigint=post1,'Real highlight';ASSERT jsonb_array_length(j->'my_post_activity')>=1,'Real new activity';ASSERT(j->'my_post_activity'->0->>'new_likes')::int=1,'Exclude self activity';
+ j:=public.xr_feed_list('trending',NULL,10);ASSERT EXISTS(SELECT 1 FROM jsonb_array_elements(j->'posts')z WHERE(z->>'id')::bigint=post1 AND(z->>'likes')::int=1 AND(z->>'likes_to_trending')::int=0),'Real trending excludes self';
+ j:=public.xr_feed_list('latest',NULL,1);cur:=j->'next_cursor';ASSERT cur IS NOT NULL,'Keyset cursor';i:=(j->'posts'->0->>'id')::integer;j:=public.xr_feed_list('latest',cur,1);ASSERT NOT EXISTS(SELECT 1 FROM jsonb_array_elements(j->'posts')z WHERE(z->>'id')::bigint=i),'No repeat pagination';
+ UPDATE public.profiles SET show_activity=true WHERE id IN(a,b);INSERT INTO public.friends(user_id,friend_id)VALUES(a,b),(b,a)ON CONFLICT DO NOTHING;
+ j:=public.xr_feed_overview();ASSERT EXISTS(SELECT 1 FROM jsonb_array_elements(j->'friends_posted_today')z WHERE(z->>'id')::uuid=b),'Real mutual friend posted';ASSERT j->'weekly_top_fan'<>'null'::jsonb,'Real weekly fan';
+ INSERT INTO public.blocks(user_id,blocked_id)VALUES(a,b)ON CONFLICT DO NOTHING;j:=public.xr_feed_overview();ASSERT NOT EXISTS(SELECT 1 FROM jsonb_array_elements(j->'friends_posted_today')z WHERE(z->>'id')::uuid=b),'Blocked friend hidden';j:=public.xr_feed_list();ASSERT NOT EXISTS(SELECT 1 FROM jsonb_array_elements(j->'posts')z WHERE(z->>'id')::bigint=post2),'Blocked author hidden';DELETE FROM public.blocks WHERE(user_id=a AND blocked_id=b)OR(user_id=b AND blocked_id=a);
+ PERFORM set_config('request.jwt.claim.sub',b::text,true);j:=public.xr_feed_list('saved');ASSERT EXISTS(SELECT 1 FROM jsonb_array_elements(j->'posts')z WHERE(z->>'id')::bigint=post1),'Real saved';
+ UPDATE public.feed_posts SET status='rejected'WHERE id=post1;j:=public.xr_feed_overview();ASSERT j->'highlight_of_the_day'='null'::jsonb,'Rejected highlight hidden';j:=public.xr_feed_list('saved');ASSERT NOT EXISTS(SELECT 1 FROM jsonb_array_elements(j->'posts')z WHERE(z->>'id')::bigint=post1),'Rejected saved hidden';
+ PERFORM set_config('request.jwt.claim.sub',own::text,true);UPDATE public.profiles SET banned=true WHERE id=b;PERFORM set_config('request.jwt.claim.sub',b::text,true);BEGIN PERFORM public.xr_feed_overview();RAISE EXCEPTION 'Banned overview allowed';EXCEPTION WHEN insufficient_privilege THEN NULL;END;PERFORM set_config('request.jwt.claim.sub',own::text,true);UPDATE public.profiles SET banned=false WHERE id=b;
+ PERFORM set_config('request.jwt.claim.sub',own::text,true);UPDATE public.xr_ops_settings SET feed_shed=true WHERE singleton;BEGIN PERFORM public.xr_feed_overview();RAISE EXCEPTION 'Shed overview allowed';EXCEPTION WHEN SQLSTATE 'PGRST'THEN NULL;END;BEGIN PERFORM public.xr_feed_list();RAISE EXCEPTION 'Shed list allowed';EXCEPTION WHEN SQLSTATE 'PGRST'THEN NULL;END;UPDATE public.xr_ops_settings SET feed_shed=false WHERE singleton;
+ ASSERT(SELECT coalesce(sum(delta),0)FROM public.points_ledger)=balance_before,'No points minted';
+END $test$;
+
+SELECT 'feed growth tests passed; fixtures reverted' result;
+ROLLBACK;

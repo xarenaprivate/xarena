@@ -1,0 +1,10 @@
+BEGIN;
+UPDATE public.xr_feed_growth_settings SET enabled=false;
+DROP FUNCTION public.xr_feed_overview();
+DROP FUNCTION public.xr_feed_list(text,jsonb,integer);
+DROP FUNCTION public.xr_feed_author_sharing_set(boolean);
+DROP FUNCTION public.xr_feed_activity_ack();
+DROP FUNCTION public.xr_feed_highlight_pick(bigint);
+DROP FUNCTION public.xr_feed_growth_admin(jsonb);
+NOTIFY pgrst,'reload schema';
+COMMIT;
