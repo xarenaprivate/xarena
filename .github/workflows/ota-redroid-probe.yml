@@ -22,11 +22,11 @@ jobs:
           ls -l /dev/binder* /dev/ashmem 2>/dev/null || echo NO-BINDER
       - name: Download APKs
         run: |
-          curl -sL -o published74.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.29-native/xarena-native-v0.17.29.apk
-          echo "fd5aa01afc7d139c5045ee5c9f2a1f64a400312d2086ebcd63cfb29857e9f760  published74.apk" | sha256sum -c -
-          curl -sL -o cand75.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.30-native/xarena-native-v0.17.30.apk
-          echo "23d0eb3f8b7aa565bef66428c10ca7488a0b657d751e346bd20ad9c09d4e5221  cand75.apk" | sha256sum -c -
-      - name: Start redroid, upgrade 73 to 74, fresh install 74, launch
+          curl -sL -o published75.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.30-native/xarena-native-v0.17.30.apk
+          echo "23d0eb3f8b7aa565bef66428c10ca7488a0b657d751e346bd20ad9c09d4e5221  published75.apk" | sha256sum -c -
+          curl -sL -o cand76.apk https://github.com/xarenaprivate/xarena/releases/download/v0.17.31-native/xarena-native-v0.17.31.apk
+          echo "9d5cb9408aa0dcab627713900d0ba609ac164a649f65776a7fdfe2fa361f6304  cand76.apk" | sha256sum -c -
+      - name: Start redroid, upgrade 75 to 76, fresh install 76, launch
         run: |
           docker run -d --name redroid --privileged -p 5555:5555 redroid/redroid:13.0.0-latest androidboot.redroid_gpu_mode=guest
           for i in $(seq 1 60); do
@@ -37,8 +37,8 @@ jobs:
           sudo apt-get install -y adb > /dev/null 2>&1 || true
           adb connect localhost:5555
           A="adb -s localhost:5555"
-          echo "== A: install published 74 =="; $A install published74.apk 2>&1 | tee iA74.txt
-          echo "== A: UPGRADE to 75 (install -r, signature must match) =="; $A install -r cand75.apk 2>&1 | tee iA75.txt
+          echo "== A: install published 75 =="; $A install published75.apk 2>&1 | tee iA74.txt
+          echo "== A: UPGRADE to 76 (install -r, signature must match) =="; $A install -r cand76.apk 2>&1 | tee iA75.txt
           $A shell dumpsys package app.xarena.esports.native | grep -E "versionCode|versionName" | head -3 | tee verA.txt
           $A logcat -c
           $A shell am start -n app.xarena.esports.native/app.xarena.nativeapp.MainActivity 2>&1 | tail -3
@@ -47,9 +47,9 @@ jobs:
           cat pidA.txt
           $A logcat -d | grep -E "FATAL|Fatal signal|AndroidRuntime" | tail -15 | tee fatalA.txt || true
           $A exec-out screencap -p > smokeA.png
-          echo "== B: uninstall + FRESH install 75 =="
+          echo "== B: uninstall + FRESH install 76 =="
           $A uninstall app.xarena.esports.native
-          $A install cand75.apk 2>&1 | tee iB75.txt
+          $A install cand76.apk 2>&1 | tee iB75.txt
           $A logcat -c
           $A shell am start -n app.xarena.esports.native/app.xarena.nativeapp.MainActivity 2>&1 | tail -3
           sleep 25
@@ -63,7 +63,7 @@ jobs:
           cat verA.txt
           grep -q Success iA74.txt
           grep -q Success iA75.txt
-          grep -q "versionCode=75" verA.txt
+          grep -q "versionCode=76" verA.txt
           grep -q Success iB75.txt
           grep -qv NO-PROCESS pidA.txt
           grep -qv NO-PROCESS pidB.txt
