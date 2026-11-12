@@ -115,6 +115,7 @@ internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (Strin
         LazyColumn(Modifier.fillMaxSize(), state = listState) {
             item {
                 Brand()
+                Text("XARENA · MASTER", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp))
                 d.ann?.let { a ->
                     val ctx = androidx.compose.ui.platform.LocalContext.current
                     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(12.dp))
@@ -141,6 +142,11 @@ internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (Strin
                         cameraDistance = 14f * density
                     }) { CupHeroCard(d.cup, d.slotsTaken) { onOpenFeature("register") } }
                 }
+                LiveMatchesRail(d.matches, d.ts) { onOpenFeature(it) }
+                HighlightsWall { onOpenFeature(it) }
+                FriendsActivityStrip { onOpenFeature(it) }
+                LiveChatStrip { onOpenFeature(it) }
+                UpcomingTournamentGrid(d.ts) { onOpenFeature(it) }
                 Box(Modifier.tilt3d(3f)) { AajKyaHaiCard(d.matches) { onOpenFeature("live") } }
                 Box(Modifier.tilt3d(3f)) { UpcomingMatchesStrip(d.matches, d.ts) { onOpenFeature("match") } }
                 Box(Modifier.tilt3d(3f)) { CheckinHomeCard { onOpenFeature("streak") } }
