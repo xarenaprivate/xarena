@@ -18,6 +18,19 @@ object ShareCard {
     private const val W = 1080
     private const val H = 1350
 
+    /** Memory-safe bitmap: full-res ARGB, falls back to half-res RGB_565 on low-memory devices.
+        Prevents the process kill players hit when the card render ran out of memory. */
+    private fun cardCanvas(w: Int, h: Int): Pair<Bitmap, Canvas> {
+        return try {
+            val b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            Pair(b, Canvas(b))
+        } catch (oom: OutOfMemoryError) {
+            val b = Bitmap.createBitmap(w / 2, h / 2, Bitmap.Config.RGB_565)
+            val c = Canvas(b); c.scale(0.5f, 0.5f)
+            Pair(b, c)
+        }
+    }
+
     suspend fun build(ctx: android.content.Context): File? = withContext(Dispatchers.IO) {
         runCatching {
             val ranks = runCatching { Api.authedRpc("my_ranks", JSONObject()) }.getOrNull()
@@ -27,8 +40,7 @@ object ShareCard {
             val kd = card?.let { if (it.isNull("kd")) null else it.optDouble("kd") }
             val wins = card?.optInt("wins") ?: 0
 
-            val bmp = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888)
-            val c = Canvas(bmp)
+            val (bmp, c) = cardCanvas(W, H)
             // background
             val bg = Paint()
             bg.shader = LinearGradient(0f, 0f, 0f, H.toFloat(), GColor.parseColor("#1A0E33"), GColor.parseColor("#05010C"), Shader.TileMode.CLAMP)
@@ -81,6 +93,7 @@ object ShareCard {
             val dir = File(ctx.cacheDir, "share").apply { mkdirs() }
             val f = File(dir, "xarena-stats.png")
             FileOutputStream(f).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            bmp.recycle()
             f
         }.getOrNull()
     }
@@ -93,8 +106,7 @@ object ShareCard {
             val hdr = runCatching { Api.authedRpc("my_header", JSONObject()) }.getOrNull()
             val name = card?.s("ign")?.ifBlank { card.s("username") }?.ifBlank { card.s("name") }?.ifBlank { "XARENA Player" } ?: "XARENA Player"
 
-            val bmp = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888)
-            val c = Canvas(bmp)
+            val (bmp, c) = cardCanvas(W, H)
             val bg = Paint()
             bg.shader = LinearGradient(0f, 0f, W.toFloat(), H.toFloat(), GColor.parseColor("#070707"), GColor.parseColor("#1a1405"), Shader.TileMode.CLAMP)
             c.drawRect(0f, 0f, W.toFloat(), H.toFloat(), bg)
@@ -148,6 +160,7 @@ object ShareCard {
             val dir = File(ctx.cacheDir, "share").apply { mkdirs() }
             val out = File(dir, "xarena-season-recap.png")
             FileOutputStream(out).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            bmp.recycle()
             out
         }.getOrNull()
     }
@@ -156,8 +169,7 @@ object ShareCard {
     suspend fun buildStory(ctx: android.content.Context, t: JSONObject): File? = withContext(Dispatchers.IO) {
         runCatching {
             val SW = 1080; val SH = 1920
-            val bmp = Bitmap.createBitmap(SW, SH, Bitmap.Config.ARGB_8888)
-            val c = Canvas(bmp)
+            val (bmp, c) = cardCanvas(SW, SH)
             val bg = Paint()
             bg.shader = LinearGradient(0f, 0f, 0f, SH.toFloat(), GColor.parseColor("#120A24"), GColor.parseColor("#05010C"), Shader.TileMode.CLAMP)
             c.drawRect(0f, 0f, SW.toFloat(), SH.toFloat(), bg)
@@ -199,6 +211,7 @@ object ShareCard {
             val dir = File(ctx.cacheDir, "share").apply { mkdirs() }
             val out = File(dir, "xarena-story.png")
             FileOutputStream(out).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            bmp.recycle()
             out
         }.getOrNull()
     }
@@ -232,8 +245,7 @@ object ShareCard {
                 lines.add("Top fragger: " + topFrag.s("player_name") + " (" + topFrag.optInt("kills") + " kills)")
             lines.add(regs.toString() + " squads - " + matches + " matches")
 
-            val bmp = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888)
-            val c = Canvas(bmp)
+            val (bmp, c) = cardCanvas(W, H)
             val bg = Paint()
             bg.shader = LinearGradient(0f, 0f, 0f, H.toFloat(), GColor.parseColor("#1A0E33"), GColor.parseColor("#05010C"), Shader.TileMode.CLAMP)
             c.drawRect(0f, 0f, W.toFloat(), H.toFloat(), bg)
@@ -254,6 +266,7 @@ object ShareCard {
             val dir = File(ctx.cacheDir, "share").apply { mkdirs() }
             val out = File(dir, "xarena-result.png")
             FileOutputStream(out).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            bmp.recycle()
             out
         }.getOrNull()
     }
