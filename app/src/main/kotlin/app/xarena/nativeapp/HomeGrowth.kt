@@ -24,6 +24,15 @@ import androidx.compose.animation.core.animateFloat
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Notifications
 
 /* Growth home cards (Oct 20 batch): Ignition Cup hero + countdown, Aaj kya hai, daily check-in,
    fan vote, winners strip, top-3 squads, 3-step first-run walkthrough. Real data only. */
