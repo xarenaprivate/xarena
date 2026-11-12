@@ -646,7 +646,7 @@ fun HomeShell(onLogout: () -> Unit) {
         }
         BackHandler(enabled = tab != 0) { tab = 0 }
         Box(Modifier.weight(1f)) {
-            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> FeedScreen(onBack = { tab = 0 }); 2 -> LiveScreen(onBack = { tab = 0 }); 3 -> VoiceScreen(onBack = { tab = 0 }); 4 -> TournamentsScreen(); 5 -> LeaderboardScreen(); else -> MoreGrid { feature = it } }
+            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> FeedScreen(onBack = { tab = 0 }); 2 -> LiveScreen(onBack = { tab = 0 }); 3 -> VoiceScreen(onBack = { tab = 0 }); 4 -> TournamentsScreen(); 5 -> LeaderboardScreen(); 6 -> ChatScreen(onGoTab = { i -> when (i) { 1 -> tab = 4; 2 -> tab = 5; else -> feature = "squads" } }, onBack = { tab = 0 }); 7 -> ProfileScreen(onLogout, onBack = { tab = 0 }); else -> MoreGrid { feature = it } }
         }
         MainBottomNav(tab) { tab = it }
     }
@@ -720,6 +720,8 @@ fun MainBottomNav(tab: Int, onSelect: (Int) -> Unit) {
         Txt.t("Voice", "Voice") to Icons.Default.Call,
         Txt.t("Tournaments", "Tournaments") to TrophyIcon,
         Txt.t("Board", "Board") to Icons.Default.List,
+        Txt.t("Chat", "Chat") to Icons.Default.MailOutline,
+        Txt.t("Profile", "Profile") to Icons.Default.Person,
         "More" to Icons.Default.Menu)
     Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).horizontalScroll(androidx.compose.foundation.rememberScrollState()).padding(vertical = 6.dp)) {
         tabs.forEachIndexed { i, (label, icon) ->
