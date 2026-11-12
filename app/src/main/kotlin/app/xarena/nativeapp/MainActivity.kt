@@ -583,6 +583,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "chat" -> { ChatScreen(onGoTab = { i -> when (i) { 1 -> { feature = null; tab = 4 }; 2 -> { feature = null; tab = 5 }; else -> feature = "squads" } }, onBack = { feature = null }); return }
         "luna" -> { LunaScreen(onBack = { feature = null }); return }
         "squads" -> { SquadsScreen(onBack = { feature = null }); return }
+        "squadfinder" -> { SquadFinderRoot(onBack = { feature = null }); return }
         "board" -> { LeaderboardScreen(); return }
         "more" -> { MoreGrid { feature = it }; return }
         "store" -> { StoreScreen(onBack = { feature = null }); return }
@@ -748,6 +749,7 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("creator", "Creator", "Host free tournaments, sponsors, city team", Icons.Default.Star),
         GridItem("luna", "Luna", "AI analyst and caster", Icons.Default.Face),
         GridItem("squads", "Squads", "Find or build your squad", Icons.Default.AccountBox),
+            GridItem("squadfinder", "Squad Finder", "Roles, tryouts, trust - find your squad", Icons.Default.AccountBox),
         GridItem("board", "Leaderboard", "Top squads and players", Icons.Default.List),
         GridItem("store", "Store", "Spend AP on real rewards", Icons.Default.ShoppingCart),
         GridItem("profile", "Profile", "Your account and settings", Icons.Default.Person),
