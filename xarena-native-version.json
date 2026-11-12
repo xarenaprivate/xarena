@@ -1,9 +1,9 @@
 {
-  "versionCode": 78,
-  "versionName": "0.17.33-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.33-native/xarena-native-v0.17.33.apk",
-  "sha256": "562ec3a6d44fe8b072ef6bf4a776ef1ad1e46b698672ae40b3601e4b5ff8d557",
-  "apkBytes": 29434383,
-  "notes": "v78: stability fixes and release pipeline. IMPORTANT: signing key changed - purana app uninstall karke ye fresh install karein (login phir se karna hoga). Auto-update purane version se nahi chalega.",
+  "versionCode": 79,
+  "versionName": "0.17.34-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.34-native/xarena-native-v0.17.34.apk",
+  "sha256": "eea52d240323b2c58c2ab33cba2ae4b25ab1e80ca9d11ec55a08c0574086c2cb",
+  "apkBytes": 29450767,
+  "notes": "v79: naya Home design - matches, clips aur community ek hi feed mein. IMPORTANT: signing key changed - purana app uninstall karke fresh install karein (login phir se karna hoga).",
   "patches": []
 }
