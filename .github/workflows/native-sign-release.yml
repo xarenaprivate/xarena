@@ -56,7 +56,7 @@ jobs:
           "$BT/zipalign" -c -p 4 signed.apk
           CERT=$("$BT/apksigner" verify --print-certs signed.apk | grep -i 'SHA-256' | head -1)
           echo "$CERT"
-          echo "$CERT" | grep -qi 7bccf657 || { echo "CERT MISMATCH - aborting"; exit 1; }
+          echo "$CERT" | grep -qi 7ef51087c7c96ba541fc6002a249bcf8f63ed6ef7fdbee609adbb25da37d4db0 || { echo "CERT MISMATCH - aborting"; exit 1; }
           sha256sum signed.apk | tee SHA.txt
           stat -c%s signed.apk | tee BYTES.txt
 
@@ -71,7 +71,7 @@ jobs:
           SHA=$(cut -d' ' -f1 SHA.txt)
           mkdir -p patches
           : > patches/index.txt
-          for F in $(seq 35 52) $(seq 54 77); do
+          for F in ; do  # cert changed at v78: no valid old-cert patch bases; same-cert delta patches resume later
             if [ "$F" -le 44 ]; then V="0.16.$((F-35))"; else V="0.17.$((F-45))"; fi
             TAG="v${V}-native"
             if [ "$F" -le 75 ]; then ASSET="xarena-native.apk"; else ASSET="xarena-native-v${V}.apk"; fi
@@ -93,11 +93,12 @@ jobs:
         run: |
           set -euo pipefail
           SHORT="${TAG#v}"; SHORT="${SHORT%-native}"
+          cp signed.apk "xarena-native-v${SHORT}.apk"
           gh release create "$TAG" \
             --repo "$REPO" --prerelease \
             --title "XARENA Native $TAG" \
             --notes "$NOTES" \
-            "signed.apk#xarena-native-v${SHORT}.apk" patches/*.bs
+            "xarena-native-v${SHORT}.apk" $(ls patches/*.bs 2>/dev/null || true)
 
       - name: OTA verify (public asset URLs, sha256 must match)
         env:
@@ -107,7 +108,8 @@ jobs:
           set -euo pipefail
           SHA=$(cut -d' ' -f1 SHA.txt)
           SHORT="${TAG#v}"; SHORT="${SHORT%-native}"
-          curl -sfL -o dl.apk "https://github.com/$REPO/releases/download/$TAG/xarena-native-v${SHORT}.apk"
+          for i in 1 2 3 4 5 6; do curl -sfL -o dl.apk "https://github.com/$REPO/releases/download/$TAG/xarena-native-v${SHORT}.apk" && break || sleep 10; done
+          [ -s dl.apk ]
           echo "$SHA  dl.apk" | sha256sum -c -
           while read -r F PSHA PB; do
             curl -sfL -o p.bs "https://github.com/$REPO/releases/download/$TAG/patch-$F-to-$VC.bs"
