@@ -1,9 +1,9 @@
 {
-  "versionCode": 87,
-  "versionName": "0.17.42-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.42-native/xarena-native-v0.17.42.apk",
-  "sha256": "264121be8bb0c35b8941b3b06b6957e35fa22e09935156209a13ce01cd4be399",
-  "apkBytes": 29647375,
-  "notes": "Home/Tournament renovation part 1: MATCH CENTER primary, honest season states, slots line, chat empty copy, sponsor Fit",
+  "versionCode": 88,
+  "versionName": "0.17.43-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.43-native/xarena-native-v0.17.43.apk",
+  "sha256": "3ed0786c30bc88bdf42fcd6c1141f6b5f4d64e3c90893487ab625758d5768b17",
+  "apkBytes": 29663759,
+  "notes": "Home/Tournament part 2: overview slots + growth lines + season summary, chat preview with XARENA pin, registration sharing consent toggles",
   "patches": []
 }
