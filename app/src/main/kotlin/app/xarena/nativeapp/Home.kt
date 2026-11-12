@@ -85,6 +85,7 @@ internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (Strin
                     }
                 }
                 if (!skipWalkthrough) WalkthroughOnce()
+                HomeSponsorCarousel()
                 if (d.cup == null) {
                     PanelCard { Text("No tournaments yet", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                         Text("Tournaments appear here as soon as the admin creates them.", color = Muted, fontSize = 13.sp) }
@@ -99,6 +100,7 @@ internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (Strin
                     }) { CupHeroCard(d.cup, d.slotsTaken) { onOpenFeature("register") } }
                 }
                 Box(Modifier.tilt3d(3f)) { AajKyaHaiCard(d.matches) { onOpenFeature("live") } }
+                Box(Modifier.tilt3d(3f)) { UpcomingMatchesStrip(d.matches, d.ts) { onOpenFeature("match") } }
                 Box(Modifier.tilt3d(3f)) { CheckinHomeCard { onOpenFeature("streak") } }
                 Box(Modifier.tilt3d(3f)) { FanVoteHomeCard { onOpenFeature("vote") } }
                 Box(Modifier.tilt3d(3f)) { DailyAvatarHomeCard() }
@@ -180,6 +182,37 @@ internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (Strin
 }
 
 internal data class HomeData(val ts: JSONArray, val ytUrl: String, val matches: JSONArray, val stats: JSONObject?, val ann: JSONObject? = null, val cup: JSONObject? = null, val slotsTaken: Int = -1)
+
+/** Upcoming scheduled matches strip - header comes from the tournament data, each card taps
+    through to Match Center (rooms, check-in, results). Renders nothing when no scheduled matches. */
+@Composable
+internal fun UpcomingMatchesStrip(matches: JSONArray, tournaments: JSONArray, onOpenMatchCenter: () -> Unit) {
+    val upcoming = (0 until matches.length()).map { matches.getJSONObject(it) }
+        .filter { it.s("status").equals("scheduled", true) && !MatchLabels.isPostponed(it) }
+    if (upcoming.isEmpty()) return
+    val names = (0 until tournaments.length()).map { tournaments.getJSONObject(it) }
+        .filter { t -> upcoming.any { it.s("tournament_id") == t.s("id") } }.map { it.s("name") }.filter { it.isNotBlank() }
+    val header = if (names.size == 1) (names[0] + " matches").uppercase() else "UPCOMING MATCHES"
+    Column {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(header, color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Text("Rooms & check-in \u2192", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenMatchCenter() }.padding(4.dp))
+        }
+        LazyRow(Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 12.dp)) {
+            items(upcoming.size) { i ->
+                val m = upcoming[i]
+                Column(Modifier.width(220.dp).padding(horizontal = 4.dp).clip(RoundedCornerShape(Look.cardRadius))
+                    .background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius))
+                    .clickable { onOpenMatchCenter() }.padding(14.dp)) {
+                    Text(m.s("title").ifBlank { "Match" }, color = Gold2, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    Spacer(Modifier.height(4.dp))
+                    Text(dmTime(m.s("starts_at")), color = Color.White, fontSize = 12.sp)
+                    Text("Room ID unlocks here before the match", color = Muted, fontSize = 11.sp, maxLines = 2)
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun LiveStreamCard(onOpen: () -> Unit) {
