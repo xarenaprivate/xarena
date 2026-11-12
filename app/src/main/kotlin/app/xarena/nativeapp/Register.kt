@@ -56,7 +56,7 @@ private fun regStatusLine(o: JSONObject): String {
 
 /** Receipt card for this account's existing registration in the selected tournament. */
 @Composable
-fun RegisteredReceiptCard(tourneyName: String, reg: JSONObject, onBack: () -> Unit, tournamentId: String = "") {
+fun RegisteredReceiptCard(tourneyName: String, reg: JSONObject, tournamentId: String = "", onBack: () -> Unit) {
     PanelCard {
         Text("REGISTERED - " + tourneyName.uppercase(), color = Color(0xFF4ADE80), fontWeight = FontWeight.Bold, fontSize = 13.sp)
         Spacer(Modifier.height(8.dp))
@@ -173,7 +173,7 @@ fun RegisterScreen(onBack: () -> Unit, target: String? = null) {
             return@Column
         }
         if (regChecked && myReg != null) {
-            RegisteredReceiptCard(tourneyName, myReg!!, onBack, regTarget)
+            RegisteredReceiptCard(tourneyName, myReg!!, regTarget, onBack)
             return@Column
         }
         PanelCard {
