@@ -552,6 +552,10 @@ fun HomeShell(onLogout: () -> Unit) {
         "register" -> { RegisterScreen(onBack = { feature = null }); return }
         "checklist" -> { PreMatchChecklistScreen(onBack = { feature = null }); return }
         "pointstable" -> { PointsTableScreen(onBack = { feature = null }); return }
+        "tourney" -> { TournamentDetailsScreen(onBack = { feature = null }, onJoin = { feature = "register" }); return }
+        "matchroom" -> { MatchRoomScreen(onBack = { feature = null }); return }
+        "podium" -> { PodiumScreen(onBack = { feature = null }); return }
+        "results" -> { ResultsScreen(onBack = { feature = null }, onOpenCerts = { feature = "certs" }); return }
         "spectator" -> { SpectatorScreen(onBack = { feature = null }); return }
         "minicup" -> { MiniCupScreen(onBack = { feature = null }, onRegister = { feature = "register" }); return }
         "livethread" -> { LiveThreadScreen(onBack = { feature = null }); return }
@@ -753,6 +757,10 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("rules", "Rules", "Tournament and squad rules", Icons.Default.Menu),
         GridItem("checklist", "Match Checklist", "Be ready before the room opens", Icons.Default.CheckCircle),
         GridItem("pointstable", "Points Table", "Kills and placement points", Icons.Default.List),
+        GridItem("tourney", "Tournament Details", "Format, prizes and schedule", Icons.Default.Star),
+        GridItem("matchroom", "Room ID & Pass", "Unlocks before your match", Icons.Default.Lock),
+        GridItem("podium", "Season Podium", "Top squads by points", Icons.Default.Star),
+        GridItem("results", "Results & Prizes", "Champions and prizes", Icons.Default.Star),
         GridItem("h2h", "Head to Head", "Squad vs squad record", Icons.Default.Star),
         GridItem("notices", "Notice Board", "Official announcements", Icons.Default.Notifications),
         GridItem("feedback", "Feedback", "Report bugs, cheaters, ideas", Icons.Default.MailOutline),
@@ -820,7 +828,7 @@ internal fun MoreOptionsContent(items: List<GridItem>, onOpen: (String) -> Unit,
             val groups = linkedMapOf(
                 "Your account" to setOf("profile", "settings", "playercard", "verify", "notifications"),
                 "Messages and community" to setOf("messages", "chat", "squads", "room", "feed", "stories", "clips", "voice", "players", "teams", "search", "teamfinder"),
-                "Matches and play" to setOf("match", "calendar", "checklist", "pointstable", "h2h", "scrims", "live", "creator", "cup", "roles", "winners", "winner"),
+                "Matches and play" to setOf("match", "calendar", "checklist", "pointstable", "tourney", "matchroom", "podium", "results", "h2h", "scrims", "live", "creator", "cup", "roles", "winners", "winner"),
                 "Rewards and progress" to setOf("play", "season", "store", "streak", "certs", "stats", "tasks", "refer", "vote"),
                 "Tools and learning" to setOf("luna", "academy", "guide", "howto", "ping", "sensitivity", "coaches", "arena3d", "xpanel", "recorder"))
             val assigned = groups.values.flatten().toSet()
