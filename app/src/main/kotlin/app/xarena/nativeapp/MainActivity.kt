@@ -584,6 +584,9 @@ fun HomeShell(onLogout: () -> Unit) {
         "luna" -> { LunaScreen(onBack = { feature = null }); return }
         "squads" -> { SquadsScreen(onBack = { feature = null }); return }
         "squadfinder" -> { SquadFinderRoot(onBack = { feature = null }); return }
+        "arenalive" -> { ArenaLiveScreen(onBack = { feature = null }, onOpenMvp = { feature = "mvp" }, onOpenFeed = { feature = null; tab = 1 }); return }
+        "rewards" -> { RewardsScreen(onBack = { feature = null }, onOpenPlay = { feature = "play" }, onOpenSeason = { feature = "season" }, onOpenStore = { feature = "store" }); return }
+        "trustsafety" -> { TrustSafetyScreen(onBack = { feature = null }, onOpenVerify = { feature = "verify" }, onOpenSupport = { feature = "support" }, onOpenFeedback = { feature = "feedback" }); return }
         "board" -> { LeaderboardScreen(); return }
         "more" -> { MoreGrid { feature = it }; return }
         "store" -> { StoreScreen(onBack = { feature = null }); return }
@@ -750,6 +753,9 @@ fun MoreGrid(onOpen: (String) -> Unit) {
         GridItem("luna", "Luna", "AI analyst and caster", Icons.Default.Face),
         GridItem("squads", "Squads", "Find or build your squad", Icons.Default.AccountBox),
             GridItem("squadfinder", "Squad Finder", "Roles, tryouts, trust - find your squad", Icons.Default.AccountBox),
+        GridItem("arenalive", "Arena Live", "Poll, kill feed and comments - live data", Icons.Default.PlayArrow),
+        GridItem("rewards", "Rewards", "AP balance, streak and season - free only", Icons.Default.Star),
+        GridItem("trustsafety", "Trust & Safety", "Verification, trust score, backup slot", Icons.Default.CheckCircle),
         GridItem("board", "Leaderboard", "Top squads and players", Icons.Default.List),
         GridItem("store", "Store", "Spend AP on real rewards", Icons.Default.ShoppingCart),
         GridItem("profile", "Profile", "Your account and settings", Icons.Default.Person),
@@ -836,10 +842,10 @@ internal fun MoreOptionsContent(items: List<GridItem>, onOpen: (String) -> Unit,
                     focusedContainerColor = Color(0xFFF0F1F4), unfocusedContainerColor = Color(0xFFF0F1F4), focusedBorderColor = Color.Transparent, unfocusedBorderColor = Color.Transparent),
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp))
             val groups = linkedMapOf(
-                "Your account" to setOf("profile", "settings", "playercard", "verify", "notifications"),
+                "Your account" to setOf("profile", "settings", "playercard", "verify", "notifications", "trustsafety"),
                 "Messages and community" to setOf("messages", "chat", "squads", "room", "feed", "stories", "clips", "voice", "players", "teams", "search", "teamfinder"),
-                "Matches and play" to setOf("match", "calendar", "checklist", "pointstable", "tourney", "matchroom", "podium", "results", "slots", "mvp", "livematch", "h2h", "scrims", "live", "creator", "cup", "roles", "winners", "winner"),
-                "Rewards and progress" to setOf("play", "season", "store", "streak", "certs", "stats", "tasks", "refer", "vote"),
+                "Matches and play" to setOf("match", "calendar", "checklist", "pointstable", "tourney", "matchroom", "podium", "results", "slots", "mvp", "livematch", "h2h", "arenalive", "scrims", "live", "creator", "cup", "roles", "winners", "winner"),
+                "Rewards and progress" to setOf("play", "season", "store", "streak", "certs", "stats", "tasks", "refer", "vote", "rewards"),
                 "Tools and learning" to setOf("luna", "academy", "guide", "howto", "ping", "sensitivity", "coaches", "arena3d", "xpanel", "recorder"))
             val assigned = groups.values.flatten().toSet()
             val sections = groups.map { (title, keys) -> title to items.filter { it.key in keys } } +
