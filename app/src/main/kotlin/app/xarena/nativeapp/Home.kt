@@ -115,7 +115,9 @@ internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (Strin
         LazyColumn(Modifier.fillMaxSize(), state = listState) {
             item {
                 Brand()
-                Text("XARENA · MASTER", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp))
+                Text("XARENA Â· MASTER", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 4.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp))
+ActivePlayersRow(onOpenFeature)
+HomeGameGrid(onOpenFeature)
                 d.ann?.let { a ->
                     val ctx = androidx.compose.ui.platform.LocalContext.current
                     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(12.dp))
@@ -163,7 +165,7 @@ internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (Strin
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     LivePulse()
                     Text(Txt.t("LIVE NOW", "ABHI LIVE"), color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                    Text("See all →", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenFeature("live") }.padding(4.dp))
+                    Text("See all â", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenFeature("live") }.padding(4.dp))
                 }
                 val liveCards = mutableListOf<@Composable () -> Unit>()
                 if (ytLiveInfo(d.ytUrl) != null) liveCards.add { LiveStreamCard { onOpenFeature("live") } }
@@ -181,7 +183,7 @@ internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (Strin
             item {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(Txt.t("UPCOMING TOURNAMENTS", "AANE WALE TOURNAMENTS"), color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                    Text("See all →", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onGoTab(4) }.padding(4.dp))
+                    Text("See all â", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onGoTab(4) }.padding(4.dp))
                 }
                 if (d.ts.length() == 0) PanelCard { Text("No upcoming tournaments yet.", color = Muted, fontSize = 13.sp) }
                 else LazyRow(Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 12.dp)) {
@@ -189,7 +191,7 @@ internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (Strin
                         Column(Modifier.width(220.dp).padding(horizontal = 4.dp).clip(RoundedCornerShape(Look.cardRadius))
                             .background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).padding(14.dp)) {
                             Text(t.s("name"), color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 2)
-                            Text(listOf(t.s("date_text"), if (t.optInt("slots", 0) > 0) t.optInt("slots").toString() + " slots" else "").filter { it.isNotBlank() }.joinToString(" · "),
+                            Text(listOf(t.s("date_text"), if (t.optInt("slots", 0) > 0) t.optInt("slots").toString() + " slots" else "").filter { it.isNotBlank() }.joinToString(" Â· "),
                                 color = Muted, fontSize = 11.sp)
                             Spacer(Modifier.height(8.dp))
                             if (t.optBoolean("reg_open")) Text("REGISTER", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
@@ -202,7 +204,7 @@ internal fun HomeBody(d: HomeData, onGoTab: (Int) -> Unit, onOpenFeature: (Strin
             item {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                     Text(Txt.t("YOUR STATS", "TUMHARE STATS"), color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                    Text("All stats →", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenFeature("stats") }.padding(4.dp))
+                    Text("All stats â", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenFeature("stats") }.padding(4.dp))
                 }
                 PanelCard {
                     val s = d.stats
@@ -266,7 +268,7 @@ internal fun UpcomingMatchesStrip(matches: JSONArray, tournaments: JSONArray, on
 private fun LiveStreamCard(onOpen: () -> Unit) {
     Column(Modifier.clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg)
         .border(1.dp, Color(0xFFE10600).copy(alpha = .6f), RoundedCornerShape(Look.cardRadius)).clickable { onOpen() }.padding(14.dp)) {
-        Text("● LIVE STREAM", color = Color(0xFFFF5252), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text("â LIVE STREAM", color = Color(0xFFFF5252), fontSize = 12.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(6.dp))
         Text("XARENA is streaming now", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
         Text("Tap to watch inside the app", color = Muted, fontSize = 12.sp)
@@ -303,7 +305,7 @@ fun WeeklyClipCard() {
         .border(1.dp, Gold.copy(alpha = .5f), RoundedCornerShape(Look.cardRadius))) {
         Column(Modifier.padding(12.dp)) {
             Text("CLIP OF THE WEEK", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Black)
-            Text(c.s("name").ifBlank { c.s("username") } + (if (c.optInt("likes") > 0) " · " + c.optInt("likes") + " likes" else ""), color = Muted, fontSize = 11.sp)
+            Text(c.s("name").ifBlank { c.s("username") } + (if (c.optInt("likes") > 0) " Â· " + c.optInt("likes") + " likes" else ""), color = Muted, fontSize = 11.sp)
             if (c.s("caption").isNotBlank()) Text(c.s("caption"), color = Color.White, fontSize = 13.sp, maxLines = 2)
         }
         if (c.s("kind") == "clip") {

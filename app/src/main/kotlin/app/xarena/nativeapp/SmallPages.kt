@@ -163,7 +163,7 @@ fun StreakScreen(onBack: () -> Unit) {
                         Box(Modifier.size(34.dp).clip(RoundedCornerShape(17.dp))
                             .background(if (on) Gold else Color(0x22FFFFFF)),
                             contentAlignment = Alignment.Center) {
-                            Text(if (on) "✓" else d.toString(), color = if (on) Ink else Muted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text(if (on) "â" else d.toString(), color = if (on) Ink else Muted, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -185,7 +185,7 @@ fun StreakScreen(onBack: () -> Unit) {
             listOf(Triple("streak_3", 3, "Warming Up"), Triple("streak_7", 7, "On Fire"), Triple("streak_30", 30, "Unstoppable")).forEach { (k, d, n) ->
                 SmallCard {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(if (has(k)) "🏅" else "🔒", fontSize = 22.sp)
+                        Text(if (has(k)) "ð" else "ð", fontSize = 22.sp)
                         Spacer(Modifier.width(12.dp))
                         Column {
                             Text(n, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
@@ -287,13 +287,13 @@ fun AcademyScreen(onBack: () -> Unit) {
                 SmallCard {
                     var open by remember { mutableStateOf(false) }
                     Row(Modifier.fillMaxWidth().clickable { open = !open }, verticalAlignment = Alignment.CenterVertically) {
-                        Text(if (done) "✅" else "🎯", fontSize = 18.sp)
+                        Text(if (done) "â" else "ð¯", fontSize = 18.sp)
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
                             Text(d.getString("title"), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
                             Text(d.getString("cat") + " - " + d.getInt("mins") + " min", color = Muted, fontSize = 12.sp)
                         }
-                        Text(if (open) "▲" else "▼", color = Gold, fontSize = 12.sp)
+                        Text(if (open) "â²" else "â¼", color = Gold, fontSize = 12.sp)
                     }
                     if (open) {
                         Spacer(Modifier.height(8.dp))
@@ -384,12 +384,19 @@ fun NotificationsScreen(onBack: () -> Unit) {
 
 /* Simple loading wrapper with retry */
 @Composable
-fun <T> LoadState2(tick: Int, load: suspend () -> T, content: @Composable (T) -> Unit) {
-    var nonce by remember(tick) { mutableIntStateOf(0) }
-    var state by remember(tick) { mutableStateOf<Result<T>?>(null) }
-    LaunchedEffect(tick, nonce) { state = null; state = runCatching { load() } }
-    val s = state
-    when {
+internal val loadState2Cache = HashMap<String, Result<Any?>>()
+
+@Composable
+fun <T> LoadState2(tick: Int, load: suspend () -> T, content: @Composable (T) -> Unit) = LoadState2("", tick, load, content)
+
+@Suppress("UNCHECKED_CAST")
+@Composable
+fun <T> LoadState2(cacheKey: String, tick: Int, load: suspend () -> T, content: @Composable (T) -> Unit) {
+var nonce by remember(tick) { mutableIntStateOf(0) }
+var state by remember(tick) { mutableStateOf<Result<T>?>(if (cacheKey.isEmpty()) null else loadState2Cache[cacheKey] as Result<T>?) }
+LaunchedEffect(tick, nonce) { val r = runCatching { load() }; state = r; if (cacheKey.isNotEmpty()) loadState2Cache[cacheKey] = r }
+val s = state
+when {
         s == null -> if (DataSaver.on) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Gold) }
         else Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             val inf = androidx.compose.animation.core.rememberInfiniteTransition(label = "sk")

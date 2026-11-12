@@ -57,7 +57,7 @@ fun CupHeroCard(t: JSONObject, slotsTaken: Int, onRegister: () -> Unit) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(Look.cardRadius))
         .background(Look.cardBg).border(1.dp, Gold.copy(alpha = .6f), RoundedCornerShape(Look.cardRadius)).padding(18.dp)) {
         Text(t.s("name"), color = Gold2, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Text(listOf(t.s("mode"), t.s("date_text")).filter { it.isNotBlank() }.joinToString(" · "), color = Muted, fontSize = 12.sp)
+        Text(listOf(t.s("mode"), t.s("date_text")).filter { it.isNotBlank() }.joinToString(" Â· "), color = Muted, fontSize = 12.sp)
         val start = cupStartMs(t)
         if (start != null) { Spacer(Modifier.height(10.dp)); CountdownLine(start); Text("until start", color = Muted, fontSize = 11.sp) }
         val slots = t.optInt("slots", 0)
@@ -112,7 +112,7 @@ fun AajKyaHaiCard(matches: JSONArray, onJoin: () -> Unit) {
         if (teams.isNotEmpty()) Text(teams.joinToString("  VS  "), color = Muted, fontSize = 12.sp)
         val st = runCatching { java.time.Instant.parse(next.s("starts_at")).toEpochMilli() }.getOrNull()
         if (st != null && st > System.currentTimeMillis()) { Spacer(Modifier.height(6.dp)); CountdownLine(st) }
-        else Text(dmTime(next.s("starts_at")) + " · " + next.s("status").uppercase(), color = Muted, fontSize = 12.sp)
+        else Text(dmTime(next.s("starts_at")) + " Â· " + next.s("status").uppercase(), color = Muted, fontSize = 12.sp)
         Spacer(Modifier.height(6.dp))
         val r = room
         if (r != null && r.optBoolean("ok")) {
@@ -129,7 +129,7 @@ fun CheckinHomeCard(onOpenStreak: () -> Unit) {
     var tick by remember { mutableIntStateOf(0) }
     var confetti by remember { mutableStateOf(false) }
     ConfettiBurst(confetti) { confetti = false }
-    LoadState2(tick, { runCatching { Api.authedRpc("my_game_stats", JSONObject()) }.getOrNull() }) { s ->
+    LoadState2("checkin", tick, { runCatching { Api.authedRpc("my_game_stats", JSONObject()) }.getOrNull() }) { s ->
         PanelCard {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
@@ -162,7 +162,7 @@ fun CheckinHomeCard(onOpenStreak: () -> Unit) {
 @Composable
 fun FanVoteHomeCard(onOpenVote: () -> Unit) {
     var tick by remember { mutableIntStateOf(0) }
-    LoadState2(tick, {
+    LoadState2("fanvote", tick, {
         val body = runCatching { Api.authedRpcRaw("active_polls", JSONObject()).trim() }.getOrNull() ?: return@LoadState2 null
         val polls = if (body.startsWith("[")) JSONArray(body) else JSONObject(body).optJSONArray("polls") ?: JSONArray()
         if (polls.length() == 0) null
@@ -199,7 +199,7 @@ fun FanVoteHomeCard(onOpenVote: () -> Unit) {
                     .clickable { sel = oid }.padding(horizontal = 12.dp, vertical = 9.dp),
                     verticalAlignment = Alignment.CenterVertically) {
                     Text(o.s("label"), color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                    Text(if (mine) "Your vote · $votes ($pct%)" else "$votes ($pct%)", color = Muted, fontSize = 11.sp)
+                    Text(if (mine) "Your vote Â· $votes ($pct%)" else "$votes ($pct%)", color = Muted, fontSize = 11.sp)
                 }
             }
             Spacer(Modifier.height(6.dp))
@@ -218,12 +218,12 @@ fun FanVoteHomeCard(onOpenVote: () -> Unit) {
 /** Winners strip - latest real hall-of-fame entries (with squad logos when set); hidden when empty. */
 @Composable
 fun WinnersStrip(onOpenWinners: () -> Unit) {
-    LoadState2(0, { runCatching { Api.publicGet("/rest/v1/hall_of_fame?select=category,name,detail,season,logo_url&order=id.desc&limit=6") }.getOrElse { JSONArray() } }) { aw ->
+    LoadState2("winners", 0, { runCatching { Api.publicGet("/rest/v1/hall_of_fame?select=category,name,detail,season,logo_url&order=id.desc&limit=6") }.getOrElse { JSONArray() } }) { aw ->
         if (aw.length() == 0) return@LoadState2
         Column {
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(Txt.t("LATEST WINNERS", "JEETNE WALE"), color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                Text("Hall of Fame →", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenWinners() }.padding(4.dp))
+                Text("Hall of Fame â", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenWinners() }.padding(4.dp))
             }
             LazyRow(Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 12.dp)) {
                 items((0 until aw.length()).map { aw.getJSONObject(it) }) { a ->
@@ -238,7 +238,7 @@ fun WinnersStrip(onOpenWinners: () -> Unit) {
                         Spacer(Modifier.width(10.dp))
                         Column {
                             Text(a.s("name"), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                            Text(listOf(a.s("category"), a.s("detail"), a.s("season")).filter { it.isNotBlank() }.joinToString(" · "),
+                            Text(listOf(a.s("category"), a.s("detail"), a.s("season")).filter { it.isNotBlank() }.joinToString(" Â· "),
                                 color = Muted, fontSize = 11.sp, maxLines = 1)
                         }
                     }
@@ -251,15 +251,15 @@ fun WinnersStrip(onOpenWinners: () -> Unit) {
 /** Top 3 squads - from the real squad board; hidden when empty. */
 @Composable
 fun TopSquadsCard(onOpenLeaderboard: () -> Unit, onOpenSquad: (String) -> Unit = {}) {
-    LoadState2(0, {
-        runCatching { Api.publicRpc("squad_board", JSONObject().put("p_scope", "global")) }.getOrNull()
+    LoadState2("topsquads", 0, {
+runCatching { Api.publicRpc("squad_board", JSONObject().put("p_scope", "global")) }.getOrNull()
     }) { r ->
         val rows = r?.optJSONArray("rows") ?: return@LoadState2
         if (rows.length() == 0) return@LoadState2
         PanelCard {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(Txt.t("TOP SQUADS", "TOP SQUADS"), color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                Text("All →", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenLeaderboard() }.padding(4.dp))
+                Text("All â", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenLeaderboard() }.padding(4.dp))
             }
             for (i in 0 until minOf(3, rows.length())) {
                 val row = rows.getJSONObject(i)
@@ -267,7 +267,7 @@ fun TopSquadsCard(onOpenLeaderboard: () -> Unit, onOpenSquad: (String) -> Unit =
                     .clickable(enabled = row.s("id").isNotBlank()) { onOpenSquad(row.s("id")) }.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("#" + row.optInt("rank", i + 1), color = if (i == 0) Gold2 else Muted, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(34.dp))
                     Text(row.s("name") + (row.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""), color = Color.White, fontSize = 14.sp, modifier = Modifier.weight(1f))
-                    Text(row.optInt("xp").toString() + " XP · " + row.optInt("members") + " players", color = Gold2, fontSize = 11.sp)
+                    Text(row.optInt("xp").toString() + " XP Â· " + row.optInt("members") + " players", color = Gold2, fontSize = 11.sp)
                 }
             }
         }
@@ -278,7 +278,7 @@ fun TopSquadsCard(onOpenLeaderboard: () -> Unit, onOpenSquad: (String) -> Unit =
 @Composable
 fun DailyAvatarHomeCard() {
     var tick by remember { mutableIntStateOf(0) }
-    LoadState2(tick, { runCatching { Api.publicRpc("daily_avatar", JSONObject()) }.getOrNull() }) { r ->
+    LoadState2("dailyavatar", tick, { runCatching { Api.publicRpc("daily_avatar", JSONObject()) }.getOrNull() }) { r ->
         if (r == null || !r.optBoolean("ok")) return@LoadState2
         val av = r.optJSONObject("avatar") ?: return@LoadState2
         val owned = r.optBoolean("owned")
@@ -290,7 +290,7 @@ fun DailyAvatarHomeCard() {
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(Txt.t("AVATAR OF THE DAY", "AAJ KA AVATAR"), color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text(av.s("title") + " · " + av.s("tier").uppercase(), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(av.s("title") + " Â· " + av.s("tier").uppercase(), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Text(if (owned) "In your locker - free" else "Free cosmetic unlock - today only", color = Muted, fontSize = 11.sp)
                 }
                 if (!owned) {
@@ -303,7 +303,7 @@ fun DailyAvatarHomeCard() {
                         }
                     }
                     msg?.let { Text(it, color = ErrRed, fontSize = 11.sp) }
-                } else Text("OWNED ✓", color = Color(0xFF22C55E), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                } else Text("OWNED â", color = Color(0xFF22C55E), fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -345,8 +345,8 @@ fun WalkthroughOnce() {
 /** Aaj ka tip - one tip per day from site_settings key "tips" (IST day rotation), hidden when empty. */
 @Composable
 fun TipHomeCard() {
-    LoadState2(0, {
-        runCatching { Api.publicGet("/rest/v1/site_settings?key=eq.tips&select=value") }.getOrElse { JSONArray() }
+    LoadState2("tip", 0, {
+runCatching { Api.publicGet("/rest/v1/site_settings?key=eq.tips&select=value") }.getOrElse { JSONArray() }
     }) { rows ->
         if (rows.length() == 0) return@LoadState2
         val items = rows.getJSONObject(0).optJSONObject("value")?.optJSONArray("items") ?: return@LoadState2
@@ -363,7 +363,7 @@ fun TipHomeCard() {
 /** Creator spotlight - one verified creator per day (same IST rotation as web), hidden when none. */
 @Composable
 fun CreatorSpotlightCard(onOpenCreator: () -> Unit) {
-    LoadState2(0, {
+    LoadState2("spotlight", 0, {
         runCatching { Api.publicGet("/rest/v1/creators_public?select=username,ign,avatar_url,tier,self_followers,channel_url,verified_creator") }.getOrElse { JSONArray() }
     }) { rows ->
         if (rows.length() == 0) return@LoadState2
@@ -376,8 +376,8 @@ fun CreatorSpotlightCard(onOpenCreator: () -> Unit) {
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(Txt.t("CREATOR SPOTLIGHT", "CREATOR SPOTLIGHT"), color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text(c.s("ign").ifBlank { c.s("username") } + (if (c.optBoolean("verified_creator")) " ✓" else ""), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                    Text(listOf(c.s("tier").uppercase().takeIf { it.isNotBlank() } ?: "", if (c.optInt("self_followers") > 0) c.optInt("self_followers").toString() + " followers" else "").filter { it.isNotBlank() }.joinToString(" · "),
+                    Text(c.s("ign").ifBlank { c.s("username") } + (if (c.optBoolean("verified_creator")) " â" else ""), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text(listOf(c.s("tier").uppercase().takeIf { it.isNotBlank() } ?: "", if (c.optInt("self_followers") > 0) c.optInt("self_followers").toString() + " followers" else "").filter { it.isNotBlank() }.joinToString(" Â· "),
                         color = Muted, fontSize = 11.sp)
                 }
                 Text("VIEW", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
@@ -432,4 +432,83 @@ fun LivePulse() {
             androidx.compose.animation.core.tween(900), androidx.compose.animation.core.RepeatMode.Reverse), label = "lpa").value
     }
     Box(Modifier.padding(end = 8.dp).size(10.dp).clip(RoundedCornerShape(5.dp)).background(Color(0xFFE10600).copy(alpha = a)))
+}
+
+
+internal object ActivePlayersCache { var data: JSONObject? = null }
+
+@Composable
+fun ActivePlayersRow(onOpenFeature: (String) -> Unit) {
+val signedIn = friendsRailSignedInOverride ?: !Api.uid.isNullOrBlank()
+if (!signedIn) return
+var resp by remember { mutableStateOf(ActivePlayersCache.data) }
+LaunchedEffect(Unit) {
+while (true) {
+val fresh = runCatching { Api.authedRpc("xr_sf_active_players", JSONObject()) }.getOrNull()
+if (fresh != null && fresh.optBoolean("ok")) { ActivePlayersCache.data = fresh; resp = fresh } else { ActivePlayersCache.data = null; resp = null }
+kotlinx.coroutines.delay(60000)
+}
+}
+val arr = resp?.optJSONArray("players") ?: return
+if (arr.length() == 0) return
+Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+Text("ACTIVE NOW", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp, modifier = Modifier.padding(horizontal = 16.dp))
+LazyRow(contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+items(arr.length()) { i ->
+val p = arr.getJSONObject(i)
+val name = p.s("ign").ifBlank { p.s("username") }
+val av = p.s("avatar_url")
+val online = p.s("presence").let { it.equals("online", true) || it.equals("in_match", true) }
+Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(58.dp).clickable { onOpenFeature("players") }) {
+Box {
+if (av.isNotBlank()) coil.compose.AsyncImage(model = xrImageModel(androidx.compose.ui.platform.LocalContext.current, av), contentDescription = name, modifier = Modifier.size(52.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Look.cardBg), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+else Box(Modifier.size(52.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Look.cardBg).border(1.dp, Gold.copy(alpha = .5f), androidx.compose.foundation.shape.CircleShape), contentAlignment = Alignment.Center) { Text(name.take(1).uppercase(), color = Gold, fontSize = 18.sp, fontWeight = FontWeight.Bold) }
+if (online) Box(Modifier.align(Alignment.BottomEnd).size(13.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(0xFF22C55E)).border(2.dp, Ink, androidx.compose.foundation.shape.CircleShape))
+}
+Text(name, color = Color.White, fontSize = 10.sp, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+}
+}
+}
+}
+}
+
+@Composable
+fun HomeGameGrid(onOpenFeature: (String) -> Unit) {
+val tiles = listOf(
+Triple("arenalive", "Arena Live", androidx.compose.material.icons.Icons.Default.PlayArrow),
+Triple("winner", "Season Podium", androidx.compose.material.icons.Icons.Default.Star),
+Triple("pointstable", "Points Table", androidx.compose.material.icons.Icons.Default.List),
+Triple("match", "Room ID & Pass", androidx.compose.material.icons.Icons.Default.Place),
+Triple("match", "Match Center", androidx.compose.material.icons.Icons.Default.Place),
+Triple("squads", "Squad", androidx.compose.material.icons.Icons.Default.AccountBox),
+Triple("mvp", "MVP Voting", androidx.compose.material.icons.Icons.Default.ThumbUp),
+Triple("h2h", "Head to Head", androidx.compose.material.icons.Icons.Default.Star)
+)
+Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Color(0xFF3A2408)).border(1.dp, Gold, RoundedCornerShape(16.dp)).clickable { onOpenFeature("creator") }.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.Create, contentDescription = null, tint = Gold, modifier = Modifier.size(26.dp))
+Spacer(Modifier.width(12.dp))
+Column(Modifier.weight(1f)) { Text("CREATOR ZONE", color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold); Text("Host free tournaments, sponsors, city team", color = Color.White, fontSize = 11.sp) }
+Text("OPEN >", color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+}
+Spacer(Modifier.height(10.dp))
+tiles.chunked(3).forEach { row ->
+Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+row.forEach { t ->
+Column(Modifier.weight(1f).clip(RoundedCornerShape(14.dp)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(14.dp)).clickable { onOpenFeature(t.first) }.padding(vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+androidx.compose.material3.Icon(t.third, contentDescription = null, tint = Gold, modifier = Modifier.size(20.dp))
+Spacer(Modifier.height(6.dp))
+Text(t.second, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+}
+}
+if (row.size < 3) repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+}
+Spacer(Modifier.height(8.dp))
+}
+Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Look.cardBg).border(1.dp, Gold.copy(alpha = .5f), RoundedCornerShape(14.dp)).clickable { onOpenFeature("notices") }.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.Notifications, contentDescription = null, tint = Gold, modifier = Modifier.size(22.dp))
+Spacer(Modifier.width(12.dp))
+Column { Text("NOTICE BOARD", color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold); Text("Official announcements", color = Muted, fontSize = 11.sp) }
+}
+}
 }
