@@ -19,7 +19,7 @@ on:
 
 permissions:
   contents: write
-  actions: read
+  actions: write
 
 env:
   REPO: xarenaprivate/xarena
@@ -157,6 +157,9 @@ jobs:
           git add xarena-native-version.json
           git commit -m "OTA manifest: $VC ($TAG)"
           git push origin main
+
+      - name: Kick Pages deploy (GITHUB_TOKEN pushes do not trigger pages.yml)
+        run: gh workflow run pages.yml --repo "$REPO" --ref main
 
       - name: Summary
         env:
