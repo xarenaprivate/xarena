@@ -295,15 +295,15 @@ fun CreatorScreen(onBack: () -> Unit) {
             CreatorProfileScreen(userId = pid, onBack = { profileId = null })
             return@Column
         }
-        if (section == "board") {
-            CreatorBoardScreen(onBack = { section = null }, onOpenProfile = { id -> profileId = id })
-            return@Column
-        }
         PageHeader("Creator", "Host free tournaments - grow your city team", onBack)
         Row(Modifier.padding(horizontal = 14.dp, vertical = 4.dp)) {
             Text("CREATOR BOARD", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                 modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
                     .clickable { section = "board" }.padding(horizontal = 14.dp, vertical = 8.dp))
+        }
+        if (section == "board") {
+            CreatorBoardScreen(onBack = { section = null }, onOpenProfile = { id -> profileId = id })
+            return@Column
         }
         if (isCreator && section == "bio") {
             Column(Modifier.padding(14.dp)) {
@@ -320,6 +320,7 @@ fun CreatorScreen(onBack: () -> Unit) {
         }
         if (!loaded) { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = CrOrange) }; return@Column }
         LazyColumn(Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
+            item { CreatorGrowthSection() }
             if (isCreator && dash != null && dash!!.optBoolean("ok", true)) {
                 val d = dash!!
                 item {
