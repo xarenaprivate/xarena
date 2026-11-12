@@ -60,6 +60,7 @@
   var STATUS_T = [["upcoming", "Upcoming"], ["live", "Live"], ["done", "Completed"]];
   var SECTIONS = {
     overview: { title: "Overview", custom: renderOverview },
+    killfeed: { title: "Kill Feed", custom: renderKillFeed },
     phoneverify: { title: "Phone Verify", custom: renderPhoneVerify },
     awards: { title: "Awards", custom: renderAwards },
     squads: { title: "Squads", custom: renderSquads },
@@ -2708,5 +2709,68 @@
     render();
   }
 
+  function renderKillFeed() {
+    var body = el('#admin-body');
+    body.innerHTML = '<div class="card"><h3>Kill Feed Host Control</h3><p>Post only eliminations you have checked in the real match. This does not award kills or points. Player names only: no UID, phone or room password.</p><p id="kf-access" role="status">Checking host access...</p><div id="kf-controls" hidden></div></div>';
+    var controls = el('#kf-controls', body), selected = '';
+    function check(r) { if (!r || r.ok === false) throw new Error((r && r.error) || 'The server did not confirm this action.'); return r; }
+    function message(text, error) { var box = el('#kf-msg', body); if (box) { box.textContent = text; box.style.color = error ? '#d92b4c' : ''; } }
+    Promise.all([
+      call(function () { return api.rpc('xr_feed_capability', {}, true); }),
+      call(function () { return api.aGet('matches', '?select=id,title,stage,starts_at,status&order=starts_at.asc.nullslast'); })
+    ]).then(function (rs) {
+      if (!rs[0] || !rs[0].can_post) { el('#kf-access', body).textContent = 'This account does not have feed host access.'; return; }
+      el('#kf-access', body).textContent = 'Host access confirmed. Posts are public; check the names before submitting.';
+      var matches = (rs[1] || []).filter(function (m) { return m.status === 'scheduled' || m.status === 'live'; });
+      if (!matches.length) { controls.hidden = false; controls.textContent = 'No scheduled or live matches. Nothing to post to.'; return; }
+      controls.hidden = false;
+      controls.innerHTML = '<form id="kf-form"><div class="field"><label for="kf-match">Match</label><select id="kf-match" required>' + matches.map(function (m) {
+        var when = m.starts_at ? new Date(m.starts_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' }) + ' IST' : 'Start not set';
+        return '<option value="' + esc(m.id) + '">' + esc(m.title + ' | ' + (m.stage || '') + ' | ' + when) + '</option>';
+      }).join('') + '</select></div><div class="grid c2"><div class="field"><label for="kf-killer">Eliminating player IGN</label><input id="kf-killer" required minlength="2" maxlength="40" autocomplete="off"></div><div class="field"><label for="kf-victim">Eliminated player IGN</label><input id="kf-victim" required minlength="2" maxlength="40" autocomplete="off"></div><div class="field"><label for="kf-weapon">Weapon (optional)</label><input id="kf-weapon" maxlength="40" autocomplete="off"></div><div class="field"><label for="kf-elapsed">Elapsed match seconds (optional)</label><input id="kf-elapsed" type="number" min="0" max="86400" step="1"></div></div><button class="btn btn-red" type="submit">Review & Post Elimination</button></form><p id="kf-msg" role="status" aria-live="polite"></p><div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h3>Posted Events</h3><button class="btn btn-ghost btn-sm" id="kf-refresh" type="button">Refresh</button></div><div id="kf-events"></div>';
+      selected = el('#kf-match', body).value;
+      function load() {
+        var list = el('#kf-events', body); list.textContent = 'Loading actual events...';
+        var match = selected;
+        return call(function () { return api.rpc('xr_kill_feed_list', { p_match: match, p_after: 0, p_limit: 200 }, true); }).then(check).then(function (r) {
+          if (selected !== match || !document.contains(list)) return;
+          list.innerHTML = (r.events || []).length ? r.events.slice().reverse().map(function (e) {
+            return '<article class="news-item"><p><b>' + esc(e.killer) + '</b> eliminated <b>' + esc(e.victim) + '</b>' + (e.weapon ? ' with ' + esc(e.weapon) : '') + '</p><p>' + (e.elapsed_seconds == null ? '' : esc(e.elapsed_seconds) + ' seconds into match | ') + esc(new Date(e.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })) + ' IST</p><button class="btn btn-ghost btn-sm" type="button" data-kf-hide="' + esc(e.id) + '">Hide incorrect event</button></article>';
+          }).join('') : '<p>No kill-feed events have been posted for this match.</p>';
+          els('[data-kf-hide]', list).forEach(function (button) {
+            button.addEventListener('click', function () {
+              if (!confirm('Hide this event from the public feed? This does not change match results.')) return;
+              button.disabled = true;
+              call(function () { return api.rpc('xr_kill_feed_hide', { p_event: Number(button.dataset.kfHide), p_hidden: true }, true); }).then(check).then(function () { message('Event hidden. Match results unchanged.'); return load(); }).catch(function (e) { button.disabled = false; message(e.message, true); });
+            });
+          });
+        }).catch(function (e) { list.textContent = 'Could not load feed: ' + e.message; });
+      }
+      el('#kf-match', body).addEventListener('change', function () { selected = this.value; message(''); load(); });
+      el('#kf-refresh', body).addEventListener('click', load);
+      el('#kf-form', body).addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var killer = el('#kf-killer', body).value.trim(), victim = el('#kf-victim', body).value.trim(), weapon = el('#kf-weapon', body).value.trim(), elapsed = el('#kf-elapsed', body).value;
+        if (!this.checkValidity()) { this.reportValidity(); return; }
+        var option = el('#kf-match', body).selectedOptions[0];
+        if (!confirm('Post to ' + option.textContent + '?\n' + killer + ' eliminated ' + victim + (weapon ? ' with ' + weapon : '') + '.\nOnly post an event you observed.')) return;
+        var button = el('[type=submit]', this); button.disabled = true;
+        call(function () { return api.rpc('xr_kill_feed_post', { p_match: selected, p_killer: killer, p_victim: victim, p_weapon: weapon || null, p_elapsed_seconds: elapsed === '' ? null : Number(elapsed) }, true); }).then(check).then(function () {
+          el('#kf-killer', body).value = ''; el('#kf-victim', body).value = ''; el('#kf-weapon', body).value = ''; el('#kf-elapsed', body).value = '';
+          message('Elimination posted. Match results and points unchanged.'); return load();
+        }).catch(function (e) { message('Not posted: ' + e.message, true); }).finally(function () { button.disabled = false; });
+      });
+      load();
+    }).catch(function (e) { el('#kf-access', body).textContent = 'Host controls unavailable: ' + e.message; });
+  }
+
+  var killLaunch = el('#kf-launch');
+  if (killLaunch) killLaunch.addEventListener('click', function () {
+    try { localStorage.setItem('xr_admin_look', 'classic'); } catch (e) {}
+    el('#adm-nova').style.display = 'none';
+    el('#adm-classic').style.display = '';
+    openSection('killfeed');
+    el('#admin-body').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
   boot();
 })();
