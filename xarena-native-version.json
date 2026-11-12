@@ -1,9 +1,9 @@
 {
-  "versionCode": 82,
-  "versionName": "0.17.37-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.37-native/xarena-native-v0.17.37.apk",
-  "sha256": "ae7162f55b604a2c4415c8647634a7ec622a91066373601d83945605622a1aa0",
-  "apkBytes": 29598223,
-  "notes": "Arena Live (fan poll, kill feed, app-only live comments, clip of the week), Trust & Safety (ID verification, trust score, backup slot), Rewards hub (AP balance, daily check-in, season free track - all earned free), squad logo maker, match center: slot fill, room copy, emergency pause request.",
+  "versionCode": 84,
+  "versionName": "0.17.39-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.39-native/xarena-native-v0.17.39.apk",
+  "sha256": "19533b07397cc9d0aadc32a87b5eceb9da68818855e8b1ad5305a9b910e7ab41",
+  "apkBytes": 29614607,
+  "notes": "v0.17.39: card-draw crash fix; Edit Profile (real name/IGN/UID, backend-gated); Finder/Trust & Safety save buttons now show the real server error; JOIN THIS SQUAD fixed; poster crop fix; home scroll shimmer fix; ACTIVE NOW row of real online players; new home game grid (9 tiles + Notice Board + Creator); Creator Board button fix.",
   "patches": []
 }
