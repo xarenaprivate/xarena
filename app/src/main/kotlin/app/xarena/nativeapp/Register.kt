@@ -56,7 +56,7 @@ private fun regStatusLine(o: JSONObject): String {
 
 /** Receipt card for this account's existing registration in the selected tournament. */
 @Composable
-fun RegisteredReceiptCard(tourneyName: String, reg: JSONObject, onBack: () -> Unit) {
+fun RegisteredReceiptCard(tourneyName: String, reg: JSONObject, onBack: () -> Unit, tournamentId: String = "") {
     PanelCard {
         Text("REGISTERED - " + tourneyName.uppercase(), color = Color(0xFF4ADE80), fontWeight = FontWeight.Bold, fontSize = 13.sp)
         Spacer(Modifier.height(8.dp))
@@ -67,6 +67,7 @@ fun RegisteredReceiptCard(tourneyName: String, reg: JSONObject, onBack: () -> Un
         Text("Status: " + regStatusLine(reg), color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(6.dp))
         Text("One account gets one registration per tournament. Screenshot your ID - it is your proof of entry.", color = Muted, fontSize = 12.sp)
+        TournamentSharingPanel(tournamentId)
         Spacer(Modifier.height(12.dp))
         GoldButton("BACK TO TOURNAMENTS", onClick = onBack)
     }
@@ -158,6 +159,7 @@ fun RegisterScreen(onBack: () -> Unit, target: String? = null) {
                 Text(successId!!, color = Gold, fontSize = 26.sp, fontWeight = FontWeight.Black)
                 Spacer(Modifier.height(6.dp))
                 Text("Screenshot this ID - it is your proof of entry for " + tourneyName + ".", color = Color.White, fontSize = 13.sp)
+                TournamentSharingPanel(regTarget)
                 apNote?.let { Text(it, color = Gold2, fontSize = 13.sp) }
                 if (holdNote) Text("Note: your entry is under a quick security review (routine). It shows in the management panel and gets verified there.", color = Gold2, fontSize = 12.sp)
                 if (waitNote) Text("You are on the waitlist - if a slot opens, your entry moves up automatically.", color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold)
@@ -171,7 +173,7 @@ fun RegisterScreen(onBack: () -> Unit, target: String? = null) {
             return@Column
         }
         if (regChecked && myReg != null) {
-            RegisteredReceiptCard(tourneyName, myReg!!, onBack)
+            RegisteredReceiptCard(tourneyName, myReg!!, onBack, regTarget)
             return@Column
         }
         PanelCard {

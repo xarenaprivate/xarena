@@ -21,7 +21,9 @@ import androidx.compose.ui.unit.sp
 import org.json.JSONArray
 import org.json.JSONObject
 import androidx.compose.animation.core.animateFloat
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.material.icons.Icons
@@ -63,6 +65,8 @@ fun CountdownLine(targetMs: Long) {
 @Composable
 fun CupHeroCard(t: JSONObject, slotsTaken: Int, onRegister: () -> Unit) {
     val ctx = androidx.compose.ui.platform.LocalContext.current
+    var cupOv by remember { mutableStateOf<JSONObject?>(null) }
+    LaunchedEffect(t.s("id")) { cupOv = withContext(Dispatchers.IO) { loadTournamentOverview()?.get(t.s("id")) } }
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(Look.cardRadius))
         .background(Look.cardBg).border(1.dp, Gold.copy(alpha = .6f), RoundedCornerShape(Look.cardRadius)).padding(18.dp)) {
         Text(t.s("name"), color = Gold2, fontSize = 24.sp, fontWeight = FontWeight.Bold)
@@ -80,6 +84,7 @@ fun CupHeroCard(t: JSONObject, slotsTaken: Int, onRegister: () -> Unit) {
                 }
             } else Text("$slots squad slots", color = Muted, fontSize = 12.sp)
         }
+        TournamentGrowthLines(cupOv)
         Spacer(Modifier.height(12.dp))
         Row {
             if (t.optBoolean("reg_open")) GoldButton("REGISTER NOW", modifier = Modifier.weight(1f)) { onRegister() }

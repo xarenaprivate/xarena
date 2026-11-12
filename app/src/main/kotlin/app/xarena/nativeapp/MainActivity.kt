@@ -933,17 +933,19 @@ fun TournamentsScreen() {
         }
         LoadState({
             val arr = Api.publicGet("/rest/v1/tournaments?select=id,name,status,slots,prize,date_text,reg_open,mode&order=sort.asc")
+            val overview = loadTournamentOverview()
             val optedOut = if (Api.loggedIn) runCatching {
                 val r = Api.authedRpc("my_match_reminders", JSONObject())
                 r.optJSONArray("opted_out")?.let { (0 until it.length()).map { i -> it.optString(i) } }?.toSet() ?: emptySet()
             }.getOrElse { emptySet() } else emptySet()
-            JSONObject().put("arr", arr).put("opted", JSONArray(optedOut.toList()))
+            JSONObject().put("arr", arr).put("opted", JSONArray(optedOut.toList())).put("ov", if (overview != null) JSONObject(overview as Map<*, *>) else JSONObject.NULL)
         }) { d ->
             val arr = d.optJSONArray("arr") ?: JSONArray()
             val optedOut = d.optJSONArray("opted")?.let { (0 until it.length()).map { i -> it.optString(i) }.toSet() } ?: emptySet()
+            val ovMap = d.optJSONObject("ov")
             if (arr.length() == 0) EmptyNote("No tournaments yet", "Tournaments appear here as soon as the admin creates them.")
             else LazyColumn { items((0 until arr.length()).map { arr.getJSONObject(it) }) { t ->
-                TournamentCard(t, Api.loggedIn, t.s("id") in optedOut, onRegister = { regTarget = t.s("id"); showRegister = true })
+                TournamentCard(t, Api.loggedIn, t.s("id") in optedOut, ov = ovMap?.optJSONObject(t.s("id")), onRegister = { regTarget = t.s("id"); showRegister = true })
             } }
         }
     }
@@ -951,10 +953,12 @@ fun TournamentsScreen() {
 
 /** One tournament row: details, per-card registration (passes the exact tournament id) and reminder toggle. */
 @Composable
-fun TournamentCard(t: JSONObject, loggedIn: Boolean, optedOut: Boolean, onRegister: () -> Unit) {
+fun TournamentCard(t: JSONObject, loggedIn: Boolean, optedOut: Boolean, ov: JSONObject? = null, onRegister: () -> Unit) {
     PanelCard {
         Text(t.s("name"), color = Gold2, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         Text(t.s("mode") + " - " + t.optInt("slots") + " slots", color = Muted, fontSize = 13.sp)
+        TournamentSlotsBlock(ov, t.optInt("slots"))
+        TournamentGrowthLines(ov)
         Spacer(Modifier.height(6.dp))
         val tStatus = t.s("status")
         val tFinished = tStatus.equals("done", true) || tStatus.equals("closed", true) || tStatus.equals("completed", true) || tStatus.equals("cancelled", true)
@@ -965,6 +969,7 @@ fun TournamentCard(t: JSONObject, loggedIn: Boolean, optedOut: Boolean, onRegist
         Spacer(Modifier.height(6.dp))
         Text(if (tFinished) "SEASON FINISHED" else (tStatus.uppercase() + if (t.optBoolean("reg_open")) " - REGISTRATION OPEN" else " - REGISTRATION CLOSED"),
             color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        if (tFinished) SeasonSummaryLine(t.s("id"))
         if (t.optBoolean("reg_open")) {
             Spacer(Modifier.height(8.dp))
             GoldButton("REGISTER FOR " + t.s("name").uppercase(), onClick = onRegister)

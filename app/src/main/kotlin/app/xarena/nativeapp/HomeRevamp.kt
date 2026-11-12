@@ -205,9 +205,13 @@ internal object HomeChatCache { var msgs: JSONArray? = null }
 fun LiveChatStrip(onOpenFeature: (String) -> Unit) {
     var msgs by remember { mutableStateOf(HomeChatCache.msgs) }
     var loaded by remember { mutableStateOf(HomeChatCache.msgs != null) }
+    var preview by remember { mutableStateOf<JSONObject?>(null) }
     LaunchedEffect(Unit) {
-        val fresh = runCatching { Api.chatHistory("general") }.getOrNull()
-        if (fresh != null) { HomeChatCache.msgs = fresh; msgs = fresh }
+        val p = runCatching { Api.authedRpc("xr_home_chat_preview", JSONObject().put("p_room", "general")) }.getOrNull()
+        if (p != null && p.optBoolean("ok")) { preview = p } else {
+            val fresh = runCatching { Api.chatHistory("general") }.getOrNull()
+            if (fresh != null) { HomeChatCache.msgs = fresh; msgs = fresh }
+        }
         loaded = true
     }
     Column(Modifier.fillMaxWidth()) {
@@ -215,7 +219,19 @@ fun LiveChatStrip(onOpenFeature: (String) -> Unit) {
         Column(Modifier.padding(horizontal = 16.dp).fillMaxWidth().clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg)
             .border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).clickable { onOpenFeature("chat") }.padding(12.dp)) {
             val arr = msgs
-            if (!loaded) Text("Loading chat...", color = Muted, fontSize = 12.sp)
+            val pin = preview?.optJSONObject("pin")
+            val latest = preview?.optJSONObject("latest_message")
+            if (preview != null) {
+                if (pin != null) Row(Modifier.fillMaxWidth().padding(vertical = 3.dp)) {
+                    Text("XARENA: ", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(pin.s("body"), color = Color.White, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+                if (latest != null) Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(latest.s("handle").ifBlank { "player" } + ": ", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(latest.s("body"), color = Color.White, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+                }
+                if (pin == null && latest == null) Text("Say hi to the lobby.", color = Muted, fontSize = 12.sp)
+            } else if (!loaded) Text("Loading chat...", color = Muted, fontSize = 12.sp)
             else if (arr == null || arr.length() == 0) {
                 Text("Say hi to the lobby.", color = Muted, fontSize = 12.sp)
             } else {
