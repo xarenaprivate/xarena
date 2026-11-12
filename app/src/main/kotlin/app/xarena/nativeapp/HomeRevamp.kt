@@ -88,7 +88,7 @@ fun LiveMatchesRail(matches: JSONArray, ts: JSONArray, onOpenFeature: (String) -
 
 /* ---- HIGHLIGHTS WALL: approved community clips (feed_posts kind=video, status=approved).
    Hidden entirely while there are no approved clips. ---- */
-private object HighlightsCache { var clips: JSONArray? = null }
+internal object HighlightsCache { var clips: JSONArray? = null }
 
 @Composable
 fun HighlightsWall(onOpenFeature: (String) -> Unit) {
@@ -139,11 +139,15 @@ private fun HighlightCard(c: JSONObject, onOpen: () -> Unit) {
 
 /* ---- FRIENDS ACTIVITY: xr_sf_friends_activity (player-reported presence, 2-min freshness).
    Hidden when signed out, on error, or when there is no friend activity to show. ---- */
-private object FriendsRailCache { var data: JSONObject? = null }
+/* Test seam: Paparazzi fixtures seed the cache and force the signed-in path;
+   production always reads Api.uid (cache only ever fills behind a real authed RPC). */
+internal var friendsRailSignedInOverride: Boolean? = null
+internal object FriendsRailCache { var data: JSONObject? = null }
 
 @Composable
 fun FriendsActivityStrip(onOpenFeature: (String) -> Unit) {
-    if (Api.uid.isNullOrBlank()) return
+    val signedIn = friendsRailSignedInOverride ?: !Api.uid.isNullOrBlank()
+    if (!signedIn) return
     var resp by remember { mutableStateOf(FriendsRailCache.data) }
     LaunchedEffect(Unit) {
         val fresh = runCatching { Api.authedRpc("xr_sf_friends_activity", JSONObject()) }.getOrNull()
@@ -195,7 +199,7 @@ private fun friendPresenceLabel(f: JSONObject): String {
 
 /* ---- LIVE CHAT strip: latest real world-chat messages (room "general").
    When the room is empty it says so honestly and still opens chat. ---- */
-private object HomeChatCache { var msgs: JSONArray? = null }
+internal object HomeChatCache { var msgs: JSONArray? = null }
 
 @Composable
 fun LiveChatStrip(onOpenFeature: (String) -> Unit) {
