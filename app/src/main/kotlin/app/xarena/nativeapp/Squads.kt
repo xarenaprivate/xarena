@@ -1,16 +1,13 @@
 package app.xarena.nativeapp
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,333 +16,399 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.delay
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
+import coil.compose.AsyncImage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 
-/* Squad Finder: squad discovery, squad profile, invites (30s expiry), join requests, create. */
-
-internal data class SfSquad(
-    val id: String, val name: String, val logo: String, val intro: String,
-    val visibility: String, val mode: String, val map: String, val region: String,
-    val commsVoice: Boolean, val rolesNeeded: List<String>,
-    val memberCount: Int, val maxMembers: Int,
-    val isMember: Boolean, val isCaptain: Boolean
+private data class SquadData(
+    val squads: JSONArray,
+    val mySquadId: String?,
+    val myRole: String?,
+    val invites: JSONArray,
+    val rankLine: String?,
+    val wars: JSONArray,
+    val creator: Boolean,
+    val creatorPending: Boolean
 )
 
-internal fun sfSquadFrom(j: JSONObject): SfSquad {
-    val rn = mutableListOf<String>()
-    val ra = j.optJSONArray("roles_needed")
-    if (ra != null) for (i in 0 until ra.length()) rn.add(ra.optString(i))
-    return SfSquad(
-        id = j.s("id"), name = j.s("name").ifBlank { "Squad" }, logo = j.s("logo"), intro = j.s("intro_line"),
-        visibility = j.s("visibility"), mode = j.s("mode"), map = j.s("map"), region = j.s("region"),
-        commsVoice = j.optBoolean("comms_voice", false), rolesNeeded = rn,
-        memberCount = j.optInt("member_count", 0), maxMembers = j.optInt("max_members", 4),
-        isMember = j.optBoolean("is_member", false), isCaptain = j.optBoolean("is_captain", false)
-    )
-}
-
-@Composable
-internal fun SfSquadCard(sq: SfSquad, onOpen: () -> Unit) {
-    PanelCard {
-        Column(Modifier.fillMaxWidth().clickable { onOpen() }) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(sq.name, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                Text(sq.memberCount.toString() + "/" + sq.maxMembers, color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            }
-            if (sq.intro.isNotBlank()) Text(sq.intro, color = Muted, fontSize = 12.sp)
-            val bits = mutableListOf<String>()
-            if (sq.mode.isNotBlank()) bits.add(sq.mode)
-            if (sq.map.isNotBlank()) bits.add(sq.map)
-            if (sq.region.isNotBlank()) bits.add(sq.region)
-            if (sq.commsVoice) bits.add("Voice")
-            bits.add(if (sq.visibility == "public") "Public - join now" else "Private - by request")
-            Text(bits.joinToString(" - "), color = Muted, fontSize = 11.sp)
-            if (sq.rolesNeeded.isNotEmpty()) Text("Needs: " + sq.rolesNeeded.joinToString(", "), color = Color(0xFF60A5FA), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+private suspend fun loadSquads(): SquadData {
+    val squads = Api.squadsPublic()
+    var myId: String? = null; var myRole: String? = null
+    try {
+        val uid = Api.uid
+        if (uid != null) {
+            val m = Api.authedGetArray("/rest/v1/squad_members?user_id=eq.$uid&select=squad_id,role")
+            if (m.length() > 0) { myId = m.getJSONObject(0).s("squad_id").ifBlank { null }; myRole = m.getJSONObject(0).s("role") }
         }
-    }
+    } catch (e: Exception) { }
+    val invites = try { Api.authedRpc("my_squad_invites", JSONObject()).optJSONArray("invites") ?: JSONArray() } catch (e: Exception) { JSONArray() }
+    val rankLine = try {
+        val r = Api.authedRpc("my_squad_rank", JSONObject())
+        if (r.optBoolean("ok") && r.has("rank") && !r.isNull("rank")) {
+            val row = r.optJSONObject("row")
+            "Battle board: #" + r.optInt("rank") + " of " + r.optInt("total") + " squads" +
+                (if (row != null) " - " + row.optInt("total") + " pts" else "")
+        } else null
+    } catch (e: Exception) { null }
+    val wars = try { Api.authedRpc("wars_board", JSONObject()).optJSONArray("wars") ?: JSONArray() } catch (e: Exception) { JSONArray() }
+    var creator = false; var pending = false
+    try {
+        val st = Api.authedRpc("squad_creator_status", JSONObject())
+        if (st.optBoolean("ok")) { creator = st.optBoolean("creator"); pending = st.optBoolean("pending") }
+    } catch (e: Exception) { }
+    return SquadData(squads, myId, myRole, invites, rankLine, wars, creator, pending)
 }
 
-/* ---------- Squad discovery + create ---------- */
 @Composable
-fun SquadDiscoveryScreen(onBack: () -> Unit, onOpenSquad: (String) -> Unit) {
+fun SquadsScreen(onBack: (() -> Unit)? = null) {
     val scope = rememberCoroutineScope()
-    var role by remember { mutableStateOf("") }
-    var visibility by remember { mutableStateOf("") }
-    var mineOnly by remember { mutableStateOf(false) }
-    var squads by remember { mutableStateOf<List<SfSquad>?>(SfSeams.squads) }
-    var err by remember { mutableStateOf<String?>(null) }
-    var creating by remember { mutableStateOf(false) }
-    var newName by remember { mutableStateOf("") }
-    var newVis by remember { mutableStateOf("public") }
-    var createMsg by remember { mutableStateOf<String?>(null) }
-
-    fun load() {
-        scope.launch {
-            err = null
-            val args = JSONObject()
-            if (role.isNotBlank()) args.put("p_role", role)
-            if (visibility.isNotBlank()) args.put("p_visibility", visibility)
-            if (mineOnly) args.put("p_mine", true)
-            val r = runCatching { Api.authedRpc("xr_sf_squad_list", args) }.getOrNull()
-            if (r != null && r.optBoolean("ok")) {
-                val arr = r.optJSONArray("squads") ?: JSONArray()
-                squads = (0 until arr.length()).map { sfSquadFrom(arr.getJSONObject(it)) }
-            } else err = r?.s("error") ?: "Could not load squads - pull back and retry."
-        }
-    }
-    LaunchedEffect(Unit) { load() }
-
-    Column(Modifier.fillMaxSize().background(Ink)) {
-        PageHeader("Find a Squad", "One roster per account - no dual memberships", onBack)
-        Column(Modifier.padding(horizontal = 16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                listOf("" to "All", "public" to "Public", "private" to "Private").forEach { (v, label) ->
-                    val on = visibility == v
-                    Text(label, color = if (on) Ink else Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(if (on) Gold else Look.cardBg)
-                            .clickable { visibility = v; load() }.padding(horizontal = 10.dp, vertical = 6.dp))
+    var nonce by remember { mutableIntStateOf(0) }
+    var notice by remember { mutableStateOf<String?>(null) }
+    Column(Modifier.fillMaxSize()) {
+        if (onBack != null) PageHeader("Squads", "Find or build your squad", onBack) else Brand()
+        LoadState({ loadSquads() }) { d ->
+            LazyColumn {
+                item {
+                    SquadWarsBlock(d.mySquadId, d.myRole) { notice = it; nonce++ }
                 }
-                Spacer(Modifier.width(10.dp))
-                Text("My squads", color = Muted, fontSize = 12.sp); Spacer(Modifier.width(4.dp))
-                Switch(mineOnly, { mineOnly = it; load() })
-            }
-            OutlinedTextField(role, { role = it }, placeholder = { Text("Filter by role needed (e.g. Rusher)") }, singleLine = true,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("APPLY", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { load() }.padding(6.dp))
-                Spacer(Modifier.width(16.dp))
-                Text(if (creating) "CANCEL" else "+ CREATE SQUAD", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable { creating = !creating; createMsg = null }.padding(6.dp))
-            }
-        }
-        if (creating) PanelCard {
-            Text("CREATE SQUAD", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-            Text("You must be an approved squad creator. You become captain (IGL).", color = Muted, fontSize = 11.sp)
-            OutlinedTextField(newName, { newName = it }, placeholder = { Text("Squad name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(vertical = 4.dp)) {
-                listOf("public", "private").forEach { v ->
-                    val on = newVis == v
-                    Text(v.uppercase(), color = if (on) Ink else Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(if (on) Gold else Look.cardBg)
-                            .clickable { newVis = v }.padding(horizontal = 10.dp, vertical = 6.dp))
-                }
-            }
-            GoldButton("CREATE", enabled = newName.isNotBlank(), onClick = {
-                scope.launch {
-                    createMsg = null
-                    val r = runCatching { Api.authedRpc("xr_sf_squad_create", JSONObject().put("p_name", newName.trim()).put("p_visibility", newVis)) }.getOrNull()
-                    if (r?.optBoolean("ok") == true) {
-                        val sid = r.optJSONObject("squad")?.s("id").orEmpty()
-                        creating = false; load()
-                        if (sid.isNotBlank()) onOpenSquad(sid)
-                    } else createMsg = when (r?.s("error")) {
-                        "not_creator" -> "Your account is not an approved squad creator yet."
-                        "already_in_squad" -> "You are already in a squad - leave it first."
-                        else -> r?.s("error") ?: "Could not create the squad."
+                item {
+                    PanelCard {
+                        if (d.mySquadId != null) {
+                            val mine = (0 until d.squads.length()).map { d.squads.getJSONObject(it) }.firstOrNull { it.s("id") == d.mySquadId }
+                            Text("Your squad: " + (mine?.s("name") ?: "Squad") + (mine?.s("tag")?.takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""),
+                                color = Gold2, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                            Text("Role: " + (d.myRole ?: "member"), color = Muted, fontSize = 13.sp)
+                            d.rankLine?.let { Text(it, color = Color.White, fontSize = 13.sp) }
+                        } else {
+                            Text("You are not in a squad yet", color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text("Join any squad below. One squad per player.", color = Muted, fontSize = 13.sp)
+                        }
                     }
                 }
-            })
-            createMsg?.let { Text(it, color = ErrRed, fontSize = 12.sp) }
-        }
-        err?.let { Text(it, color = ErrRed, fontSize = 12.sp, modifier = Modifier.padding(16.dp)) }
-        val list = squads
-        LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (list == null) item { Text("Loading...", color = Muted, fontSize = 13.sp) }
-            else if (list.isEmpty()) item { Text("No squads match yet. New squads appear here as they are created.", color = Muted, fontSize = 13.sp) }
-            else items(list) { sq -> SfSquadCard(sq) { onOpenSquad(sq.id) } }
-        }
-    }
-}
-
-/* ---------- Squad profile ---------- */
-@Composable
-fun SquadProfileSfScreen(squadId: String, onBack: () -> Unit, onOpenChat: (String) -> Unit) {
-    val scope = rememberCoroutineScope()
-    var data by remember { mutableStateOf<JSONObject?>(SfSeams.squadDetail) }
-    var err by remember { mutableStateOf<String?>(null) }
-    var msg by remember { mutableStateOf<String?>(null) }
-    var note by remember { mutableStateOf("") }
-    var roles by remember { mutableStateOf(listOf("Rusher", "Support", "Sniper", "IGL")) }
-
-    fun load() {
-        scope.launch {
-            err = null
-            val r = runCatching { Api.authedRpc("xr_sf_squad_get", JSONObject().put("p_squad", squadId)) }.getOrNull()
-            if (r != null && r.optBoolean("ok")) data = r else err = r?.s("error") ?: "Could not load this squad."
-        }
-    }
-    LaunchedEffect(squadId) {
-        val rc = runCatching { Api.authedRpc("xr_sf_role_catalog", JSONObject()) }.getOrNull()
-        val ra = rc?.optJSONArray("roles")
-        if (ra != null && ra.length() > 0) roles = (0 until ra.length()).map { ra.getString(it) }
-        load()
-    }
-
-    Column(Modifier.fillMaxSize().background(Ink)) {
-        PageHeader("Squad", "", onBack)
-        val d = data
-        if (err != null) Text(err!!, color = ErrRed, fontSize = 13.sp, modifier = Modifier.padding(24.dp))
-        else if (d == null) Text("Loading...", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(24.dp))
-        else {
-            val sj = d.optJSONObject("squad")
-            if (sj == null) { Text("This squad is private.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(24.dp)); return@Column }
-            val sq = sfSquadFrom(sj)
-            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                SfSquadCard(sq) {}
-                if (sq.isMember) {
+                if (d.mySquadId == null) item {
+                    when {
+                        d.creator -> CreateSquadCard { notice = it; nonce++ }
+                        d.creatorPending -> PanelCard {
+                            Text("Creator access requested", color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                            Text("The owner reviews every request - you will be able to create your squad here once approved.", color = Muted, fontSize = 13.sp)
+                        }
+                        else -> RequestCreatorCard { notice = it; nonce++ }
+                    }
+                }
+                if (d.mySquadId != null && d.myRole == "captain") item {
+                    CaptainManageCard(d.mySquadId!!) { notice = it; nonce++ }
+                }
+                if (d.mySquadId != null && d.myRole == "captain") item {
+                    var logoOpen by remember { mutableStateOf(false) }
                     PanelCard {
-                        Text("MEMBERS", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        val ra = d.optJSONArray("roster")
-                        if (ra == null || ra.length() == 0) Text("No members listed yet.", color = Muted, fontSize = 12.sp)
-                        else for (i in 0 until ra.length()) {
-                            val m0 = ra.getJSONObject(i)
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 3.dp)) {
-                                Text(m0.s("username").ifBlank { "Player" }, color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                                Text(m0.s("combat_role").ifBlank { "Role not set" }, color = Muted, fontSize = 11.sp)
-                                Spacer(Modifier.width(8.dp))
-                                Text(if (m0.optBoolean("ready")) "READY" else "NOT READY",
-                                    color = if (m0.optBoolean("ready")) Color(0xFF4ADE80) else Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text("TEAM LOGO MAKER", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("Design a custom logo for your squad - free, captain only.", color = Muted, fontSize = 12.sp)
+                        Spacer(Modifier.height(6.dp))
+                        GoldButton("OPEN LOGO MAKER") { logoOpen = true }
+                    }
+                    if (logoOpen) {
+                        val mineName = (0 until d.squads.length()).map { d.squads.getJSONObject(it) }.firstOrNull { it.s("id") == d.mySquadId }?.s("name") ?: ""
+                        SquadLogoMakerSheet(d.mySquadId!!, mineName, onDone = { notice = it; nonce++; logoOpen = false }, onClose = { logoOpen = false })
+                    }
+                }
+                if (d.invites.length() > 0) item {
+                    PanelCard {
+                        Text("Squad invites", color = Gold, fontWeight = FontWeight.Bold)
+                        (0 until d.invites.length()).forEach { i ->
+                            val inv = d.invites.getJSONObject(i)
+                            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(inv.s("squad") + " (by " + inv.s("by", "the captain") + ")",
+                                    color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                                Text("Accept", color = Color(0xFF2A1400), fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Gold)
+                                        .clickable {
+                                            scope.launch {
+                                                try {
+                                                    val r = Api.authedRpc("squad_invite_respond", JSONObject().put("p_id", inv.optLong("id")).put("p_accept", true))
+                                                    notice = if (r.optBoolean("ok")) "Invite accepted." else r.s("error").ifBlank { "Could not answer the invite." }
+                                                } catch (e: Exception) { notice = e.message }
+                                                nonce++
+                                            }
+                                        }.padding(horizontal = 10.dp, vertical = 6.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Decline", color = Muted, fontSize = 12.sp,
+                                    modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color(0x22FFFFFF))
+                                        .clickable {
+                                            scope.launch {
+                                                try { Api.authedRpc("squad_invite_respond", JSONObject().put("p_id", inv.optLong("id")).put("p_accept", false)) } catch (e: Exception) { }
+                                                nonce++
+                                            }
+                                        }.padding(horizontal = 10.dp, vertical = 6.dp))
                             }
                         }
-                        val code = sj.s("squad_code")
-                        if (code.isNotBlank()) { Spacer(Modifier.height(4.dp)); Text("Squad code: " + code, color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold) }
                     }
+                }
+                item { Text("All squads", color = Gold, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) }
+                if (d.squads.length() == 0) item { EmptyNote("No squads yet", "The first approved creator squad will appear here. Join requests open as soon as squads exist.") }
+                items((0 until d.squads.length()).map { d.squads.getJSONObject(it) }) { s ->
                     PanelCard {
-                        Text("MY MEMBERSHIP", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 6.dp)) {
-                            roles.forEach { r0 ->
-                                Text(r0, color = Ink, fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Gold).clickable {
-                                        scope.launch {
-                                            val r = runCatching { Api.authedRpc("xr_sf_member_ready", JSONObject().put("p_squad", squadId).put("p_ready", true).put("p_combat_role", r0)) }.getOrNull()
-                                            msg = if (r?.optBoolean("ok") == true) "Set: READY as " + r0 else r?.s("error") ?: "Could not update."
-                                            load()
-                                        }
-                                    }.padding(horizontal = 10.dp, vertical = 6.dp))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                                if (s.s("logo_url").isNotBlank()) {
+                                    AsyncImage(model = s.s("logo_url"), contentDescription = null, contentScale = ContentScale.Crop,
+                                        modifier = Modifier.size(26.dp).clip(CircleShape))
+                                    Spacer(Modifier.width(8.dp))
+                                }
+                                Text(s.s("name") + (s.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""),
+                                    color = Gold2, fontSize = 17.sp, fontWeight = FontWeight.Bold)
                             }
-                            Text("NOT READY", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold,
-                                modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Look.cardBg).clickable {
-                                    scope.launch {
-                                        runCatching { Api.authedRpc("xr_sf_member_ready", JSONObject().put("p_squad", squadId).put("p_ready", false)) }
-                                        msg = "Set: not ready"; load()
-                                    }
-                                }.padding(horizontal = 10.dp, vertical = 6.dp))
+                            Text(if (s.has("member_count")) s.optInt("member_count").toString() + "/6" else "", color = Muted, fontSize = 12.sp)
                         }
-                        Text("Tap a role to mark yourself READY in that role.", color = Muted, fontSize = 10.sp)
-                    }
-                    SmallCard { Text("SQUAD CHAT", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.clickable { onOpenChat(squadId) }.padding(vertical = 4.dp)) }
-                } else {
-                    if (sq.visibility == "public") {
-                        GoldButton("JOIN THIS SQUAD", onClick = {
-                            scope.launch {
-                                val rr = runCatching { Api.authedRpc("xr_sf_join_public", JSONObject().put("p_squad", squadId)) }
-val r = rr.getOrNull()
-msg = if (r?.optBoolean("ok") == true) "Joined." else when (r?.s("error")) {
-"already_in_squad" -> "You are already in a squad - leave it first."
-"squad_full" -> "This squad is full."
-else -> (r?.s("error")?.ifBlank { null } ?: rr.exceptionOrNull()?.message ?: "Could not join.")
-}
-                                load()
+                        if (s.s("bio").isNotBlank()) Text(s.s("bio"), color = Muted, fontSize = 13.sp)
+                        val members = s.optJSONArray("members")
+                        if (members != null && members.length() > 0) {
+                            Text((0 until members.length()).joinToString("  ") { i ->
+                                val m = members.getJSONObject(i)
+                                (m.s("ign").ifBlank { m.s("username") }) + (if (m.s("role") == "captain") " (captain)" else "")
+                            }, color = Color.White, fontSize = 12.sp)
+                        }
+                        if (d.mySquadId == null && s.s("id").isNotBlank() && s.optInt("member_count", 0) < 6) {
+                            Spacer(Modifier.height(8.dp))
+                            GoldButton("JOIN THIS SQUAD") {
+                                scope.launch {
+                                    try {
+                                        val r = Api.authedRpc("join_squad", JSONObject().put("p_squad", s.s("id")))
+                                        notice = if (r.optBoolean("ok")) "Joined " + s.s("name") + "!" else r.s("error").ifBlank { "Could not join right now." }
+                                    } catch (e: Exception) { notice = e.message ?: "Could not join right now." }
+                                    nonce++
+                                }
                             }
-                        })
-                    } else {
+                        }
+                    }
+                }
+                if (d.wars.length() > 0) {
+                    item { Text("Squad wars", color = Gold, fontWeight = FontWeight.Bold, fontSize = 16.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) }
+                    items((0 until d.wars.length()).map { d.wars.getJSONObject(it) }) { w ->
                         PanelCard {
-                            Text("REQUEST TO JOIN", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            Text("Private squad. The captain has 10 minutes to decide.", color = Muted, fontSize = 11.sp)
-                            OutlinedTextField(note, { note = it }, placeholder = { Text("Note to the captain (optional)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                            GoldButton("SEND REQUEST", onClick = {
-                                scope.launch {
-                                    val r = runCatching { Api.authedRpc("xr_sf_join_request", JSONObject().put("p_squad", squadId).put("p_note", note.trim())) }.getOrNull()
-                                    msg = if (r?.optBoolean("ok") == true) "Request sent." else r?.s("error") ?: "Could not send request."
-                                }
-                            })
+                            Text(w.s("challenger") + " vs " + w.s("opponent"), color = Color.White, fontWeight = FontWeight.Bold)
+                            Text(w.s("status").uppercase() + (if (w.s("winner").isNotBlank()) " - Winner: " + w.s("winner") else ""),
+                                color = Gold, fontSize = 12.sp)
                         }
                     }
                 }
-                msg?.let { Text(it, color = if (it == "Joined." || it == "Request sent." || it.startsWith("Set:")) Color(0xFF4ADE80) else ErrRed, fontSize = 12.sp) }
-                PanelCard {
-                    Text("MY PENDING REQUESTS", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    var reqs by remember { mutableStateOf<JSONArray?>(null) }
-                    LaunchedEffect(Unit) {
-                        val r = runCatching { Api.authedRpc("xr_sf_request_list", JSONObject()) }.getOrNull()
-                        reqs = r?.optJSONArray("requests") ?: JSONArray()
-                    }
-                    val rq = reqs
-                    if (rq == null) Text("Loading...", color = Muted, fontSize = 12.sp)
-                    else if (rq.length() == 0) Text("No open requests.", color = Muted, fontSize = 12.sp)
-                    else for (i in 0 until rq.length()) {
-                        val q0 = rq.getJSONObject(i)
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 3.dp)) {
-                            Text(q0.s("squad_name").ifBlank { "Squad" }, color = Color.White, fontSize = 12.sp, modifier = Modifier.weight(1f))
-                            Text(q0.s("status").uppercase(), color = Gold2, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
+                item { Spacer(Modifier.height(16.dp)) }
             }
+        }
+        notice?.let {
+            Text(it, color = Gold2, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
         }
     }
 }
 
-/* ---------- Invites inbox (30s expiry) ---------- */
 @Composable
-fun InvitesInboxScreen(onBack: () -> Unit) {
-    val scope = rememberCoroutineScope()
-    var invites by remember { mutableStateOf<JSONArray?>(SfSeams.invites) }
-    var err by remember { mutableStateOf<String?>(null) }
-    var tick by remember { mutableStateOf(0) }
-    var actedMsg by remember { mutableStateOf<String?>(null) }
+private fun SquadField(value: String, onChange: (String) -> Unit, hint: String, modifier: Modifier = Modifier) {
+    BasicTextField(value, onChange, modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Ink).padding(11.dp),
+        textStyle = TextStyle(color = Color.White, fontSize = 14.sp), singleLine = true,
+        decorationBox = { inner -> if (value.isEmpty()) Text(hint, color = Muted, fontSize = 14.sp); inner() })
+}
 
-    fun load() {
-        scope.launch {
-            err = null
-            val r = runCatching { Api.authedRpc("xr_sf_invite_list", JSONObject()) }.getOrNull()
-            if (r != null && r.optBoolean("ok")) invites = r.optJSONArray("invites") ?: JSONArray()
-            else err = r?.s("error") ?: "Could not load invites."
+@Composable
+private fun CreateSquadCard(onDone: (String) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var name by remember { mutableStateOf("") }
+    var tag by remember { mutableStateOf("") }
+    var bio by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    PanelCard {
+        Text("Create your squad", color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text("You are an approved creator. You become the captain - one squad per player, 6 players max.", color = Muted, fontSize = 12.sp)
+        Spacer(Modifier.height(8.dp))
+        SquadField(name, { name = it }, "Squad name")
+        Spacer(Modifier.height(6.dp))
+        SquadField(tag, { tag = it.uppercase().take(5) }, "Tag (up to 5 letters)")
+        Spacer(Modifier.height(6.dp))
+        SquadField(bio, { bio = it }, "Bio (optional)")
+        Spacer(Modifier.height(10.dp))
+        GoldButton(if (busy) "CREATING..." else "CREATE SQUAD") {
+            if (busy) return@GoldButton
+            if (name.trim().length < 3) { onDone("Give the squad a name (3+ characters)."); return@GoldButton }
+            busy = true
+            scope.launch {
+                try {
+                    val r = Api.authedRpc("create_squad", JSONObject().put("p_name", name.trim()).put("p_tag", tag.trim()).put("p_bio", bio.trim()))
+                    onDone(if (r.optBoolean("ok")) "Squad created - you are the captain." else r.s("error").ifBlank { "Could not create the squad." })
+                } catch (e: Exception) { onDone(e.message ?: "Could not create the squad.") ; busy = false }
+            }
         }
     }
-    LaunchedEffect(Unit) { load() }
-    LaunchedEffect(Unit) { while (true) { delay(1000); tick++ } }
+}
 
-    Column(Modifier.fillMaxSize().background(Ink)) {
-        PageHeader("My Invites", "Invites expire 30 seconds after they are sent", onBack)
-        err?.let { Text(it, color = ErrRed, fontSize = 13.sp, modifier = Modifier.padding(24.dp)) }
-        actedMsg?.let { Text(it, color = Gold2, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 24.dp)) }
-        val inv = invites
-        LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            if (inv == null) item { Text("Loading...", color = Muted, fontSize = 13.sp) }
-            else if (inv.length() == 0) item { Text("No invites right now. Set yourself as a free agent or opt in to backup calls to get noticed.", color = Muted, fontSize = 13.sp) }
-            else items((0 until inv.length()).map { inv.getJSONObject(it) }, key = { it.s("id") }) { iv ->
-                val expires = parseIso(iv.s("expires_at"))
-                val left = ((expires - System.currentTimeMillis()) / 1000).coerceAtLeast(0)
-                val expired = left <= 0 || iv.s("status") != "pending"
-                PanelCard {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(iv.s("squad_name").ifBlank { "Squad" }, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                            Text("From " + iv.s("from_name").ifBlank { "captain" }, color = Muted, fontSize = 11.sp)
-                        }
-                        if (expired) Text(if (iv.s("status") == "pending") "EXPIRED" else iv.s("status").uppercase(), color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        else Text(left.toString() + "s", color = if (left <= 10) ErrRed else Gold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+@Composable
+private fun RequestCreatorCard(onDone: (String) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var note by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    PanelCard {
+        Text("Want to create a squad?", color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+        Text("Only approved creators can start squads (this keeps squads real). Request access and the owner will review it.", color = Muted, fontSize = 12.sp)
+        Spacer(Modifier.height(8.dp))
+        SquadField(note, { note = it }, "Why should you host a squad? (optional)")
+        Spacer(Modifier.height(10.dp))
+        GoldButton(if (busy) "SENDING..." else "REQUEST CREATOR ACCESS") {
+            if (busy) return@GoldButton
+            busy = true
+            scope.launch {
+                try {
+                    val r = Api.authedRpc("request_squad_creator", JSONObject().put("p_note", note.trim()))
+                    onDone(if (r.optBoolean("ok")) "Request sent - the owner will review it." else r.s("error").ifBlank { "Could not send the request." })
+                } catch (e: Exception) { onDone(e.message ?: "Could not send the request."); busy = false }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CaptainManageCard(squadId: String, onDone: (String) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var invite by remember { mutableStateOf("") }
+    var showShop by remember { mutableStateOf(false) }
+    if (showShop) {
+        LogoStoreSheet(squadId, onDone = { msg -> if (msg != null) onDone(msg) }, onClose = { showShop = false })
+    }
+    PanelCard {
+        Text("Captain tools", color = Gold, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SquadField(invite, { invite = it }, "Invite player by name", Modifier.weight(1f))
+            Spacer(Modifier.width(8.dp))
+            Text("Invite", color = Ink, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Gold).clickable {
+                    val nm = invite.trim()
+                    if (nm.isEmpty()) return@clickable
+                    scope.launch {
+                        try {
+                            val r = Api.authedRpc("squad_invite", JSONObject().put("p_name", nm))
+                            onDone(if (r.optBoolean("ok")) "Invite sent to " + nm + "." else r.s("error").ifBlank { "Could not send the invite." })
+                            invite = ""
+                        } catch (e: Exception) { onDone(e.message ?: "Could not send the invite.") }
                     }
-                    if (!expired) Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
-                        Text("ACCEPT", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
-                            modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Gold).clickable {
-                                scope.launch {
-                                    val r = runCatching { Api.authedRpc("xr_sf_invite_respond", JSONObject().put("p_invite", iv.optLong("id")).put("p_accept", true)) }.getOrNull()
-                                    actedMsg = if (r?.optBoolean("ok") == true) "Invite accepted - you joined the squad." else r?.s("error") ?: "Could not accept."
-                                    load()
-                                }
-                            }.padding(horizontal = 14.dp, vertical = 8.dp))
-                        Text("DECLINE", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold,
-                            modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Look.cardBg).clickable {
-                                scope.launch {
-                                    runCatching { Api.authedRpc("xr_sf_invite_respond", JSONObject().put("p_invite", iv.optLong("id")).put("p_accept", false)) }
-                                    load()
-                                }
-                            }.padding(horizontal = 14.dp, vertical = 8.dp))
+                }.padding(horizontal = 14.dp, vertical = 10.dp))
+        }
+        Spacer(Modifier.height(8.dp))
+        Text("Team logo (store)", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.clickable { showShop = true }.padding(vertical = 6.dp))
+        Spacer(Modifier.height(4.dp))
+        Row {
+            Text("Leave squad", color = Muted, fontSize = 13.sp,
+                modifier = Modifier.clickable {
+                    scope.launch {
+                        try {
+                            val r = Api.authedRpc("leave_squad", JSONObject())
+                            onDone(if (r.optBoolean("ok")) "You left the squad." else r.s("error").ifBlank { "Could not leave." })
+                        } catch (e: Exception) { onDone(e.message ?: "Could not leave.") }
+                    }
+                }.padding(vertical = 6.dp))
+            Spacer(Modifier.width(18.dp))
+            Text("Disband squad", color = ErrRed, fontSize = 13.sp,
+                modifier = Modifier.clickable {
+                    scope.launch {
+                        try {
+                            val r = Api.authedRpc("disband_squad", JSONObject().put("p_squad", squadId))
+                            onDone(if (r.optBoolean("ok")) "Squad disbanded." else r.s("error").ifBlank { "Could not disband." })
+                        } catch (e: Exception) { onDone(e.message ?: "Could not disband.") }
+                    }
+                }.padding(vertical = 6.dp))
+        }
+    }
+}
+
+private val TIER_COLORS = mapOf("common" to Color(0xFF9AA4B2), "rare" to Color(0xFF38BDF8), "epic" to Color(0xFFA78BFA), "legendary" to Color(0xFFFFD700))
+
+private data class LogoShopData(val catalog: JSONArray, val owned: Set<String>, val balance: Int?)
+
+private suspend fun loadLogoShop(): LogoShopData {
+    val catalog = Api.publicGet("/rest/v1/squad_logos?active=eq.true&select=id,title,image_url,tier,cost_ap,sort&order=sort.asc")
+    val owned = HashSet<String>()
+    var balance: Int? = null
+    try {
+        val r = Api.authedRpc("my_squad_logos", JSONObject())
+        val arr = r.optJSONArray("logos") ?: JSONArray()
+        for (i in 0 until arr.length()) owned.add(arr.getJSONObject(i).s("id"))
+    } catch (e: Exception) { }
+    try {
+        val b = Api.authedRpc("points_balance", JSONObject())
+        if (b.optBoolean("ok")) balance = b.optInt("balance")
+    } catch (e: Exception) { }
+    return LogoShopData(catalog, owned, balance)
+}
+
+@Composable
+private fun LogoStoreSheet(squadId: String, onDone: (String?) -> Unit, onClose: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var tick by remember { mutableIntStateOf(0) }
+    var busy by remember { mutableStateOf(false) }
+    var msg by remember { mutableStateOf<String?>(null) }
+    androidx.compose.ui.window.Dialog(onDismissRequest = { if (!busy) onClose() },
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        Column(Modifier.fillMaxSize().background(Ink).padding(horizontal = 12.dp, vertical = 10.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Squad Logo Store", color = Gold2, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                Text("Close", color = Muted, fontSize = 14.sp, modifier = Modifier.clickable { if (!busy) onClose() }.padding(10.dp))
+            }
+            LoadState2(tick, { loadLogoShop() }) { d ->
+                if (d == null || d.catalog.length() == 0) {
+                    Text("The logo store is being stocked - check back soon.", color = Muted, fontSize = 14.sp)
+                } else {
+                    Text("Your AP: " + (d.balance?.toString() ?: "-") + "  â¢  Buy once, keep forever. AP only, never cash.",
+                        color = Muted, fontSize = 12.sp)
+                    msg?.let { Text(it, color = ErrRed, fontSize = 12.sp) }
+                    Spacer(Modifier.height(8.dp))
+                    androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                        columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(d.catalog.length()) { i ->
+                            val l = d.catalog.getJSONObject(i)
+                            val id = l.s("id")
+                            val tier = l.s("tier")
+                            val owned = d.owned.contains(id)
+                            val afford = d.balance != null && d.balance >= l.optInt("cost_ap")
+                            val tcol = TIER_COLORS[tier] ?: Muted
+                            Column(Modifier.clip(RoundedCornerShape(10.dp)).background(Card)
+                                .border(1.5.dp, tcol, RoundedCornerShape(10.dp))
+                                .clickable(enabled = !busy) {
+                                    if (busy) return@clickable
+                                    if (!owned && d.balance == null) { msg = "Log in to buy logos."; return@clickable }
+                                    if (!owned && !afford) { msg = "Not enough AP for " + l.s("title") + " (" + l.optInt("cost_ap") + " AP)."; return@clickable }
+                                    busy = true; msg = null
+                                    scope.launch {
+                                        try {
+                                            if (!owned) {
+                                                val r = Api.authedRpc("buy_squad_logo", JSONObject().put("p_logo", id))
+                                                if (!r.optBoolean("ok")) { msg = r.s("error").ifBlank { "Could not buy this logo." }; busy = false; return@launch }
+                                            }
+                                            val e = Api.authedRpc("equip_squad_logo", JSONObject().put("p_squad", squadId).put("p_logo", id))
+                                            if (e.optBoolean("ok")) { onDone("Team logo set: " + l.s("title")); onClose() }
+                                            else { msg = e.s("error").ifBlank { "Could not set the logo." } }
+                                        } catch (ex: Exception) { msg = ex.message }
+                                        busy = false
+                                    }
+                                }.padding(8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally) {
+                                AsyncImage(model = l.s("image_url"), contentDescription = l.s("title"), contentScale = ContentScale.Fit,
+                                    modifier = Modifier.size(64.dp))
+                                Spacer(Modifier.height(4.dp))
+                                Text(l.s("title"), color = Color.White, fontSize = 11.sp, maxLines = 1)
+                                Text(if (owned) "OWNED - tap to use" else l.optInt("cost_ap").toString() + " AP",
+                                    color = if (owned) Color(0xFF8FF0B8) else (if (afford) Gold else Muted), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text(tier.uppercase(), color = tcol, fontSize = 9.sp)
+                            }
+                        }
                     }
                 }
             }
@@ -353,6 +416,104 @@ fun InvitesInboxScreen(onBack: () -> Unit) {
     }
 }
 
-internal fun parseIso(s: String): Long = runCatching {
-    java.time.OffsetDateTime.parse(s).toInstant().toEpochMilli()
-}.getOrDefault(0L)
+
+/** Squad Wars + district-wise squad leaderboard (squad_board / squad_war_* RPCs). */
+@Composable
+private fun SquadWarsBlock(mySquadId: String?, myRole: String?, onEvent: (String?) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var scopeIdx by remember { mutableIntStateOf(0) }
+    var tick by remember { mutableIntStateOf(0) }
+    var board by remember { mutableStateOf<JSONArray?>(null) }
+    var wars by remember { mutableStateOf<JSONArray?>(null) }
+    var warMsg by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(scopeIdx, tick) {
+        board = runCatching {
+            withContext(Dispatchers.IO) { Api.publicRpc("squad_board", JSONObject().put("p_scope", listOf("global", "state", "district")[scopeIdx])).optJSONArray("rows") }
+        }.getOrNull()
+        wars = runCatching {
+            withContext(Dispatchers.IO) { Api.publicRpc("wars_board", JSONObject()).optJSONArray("wars") }
+        }.getOrNull()
+    }
+    PanelCard {
+        Text("SQUAD WARS", color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        Text("Squad vs squad - the district board decides who rules.", color = Muted, fontSize = 12.sp)
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf("Global", "State", "District").forEachIndexed { i, l ->
+                val sel = scopeIdx == i
+                Box(Modifier.clip(RoundedCornerShape(8.dp)).background(if (sel) Gold else Color(0xFF120A24))
+                    .border(1.dp, if (sel) Gold else Look.cardBorder, RoundedCornerShape(8.dp))
+                    .clickable { scopeIdx = i }.padding(horizontal = 12.dp, vertical = 6.dp)) {
+                    Text(l, color = if (sel) Ink else Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        val b = board
+        if (b == null) Text("Loading squad board...", color = Muted, fontSize = 12.sp)
+        else if (b.length() == 0) Text(if (scopeIdx == 0) "No squads ranked yet - earn squad XP to open the board." else "No squads from this area ranked yet.", color = Muted, fontSize = 12.sp)
+        else (0 until b.length()).forEach { i ->
+            val q = b.getJSONObject(i)
+            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("#" + q.optInt("rank"), color = Gold, fontSize = 14.sp, fontWeight = FontWeight.Black, modifier = Modifier.width(36.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(q.s("name") + (q.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    Text(listOf(q.optInt("members").toString() + " members", "%,d XP".format(q.optInt("xp")), listOf(q.s("state"), q.s("district")).filter { it.isNotBlank() && it != "null" }.joinToString(" Â· ")).filter { it.isNotBlank() }.joinToString(" Â· "),
+                        color = Muted, fontSize = 11.sp)
+                }
+                if (mySquadId != null && myRole == "captain" && q.s("id") != mySquadId) {
+                    Text("War", color = Color(0xFFFF5252), fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(1.dp, Color(0xFFFF5252), RoundedCornerShape(8.dp))
+                            .clickable {
+                                scope.launch {
+                                    warMsg = null
+                                    try {
+                                        val r = withContext(Dispatchers.IO) { Api.authedRpc("squad_war_challenge", JSONObject().put("p_opponent", q.s("id"))) }
+                                        warMsg = if (r.optBoolean("ok")) "War challenge sent to " + q.s("name") else r.s("error").ifBlank { "Could not challenge." }
+                                        tick++
+                                    } catch (e: Exception) { warMsg = e.message }
+                                }
+                            }.padding(horizontal = 10.dp, vertical = 6.dp))
+                }
+            }
+        }
+        warMsg?.let { Text(it, color = Gold2, fontSize = 11.sp) }
+        val w = wars
+        if (w != null && w.length() > 0) {
+            Spacer(Modifier.height(8.dp))
+            Text("WARS", color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            (0 until w.length()).forEach { i ->
+                val x = w.getJSONObject(i)
+                Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(x.s("challenger") + "  vs  " + x.s("opponent"), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(x.s("status") + (x.s("winner").takeIf { it.isNotBlank() && it != "null" }?.let { " Â· winner: $it" } ?: "") +
+                            (x.s("scheduled_at").takeIf { it.isNotBlank() && it != "null" }?.let { " Â· " + dmTime(it) } ?: ""), color = Muted, fontSize = 11.sp)
+                    }
+                    if (x.s("status") == "pending") {
+                        Text("Accept", color = Color(0xFF4ADE80), fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clickable {
+                                scope.launch {
+                                    try {
+                                        val r = withContext(Dispatchers.IO) { Api.authedRpc("squad_war_respond", JSONObject().put("p_war", x.optLong("id")).put("p_accept", true)) }
+                                        warMsg = if (r.optBoolean("ok")) "War accepted" else r.s("error").ifBlank { "Could not respond." }
+                                        tick++
+                                    } catch (e: Exception) { warMsg = e.message }
+                                }
+                            }.padding(6.dp))
+                        Text("Decline", color = Color(0xFFFF5252), fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clickable {
+                                scope.launch {
+                                    try {
+                                        val r = withContext(Dispatchers.IO) { Api.authedRpc("squad_war_respond", JSONObject().put("p_war", x.optLong("id")).put("p_accept", false)) }
+                                        warMsg = if (r.optBoolean("ok")) "War declined" else r.s("error").ifBlank { "Could not respond." }
+                                        tick++
+                                    } catch (e: Exception) { warMsg = e.message }
+                                }
+                            }.padding(6.dp))
+                    }
+                }
+            }
+        }
+    }
+}
