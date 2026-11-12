@@ -13,3 +13,4 @@ body.look-liquid #xr-arena-home .xh-kicker{color:#885400}body.look-liquid #xr-ar
 
 /* Keep legacy injected fan polls available below the new homepage, not above its logo. */
 main{display:flex;flex-direction:column}main>#xr-arena-home{order:-1;width:100%;box-sizing:border-box}
+.xh-module .chat-gate{padding:24px 14px}.xh-module .chat-gate h3{color:var(--text)}.xh-module .chat-gate p{color:var(--muted)}.xh-module .gate-row{flex-wrap:wrap}.xh-module .gate-row input{min-width:0;max-width:100%;color:var(--text);background:var(--bg2);border:1px solid var(--line2)}
