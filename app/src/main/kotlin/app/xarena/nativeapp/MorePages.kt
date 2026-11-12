@@ -22,6 +22,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -218,7 +220,7 @@ fun LiveScreen(onBack: () -> Unit) {
                     if (live == null) Text("No stream is live right now. When XARENA goes live, the stream plays here inside the app.", color = Muted, fontSize = 13.sp)
                     else LiveStreamContent(yt, live)
                 } }
-                item { Text("UPCOMING MATCHES", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(14.dp)) }
+                item { Text("UP NEXT", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(14.dp)) }
                 if (matches.length() == 0) item { Text("No matches scheduled yet.", color = Muted, fontSize = 13.sp, modifier = Modifier.padding(horizontal = 16.dp)) }
                 items((0 until matches.length()).map { matches.getJSONObject(it) }) { m ->
                     SmallCard {
@@ -234,8 +236,119 @@ fun LiveScreen(onBack: () -> Unit) {
 }
 
 /* Live stream card content: embed + fullscreen entry, registered players and comments for the admin-connected tournament. */
+/* xr_live_overview cache honoring cache_seconds:30 and count_refresh_seconds:300. */
+object LiveOverviewCache {
+    private var cached: JSONObject? = null
+    private var fetchedAt = 0L
+    private var countsAt = 0L
+    suspend fun get(): JSONObject? {
+        val now = System.currentTimeMillis()
+        val c = cached
+        if (c != null && now - fetchedAt < 30000) return c
+        val fresh = runCatching { Api.liveOverview() }.getOrNull() ?: return c
+        if (c != null && now - countsAt < 300000) {
+            for (k in listOf("viewer_count","squads","poll","follow"))
+                if (c.has(k)) fresh.put(k, c.get(k))
+        } else countsAt = now
+        cached = fresh
+        fetchedAt = now
+        return fresh
+    }
+}
+
+@Composable
+fun LiveFollowRow(ov: JSONObject) {
+    val fo = ov.optJSONObject("follow") ?: return
+    val scope = rememberCoroutineScope()
+    var following by remember { mutableStateOf(fo.optBoolean("following")) }
+    var followers by remember { mutableIntStateOf(fo.optInt("followers")) }
+    Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(if (following) "FOLLOWING" else "FOLLOW", color = if (following) Muted else Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(if (following) Card else Gold).clickable {
+                val next = !following
+                following = next
+                followers += if (next) 1 else -1
+                scope.launch {
+                    val r = runCatching { Api.liveFollowSet(next) }.getOrNull()
+                    if (r == null || !r.optBoolean("ok")) {
+                        following = !next
+                        followers -= if (next) 1 else -1
+                    }
+                }
+            }.padding(horizontal = 14.dp, vertical = 7.dp))
+        if (followers > 0) Text(followers.toString() + (if (followers == 1) " follower" else " followers"), color = Muted, fontSize = 12.sp, modifier = Modifier.padding(start = 10.dp))
+    }
+}
+
+@Composable
+fun LivePollCard(ov: JSONObject) {
+    val poll = ov.optJSONObject("poll") ?: return
+    val scope = rememberCoroutineScope()
+    val pollId = poll.s("id")
+    val options = poll.optJSONArray("options") ?: return
+    var counts by remember { mutableStateOf(poll.optJSONArray("counts")) }
+    var myVote by remember { mutableStateOf(poll.optInt("my_vote", -1)) }
+    val closed = poll.s("status") == "closed" || runCatching { java.time.Instant.parse(poll.s("closes_at")).toEpochMilli() < System.currentTimeMillis() }.getOrDefault(false)
+    Column(Modifier.fillMaxWidth().padding(top = 8.dp).clip(RoundedCornerShape(10.dp)).border(1.dp, Gold.copy(alpha = .3f), RoundedCornerShape(10.dp)).padding(10.dp)) {
+        Text("LIVE POLL", color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text(poll.s("question"), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(vertical = 4.dp))
+        for (i in 0 until options.length()) {
+            val votes = counts?.optInt(i) ?: 0
+            val mine = myVote == i
+            Text((if (mine) "VOTED - " else "") + options.optString(i) + " - " + votes + (if (votes == 1) " vote" else " votes"),
+                color = if (mine) Gold else Color.White, fontSize = 13.sp,
+                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
+                    .clickable(enabled = !closed && myVote < 0) {
+                        scope.launch {
+                            val r = runCatching { Api.livePollVote(pollId, i) }.getOrNull()
+                            if (r != null && (r.optBoolean("ok") || r.optBoolean("already_voted"))) {
+                                myVote = i
+                                val r2 = runCatching { Api.liveOverview() }.getOrNull()
+                                r2?.optJSONObject("poll")?.let { np ->
+                                    np.optJSONArray("counts")?.let { counts = it }
+                                    if (!np.isNull("my_vote")) myVote = np.optInt("my_vote")
+                                }
+                            }
+                        }
+                    }.padding(vertical = 6.dp, horizontal = 8.dp))
+        }
+        if (closed) Text("Poll closed", color = Muted, fontSize = 11.sp)
+    }
+}
+
+@Composable
+fun LiveSquadsBlock(ov: JSONObject) {
+    val squads = ov.optJSONArray("squads")
+    if (squads == null || squads.length() == 0) return
+    Column(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        Text("SQUADS IN THIS MATCH", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        for (i in 0 until squads.length()) {
+            val sq = squads.getJSONObject(i)
+            Column(Modifier.fillMaxWidth().padding(vertical = 4.dp).clip(RoundedCornerShape(10.dp)).border(1.dp, Gold.copy(alpha = .3f), RoundedCornerShape(10.dp)).padding(8.dp)) {
+                Text(sq.s("name"), color = Gold2, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                if (sq.s("captain_name").isNotBlank()) Text("Captain: " + sq.s("captain_name"), color = Muted, fontSize = 12.sp)
+                val members = sq.optJSONArray("members")
+                if (members != null && members.length() > 0) Row(Modifier.padding(top = 4.dp)) {
+                    for (mi in 0 until members.length()) {
+                        val mem = members.getJSONObject(mi)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(end = 10.dp)) {
+                            val av = mem.s("avatar_url")
+                            if (av.isNotBlank()) AsyncImage(model = xrImageModel(LocalContext.current, av), contentDescription = mem.s("name"), modifier = Modifier.size(32.dp).clip(CircleShape), contentScale = ContentScale.Crop)
+                            else Box(Modifier.size(32.dp).clip(CircleShape).background(Card).border(1.dp, Gold.copy(alpha = .4f), CircleShape), contentAlignment = Alignment.Center) {
+                                Text(mem.s("name").firstOrNull()?.uppercase() ?: "?", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Text(mem.s("name"), color = Muted, fontSize = 10.sp, modifier = Modifier.padding(top = 2.dp))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun LiveStreamContent(yt: JSONArray, live: Pair<String, String>) {
+    val ctx = LocalContext.current
     Text("Live now", color = Color(0xFF22C55E), fontSize = 14.sp, fontWeight = FontWeight.Bold)
     if (live.second.isNotBlank()) Text(live.second, color = Color.White, fontSize = 13.sp)
     Spacer(Modifier.height(6.dp))
@@ -249,12 +362,42 @@ fun LiveStreamContent(yt: JSONArray, live: Pair<String, String>) {
     }
     if (fullscreen) LiveFullscreen(live.first) { fullscreen = false }
     Spacer(Modifier.height(6.dp))
-    Text("Open in YouTube", color = Muted, fontSize = 12.sp,
-        modifier = Modifier.clickable { openExternalUrl("https://youtu.be/" + live.first) }.padding(4.dp))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text("Open in YouTube", color = Muted, fontSize = 12.sp,
+            modifier = Modifier.clickable { openExternalUrl("https://youtu.be/" + live.first) }.padding(4.dp))
+        Spacer(Modifier.width(12.dp))
+        Text("Share", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+            modifier = Modifier.clickable {
+                val si = android.content.Intent(android.content.Intent.ACTION_SEND)
+                si.type = "text/plain"
+                si.putExtra(android.content.Intent.EXTRA_TEXT, "Watch XARENA live: https://youtu.be/" + live.first)
+                ctx.startActivity(android.content.Intent.createChooser(si, "Share stream"))
+            }.padding(4.dp))
+    }
+    Spacer(Modifier.height(6.dp))
+    var lovo by remember { mutableStateOf<JSONObject?>(null) }
+    LaunchedEffect(live.first) { lovo = LiveOverviewCache.get() }
+    val ov = lovo?.takeIf { it.optBoolean("ok") }
+    if (ov != null) {
+        val st = ov.optJSONObject("stream")
+        val startAt = st?.s("scheduled_start_at") ?: ""
+        if (startAt.isNotBlank()) {
+            val startMs = runCatching { java.time.Instant.parse(startAt).toEpochMilli() }.getOrDefault(0L)
+            if (startMs > System.currentTimeMillis()) {
+                Text("Stream starts " + dmTime(startAt), color = Muted, fontSize = 12.sp)
+                CountdownLine(startMs)
+            }
+        }
+        val vc = ov.opt("viewer_count")
+        if (vc is Number && vc.toInt() > 0) Text(vc.toInt().toString() + " in the live room", color = Muted, fontSize = 12.sp)
+        LiveFollowRow(ov)
+        LivePollCard(ov)
+        LiveSquadsBlock(ov)
+    }
     Spacer(Modifier.height(6.dp))
     val ytJson = runCatching { JSONObject(if (yt.length() > 0) yt.getJSONObject(0).s("value") else "") }.getOrNull()
-    LiveRoster(ytJson?.optString("tournament_id") ?: "")
-    LiveComments(ytJson?.optString("tournament_id") ?: "")
+    if ((ov?.optJSONArray("squads")?.length() ?: 0) == 0) LiveRoster(ytJson?.optString("tournament_id") ?: "")
+    LiveComments(ytJson?.optString("tournament_id") ?: "", ov?.optJSONObject("welcome_pin")?.s("body"))
 }
 
 /* DEBUG-ONLY fixture entry (adb am start --es fixture live): renders the Live tab stream section with a
@@ -307,7 +450,7 @@ fun LiveFullscreen(videoId: String, onClose: () -> Unit) {
    App-only: posts go to the XARENA tournament thread, never to YouTube. No match guessing.
    Owner live_thread flag OFF shows a clear disabled state, never fake comments. */
 @Composable
-fun LiveComments(tournamentId: String) {
+fun LiveComments(tournamentId: String, welcomePin: String? = null) {
     if (tournamentId.isBlank()) return
     var allowed by remember { mutableStateOf<Boolean?>(null) }
     LaunchedEffect(Unit) { allowed = runCatching { Flags.on("live_thread") }.getOrDefault(false) }
@@ -326,6 +469,10 @@ fun LiveComments(tournamentId: String) {
         Text("LIVE COMMENTS - app only, not YouTube", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         if (allowed != true) { Text("Comments are off for this stream right now.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 4.dp)); return@Column }
         if (!open) { Text("Comments are not available for this tournament yet.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 4.dp)); return@Column }
+        if (!welcomePin.isNullOrBlank()) Column(Modifier.fillMaxWidth().padding(vertical = 4.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, Gold.copy(alpha = .4f), RoundedCornerShape(8.dp)).padding(8.dp)) {
+            Text("XARENA", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(welcomePin, color = Color.White, fontSize = 12.sp)
+        }
         if (posts.length() == 0) Text("No messages yet - say something nice.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 4.dp))
         Column(Modifier.fillMaxWidth().heightIn(max = 220.dp).verticalScroll(rememberScrollState())) {
             for (i in posts.length() - 1 downTo 0) {
@@ -349,6 +496,19 @@ fun LiveComments(tournamentId: String) {
         msg?.let { Text(it, color = Gold2, fontSize = 11.sp) }
         var draft by remember { mutableStateOf("") }
         var sending by remember { mutableStateOf(false) }
+        Row(Modifier.fillMaxWidth().padding(top = 4.dp)) {
+            for (q in listOf("BOOYAH!", "GG WP")) {
+                Text(q, color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(end = 8.dp).clip(RoundedCornerShape(8.dp)).background(Gold).clickable(enabled = !sending) {
+                        sending = true
+                        scope.launch {
+                            val rr = runCatching { Api.authedRpc("xr_live_thread_post", JSONObject().put("p_tournament", tournamentId).put("p_body", q)) }.getOrNull()
+                            sending = false
+                            if (rr?.optBoolean("ok") == true) tick++ else msg = rr?.s("error") ?: "Could not send - check before retrying, it may have posted."
+                        }
+                    }.padding(horizontal = 12.dp, vertical = 6.dp))
+            }
+        }
         Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(draft, { draft = it.take(200) }, placeholder = { Text("Comment...") }, singleLine = true, modifier = Modifier.weight(1f))
             Spacer(Modifier.width(8.dp))
@@ -377,10 +537,10 @@ fun LiveRoster(tournamentId: String) {
     }
     val r = resp
     Column(Modifier.fillMaxWidth().padding(top = 6.dp)) {
-        Text("REGISTERED PLAYERS", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text("REGISTERED SQUADS", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         if (r == null || !r.optBoolean("ok")) { Text("The registered players list is not available yet.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 4.dp)); return@Column }
         val players = r.optJSONArray("players") ?: JSONArray()
-        if (players.length() == 0) Text("No registered players to show yet.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 4.dp))
+        if (players.length() == 0) Text("Registered squads will appear here.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(vertical = 4.dp))
         else Column(Modifier.fillMaxWidth().heightIn(max = 180.dp).verticalScroll(rememberScrollState())) {
             for (i in 0 until players.length()) {
                 val p = players.getJSONObject(i)
