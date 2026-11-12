@@ -32,6 +32,7 @@ import org.json.JSONObject
 /* ============ Clips (approved clip posts, same query as the site) ============ */
 @Composable
 fun ClipsScreen(onBack: () -> Unit) {
+    if (OpsShed("clips")) return
     Column(Modifier.fillMaxSize().background(Ink)) {
         PageHeader("Clips", "Approved clips from the community feed", onBack)
         LoadState2(0, { Api.publicGet("/rest/v1/feed_posts?kind=eq.clip&status=eq.approved&select=id,user_id,caption,media_path,created_at&order=created_at.desc&limit=30") }) { arr ->
@@ -50,7 +51,7 @@ fun ClipsScreen(onBack: () -> Unit) {
                                 if (playing) androidx.compose.ui.viewinterop.AndroidView(factory = { ctx ->
                                     android.widget.VideoView(ctx).apply { setVideoPath(url); setOnPreparedListener { it.start() } }
                                 }, modifier = Modifier.fillMaxSize())
-                                else Text("▶ Play", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                                else Text("â¶ Play", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold,
                                     modifier = Modifier.clip(RoundedCornerShape(10.dp)).background(Gold.copy(alpha = .35f)).clickable { playing = true }.padding(horizontal = 18.dp, vertical = 10.dp))
                             }
                         } else Text("Video opens in the feed.", color = Muted, fontSize = 12.sp)
@@ -164,7 +165,7 @@ fun TasksScreen(onBack: () -> Unit) {
                     var msg by remember { mutableStateOf<String?>(null) }
                     SmallCard {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(if (finished) "✅" else "🎯", fontSize = 18.sp)
+                            Text(if (finished) "â" else "ð¯", fontSize = 18.sp)
                             Spacer(Modifier.width(10.dp))
                             Column(Modifier.weight(1f)) {
                                 Text(t.s("title").ifBlank { t.s("name") }, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
@@ -437,7 +438,7 @@ fun ScrimsScreen(onBack: () -> Unit) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text(p.s("squad") + (p.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""), color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                                Text(listOf(p.s("day"), p.s("time")).filter { it.isNotBlank() }.joinToString(" · "), color = Color.White, fontSize = 13.sp)
+                                Text(listOf(p.s("day"), p.s("time")).filter { it.isNotBlank() }.joinToString(" Â· "), color = Color.White, fontSize = 13.sp)
                                 if (p.s("note").isNotBlank()) Text(p.s("note"), color = Muted, fontSize = 12.sp)
                             }
                             if (p.optBoolean("mine")) Text("Close", color = Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold,

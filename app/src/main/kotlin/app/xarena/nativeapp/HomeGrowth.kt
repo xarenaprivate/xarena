@@ -470,7 +470,7 @@ val av = p.s("avatar_url")
 val online = p.s("presence").let { it.equals("online", true) || it.equals("in_match", true) }
 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(58.dp).clickable { onOpenFeature("players") }) {
 Box {
-if (av.isNotBlank()) coil.compose.AsyncImage(model = xrImageModel(androidx.compose.ui.platform.LocalContext.current, av), contentDescription = name, modifier = Modifier.size(52.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Look.cardBg), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
+if (av.isNotBlank() && !Ops.textOnlyHome()) coil.compose.AsyncImage(model = xrImageModel(androidx.compose.ui.platform.LocalContext.current, av), contentDescription = name, modifier = Modifier.size(52.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Look.cardBg), contentScale = androidx.compose.ui.layout.ContentScale.Crop)
 else Box(Modifier.size(52.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Look.cardBg).border(1.dp, Gold.copy(alpha = .5f), androidx.compose.foundation.shape.CircleShape), contentAlignment = Alignment.Center) { Text(name.take(1).uppercase(), color = Gold, fontSize = 18.sp, fontWeight = FontWeight.Bold) }
 if (online) Box(Modifier.align(Alignment.BottomEnd).size(13.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(0xFF22C55E)).border(2.dp, Ink, androidx.compose.foundation.shape.CircleShape))
 }

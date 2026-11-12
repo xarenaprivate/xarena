@@ -187,7 +187,7 @@ class MainActivity : ComponentActivity() {
         runCatching { XPanelStore.sync(this) }
         setContent { XarenaApp() }
     }
-    override fun onResume() { super.onResume(); ShareLauncher.attach(this) }
+    override fun onResume() { super.onResume(); ShareLauncher.attach(this); kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) { Ops.refresh(force = true) } }
     override fun onDestroy() { ShareLauncher.detach(this); super.onDestroy() }
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
@@ -871,7 +871,7 @@ internal fun MoreOptionsContent(items: List<GridItem>, onOpen: (String) -> Unit,
                                     Text(entry.name, color = Color(0xFF15171A), fontSize = 18.sp)
                                     Text(entry.sub, color = Color(0xFF71757B), fontSize = 13.sp)
                                 }
-                                Text("›", color = Color(0xFF70747A), fontSize = 28.sp)
+                                Text("âº", color = Color(0xFF70747A), fontSize = 28.sp)
                             }
                         }
                     }
@@ -1274,7 +1274,7 @@ fun ProfileScreenClassic(onLogout: () -> Unit, onBack: (() -> Unit)? = null, onS
                     PanelCard {
                         Text(p?.s("ign").takeUnless { it.isNullOrBlank() || it == "null" } ?: p?.s("username") ?: "Player",
                             color = Gold2, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                        if (p?.optBoolean("verified") == true) Text("✓ Verified", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        if (p?.optBoolean("verified") == true) Text("â Verified", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         if (p != null) {
                             @Composable fun row(k: String, v: String?) { if (!v.isNullOrBlank() && v != "null") Text("$k: $v", color = Color.White, fontSize = 14.sp) }
                             row("Username", p.s("username"))

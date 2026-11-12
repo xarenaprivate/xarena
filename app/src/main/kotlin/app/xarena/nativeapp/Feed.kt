@@ -59,6 +59,7 @@ fun feedMediaUrl(p: JSONObject): String? {
 @Composable
 fun FeedScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
+    if (OpsShed("feed")) return
     var posts by remember { mutableStateOf<List<JSONObject>?>(null) }
     var err by remember { mutableStateOf<String?>(null) }
     var savedMode by remember { mutableStateOf(false) }
@@ -140,27 +141,27 @@ private fun PostCard(p: JSONObject, onChanged: () -> Unit) {
                             setOnPreparedListener { mp -> player = mp; mp.isLooping = true; mp.setVolume(0f, 0f); mp.start() }
                         }
                     }, modifier = Modifier.fillMaxSize(), onRelease = { v -> runCatching { v.stopPlayback() }; player = null })
-                    Text(if (muted) "🔇" else "🔊", color = Color.White, fontSize = 16.sp,
+                    Text(if (muted) "ð" else "ð", color = Color.White, fontSize = 16.sp,
                         modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp).clip(RoundedCornerShape(8.dp))
                             .background(Color(0x88000000)).clickable { muted = !muted }.padding(horizontal = 10.dp, vertical = 6.dp))
                 }
             } else {
-                AsyncImage(model = xrImageModel(androidx.compose.ui.platform.LocalContext.current, url), contentDescription = p.s("caption"), modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp).clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.Crop)
+                if (!Ops.textOnlyHome()) AsyncImage(model = xrImageModel(androidx.compose.ui.platform.LocalContext.current, url), contentDescription = p.s("caption"), modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp).clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.Crop)
             }
         }
         if (likes > 0) Text(likes.toString() + if (likes == 1) " like" else " likes", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 8.dp))
         Row(Modifier.padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(if (liked) "❤️" else "🤍", fontSize = 18.sp, modifier = Modifier.clickable {
+            Text(if (liked) "â¤ï¸" else "ð¤", fontSize = 18.sp, modifier = Modifier.clickable {
                 liked = !liked; likes += if (liked) 1 else -1
                 scope.launch { try { val r = Api.feedToggleLike(p.getLong("id")); if (r.has("liked")) { liked = r.getBoolean("liked"); likes = r.optInt("likes", likes) } } catch (e: Exception) { } }
             }.padding(4.dp))
             Spacer(Modifier.width(10.dp))
-            Text("💬 " + commentCount, fontSize = 15.sp, modifier = Modifier.clickable {
+            Text("ð¬ " + commentCount, fontSize = 15.sp, modifier = Modifier.clickable {
                 commentsOpen = !commentsOpen
                 if (commentsOpen && comments == null) scope.launch { comments = runCatching { Api.feedComments(p.getLong("id")) }.getOrNull() }
             }.padding(4.dp))
             Spacer(Modifier.width(10.dp))
-            Text(if (saved) "🔖" else "📑", fontSize = 15.sp, modifier = Modifier.clickable {
+            Text(if (saved) "ð" else "ð", fontSize = 15.sp, modifier = Modifier.clickable {
                 saved = !saved
                 scope.launch { try { val r = Api.feedToggleSave(p.getLong("id")); if (r.has("saved")) saved = r.getBoolean("saved") } catch (e: Exception) { } }
             }.padding(4.dp))
@@ -299,7 +300,7 @@ fun GallerySheet(selected: List<android.net.Uri>, onPick: (android.net.Uri) -> U
                             AsyncImage(model = item.uri, contentDescription = null, contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(6.dp)))
                             if (item.isVideo) {
-                                Text("▶ " + fmtDur(item.durationMs), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                                Text("â¶ " + fmtDur(item.durationMs), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold,
                                     modifier = Modifier.align(Alignment.BottomStart).padding(4.dp)
                                         .clip(RoundedCornerShape(5.dp)).background(Color(0x99000000)).padding(horizontal = 5.dp, vertical = 1.dp))
                             }

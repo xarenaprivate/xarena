@@ -43,6 +43,7 @@ private fun storyMediaUrl(st: JSONObject): String {
 @Composable
 fun StoriesScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
+    if (OpsShed("stories")) return
     var tick by remember { mutableIntStateOf(0) }
     var trays by remember { mutableStateOf<JSONArray?>(null) }
     var err by remember { mutableStateOf<String?>(null) }
