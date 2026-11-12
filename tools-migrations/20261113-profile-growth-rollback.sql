@@ -1,0 +1,1 @@
+BEGIN;UPDATE public.xr_profile_growth_settings SET enabled=false;DROP FUNCTION public.xr_profile_growth();DROP FUNCTION public.xr_profile_growth_admin(boolean);NOTIFY pgrst,'reload schema';COMMIT;
