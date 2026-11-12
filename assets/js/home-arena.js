@@ -1,7 +1,7 @@
-/* Reference-led Arena home. Read-only, real data; keeps theme and Classic home intact. */
+/* Arena-only home. Read-only real data, existing theme and feature controls preserved. */
 (function () {
 'use strict';
-var home=document.getElementById('xr-arena-home'),classic=document.getElementById('xh-classic');if(!home||!classic)return;
+var home=document.getElementById('xr-arena-home');if(!home)return;
 var api=window.xrApi,busy=false,loaded=false;
 function esc(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 var paths={home:'M3 10 12 3l9 7v11h-6v-7H9v7H3z',social:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M16 3a4 4 0 0 1 0 8M22 21v-2a4 4 0 0 0-3-3.87M13 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0',trophy:'M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4zM7 6H4v1c0 2 1 4 4 4M17 6h3v1c0 2-1 4-4 4',chat:'M21 11a8 8 0 0 1-8 8H5l-3 3V11a9 9 0 0 1 19 0zM7 10h10M7 14h7',profile:'M20 21a8 8 0 0 0-16 0M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0',play:'m9 5 12 7-12 7z',swords:'m4 3 14 14M4 21l4-4M3 16l5 5M20 3 6 17M16 21l4-4M16 3h5v5',clock:'M12 8v5l3 2M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',image:'M3 3h18v18H3zM3 17l6-6 5 5 3-3 4 4M8 7h.01'};
@@ -17,9 +17,8 @@ function loadFriends(){return api.user().then(function(u){if(!u){state('xh-frien
 function loadChat(){return api.get('chat_messages','?room=eq.general&select=handle,body,created_at&order=id.desc&limit=2').then(function(rows){if(!Array.isArray(rows))throw Error();if(!rows.length){state('xh-chat','The lobby is quiet','<a href="chat.html">Start a conversation</a> in World Chat.','chat');return;}document.getElementById('xh-chat').innerHTML='<div class="xh-chat">'+rows.map(function(p){return '<article class="xh-chat-item"><strong>'+esc(p.handle)+'</strong><p>'+esc(p.body)+'</p><time>'+esc(when(p.created_at))+'</time></article>';}).join('')+'</div>';}).catch(function(){state('xh-chat','Chat preview unavailable','<a href="chat.html">Open World Chat</a> for the live conversation.','chat');});}
 function loadSponsors(){return api.uRpc('banner_list_public',{}).then(function(r){var banners=(r&&r.banners)||[];if(banners.length)return banners.map(function(b){return {name:b.title,image:b.image};});return api.get('sponsors_public','?select=*&limit=4').then(function(rows){return rows.map(function(p){return {name:p.name,image:p.image_url};});});}).then(function(rows){rows=rows.filter(function(b){return safeMedia(b.image);}).slice(0,4);var sec=document.getElementById('xh-sponsors');if(!rows.length){sec.hidden=true;return;}sec.hidden=false;document.getElementById('xh-posters').innerHTML='<div class="xh-grid">'+rows.map(function(b){return '<a class="xh-card" href="sponsors.html"><img src="'+esc(safeMedia(b.image))+'" alt="'+esc(b.name||'Approved sponsor poster')+'" loading="lazy"><p>'+esc(b.name||'XARENA partner')+'</p></a>';}).join('')+'</div>';}).catch(function(){document.getElementById('xh-sponsors').hidden=true;});}
 function refresh(){if(busy)return;busy=true;var button=document.getElementById('xh-refresh');button.disabled=true;button.textContent='Checking...';Promise.all([loadMatch(),loadEvents(),loadHighlights(),loadFriends(),loadChat(),loadSponsors()]).finally(function(){loaded=true;busy=false;button.disabled=false;button.textContent='Refresh';document.getElementById('xh-checked').textContent='Last refresh '+when(new Date().toISOString())+' | No estimated viewer counts';});}
-function layout(value){var isArena=value==='arena';home.hidden=!isArena;classic.hidden=isArena;document.querySelectorAll('[data-xh-layout]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.xhLayout===value));});try{localStorage.setItem('xr_home_layout',value);}catch(e){}if(isArena&&!loaded)refresh();}
-document.querySelectorAll('[data-xh-layout]').forEach(function(b){b.addEventListener('click',function(){layout(b.dataset.xhLayout);});});
 document.getElementById('xh-refresh').addEventListener('click',refresh);
-var choice='arena';try{if(localStorage.getItem('xr_home_layout')==='classic')choice='classic';}catch(e){}layout(choice);
+try{localStorage.removeItem('xr_home_layout');}catch(e){}
+refresh();
 window.addEventListener('xr-auth',function(){if(!home.hidden)loadFriends();});
 })();
