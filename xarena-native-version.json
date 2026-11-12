@@ -1,9 +1,9 @@
 {
-  "versionCode": 90,
-  "versionName": "0.17.45-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.45-native/xarena-native-v0.17.45.apk",
-  "sha256": "bce0b2a34508d791dbdabcfa876d4bbd188645662c58af778ee91a43c162c77d",
+  "versionCode": 91,
+  "versionName": "0.17.46-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.46-native/xarena-native-v0.17.46.apk",
+  "sha256": "a8549153d516f9d27ce3456920ba9d3d007f7b1b6d2d91f20bee97e86119acd7",
   "apkBytes": 29680143,
-  "notes": "Live renovation: overview wiring (countdown/follow/polls/squads/welcome pin), BOOYAH+GG WP quick comments, Share, UP NEXT",
+  "notes": "Profile renovation: real level/XP progress, positive verify CTA (real flow, no coin claims), dark-wired growth reads (badges, clips, check-in AP, completeness), honest zero states.",
   "patches": []
 }
