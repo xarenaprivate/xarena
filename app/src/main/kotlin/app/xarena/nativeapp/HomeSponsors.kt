@@ -89,7 +89,7 @@ internal fun SponsorCarouselContent(banners: List<JSONObject>) {
                         runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
                     }) {
                     AsyncImage(model = xrImageModel(ctx, b.s("image")), contentDescription = b.s("title").ifBlank { "Sponsor poster" },
-                        modifier = Modifier.fillMaxSize().background(Ink), contentScale = ContentScale.Fit)
+                        modifier = Modifier.fillMaxSize().background(Ink), contentScale = ContentScale.Crop)
                     if (b.s("title").isNotBlank()) Text(b.s("title"), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold,
                         modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth().background(Color(0x73000000)).padding(horizontal = 12.dp, vertical = 6.dp))
                 }
