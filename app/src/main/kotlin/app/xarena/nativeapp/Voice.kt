@@ -21,6 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -146,7 +149,7 @@ private class PhoenixChannel(
 
 internal fun extractPresences(payload: JSONObject): JSONObject = payload.optJSONObject("presences") ?: payload
 
-private data class VoicePeer(val id: String, val handle: String, val muted: Boolean, val conn: String = "")
+private data class VoicePeer(val id: String, val handle: String, val muted: Boolean, val listener: Boolean = false, val conn: String = "")
 
 private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (String) -> Unit) {
     private val myId = UUID.randomUUID().toString()
@@ -161,8 +164,11 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
     private val roster = HashMap<String, VoicePeer>()
     var muted = false
         private set
+    var listenOnly = false
+        private set
 
-    fun join(handle: String, room: String = "general") {
+    fun join(handle: String, room: String = "general", listenOnlyMode: Boolean = false) {
+        listenOnly = listenOnlyMode
         if (handle.isNotBlank()) myHandle = handle
         try {
             val am = Api.ctx.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
@@ -180,11 +186,13 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
             mandatory.add(org.webrtc.MediaConstraints.KeyValuePair("googEchoCancellation", "true"))
             mandatory.add(org.webrtc.MediaConstraints.KeyValuePair("googNoiseSuppression", "true"))
         }
-        audioSource = factory!!.createAudioSource(audioConstraints)
-        audioTrack = factory!!.createAudioTrack("voice-mic", audioSource)
+        if (!listenOnly) {
+            audioSource = factory!!.createAudioSource(audioConstraints)
+            audioTrack = factory!!.createAudioTrack("voice-mic", audioSource)
+        }
         val voiceChannel = if (room != "general") "realtime:voice:" + room else "realtime:voice:arena-lobby"
         chan = PhoenixChannel(voiceChannel, myId,
-            onJoined = { chan?.track(JSONObject().put("handle", myHandle).put("muted", false).put("at", System.currentTimeMillis())) },
+            onJoined = { chan?.track(JSONObject().put("handle", myHandle).put("muted", listenOnly).put("listener", listenOnly).put("at", System.currentTimeMillis())) },
             onJoins = { j -> main { onJoinsUpdate(j) } },
             onLeaves = { l -> main { onLeavesUpdate(l) } },
             onBroadcast = { p -> onSignal(p) },
@@ -208,7 +216,7 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
     private fun onJoinsUpdate(joined: Map<String, JSONObject>) {
         for ((id, meta) in joined) {
             if (id == myId) continue
-            roster[id] = VoicePeer(id, meta.s("handle").ifBlank { id.take(6) }, meta.optBoolean("muted"))
+            roster[id] = VoicePeer(id, meta.s("handle").ifBlank { id.take(6) }, meta.optBoolean("muted"), meta.optBoolean("listener"))
             if (pcs[id] == null && myId < id) offerTo(id)
         }
         onPeers(roster.values.sortedBy { it.handle })
@@ -303,15 +311,16 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
             override fun onDataChannel(dc: org.webrtc.DataChannel?) {}
             override fun onRenegotiationNeeded() {}
         })!!
-        pc.addTrack(audioTrack, listOf("voice"))
+        audioTrack?.let { pc.addTrack(it, listOf("voice")) }
         pcs[id] = pc
         return pc
     }
 
     fun toggleMute(): Boolean {
+        if (listenOnly || audioTrack == null) return true
         muted = !muted
         audioTrack?.setEnabled(!muted)
-        chan?.track(JSONObject().put("handle", myHandle).put("muted", muted).put("at", System.currentTimeMillis()))
+        chan?.track(JSONObject().put("handle", myHandle).put("muted", muted).put("listener", false).put("at", System.currentTimeMillis()))
         return muted
     }
 
@@ -338,6 +347,114 @@ private open class SimpleObserver : org.webrtc.SdpObserver {
 private open class SimpleSdpObserver : SimpleObserver()
 
 @Composable
+/* Voice lobby control plane (xr_voice_* RPCs): authoritative lobby presence, seats,
+   waitlist, hand raise, history and polls. Reads fail soft (feature hidden) so a
+   backend where the control plane is still staged keeps today's behavior. Server
+   join is only reported AFTER the audio engine is in the room - no ghost lobby
+   presence - and a waitlist answer immediately drops the audio again. p_speaking
+   stays false until real client VAD exists; nothing here claims private audio. */
+private data class VoiceLobbyInfo(
+    val enabled: Boolean,
+    val roomTitle: String,
+    val roomTopic: String,
+    val seatCap: Int,
+    val joinedCount: Int,
+    val visibleCount: Int,
+    val speakingCount: Int,
+    val sneakPeek: Boolean,
+    val secretAudio: Boolean,
+    val participants: List<VoiceLobbyPeer>)
+
+private data class VoiceLobbyPeer(
+    val id: String,
+    val name: String,
+    val avatar: String,
+    val speaking: Boolean,
+    val handRaised: Boolean)
+
+private data class VoiceLobbySession(val roomId: String, val sessionId: String)
+
+private data class VoiceLobbyPoll(
+    val id: String,
+    val question: String,
+    val options: List<String>,
+    val counts: List<Int>,
+    val closesAt: String,
+    val myChoice: Int)
+
+private fun rpcObj(name: String, body: JSONObject): JSONObject? = runCatching {
+    val txt = Api.authed("POST", "/rest/v1/rpc/" + name, body)
+    runCatching { JSONObject(txt) }.getOrElse { JSONArray(txt).optJSONObject(0) }
+}.getOrNull()
+
+private fun voiceLobbyPresence(): VoiceLobbyInfo? {
+    val o = rpcObj("xr_voice_lobby_presence", JSONObject()) ?: return null
+    if (!o.optBoolean("ok", true)) return null
+    val room = o.optJSONObject("room")
+    val parts = ArrayList<VoiceLobbyPeer>()
+    val arr = o.optJSONArray("participants")
+    if (arr != null) {
+        for (pi in 0 until arr.length()) {
+            val p = arr.optJSONObject(pi) ?: continue
+            parts.add(VoiceLobbyPeer(
+                id = p.s("id"),
+                name = p.s("username").ifBlank { p.s("ign") }.ifBlank { "Player" },
+                avatar = p.s("avatar_url"),
+                speaking = p.optBoolean("speaking"),
+                handRaised = p.optBoolean("hand_raised")))
+        }
+    }
+    return VoiceLobbyInfo(
+        enabled = o.optBoolean("enabled"),
+        roomTitle = room?.s("title") ?: "",
+        roomTopic = room?.s("topic") ?: "",
+        seatCap = room?.optInt("seat_cap") ?: 0,
+        joinedCount = o.optInt("joined_count"),
+        visibleCount = o.optInt("visible_count"),
+        speakingCount = o.optInt("speaking_count"),
+        sneakPeek = o.optBoolean("sneak_peek_available"),
+        secretAudio = o.optBoolean("secret_audio_available"),
+        participants = parts)
+}
+
+private fun voiceLobbyJoin(): JSONObject? = rpcObj("xr_voice_join", JSONObject())
+
+/* null = transport problem (tolerate, next tick retries); otherwise the server error
+   code such as session_expired or room_closed. */
+private fun voiceLobbyHeartbeatError(roomId: String, sessionId: String): String? {
+    val o = rpcObj("xr_voice_heartbeat",
+        JSONObject().put("p_room", roomId).put("p_session", sessionId).put("p_speaking", false)) ?: return null
+    if (o.optBoolean("ok")) return null
+    return o.s("error").ifBlank { "unknown" }
+}
+
+private fun voiceLobbyLeave(roomId: String, sessionId: String) {
+    runCatching { Api.authed("POST", "/rest/v1/rpc/xr_voice_leave",
+        JSONObject().put("p_room", roomId).put("p_session", sessionId)) }
+}
+
+private fun voiceLobbyHandRaise(on: Boolean): Boolean {
+    val o = rpcObj("xr_voice_hand_raise", JSONObject().put("p_on", on))
+    return o != null && o.optBoolean("ok")
+}
+
+private fun voiceLobbyHistory(): JSONObject? = rpcObj("xr_voice_history", JSONObject())
+
+private fun voiceLobbyPollResults(roomId: String): VoiceLobbyPoll? {
+    val o = rpcObj("xr_voice_poll_results", JSONObject().put("p_room", roomId)) ?: return null
+    val p = o.optJSONObject("poll") ?: return null
+    val opts = ArrayList<String>(); val counts = ArrayList<Int>()
+    val oa = p.optJSONArray("options"); val ca = p.optJSONArray("counts")
+    if (oa != null) for (oi in 0 until oa.length()) opts.add(oa.optString(oi))
+    if (ca != null) for (ci in 0 until ca.length()) counts.add(ca.optInt(ci))
+    return VoiceLobbyPoll(p.s("id"), p.s("question"), opts, counts, p.s("closes_at"), p.optInt("my_choice", -1))
+}
+
+private fun voiceLobbyPollVote(pollId: String, choice: Int): Boolean {
+    val o = rpcObj("xr_voice_poll_vote", JSONObject().put("p_poll", pollId).put("p_choice", choice))
+    return o != null && (o.optBoolean("ok") || o.optBoolean("already_voted"))
+}
+
 fun VoiceScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     var engine by remember { mutableStateOf<VoiceEngine?>(null) }
@@ -349,17 +466,116 @@ fun VoiceScreen(onBack: () -> Unit) {
         androidx.core.content.ContextCompat.checkSelfPermission(Api.ctx, Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED) }
     val micLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { micGranted = it }
     var err by remember { mutableStateOf<String?>(null) }
+    var lobby by remember { mutableStateOf<VoiceLobbyInfo?>(null) }
+    var lobbyChecked by remember { mutableStateOf(false) }
+    var lobbySession by remember { mutableStateOf<VoiceLobbySession?>(null) }
+    var waitlistRank by remember { mutableStateOf(0) }
+    var handRaised by remember { mutableStateOf(false) }
+    var lobbyPoll by remember { mutableStateOf<VoiceLobbyPoll?>(null) }
+    var nextRoomLine by remember { mutableStateOf<String?>(null) }
+    var lastRoomLine by remember { mutableStateOf<String?>(null) }
 
-    DisposableEffect(Unit) { onDispose { engine?.leave() } }
+    DisposableEffect(Unit) { onDispose {
+        engine?.leave()
+        val sess = lobbySession
+        if (sess != null) Thread { voiceLobbyLeave(sess.roomId, sess.sessionId) }.start()
+    } }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            val snap = withContext(Dispatchers.IO) {
+                val info = voiceLobbyPresence()
+                var nxt: String? = null; var lst: String? = null
+                if (info?.enabled == true) {
+                    val h = voiceLobbyHistory()
+                    if (h != null && h.optBoolean("ok", true)) {
+                        val nr = h.optJSONObject("next_room"); val lr = h.optJSONObject("last_room")
+                        if (nr != null) nxt = "Next lobby: " + nr.s("title") + " - starts " + nr.s("starts_at").take(16).replace('T', ' ')
+                        if (lr != null) lst = "Last lobby: " + lr.s("title") + " - peak " + lr.optInt("peak_count")
+                    }
+                }
+                Triple(info, nxt, lst)
+            }
+            lobby = snap.first; lobbyChecked = true
+            nextRoomLine = snap.second; lastRoomLine = snap.third
+            delay(45_000)
+        }
+    }
+
+    LaunchedEffect(state) {
+        if (state == "joined" && lobbySession == null && lobby?.enabled == true) {
+            val res = withContext(Dispatchers.IO) { voiceLobbyJoin() }
+            if (res != null && res.optBoolean("ok")) {
+                val sid = res.s("session_id")
+                if (res.s("state") == "joined" && sid.isNotBlank()) {
+                    lobbySession = VoiceLobbySession(res.s("room_id"), sid)
+                } else if (res.s("state") == "waitlisted") {
+                    waitlistRank = res.optInt("rank", 1)
+                    engine?.leave(); engine = null; peers = emptyList(); state = "idle"; muted = false
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(lobbySession) {
+        val sess = lobbySession ?: return@LaunchedEffect
+        while (true) {
+            delay(30_000)
+            val hbErr = withContext(Dispatchers.IO) { voiceLobbyHeartbeatError(sess.roomId, sess.sessionId) }
+            if (hbErr == "session_expired" || hbErr == "room_closed") {
+                lobbySession = null
+                engine?.leave(); engine = null; peers = emptyList(); state = "idle"; muted = false
+                err = "Your lobby session ended - join again to re-enter."
+                break
+            }
+            val p = withContext(Dispatchers.IO) { voiceLobbyPollResults(sess.roomId) }
+            lobbyPoll = p
+        }
+    }
 
     Column(Modifier.fillMaxSize().background(Ink)) {
         PageHeader("Voice Lobby", "Real peer-to-peer voice - one open room", onBack)
         Column(Modifier.padding(16.dp)) {
             if (engine == null) {
-                Text("Talk live with everyone in the lobby. Audio goes device to device; nothing is recorded.", color = Muted, fontSize = 13.sp)
+                Text("One open room. Join to talk, or just listen - no mic needed to listen. Audio goes device to device; nothing is recorded.", color = Muted, fontSize = 13.sp)
+                if (lobbyChecked && lobby?.enabled == true) {
+                    Spacer(Modifier.height(12.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(8.dp).clip(CircleShape).background(Color(0xFF22C55E)))
+                        Spacer(Modifier.width(6.dp))
+                        Text("LIVE NOW - " + lobby!!.joinedCount + " inside" + (if (lobby!!.speakingCount > 0) ", " + lobby!!.speakingCount + " speaking" else ""), color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                    if (lobby!!.roomTopic.isNotBlank()) Text("Topic: " + lobby!!.roomTopic, color = Color.White, fontSize = 13.sp)
+                    if (lobby!!.joinedCount == 0) Text("No one inside right now - be the first in.", color = Muted, fontSize = 12.sp)
+                    if (lobby!!.participants.isNotEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            lobby!!.participants.take(6).forEach { pp ->
+                                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(end = 10.dp)) {
+                                    Box(Modifier.size(34.dp).clip(CircleShape).background(Look.cardBorder), contentAlignment = Alignment.Center) {
+                                        if (pp.avatar.isNotBlank()) {
+                                            AsyncImage(model = xrImageModel(pp.avatar), contentDescription = pp.name, modifier = Modifier.fillMaxSize().clip(CircleShape), contentScale = ContentScale.Crop)
+                                        } else {
+                                            Text(pp.name.firstOrNull()?.uppercase() ?: "P", color = Gold2, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                    Text(if (pp.handRaised) "hand up" else pp.name.take(8), color = Muted, fontSize = 10.sp, maxLines = 1)
+                                }
+                            }
+                            if (lobby!!.joinedCount > lobby!!.participants.size) {
+                                Text("+" + (lobby!!.joinedCount - lobby!!.participants.size) + " more", color = Muted, fontSize = 11.sp)
+                            }
+                        }
+                    }
+                    nextRoomLine?.let { Text(it, color = Muted, fontSize = 12.sp) }
+                    lastRoomLine?.let { Text(it, color = Muted, fontSize = 12.sp) }
+                }
+                if (waitlistRank > 0) {
+                    Spacer(Modifier.height(12.dp))
+                    Text("The lobby is full right now - you are #" + waitlistRank + " in line. A seat opens when someone leaves; tap Join Voice to try again.", color = Gold2, fontSize = 13.sp)
+                }
                 Spacer(Modifier.height(14.dp))
-                GoldButton("JOIN VOICE") {
-                    if (!micGranted) { micLauncher.launch(Manifest.permission.RECORD_AUDIO); return@GoldButton }
+                val startJoin: (Boolean) -> Unit = { listenOnlyMode ->
                     val e = VoiceEngine(onPeers = { peers = it }, onState = { state = it })
                     engine = e
                     scope.launch(Dispatchers.IO) {
@@ -367,23 +583,77 @@ fun VoiceScreen(onBack: () -> Unit) {
                             val h = runCatching { Api.myProfile()?.s("username") ?: "" }.getOrDefault("")
                             val (room, rl) = runCatching { Api.chatMyRoom() }.getOrDefault("general" to "General")
                             lobbyLabel = rl
-                            e.join(h, room)
+                            e.join(h, room, listenOnlyMode)
+                            if (listenOnlyMode) { muted = true }
                         } catch (ex: Throwable) { runCatching { e.leave() }; err = "Voice unavailable on this device right now - the rest of the app is unaffected."; engine = null; state = "idle" }
                     }
                 }
-                if (!micGranted) Text("Microphone permission is needed - Android will ask.", color = Muted, fontSize = 12.sp)
+                GoldButton("JOIN VOICE") {
+                    if (!micGranted) { micLauncher.launch(Manifest.permission.RECORD_AUDIO); return@GoldButton }
+                    startJoin(false)
+                }
+                Spacer(Modifier.height(10.dp))
+                Text("LISTEN ONLY - NO MIC NEEDED", color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, Gold, RoundedCornerShape(10.dp))
+                        .clickable { startJoin(true) }
+                        .padding(horizontal = 14.dp, vertical = 10.dp))
+                if (!micGranted) Text("Just want to listen? Tap LISTEN ONLY - no mic needed.", color = Muted, fontSize = 12.sp)
                 err?.let { Text(it, color = ErrRed, fontSize = 13.sp) }
             } else {
                 Text(state.uppercase(), color = if (state == "joined") Color(0xFF22C55E) else Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Text("Lobby: " + lobbyLabel, color = Muted, fontSize = 11.sp)
                 Spacer(Modifier.height(10.dp))
-                Row {
+                val eng = engine
+                if (eng != null && eng.listenOnly) {
+                    Text("LISTENING - MIC OFF", color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text("To talk, leave and rejoin with Join Voice.", color = Muted, fontSize = 12.sp)
+                    Spacer(Modifier.height(10.dp))
+                } else {
                     GoldButton(if (muted) "UNMUTE" else "MUTE") { muted = engine!!.toggleMute() }
-                    Spacer(Modifier.width(10.dp))
-                    Text("LEAVE", color = ErrRed, fontSize = 13.sp, fontWeight = FontWeight.Bold,
-                        modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, ErrRed, RoundedCornerShape(10.dp))
-                            .clickable { engine?.leave(); engine = null; peers = emptyList(); state = "idle" }
-                            .padding(horizontal = 18.dp, vertical = 11.dp))
+                    Spacer(Modifier.height(10.dp))
+                }
+                if (lobbySession != null) {
+                    Text(if (handRaised) "LOWER HAND" else "RAISE HAND", color = if (handRaised) Muted else Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.clip(RoundedCornerShape(10.dp)).border(1.dp, if (handRaised) Muted else Gold2, RoundedCornerShape(10.dp))
+                            .clickable {
+                                val next = !handRaised
+                                scope.launch(Dispatchers.IO) { if (voiceLobbyHandRaise(next)) { handRaised = next } }
+                            }
+                            .padding(horizontal = 14.dp, vertical = 10.dp))
+                    if (handRaised) Text("Hand raised - the room can see you want to talk.", color = Gold2, fontSize = 12.sp)
+                    Spacer(Modifier.height(10.dp))
+                }
+                lobbyPoll?.let { pl ->
+                    Spacer(Modifier.height(12.dp))
+                    Text("POLL", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(pl.question, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(6.dp))
+                    pl.options.forEachIndexed { idx, opt ->
+                        val voted = pl.myChoice >= 0
+                        val mine = pl.myChoice == idx
+                        val count = pl.counts.getOrElse(idx) { 0 }
+                        Text((if (mine) "Voted: " else "") + opt + (if (voted) " - " + count + (if (count == 1) " vote" else " votes") else ""),
+                            color = if (mine) Gold2 else Color.White, fontSize = 13.sp,
+                            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+                                .border(1.dp, if (mine) Gold else Look.cardBorder, RoundedCornerShape(10.dp))
+                                .clickable(enabled = !voted) {
+                                    val rid = lobbySession?.roomId ?: return@clickable
+                                    scope.launch(Dispatchers.IO) {
+                                        if (voiceLobbyPollVote(pl.id, idx)) {
+                                            lobbyPoll = voiceLobbyPollResults(rid)
+                                        }
+                                    }
+                                }
+                                .padding(horizontal = 12.dp, vertical = 10.dp))
+                        Spacer(Modifier.height(6.dp))
+                    }
+                }
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text("LEAVE", color = ErrRed, fontSize = 14.sp, fontWeight = FontWeight.Bold,
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).border(1.dp, ErrRed, RoundedCornerShape(12.dp))
+                            .clickable { val sess = lobbySession; engine?.leave(); engine = null; peers = emptyList(); state = "idle"; lobbySession = null; handRaised = false
+                                if (sess != null) scope.launch(Dispatchers.IO) { voiceLobbyLeave(sess.roomId, sess.sessionId) } }
+                            .padding(vertical = 14.dp))
                 }
                 Spacer(Modifier.height(14.dp))
                 Text("IN THE LOBBY (" + (peers.size + 1) + ")", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
@@ -397,7 +667,7 @@ fun VoiceScreen(onBack: () -> Unit) {
                         Spacer(Modifier.width(10.dp))
                         Text(p.handle, color = Color.White, fontSize = 15.sp, modifier = Modifier.weight(1f))
                         Column(horizontalAlignment = Alignment.End) {
-                            Text(if (p.muted) "muted" else "● live", color = if (p.muted) Muted else Color(0xFF22C55E), fontSize = 12.sp)
+                            Text(if (p.listener) "listening" else if (p.muted) "muted" else "● live", color = if (p.listener) Gold2 else if (p.muted) Muted else Color(0xFF22C55E), fontSize = 12.sp)
                             if (p.conn.isNotBlank()) Text(p.conn, color = if (p.conn == "connected") Color(0xFF22C55E) else if (p.conn == "failed") ErrRed else Muted, fontSize = 10.sp)
                         }
                     }
