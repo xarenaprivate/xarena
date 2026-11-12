@@ -1,6 +1,6 @@
 # Own-profile IGN and Free Fire UID editing
 
-Deployed server-side November 12, 2026. Available from **November 13, 2026, 04:00 IST**, which is November 12, 22:30 UTC. The database gate applies even if a client calls the endpoint early. Native UI release is separate.
+Deployed server-side November 12, 2026. **Open now**, following the owner's November 12 evening override of the original 4 AM release. The forward migration `20261112-profile-identity-open-now.sql` advances the private gate without changing any cooldown. Native UI release is separate.
 
 ## Auth and calls
 
@@ -79,6 +79,6 @@ Other errors: `unauthorized`, `account_restricted`, `not_open` (includes `opens_
 
 The migration is transactional and requests PostgREST schema reload. Pre-deploy and post-deploy rollback tests cover release gating, input validation, both-field update, exact interval, boundary behavior, no-op retry, UID reverification, IGN-only verification preservation, legacy/direct bypasses, banned accounts, other-account RLS and private-table privileges. All existing profile rows were unchanged after deployment and rollback tests. No test identity was committed.
 
-The fixture suite intentionally uses transactions and rolls everything back. It temporarily moves the release gate inside the test transaction only. It must be run before the release time unless its pre-release assertions are adapted. This is not a multi-session load/stress test or native UI end-to-end test.
+The fixture suite intentionally uses transactions and rolls everything back. It temporarily moves the release gate inside the test transaction only. It temporarily restores a future release time inside that same rollback transaction to test pre-release assertions. This is not a multi-session load/stress test or native UI end-to-end test.
 
 Rollback: run `20261112-profile-identity-rollback.sql`. It removes new endpoints/trigger and restores the original `complete_profile` and `profiles_guard` definitions, including the old verified UID lock. Private timing tables are intentionally retained so restoring the feature later cannot erase cooldown history. Rollback does not undo player identity changes or restore verification badges. Do not run the initial CREATE migration again over existing tables; use a reviewed forward migration to re-enable.

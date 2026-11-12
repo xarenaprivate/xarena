@@ -1,4 +1,5 @@
 BEGIN;
+UPDATE public.xr_profile_identity_config SET opens_at='2026-11-13 04:00:00+05:30';
 DO $test$
 DECLARE a uuid;b uuid;j jsonb;t timestamptz;before_other jsonb;before_fields jsonb;u_name text;opens timestamptz;
 BEGIN
