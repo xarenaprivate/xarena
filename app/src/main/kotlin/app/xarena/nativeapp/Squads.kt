@@ -106,6 +106,19 @@ fun SquadsScreen(onBack: (() -> Unit)? = null) {
                 if (d.mySquadId != null && d.myRole == "captain") item {
                     CaptainManageCard(d.mySquadId!!) { notice = it; nonce++ }
                 }
+                if (d.mySquadId != null && d.myRole == "captain") item {
+                    var logoOpen by remember { mutableStateOf(false) }
+                    PanelCard {
+                        Text("TEAM LOGO MAKER", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("Design a custom logo for your squad - free, captain only.", color = Muted, fontSize = 12.sp)
+                        Spacer(Modifier.height(6.dp))
+                        GoldButton("OPEN LOGO MAKER") { logoOpen = true }
+                    }
+                    if (logoOpen) {
+                        val mineName = (0 until d.squads.length()).map { d.squads.getJSONObject(it) }.firstOrNull { it.s("id") == d.mySquadId }?.s("name") ?: ""
+                        SquadLogoMakerSheet(d.mySquadId!!, mineName, onDone = { notice = it; nonce++; logoOpen = false }, onClose = { logoOpen = false })
+                    }
+                }
                 if (d.invites.length() > 0) item {
                     PanelCard {
                         Text("Squad invites", color = Gold, fontWeight = FontWeight.Bold)
