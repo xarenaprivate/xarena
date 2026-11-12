@@ -89,6 +89,9 @@ private fun MatchCard(m: JSONObject, ctx: android.content.Context, scope: kotlin
     var proofOpen by remember { mutableStateOf(false) }
     var reportOpen by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
+    var slotText by remember { mutableStateOf<String?>(null) }
+    var pauseMsg by remember { mutableStateOf<String?>(null) }
+    var pauseBusy by remember { mutableStateOf(false) }
 
     LaunchedEffect(mid) {
         try {
@@ -101,6 +104,16 @@ private fun MatchCard(m: JSONObject, ctx: android.content.Context, scope: kotlin
         } catch (e: Exception) { }
     }
 
+    LaunchedEffect(mid) {
+        try {
+            val sl = Api.publicRpc("xr_slot_list", JSONObject().put("p_tournament", m.s("tournament_id")))
+            if (sl.optBoolean("ok")) {
+                val reg = sl.optInt("registered", -1); val cap = sl.optInt("capacity", 0)
+                if (reg >= 0 && cap > 0) slotText = reg.toString() + " / " + cap + " squads - " + (100 * reg / cap) + "% full"
+            }
+        } catch (e: Exception) { }
+    }
+
     val statusCol = when (m.s("status")) { "live" -> Color(0xFF4ADE80); "done" -> Muted; else -> Gold2 }
     PanelCard {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -108,6 +121,7 @@ private fun MatchCard(m: JSONObject, ctx: android.content.Context, scope: kotlin
             Text(MatchLabels.label(m), color = statusCol, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
         Text(m.s("tournament_id") + " - " + fmtWhen(m.s("starts_at")), color = Muted, fontSize = 12.sp)
+        slotText?.let { Text("Slots: " + it, color = Muted, fontSize = 12.sp) }
         Spacer(Modifier.height(8.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (!MatchLabels.isPostponed(m)) SmallButton("ROOM ID & PASS") {
@@ -136,9 +150,39 @@ private fun MatchCard(m: JSONObject, ctx: android.content.Context, scope: kotlin
             }
             SmallButton("RESULT PROOF") { proofOpen = !proofOpen }
             SmallButton("REPORT") { reportOpen = !reportOpen }
+            if (m.s("status") == "live" && !MatchLabels.isPostponed(m)) SmallButton(if (pauseBusy) "SENDING..." else "EMERGENCY PAUSE") {
+                if (busy || pauseBusy) return@SmallButton
+                pauseBusy = true
+                scope.launch {
+                    try {
+                        val r = Api.authedRpc("xr_pause_request", JSONObject().put("p_match", mid))
+                        pauseMsg = if (r.optBoolean("ok")) {
+                            if (r.optBoolean("already_requested")) "You already sent a pause request for this match. The match is NOT paused unless the organizer confirms."
+                            else "Pause request sent to the organizer - the match is NOT paused unless they confirm. Expires in 2 minutes."
+                        } else when (r.s("error")) {
+                            "not_registered" -> "Only registered players of this match can request a pause."
+                            "match_not_live" -> "Pause requests are only open while the match is live."
+                            "account_restricted" -> "Your account cannot send pause requests right now."
+                            "unauthorized" -> "Log in to send a pause request."
+                            else -> r.s("error").ifBlank { "Could not send the request." }
+                        }
+                    } catch (e: Exception) { pauseMsg = e.message }
+                    pauseBusy = false
+                }
+            }
         }
-        roomText?.let { Text(it, color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold) }
+        roomText?.let { rt ->
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(rt, color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text("COPY", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clip(RoundedCornerShape(6.dp)).background(Color(0x22F5C451)).clickable {
+                        val cm = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                        cm.setPrimaryClip(android.content.ClipData.newPlainText("match room", rt))
+                    }.padding(horizontal = 10.dp, vertical = 6.dp))
+            }
+        }
         checkinText?.let { Text(it, color = Muted, fontSize = 12.sp) }
+        pauseMsg?.let { Text(it, color = Gold2, fontSize = 12.sp) }
         if (proofOpen) ProofForm(mid, ctx, scope) { proofOpen = false }
         if (reportOpen) ReportForm(mid, ctx, scope) { reportOpen = false }
     }
