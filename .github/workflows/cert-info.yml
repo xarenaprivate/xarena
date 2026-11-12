@@ -1,0 +1,13 @@
+name: cert-info
+on:
+  workflow_dispatch: {}
+jobs:
+  cert:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "$XARENA_KS_B64" | base64 -d > ks.jks
+          keytool -printcert -keystore ks.jks -storepass "$XARENA_KS_PASS" | grep -E 'SHA-1|SHA-256|Owner|Issuer'
+        env:
+          XARENA_KS_B64: ${{ secrets.XARENA_KS_B64 }}
+          XARENA_KS_PASS: ${{ secrets.XARENA_KS_PASS }}
