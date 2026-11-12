@@ -39,14 +39,31 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
         LaunchedEffect(true) { tick++; kotlinx.coroutines.delay(1200); ptr.endRefresh() }
     }
     Box(Modifier.fillMaxSize().nestedScroll(ptr.nestedScrollConnection)) {
-    LoadState2(tick, {
+    var data by remember { mutableStateOf<HomeData?>(HomeCache.read(Api.ctx)) }
+    var refreshing by remember { mutableStateOf(false) }
+    LaunchedEffect(tick) {
+        refreshing = true
+        val fresh = runCatching { loadHomeData() }.getOrNull()
+        if (fresh != null) { HomeCache.write(Api.ctx, fresh); data = fresh }
+        refreshing = false
+    }
+    val d = data
+    if (d != null) HomeBody(d, onGoTab, onOpenFeature)
+    else LoadState2(tick, { loadHomeData().also { HomeCache.write(Api.ctx, it) } }) { dd -> HomeBody(dd, onGoTab, onOpenFeature) }
+    if (ptr.isRefreshing || (refreshing && d != null)) CircularProgressIndicator(color = Gold, modifier = Modifier.align(Alignment.TopCenter).padding(top = 12.dp))
+    }
+}
+
+/* Home data loader - network. Cached by HomeCache so tab switches paint instantly (stale-while-revalidate). */
+internal suspend fun loadHomeData(): HomeData {
         val ts = Api.publicGet("/rest/v1/tournaments?select=id,name,status,slots,prize,date_text,reg_open,mode&order=sort.asc")
         val yt = runCatching { Api.publicGet("/rest/v1/site_settings?key=eq.youtube_live&select=value") }.getOrElse { JSONArray() }
         val matches = runCatching { Api.publicGet("/rest/v1/matches_public?select=*&order=starts_at.asc.nullslast&limit=6") }.getOrElse { JSONArray() }
         val stats = runCatching { Api.authedRpc("my_stats", JSONObject()) }.getOrNull()
         val ann = runCatching { RemoteConfig.get(); RemoteConfig.announcement() }.getOrNull()
         val all = (0 until ts.length()).map { ts.getJSONObject(it) }
-        val cup = all.firstOrNull { it.s("name").contains("ignition", true) } ?: all.firstOrNull { it.optBoolean("reg_open") } ?: all.firstOrNull()
+        val open = all.filter { !it.s("status").equals("done", true) && !it.s("status").equals("closed", true) && !it.s("status").equals("completed", true) && !it.s("status").equals("cancelled", true) }
+        val cup = open.firstOrNull { it.optBoolean("reg_open") } ?: open.firstOrNull() ?: all.firstOrNull()
         cup?.let { c -> cupStartMs(c)?.let { ms -> CupWidget.setTarget(Api.ctx, c.s("name"), ms, c.s("date_text")) } }
         val slotsTaken = cup?.let { c ->
             runCatching {
@@ -57,14 +74,39 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
                 n
             }.getOrDefault(-1)
         } ?: -1
-        HomeData(ts, if (yt.length() > 0) yt.getJSONObject(0).s("value") else "", matches, stats, ann, cup, slotsTaken)
-    }) { d ->
-        HomeBody(d, onGoTab, onOpenFeature)
-    }
-    if (ptr.isRefreshing) CircularProgressIndicator(color = Gold, modifier = Modifier.align(Alignment.TopCenter).padding(top = 12.dp))
-    }
+        return HomeData(ts, if (yt.length() > 0) yt.getJSONObject(0).s("value") else "", matches, stats, ann, cup, slotsTaken)
 }
 
+/* Last-loaded home data: in-memory for the session + SharedPreferences across launches.
+   Never replaces a fresh load - the background refresh still runs on every home entry. */
+internal object HomeCache {
+    private var mem: HomeData? = null
+    fun read(ctx: android.content.Context): HomeData? {
+        mem?.let { return it }
+        return runCatching {
+            val p = ctx.getSharedPreferences("home_cache", 0)
+            val tsS = p.getString("ts", null) ?: return null
+            val mS = p.getString("matches", "[]") ?: "[]"
+            val cupS = p.getString("cup", null)
+            val statsS = p.getString("stats", null)
+            val annS = p.getString("ann", null)
+            HomeData(JSONArray(tsS), p.getString("yt", "") ?: "", JSONArray(mS),
+                if (statsS != null) JSONObject(statsS) else null,
+                if (annS != null) JSONObject(annS) else null,
+                if (cupS != null) JSONObject(cupS) else null,
+                p.getInt("slotsTaken", -1))
+        }.getOrNull()
+    }
+    fun write(ctx: android.content.Context, d: HomeData) {
+        mem = d
+        runCatching {
+            ctx.getSharedPreferences("home_cache", 0).edit()
+                .putString("ts", d.ts.toString()).putString("yt", d.ytUrl).putString("matches", d.matches.toString())
+                .putString("cup", d.cup?.toString()).putString("stats", d.stats?.toString()).putString("ann", d.ann?.toString())
+                .putInt("slotsTaken", d.slotsTaken).apply()
+        }
+    }
+}
 
 /* Home body with loaded data - extracted so render tests can verify populated, empty and offline states without network. */
 @Composable
