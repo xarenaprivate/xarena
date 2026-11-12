@@ -1,0 +1,171 @@
+name: native-sign-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "native-build run id whose native-artifacts hold the unsigned aligned APK"
+        required: true
+      tag:
+        description: "release tag, e.g. v0.17.33-native"
+        required: true
+      version_code:
+        description: "versionCode, e.g. 78"
+        required: true
+      notes:
+        description: "release notes (honest, user-facing)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  actions: read
+
+env:
+  REPO: xarenaprivate/xarena
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  NOTES: ${{ inputs.notes }}
+
+jobs:
+  sign-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Download unsigned artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: native-artifacts
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: art
+
+      - name: Sign APK with release keystore
+        env:
+          KS_B64: ${{ secrets.XARENA_KS_B64 }}
+          KS_PASS: ${{ secrets.XARENA_KS_PASS }}
+        run: |
+          set -euo pipefail
+          APK=$(find art -name 'app-release-unsigned-aligned.apk' | head -1)
+          [ -n "$APK" ] || { echo "unsigned aligned APK not found in artifact"; exit 1; }
+          printf '%s' "$KS_B64" | base64 -d > ks.jks
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          echo "build-tools: $BT"
+          "$BT/apksigner" sign --ks ks.jks --ks-key-alias xarena-native \
+            --ks-pass env:KS_PASS --key-pass env:KS_PASS --out signed.apk "$APK"
+          shred -u ks.jks 2>/dev/null || rm -f ks.jks
+          "$BT/zipalign" -c -p 4 signed.apk
+          CERT=$("$BT/apksigner" verify --print-certs signed.apk | grep -i 'SHA-256' | head -1)
+          echo "$CERT"
+          echo "$CERT" | grep -qi 7bccf657 || { echo "CERT MISMATCH - aborting"; exit 1; }
+          sha256sum signed.apk | tee SHA.txt
+          stat -c%s signed.apk | tee BYTES.txt
+
+      - name: Install bsdiff
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq bsdiff
+
+      - name: Build delta patches (bases 35-52, 54-77) with roundtrip verify
+        env:
+          VC: ${{ inputs.version_code }}
+        run: |
+          set -euo pipefail
+          SHA=$(cut -d' ' -f1 SHA.txt)
+          mkdir -p patches
+          : > patches/index.txt
+          for F in $(seq 35 52) $(seq 54 77); do
+            if [ "$F" -le 44 ]; then V="0.16.$((F-35))"; else V="0.17.$((F-45))"; fi
+            TAG="v${V}-native"
+            if [ "$F" -le 75 ]; then ASSET="xarena-native.apk"; else ASSET="xarena-native-v${V}.apk"; fi
+            echo "== base $F <- $TAG/$ASSET"
+            curl -sfL -o base.apk "https://github.com/$REPO/releases/download/$TAG/$ASSET"
+            bsdiff base.apk signed.apk "patches/patch-$F-to-$VC.bs"
+            bspatch base.apk rt.apk "patches/patch-$F-to-$VC.bs"
+            echo "$SHA  rt.apk" | sha256sum -c -
+            PSHA=$(sha256sum "patches/patch-$F-to-$VC.bs" | cut -d' ' -f1)
+            PB=$(stat -c%s "patches/patch-$F-to-$VC.bs")
+            echo "$F $PSHA $PB" >> patches/index.txt
+            rm -f base.apk rt.apk
+          done
+          echo "patches built: $(wc -l < patches/index.txt)"
+
+      - name: Create prerelease with signed APK + patches
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          SHORT="${TAG#v}"; SHORT="${SHORT%-native}"
+          gh release create "$TAG" \
+            --repo "$REPO" --prerelease \
+            --title "XARENA Native $TAG" \
+            --notes "$NOTES" \
+            "signed.apk#xarena-native-v${SHORT}.apk" patches/*.bs
+
+      - name: OTA verify (public asset URLs, sha256 must match)
+        env:
+          TAG: ${{ inputs.tag }}
+          VC: ${{ inputs.version_code }}
+        run: |
+          set -euo pipefail
+          SHA=$(cut -d' ' -f1 SHA.txt)
+          SHORT="${TAG#v}"; SHORT="${SHORT%-native}"
+          curl -sfL -o dl.apk "https://github.com/$REPO/releases/download/$TAG/xarena-native-v${SHORT}.apk"
+          echo "$SHA  dl.apk" | sha256sum -c -
+          while read -r F PSHA PB; do
+            curl -sfL -o p.bs "https://github.com/$REPO/releases/download/$TAG/patch-$F-to-$VC.bs"
+            echo "$PSHA  p.bs" | sha256sum -c -
+          done < patches/index.txt
+          echo OTA-VERIFY-OK
+
+      - name: Publish release (drop prerelease flag)
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          RID=$(gh api "repos/$REPO/releases/tags/$TAG" --jq .id)
+          gh api -X PATCH "repos/$REPO/releases/$RID" -F prerelease=false -F make_latest=true --jq .html_url
+
+      - name: Update OTA manifest on main
+        env:
+          TAG: ${{ inputs.tag }}
+          VC: ${{ inputs.version_code }}
+        run: |
+          set -euo pipefail
+          SHA=$(cut -d' ' -f1 SHA.txt); BYTES=$(cat BYTES.txt)
+          SHORT="${TAG#v}"; SHORT="${SHORT%-native}"
+          rm -rf sitemain
+          git clone --depth 1 --branch main "https://x-access-token:${GH_TOKEN}@github.com/$REPO.git" sitemain
+          cd sitemain
+          jq -n \
+            --argjson vc "$VC" \
+            --arg vn "${SHORT}-native" \
+            --arg url "https://github.com/$REPO/releases/download/$TAG/xarena-native-v${SHORT}.apk" \
+            --arg sha "$SHA" \
+            --argjson bytes "$BYTES" \
+            --arg notes "$NOTES" \
+            '{versionCode:$vc, versionName:$vn, apkUrl:$url, sha256:$sha, apkBytes:$bytes, notes:$notes, patches:[]}' > xarena-native-version.json
+          while read -r F PSHA PB; do
+            jq --argjson f "$F" \
+               --arg u "https://github.com/$REPO/releases/download/$TAG/patch-$F-to-$VC.bs" \
+               --arg s "$PSHA" --argjson b "$PB" \
+               '.patches += [{from:$f, url:$u, sha256:$s, bytes:$b}]' xarena-native-version.json > tmp.json
+            mv tmp.json xarena-native-version.json
+          done < ../patches/index.txt
+          jq '{versionCode, versionName, sha256, apkBytes, patchCount: (.patches|length)}' xarena-native-version.json
+          git config user.name "xarena-ci"
+          git config user.email "ci@xarena.local"
+          git add xarena-native-version.json
+          git commit -m "OTA manifest: $VC ($TAG)"
+          git push origin main
+
+      - name: Summary
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          {
+            echo "## Signed release $TAG"
+            echo ""
+            echo "- sha256: $(cut -d' ' -f1 SHA.txt)"
+            echo "- bytes: $(cat BYTES.txt)"
+            echo "- cert: 7bccf657... (verified)"
+            echo "- patches: $(wc -l < patches/index.txt) (bases 35-52, 54-77)"
+            echo "- OTA verify: passed"
+          } >> "$GITHUB_STEP_SUMMARY"
