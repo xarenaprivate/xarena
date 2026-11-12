@@ -468,10 +468,10 @@ object Api {
         publicRpc("chat_send", JSONObject().put("p_handle", chatHandle).put("p_token", chatToken).put("p_body", body))
     }
 
-    /** v80: send to a specific room (e.g. "match-<id>" live-match chat). p_room is optional server-side;
-        when the deployed chat_send predates room support the server error is shown to the user as-is. */
+    /** v80: live-match chat send (xr_match_chat_send: same handle-token auth + moderation as chat_send,
+        room "match-<id>" accepted only while the match status is live). Reads stay on chat_messages. */
     suspend fun chatSendRoom(room: String, body: String): JSONObject = withContext(Dispatchers.IO) {
-        publicRpc("chat_send", JSONObject().put("p_handle", chatHandle).put("p_token", chatToken).put("p_body", body).put("p_room", room))
+        publicRpc("xr_match_chat_send", JSONObject().put("p_handle", chatHandle).put("p_token", chatToken).put("p_body", body).put("p_room", room))
     }
 
     suspend fun chatHistory(room: String): JSONArray = withContext(Dispatchers.IO) {
