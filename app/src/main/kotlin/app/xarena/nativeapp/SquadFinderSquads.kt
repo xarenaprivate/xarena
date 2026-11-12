@@ -75,7 +75,7 @@ fun SquadDiscoveryScreen(onBack: () -> Unit, onOpenSquad: (String) -> Unit) {
     var role by remember { mutableStateOf("") }
     var visibility by remember { mutableStateOf("") }
     var mineOnly by remember { mutableStateOf(false) }
-    var squads by remember { mutableStateOf<List<SfSquad>?>(null) }
+    var squads by remember { mutableStateOf<List<SfSquad>?>(SfSeams.squads) }
     var err by remember { mutableStateOf<String?>(null) }
     var creating by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
@@ -164,7 +164,7 @@ fun SquadDiscoveryScreen(onBack: () -> Unit, onOpenSquad: (String) -> Unit) {
 @Composable
 fun SquadProfileSfScreen(squadId: String, onBack: () -> Unit, onOpenChat: (String) -> Unit) {
     val scope = rememberCoroutineScope()
-    var data by remember { mutableStateOf<JSONObject?>(null) }
+    var data by remember { mutableStateOf<JSONObject?>(SfSeams.squadDetail) }
     var err by remember { mutableStateOf<String?>(null) }
     var msg by remember { mutableStateOf<String?>(null) }
     var note by remember { mutableStateOf("") }
@@ -292,7 +292,7 @@ fun SquadProfileSfScreen(squadId: String, onBack: () -> Unit, onOpenChat: (Strin
 @Composable
 fun InvitesInboxScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
-    var invites by remember { mutableStateOf<JSONArray?>(null) }
+    var invites by remember { mutableStateOf<JSONArray?>(SfSeams.invites) }
     var err by remember { mutableStateOf<String?>(null) }
     var tick by remember { mutableStateOf(0) }
     var actedMsg by remember { mutableStateOf<String?>(null) }

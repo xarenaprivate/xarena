@@ -30,7 +30,7 @@ import org.json.JSONObject
 @Composable
 fun IglDashboardScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
-    var squads by remember { mutableStateOf<List<SfSquad>?>(null) }
+    var squads by remember { mutableStateOf<List<SfSquad>?>(SfSeams.mySquads) }
     var err by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
         val r = runCatching { Api.authedRpc("xr_sf_squad_list", JSONObject().put("p_mine", true)) }.getOrNull()
@@ -57,9 +57,9 @@ fun IglDashboardScreen(onBack: () -> Unit) {
 @Composable
 private fun IglSquadPanel(sq: SfSquad) {
     val scope = rememberCoroutineScope()
-    var requests by remember { mutableStateOf<JSONArray?>(null) }
-    var plan by remember { mutableStateOf<JSONObject?>(null) }
-    var planDraft by remember { mutableStateOf("") }
+    var requests by remember { mutableStateOf<JSONArray?>(SfSeams.requests) }
+    var plan by remember { mutableStateOf<JSONObject?>(SfSeams.plan) }
+    var planDraft by remember { mutableStateOf(SfSeams.plan?.s("body") ?: "") }
     var msg by remember { mutableStateOf<String?>(null) }
     var roles by remember { mutableStateOf(listOf("Rusher", "Support", "Sniper", "IGL")) }
     var backupRole by remember { mutableStateOf<String?>(null) }
@@ -177,7 +177,7 @@ private fun IglSquadPanel(sq: SfSquad) {
 @Composable
 fun TryoutRoomsScreen(onBack: () -> Unit, onOpenRoom: (String) -> Unit) {
     val scope = rememberCoroutineScope()
-    var rooms by remember { mutableStateOf<JSONArray?>(null) }
+    var rooms by remember { mutableStateOf<JSONArray?>(SfSeams.rooms) }
     var err by remember { mutableStateOf<String?>(null) }
     var creating by remember { mutableStateOf(false) }
     var mode by remember { mutableStateOf("BR") }
@@ -251,10 +251,10 @@ fun TryoutRoomsScreen(onBack: () -> Unit, onOpenRoom: (String) -> Unit) {
 @Composable
 fun TryoutRoomScreen(roomId: String, onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
-    var room by remember { mutableStateOf<JSONObject?>(null) }
+    var room by remember { mutableStateOf<JSONObject?>(SfSeams.roomDetail) }
     var err by remember { mutableStateOf<String?>(null) }
     var msg by remember { mutableStateOf<String?>(null) }
-    var me by remember { mutableStateOf("") }
+    var me by remember { mutableStateOf(SfSeams.roomDetail?.s("__me") ?: "") }
 
     fun load() {
         scope.launch {

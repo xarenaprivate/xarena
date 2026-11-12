@@ -30,6 +30,21 @@ import org.json.JSONObject
    honest "not rated yet", never a placeholder number. K/D is self-reported and labelled so.
    Presence is player-reported (2-min freshness). SF chat stays behind its server flag. */
 
+internal object SfSeams {
+    var players: List<SfPlayer>? = null
+    var playerDetail: JSONObject? = null
+    var squads: List<SfSquad>? = null
+    var squadDetail: JSONObject? = null
+    var mySquads: List<SfSquad>? = null
+    var invites: JSONArray? = null
+    var requests: JSONArray? = null
+    var plan: JSONObject? = null
+    var rooms: JSONArray? = null
+    var roomDetail: JSONObject? = null
+    var prefsLoaded = false
+    fun clear() { players = null; playerDetail = null; squads = null; squadDetail = null; mySquads = null; invites = null; requests = null; plan = null; rooms = null; roomDetail = null; prefsLoaded = false }
+}
+
 internal fun JSONObject.sfBool(key: String): Boolean? = if (has(key) && !isNull(key)) optBoolean(key) else null
 
 /** Player card fields the contract guarantees; anything absent stays hidden. */
@@ -155,7 +170,7 @@ fun SfPlayerDiscoveryScreen(onBack: () -> Unit, onOpenPlayer: (String) -> Unit) 
     var minTrust by remember { mutableStateOf(0) }
     var verifiedOnly by remember { mutableStateOf(false) }
     var freeAgentsOnly by remember { mutableStateOf(false) }
-    var players by remember { mutableStateOf<List<SfPlayer>?>(null) }
+    var players by remember { mutableStateOf<List<SfPlayer>?>(SfSeams.players) }
     var err by remember { mutableStateOf<String?>(null) }
 
     fun load() {
@@ -228,7 +243,7 @@ fun SfPlayerDiscoveryScreen(onBack: () -> Unit, onOpenPlayer: (String) -> Unit) 
 /* ---------- Player profile (SF view) ---------- */
 @Composable
 fun SfPlayerProfileScreen(userId: String, onBack: () -> Unit) {
-    var data by remember { mutableStateOf<JSONObject?>(null) }
+    var data by remember { mutableStateOf<JSONObject?>(SfSeams.playerDetail) }
     var err by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(userId) {
         val r = runCatching { Api.authedRpc("xr_sf_player_get", JSONObject().put("p_user", userId)) }.getOrNull()
@@ -274,7 +289,7 @@ fun SfPlayerProfileScreen(userId: String, onBack: () -> Unit) {
 @Composable
 fun SfPrefsScreen(onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
-    var loaded by remember { mutableStateOf(false) }
+    var loaded by remember { mutableStateOf(SfSeams.prefsLoaded) }
     var role by remember { mutableStateOf("") }
     var mic by remember { mutableStateOf<Boolean?>(null) }
     var langs by remember { mutableStateOf("") }
