@@ -1,9 +1,9 @@
 {
-  "versionCode": 80,
-  "versionName": "0.17.35-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.35-native/xarena-native-v0.17.35.apk",
-  "sha256": "a3ee5c6a446dba1117dd02702fbc41891842d53f63d7bc2c656446e9191df41d",
-  "apkBytes": 29450767,
-  "notes": "v80: live match chat - real chat panel inside live matches (only while the match is live). IMPORTANT: signing key changed - purana app uninstall karke fresh install karein (login phir se karna hoga).",
+  "versionCode": 81,
+  "versionName": "0.17.36-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.36-native/xarena-native-v0.17.36.apk",
+  "sha256": "ae756cdb104b4b10024eb07354c825c38e5be3040cf9bf9d1d218a14658af150",
+  "apkBytes": 29549071,
+  "notes": "v81: Squad Finder - find players by role/mic/language/Trust Score, squad discovery, tryout rooms, invites, IGL dashboard. All real data. IMPORTANT: signing key changed - purana app uninstall karke fresh install karein (login phir se karna hoga).",
   "patches": []
 }
