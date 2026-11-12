@@ -142,8 +142,9 @@ fun TrustSafetyScreen(onBack: () -> Unit, onOpenVerify: () -> Unit, onOpenSuppor
                 busy = true
                 scope.launch {
                     val patch = JSONObject().put("backup_opt_in", backup)
-                    val r = runCatching { Api.authedRpc("xr_sf_player_preferences", JSONObject().put("p_patch", patch)) }.getOrNull()
-                    msg = if (r?.optBoolean("ok") == true) "Saved." else r?.s("error") ?: "Could not save - try again."
+                    val rr = runCatching { Api.authedRpc("xr_sf_player_preferences", JSONObject().put("p_patch", patch)) }
+val r = rr.getOrNull()
+msg = if (r?.optBoolean("ok") == true) "Saved." else (r?.s("error")?.ifBlank { null } ?: rr.exceptionOrNull()?.message ?: "Could not save - try again.")
                     busy = false
                 }
             }

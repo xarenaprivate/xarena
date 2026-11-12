@@ -168,7 +168,7 @@ object Api {
     fun authed(method: String, path: String, body: JSONObject?): String {
         var (code, text) = call(method, path, body, access)
         if (code == 401 && refresh()) { val r = call(method, path, body, access); code = r.first; text = r.second }
-        if (code !in 200..299) throw ApiError("Request failed ($code).")
+        if (code !in 200..299) { val srv = runCatching { JSONObject(text).s("message") }.getOrDefault(""); throw ApiError(if (srv.isNotBlank()) srv else "Request failed (" + code + ").") }
         return text
     }
 

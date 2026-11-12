@@ -329,19 +329,23 @@ fun SfPrefsScreen(onBack: () -> Unit) {
             val patch = JSONObject()
             patch.put("combat_role", if (role.isBlank()) JSONObject.NULL else role)
             patch.put("mic", if (mic == null) JSONObject.NULL else mic)
-            val list = langs.split(",").map { it.trim() }.filter { it.isNotBlank() }.take(8)
-            val la = JSONArray(); list.forEach { la.put(it) }
+            val list = langs.split(",").map { it.trim() }.filter { it.isNotBlank() }.toMutableList()
+val prim = primary.trim()
+if (prim.isNotBlank() && list.none { it.equals(prim, true) }) list.add(0, prim)
+            val la = JSONArray(); list.take(8).forEach { la.put(it) }
             patch.put("languages", la)
             patch.put("primary_language", if (primary.isBlank()) JSONObject.NULL else primary.trim())
             patch.put("region", if (region.isBlank()) JSONObject.NULL else region.trim())
             patch.put("discoverable", discoverable)
             patch.put("free_agent", freeAgent)
             patch.put("backup_opt_in", backupOptIn)
-            if (availFrom.isNotBlank()) patch.put("available_from", availFrom.trim())
-            if (availTo.isNotBlank()) patch.put("available_to", availTo.trim())
+            fun localIsoDay(d: String): String { val t = d.trim(); if (t.contains("T")) return t; val off = java.util.TimeZone.getDefault().getOffset(System.currentTimeMillis()); val sign = if (off >= 0) "+" else "-"; val mins = kotlin.math.abs(off) / 60000; return t + "T00:00:00" + sign + (mins / 60).toString().padStart(2, '0') + ":" + (mins % 60).toString().padStart(2, '0') }
+if (availFrom.isNotBlank()) patch.put("available_from", localIsoDay(availFrom))
+if (availTo.isNotBlank()) patch.put("available_to", localIsoDay(availTo))
             patch.put("availability_timezone", java.util.TimeZone.getDefault().id)
-            val r = runCatching { Api.authedRpc("xr_sf_player_preferences", JSONObject().put("p_patch", patch)) }.getOrNull()
-            msg = if (r?.optBoolean("ok") == true) "Saved." else r?.s("error") ?: "Could not save - try again."
+            val rr = runCatching { Api.authedRpc("xr_sf_player_preferences", JSONObject().put("p_patch", patch)) }
+val r = rr.getOrNull()
+msg = if (r?.optBoolean("ok") == true) "Saved." else (r?.s("error")?.ifBlank { null } ?: rr.exceptionOrNull()?.message ?: "Could not save - try again.")
         }
     }
 
@@ -357,8 +361,9 @@ fun SfPrefsScreen(onBack: () -> Unit) {
                         Text(label, color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                             modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Gold).clickable {
                                 scope.launch {
-                                    val r = runCatching { Api.authedRpc("xr_sf_presence_set", JSONObject().put("p_state", st)) }.getOrNull()
-                                    msg = if (r?.optBoolean("ok") == true) "Status set: " + label else r?.s("error") ?: "Could not set status."
+                                    val rr = runCatching { Api.authedRpc("xr_sf_presence_set", JSONObject().put("p_state", st)) }
+val r = rr.getOrNull()
+msg = if (r?.optBoolean("ok") == true) "Status set: " + label else (r?.s("error")?.ifBlank { null } ?: rr.exceptionOrNull()?.message ?: "Could not set status.")
                                 }
                             }.padding(horizontal = 12.dp, vertical = 7.dp))
                     }
