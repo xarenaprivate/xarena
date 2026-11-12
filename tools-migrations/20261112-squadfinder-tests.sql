@@ -1,3 +1,5 @@
+-- All fixture writes are rolled back. Run this entire file, never selected statements.
+BEGIN;
 DO $test$
 DECLARE ids uuid[];a uuid;b uuid;c uuid;d uuid;e uuid;f uuid;sid uuid;sid2 uuid;rid uuid;rid2 uuid;iv bigint;room uuid;j jsonb;failed boolean;n integer;legacy jsonb;
 BEGIN
@@ -101,3 +103,5 @@ DO $rls$ BEGIN
  ASSERT NOT EXISTS(SELECT 1 FROM public.squad_members WHERE squad_id=current_setting('sf.test.private_id')::uuid),'Private membership RLS';
 END $rls$;
 RESET ROLE;
+
+ROLLBACK;
