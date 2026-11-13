@@ -1,9 +1,9 @@
 {
-  "versionCode": 94,
-  "versionName": "0.17.49-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.49-native/xarena-native-v0.17.49.apk",
-  "sha256": "694d58eb3eae2f1f59615fb3e8deed2363cacc4c42c5b28799ec5bdc6c524905",
+  "versionCode": 95,
+  "versionName": "0.17.50-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.50-native/xarena-native-v0.17.50.apk",
+  "sha256": "fa715a38e0171b91a6f9e003c432172d95bbcb8c0445a3a43a0deb5e8b2de799",
   "apkBytes": 29696527,
-  "notes": "Board + Chat renovation: RANK CHASE card and crown defense line on Leaderboard (live EXP gaps), FLEX RANK chip in Chat (posts real global rank). Real data only, additive.",
+  "notes": "Match Center visible confirmations after proof/report submit; push taps route by documented kind: notification to Notifications, room to Squads, tournament to Tournaments tab.",
   "patches": []
 }
