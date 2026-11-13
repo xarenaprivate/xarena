@@ -138,6 +138,7 @@ fun ChatRoom() {
     var input by remember { mutableStateOf("") }
     var sending by remember { mutableStateOf(false) }
     var notice by remember { mutableStateOf<String?>(null) }
+    var flexBusy by remember { mutableStateOf(false) }
     var lastId by remember { mutableLongStateOf(0L) }
     var room by remember { mutableStateOf(Api.prefs.getString("chat_room", null) ?: "general") }
     var roomLabel by remember { mutableStateOf(Api.prefs.getString("chat_room_label", null) ?: "General") }
@@ -226,6 +227,22 @@ fun ChatRoom() {
         Row(Modifier.fillMaxWidth().background(Color(0xFF1A0E33)).padding(horizontal = 12.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically) {
             Text("Room: " + roomLabel, color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+            Text(if (flexBusy) "Posting..." else "\uD83C\uDFC5 FLEX RANK", color = if (flexBusy) Muted else Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(end = if (room == "general") 8.dp else 0.dp).clickable(enabled = !flexBusy) {
+                    flexBusy = true; notice = null
+                    scope.launch {
+                        try {
+                            val m = withContext(Dispatchers.IO) { Api.authedRpc("my_ranks", JSONObject()) }
+                            if (!m.optBoolean("ok") || m.optInt("global") <= 0) notice = "No rank yet - play a tournament first, then flex."
+                            else {
+                                val body = "I'm #" + m.optInt("global") + " on the XARENA global leaderboard (" + "%,d".format(m.optInt("xp")) + " EXP) - catch me if you can \uD83D\uDD25"
+                                val r = Api.chatSend(body)
+                                notice = if (r.optBoolean("ok")) "Flex posted." else r.s("error").ifBlank { "Could not post your rank right now." }
+                            }
+                        } catch (e: Exception) { notice = if (!Api.loggedIn) "Log in to flex your rank." else "Could not load your rank right now." }
+                        flexBusy = false
+                    }
+                })
             if (room == "general") {
                 Text(if (areaBusy) "Finding your state..." else "Use my state for regional chat",
                     color = if (areaBusy) Muted else Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold,

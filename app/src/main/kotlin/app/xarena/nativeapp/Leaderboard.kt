@@ -194,7 +194,7 @@ private fun Podium3D(top: List<LbRow>) {
 }
 
 @Composable
-private fun TopCard(rank: Int, r: LbRow, onChallenge: (String) -> Unit) {
+private fun TopCard(rank: Int, r: LbRow, crownGap: Pair<Int, String>? = null, onChallenge: (String) -> Unit) {
     val accent = when (rank) { 1 -> LbGold; 2 -> LbSilver; else -> LbBronze }
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)
         .clip(RoundedCornerShape(Look.cardRadius)).background(Look.cardBg)
@@ -215,6 +215,7 @@ private fun TopCard(rank: Int, r: LbRow, onChallenge: (String) -> Unit) {
                     StatChip("K/D", r.kd?.let { "%.1f".format(it) } ?: "-")
                     StatChip("WINS", r.wins.toString())
                 }
+                if (rank == 1 && crownGap != null) { Spacer(Modifier.height(6.dp)); Text("\uD83D\uDC51 " + "%,d EXP".format(crownGap.first) + " ahead of " + crownGap.second, color = LbGold, fontSize = 11.sp, fontWeight = FontWeight.Bold) }
                 val tag = listOfNotNull(r.state, r.district).filter { it.isNotBlank() }.joinToString(" · ")
                 if (tag.isNotBlank()) { Spacer(Modifier.height(6.dp)); Text(tag, color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold) }
                 if (r.rival) { Spacer(Modifier.height(8.dp)); ChallengeButton(r, onChallenge) }
@@ -360,6 +361,25 @@ fun LeaderboardScreen() {
             Text(when (scope) { 0 -> "Top players - All India"; 1 -> "Top players - " + LocStore.state.ifBlank { "your state" };
                     2 -> "Top players - " + (LocStore.district.ifBlank { "your district" }) + " district"; else -> "Players within about 10 km of you" } +
                 " · updated just now", color = Muted, fontSize = 11.sp, modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp))
+            if (Api.loggedIn && res is LbResult.Rows) {
+                val chaseRows = res.rows
+                val meIdx = chaseRows.indexOfFirst { it.isMe }
+                PanelCard {
+                    Text("RANK CHASE", color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(4.dp))
+                    if (meIdx >= 0) {
+                        val me = chaseRows[meIdx]
+                        val above = chaseRows.getOrNull(meIdx - 1)
+                        val below = chaseRows.getOrNull(meIdx + 1)
+                        Text("You are #" + (if (me.rank > 0) me.rank else meIdx + 1) + " on this board.", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        if (above != null) Text("%,d EXP".format(above.xp - me.xp) + " to pass " + above.name + ".", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        else Text("Top spot - defend it.", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        if (below != null) Text(below.name + " is " + "%,d EXP".format(me.xp - below.xp) + " behind you.", color = Muted, fontSize = 12.sp)
+                    } else {
+                        Text("You are not on this board yet - your ranks are in MY RANKS below.", color = Muted, fontSize = 13.sp)
+                    }
+                }
+            }
             ChallengesStrip { tick++ }
             OutlinedTextField(query, { query = it }, placeholder = { Text("Search a player by name") }, singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp))
@@ -375,7 +395,7 @@ fun LeaderboardScreen() {
                                 if (rows.isEmpty()) "Be the first to earn EXP here." else "Try a different name.")
                         }
                         if (query.isBlank() && shown.isNotEmpty()) item { Podium3D(shown.take(3)) }
-                        itemsIndexed(shown.take(3)) { i, r -> TopCard(i + 1, r) { toast = it; tick++ } }
+                        itemsIndexed(shown.take(3)) { i, r -> TopCard(i + 1, r, if (i == 0 && shown.size > 1) (shown[0].xp - shown[1].xp) to shown[1].name else null) { toast = it; tick++ } }
                         itemsIndexed(shown.drop(3)) { i, r -> CompactRow(i + 4, r) { toast = it; tick++ } }
                     }
                 }
