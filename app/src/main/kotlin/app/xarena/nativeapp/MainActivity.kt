@@ -507,7 +507,7 @@ fun HomeShell(onLogout: () -> Unit) {
     var registerTarget by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(MainActivity.pendingOpen) {
         when (MainActivity.pendingOpen) {
-            "voice" -> tab = 3; "live" -> tab = 2; "notifications" -> feature = "notifications"; "messages" -> feature = "messages"; "squads" -> feature = "squads"
+            "voice" -> tab = 3; "live" -> tab = 2; "tournaments" -> tab = 4; "notifications" -> feature = "notifications"; "messages" -> feature = "messages"; "squads" -> feature = "squads"
         }
         if (MainActivity.pendingOpen != null) MainActivity.pendingOpen = null
     }
@@ -875,7 +875,7 @@ internal fun MoreOptionsContent(items: List<GridItem>, onOpen: (String) -> Unit,
                                     Text(entry.name, color = Color(0xFF15171A), fontSize = 18.sp)
                                     Text(entry.sub, color = Color(0xFF71757B), fontSize = 13.sp)
                                 }
-                                Text("Ã¢ÂÂº", color = Color(0xFF70747A), fontSize = 28.sp)
+                                Text("ÃÂ¢ÃÂÃÂº", color = Color(0xFF70747A), fontSize = 28.sp)
                             }
                         }
                     }
@@ -1409,7 +1409,7 @@ fun ProfileScreenClassic(onLogout: () -> Unit, onBack: (() -> Unit)? = null, onS
                     PanelCard {
                         Text(p?.s("ign").takeUnless { it.isNullOrBlank() || it == "null" } ?: p?.s("username") ?: "Player",
                             color = Gold2, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                        if (p?.optBoolean("verified") == true) Text("Ã¢ÂÂ Verified", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        if (p?.optBoolean("verified") == true) Text("ÃÂ¢ÃÂÃÂ Verified", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         if (p != null) {
                             @Composable fun row(k: String, v: String?) { if (!v.isNullOrBlank() && v != "null") Text("$k: $v", color = Color.White, fontSize = 14.sp) }
                             row("Username", p.s("username"))

@@ -90,7 +90,7 @@ class XarenaMessagingService : FirebaseMessagingService() {
                 }
             }.getOrDefault(false)
             if (!posted && Api.loggedIn) post(title, body, 90001, "messages", true, 0)
-        } else post(title, body, (System.currentTimeMillis() % 100000).toInt(), if (kind == "gift") "notifications" else null, false, 0)
+        } else post(title, body, (System.currentTimeMillis() % 100000).toInt(), when (kind) { "gift", "notification" -> "notifications"; "room" -> "squads"; "tournament" -> "tournaments"; else -> null }, false, 0)
     }
 
     private suspend fun decryptPreview(m: JSONObject, peer: String): String? { return try {

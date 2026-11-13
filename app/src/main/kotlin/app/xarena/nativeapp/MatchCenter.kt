@@ -91,6 +91,7 @@ private fun MatchCard(m: JSONObject, ctx: android.content.Context, scope: kotlin
     var busy by remember { mutableStateOf(false) }
     var slotText by remember { mutableStateOf<String?>(null) }
     var pauseMsg by remember { mutableStateOf<String?>(null) }
+    var cardMsg by remember { mutableStateOf<String?>(null) }
     var pauseBusy by remember { mutableStateOf(false) }
 
     LaunchedEffect(mid) {
@@ -183,8 +184,9 @@ private fun MatchCard(m: JSONObject, ctx: android.content.Context, scope: kotlin
         }
         checkinText?.let { Text(it, color = Muted, fontSize = 12.sp) }
         pauseMsg?.let { Text(it, color = Gold2, fontSize = 12.sp) }
-        if (proofOpen) ProofForm(mid, ctx, scope) { proofOpen = false }
-        if (reportOpen) ReportForm(mid, ctx, scope) { reportOpen = false }
+        cardMsg?.let { Text(it, color = Color(0xFF4ADE80), fontSize = 12.sp) }
+        if (proofOpen) ProofForm(mid, ctx, scope) { proofOpen = false; cardMsg = "Proof submitted - the owner reviews it soon." }
+        if (reportOpen) ReportForm(mid, ctx, scope) { reportOpen = false; cardMsg = "Report sent to the owner." }
     }
 }
 
