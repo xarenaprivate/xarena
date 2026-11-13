@@ -1,9 +1,9 @@
 {
-  "versionCode": 92,
-  "versionName": "0.17.47-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.47-native/xarena-native-v0.17.47.apk",
-  "sha256": "76691be4e11a2c409674d820e787a67427c37287d07400500d9585c17cb0f34a",
+  "versionCode": 93,
+  "versionName": "0.17.48-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.48-native/xarena-native-v0.17.48.apk",
+  "sha256": "8439859e7188cdcc716198626dc2c24347d5f45e2b0d257f2b847e80f148d9a0",
   "apkBytes": 29696527,
-  "notes": "Clan Room renovation: real seat row (max_members/avatars/roles), quick-send READY/GG WP/1V1, dark-wired growth reads (captain plan pin, owner-labeled next match, scheduled rivalry, room activity, captain-only requests). No coins/polls/voice/ranks; auto-break inert.",
+  "notes": "Hotfix: registration now binds to the explicit/open tournament id (Season 2 no longer lands on the closed Ignition Cup); fail-closed when the fallback points at a closed tournament; Home tournament-strip scroll-jump fix.",
   "patches": []
 }
