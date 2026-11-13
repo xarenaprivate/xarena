@@ -1,9 +1,9 @@
 {
-  "versionCode": 93,
-  "versionName": "0.17.48-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.48-native/xarena-native-v0.17.48.apk",
-  "sha256": "8439859e7188cdcc716198626dc2c24347d5f45e2b0d257f2b847e80f148d9a0",
+  "versionCode": 94,
+  "versionName": "0.17.49-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.49-native/xarena-native-v0.17.49.apk",
+  "sha256": "694d58eb3eae2f1f59615fb3e8deed2363cacc4c42c5b28799ec5bdc6c524905",
   "apkBytes": 29696527,
-  "notes": "Hotfix: registration now binds to the explicit/open tournament id (Season 2 no longer lands on the closed Ignition Cup); fail-closed when the fallback points at a closed tournament; Home tournament-strip scroll-jump fix.",
+  "notes": "Board + Chat renovation: RANK CHASE card and crown defense line on Leaderboard (live EXP gaps), FLEX RANK chip in Chat (posts real global rank). Real data only, additive.",
   "patches": []
 }
