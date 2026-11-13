@@ -504,6 +504,7 @@ private data class DmConv(val threadId: String, val peerId: String, val peerName
 fun HomeShell(onLogout: () -> Unit) {
     var tab by remember { mutableIntStateOf(0) }
     var feature by remember { mutableStateOf<String?>(null) }
+    var registerTarget by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(MainActivity.pendingOpen) {
         when (MainActivity.pendingOpen) {
             "voice" -> tab = 3; "live" -> tab = 2; "notifications" -> feature = "notifications"; "messages" -> feature = "messages"; "squads" -> feature = "squads"
@@ -515,6 +516,9 @@ fun HomeShell(onLogout: () -> Unit) {
     }
     if (feature != null && feature!!.startsWith("creatorprofile:")) {
         CreatorProfileScreen(userId = feature!!.removePrefix("creatorprofile:"), onBack = { feature = null }); return
+    }
+    if (feature != null && feature!!.startsWith("register:")) {
+        RegisterScreen(onBack = { feature = null }, target = feature!!.removePrefix("register:")); return
     }
     var conv by remember { mutableStateOf<DmConv?>(null) }
     var playerId by remember { mutableStateOf<String?>(null) }
@@ -556,10 +560,10 @@ fun HomeShell(onLogout: () -> Unit) {
         "roles" -> { RolesScreen(onBack = { feature = null }); return }
         "winner" -> { WinnerScreen(onBack = { feature = null }); return }
         "sponsors" -> { SponsorsScreen(onBack = { feature = null }); return }
-        "register" -> { RegisterScreen(onBack = { feature = null }); return }
+        "register" -> { RegisterScreen(onBack = { feature = null; registerTarget = null }, target = registerTarget); return }
         "checklist" -> { PreMatchChecklistScreen(onBack = { feature = null }); return }
         "pointstable" -> { PointsTableScreen(onBack = { feature = null }); return }
-        "tourney" -> { TournamentDetailsScreen(onBack = { feature = null }, onJoin = { feature = "register" }); return }
+        "tourney" -> { TournamentDetailsScreen(onBack = { feature = null }, onJoin = { id -> registerTarget = id; feature = "register" }); return }
         "matchroom" -> { MatchRoomScreen(onBack = { feature = null }); return }
         "podium" -> { PodiumScreen(onBack = { feature = null }); return }
         "results" -> { ResultsScreen(onBack = { feature = null }, onOpenCerts = { feature = "certs" }); return }
@@ -567,7 +571,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "mvp" -> { MvpVoteScreen(onBack = { feature = null }); return }
         "livematch" -> { LiveMatchScreen(onBack = { feature = null }, onVote = { feature = "mvp" }); return }
         "spectator" -> { SpectatorScreen(onBack = { feature = null }); return }
-        "minicup" -> { MiniCupScreen(onBack = { feature = null }, onRegister = { feature = "register" }); return }
+        "minicup" -> { MiniCupScreen(onBack = { feature = null }, onRegister = { registerTarget = null; feature = "register" }); return }
         "livethread" -> { LiveThreadScreen(onBack = { feature = null }); return }
         "teamfinder" -> { TeamFinderScreen(onBack = { feature = null }); return }
         "creatorboard" -> { CreatorBoardScreen(onBack = { feature = null }, onOpenProfile = { id -> feature = "creatorprofile:" + id }); return }

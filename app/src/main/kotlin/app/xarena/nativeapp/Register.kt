@@ -111,14 +111,23 @@ fun RegisterScreen(onBack: () -> Unit, target: String? = null) {
     var regErr by remember { mutableStateOf<String?>(null) }
     var tourneyName by remember { mutableStateOf("Tournament") }
     LaunchedEffect(Unit) {
+        val fromSetting = target == null
         regTarget = target ?: (try { Api.regTournament() } catch (e: Exception) { regErr = e.message; "" })
         if (regTarget.isNotBlank()) {
-            tourneyName = try {
-                val a = Api.publicGet("/rest/v1/tournaments?id=eq." + Api.encodeEq(regTarget) + "&select=name")
-                if (a.length() > 0) a.getJSONObject(0).s("name").ifBlank { "Tournament" } else "Tournament"
-            } catch (e: Exception) { "Tournament" }
-            entryCost = Api.tournamentEntryCost(regTarget)
-            myReg = findMySeasonReg(regTarget)
+            val row = try {
+                val a = Api.publicGet("/rest/v1/tournaments?id=eq." + Api.encodeEq(regTarget) + "&select=name,reg_open")
+                if (a.length() > 0) a.getJSONObject(0) else null
+            } catch (e: Exception) { null }
+            tourneyName = row?.s("name")?.ifBlank { "Tournament" } ?: "Tournament"
+            if (fromSetting && row != null && !row.optBoolean("reg_open")) {
+                // Site-wide fallback resolved to a closed tournament - fail closed instead of binding
+                // this account's registration to the wrong event. Explicit card targets are always trusted.
+                regErr = "Registration is closed for this tournament. Open the current tournament from the Tournaments page."
+                regTarget = ""
+            } else {
+                entryCost = Api.tournamentEntryCost(regTarget)
+                myReg = findMySeasonReg(regTarget)
+            }
         }
         regChecked = true
     }

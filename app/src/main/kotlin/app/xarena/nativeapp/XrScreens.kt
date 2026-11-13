@@ -36,7 +36,7 @@ private fun xrChip(text: String, color: Color): @Composable () -> Unit = {
 }
 
 @Composable
-fun TournamentDetailsScreen(onBack: () -> Unit, onJoin: () -> Unit) {
+fun TournamentDetailsScreen(onBack: () -> Unit, onJoin: (String) -> Unit) {
     var tick by remember { mutableIntStateOf(0) }
     Column(Modifier.fillMaxSize().background(Ink)) {
         PageHeader("Tournament Details", "Format, prizes, schedule and slots", onBack)
@@ -105,7 +105,7 @@ fun TournamentDetailsScreen(onBack: () -> Unit, onJoin: () -> Unit) {
                     }
                 }
                 item {
-                    if (t.optBoolean("reg_open")) GoldButton("JOIN TOURNAMENT", onClick = onJoin)
+                    if (t.optBoolean("reg_open")) GoldButton("JOIN TOURNAMENT", onClick = { onJoin(t.s("id")) })
                     else Text("Registration is closed for this tournament.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 8.dp))
                 }
             }

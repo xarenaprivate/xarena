@@ -49,7 +49,7 @@ fun HomeScreen(onGoTab: (Int) -> Unit, onOpenFeature: (String) -> Unit) {
     }
     val d = data
     if (d != null) HomeBody(d, onGoTab, onOpenFeature)
-    else LoadState2(tick, { loadHomeData().also { HomeCache.write(Api.ctx, it) } }) { dd -> HomeBody(dd, onGoTab, onOpenFeature) }
+    else LoadState2(tick, { loadHomeData().also { HomeCache.write(Api.ctx, it); data = it } }) { dd -> HomeBody(dd, onGoTab, onOpenFeature) }
     if (ptr.isRefreshing || (refreshing && d != null)) CircularProgressIndicator(color = Gold, modifier = Modifier.align(Alignment.TopCenter).padding(top = 12.dp))
     }
 }
@@ -142,7 +142,7 @@ HomeGameGrid(onOpenFeature)
                         rotationX = (par / 240f).coerceIn(0f, 6f) - Tilt3D.y * 5f
                         rotationY = Tilt3D.x * 5f
                         cameraDistance = 14f * density
-                    }) { CupHeroCard(d.cup, d.slotsTaken) { onOpenFeature("register") } }
+                    }) { val cupT = d.cup; CupHeroCard(cupT, d.slotsTaken) { onOpenFeature("register:" + cupT.s("id")) } }
                 }
                 LiveMatchesRail(d.matches, d.ts) { onOpenFeature(it) }
                 HighlightsWall { onOpenFeature(it) }
@@ -187,7 +187,7 @@ HomeGameGrid(onOpenFeature)
                 }
                 if (d.ts.length() == 0) PanelCard { Text("No upcoming tournaments yet.", color = Muted, fontSize = 13.sp) }
                 else LazyRow(Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 12.dp)) {
-                    items((0 until d.ts.length()).map { d.ts.getJSONObject(it) }) { t ->
+                    items((0 until d.ts.length()).map { d.ts.getJSONObject(it) }, key = { it.s("id") }) { t ->
                         Column(Modifier.width(220.dp).padding(horizontal = 4.dp).clip(RoundedCornerShape(Look.cardRadius))
                             .background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(Look.cardRadius)).padding(14.dp)) {
                             Text(t.s("name"), color = Gold2, fontSize = 15.sp, fontWeight = FontWeight.Bold, maxLines = 2)
@@ -195,7 +195,7 @@ HomeGameGrid(onOpenFeature)
                                 color = Muted, fontSize = 11.sp)
                             Spacer(Modifier.height(8.dp))
                             if (t.optBoolean("reg_open")) Text("REGISTER", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
-                                modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Gold).clickable { onOpenFeature("register") }.padding(horizontal = 14.dp, vertical = 7.dp))
+                                modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Gold).clickable { onOpenFeature("register:" + t.s("id")) }.padding(horizontal = 14.dp, vertical = 7.dp))
                             else Text("Registration closed", color = Muted, fontSize = 11.sp)
                         }
                     }
