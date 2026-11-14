@@ -67,7 +67,7 @@ CREATE FUNCTION public.xr_clan_fund_reward(p_squad uuid,p_recipient uuid,p_amoun
  PERFORM pg_advisory_xact_lock(hashtextextended('clan-fund:'||p_squad::text,0));
  SELECT * INTO d FROM public.xr_clan_fund_distributions WHERE user_id=u AND request_id=p_request;
  IF FOUND THEN IF d.squad_id IS DISTINCT FROM p_squad OR d.recipient_id IS DISTINCT FROM p_recipient OR d.amount IS DISTINCT FROM p_amount THEN RETURN jsonb_build_object('ok',false,'error','Request ID already used for another reward.');END IF;RETURN jsonb_build_object('ok',true,'already',true,'distribution_id',d.id);END IF;
- PERFORM 1 FROM public.squads WHERE id=p_squad AND captain=u FOR SHARE;
+ PERFORM 1 FROM public.squads s JOIN public.squad_members m ON m.squad_id=s.id AND m.user_id=u WHERE s.id=p_squad AND s.captain=u FOR SHARE OF s,m;
  IF NOT FOUND THEN RAISE EXCEPTION 'Only the current clan leader can give rewards.'USING ERRCODE='42501';END IF;
  PERFORM 1 FROM public.squad_members m JOIN public.profiles pr ON pr.id=m.user_id WHERE m.squad_id=p_squad AND m.user_id=p_recipient AND NOT coalesce(pr.banned,false)AND NOT public.is_blocked(u,pr.id)FOR SHARE OF m,pr;
  IF NOT FOUND THEN RETURN jsonb_build_object('ok',false,'error','Current eligible clan member required.');END IF;
