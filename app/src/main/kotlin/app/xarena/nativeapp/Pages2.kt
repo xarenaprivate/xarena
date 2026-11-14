@@ -28,11 +28,11 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /* ============ Clan Room (room_info / room_feed / room_post) ============ */
-@Composable
 object RoomLookSeams {
     var newLook = true
 }
 
+@Composable
 fun RoomScreen(onBack: () -> Unit, onOpenVoice: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
     var info by remember { mutableStateOf<JSONObject?>(null) }
