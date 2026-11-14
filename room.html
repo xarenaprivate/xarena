@@ -27,7 +27,7 @@
 <link rel="icon" type="image/png" href="assets/favicon-64.png">
 <link rel="stylesheet" href="assets/css/style.css?v=20261108-smooth1">
 <link rel="stylesheet" href="assets/css/app-shell.css">
-</head>
+<link rel="stylesheet" href="assets/css/spend-features.css?v=20261114"></head>
 <body>
 <style>
 #xr-splash{position:fixed;inset:0;z-index:99999;background:#07070f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;transition:opacity .3s ease;overflow:hidden}
@@ -108,6 +108,7 @@
   <p>Every squad gets a private room. Plan scrims, call strategies and talk with your clan - only squad members can read or post here.</p>
 </div></section>
 <section class="section"><div class="wrap" style="max-width:720px">
+  <div id="xr-spend-clan" class="xr-spend" hidden></div>
   <div id="room-out"><p style="color:var(--muted)">Opening your clan room…</p></div>
 </div></section></main>
 <script>
@@ -233,4 +234,4 @@ window.addEventListener("load", function () {
 <script src="assets/js/chat-style.js"></script>
 <script src="assets/js/app-shell.js?v=20261108-audit1"></script>
 <script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(function(r){return r.update();}).catch(function(){});</script>
-</body></html>
+<script src="assets/js/spend-features.js?v=20261114"></script></body></html>
