@@ -204,7 +204,7 @@ private fun ScoringRulesCard(tournamentId: String) {
     val placements = r.optJSONArray("placement_points") ?: return
     PanelCard {
         Text("SCORING RULES", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        Text(tournamentId, color = Muted, fontSize = 11.sp)
+        Text(r.s("label").ifBlank { tournamentId }, color = Muted, fontSize = 11.sp)
         Spacer(Modifier.height(6.dp))
         val perRow = (placements.length() + 1) / 2
         Row(Modifier.fillMaxWidth()) {
