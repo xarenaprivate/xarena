@@ -3,7 +3,7 @@
 const e=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const api=()=>window.xrApi;
 const uuid=()=>crypto.randomUUID();
-let state=null,busy=false,pending=null,me=null,roomInfo=null;
+let state=null,busy=false,pending=null,me=null,roomInfo=null,releaseKnown=false;
 const root=document.getElementById('xr-spend-live')||document.getElementById('xr-spend-clan');if(!root)return;
 const isLive=root.id==='xr-spend-live';
 function msg(text,bad){const x=document.getElementById('xr-spend-msg');if(x){x.textContent=text;x.style.color=bad?'#ff9e9e':'#a6f3c8';}}
@@ -13,7 +13,7 @@ async function action(name,args,key){if(busy)return;lock(true);msg('Working...',
 function request(key,args){if(!pending||pending.key!==key)pending={key,id:uuid()};return Object.assign({},args,{p_request:pending.id});}
 async function load(force){if(busy&&!force)return;try{
  me=await api().user();const settings=await api().uRpc('xr_spend_status',{});
- if(!settings.release_authorized){root.hidden=true;return;}root.hidden=false;
+ if(!settings.release_authorized){releaseKnown=false;root.hidden=true;return;}releaseKnown=true;root.hidden=false;
  let wallet=null;if(me)wallet=await api().uRpc('xr_wallet_balance',{});
  const balance=wallet?'Verified earned AP: '+e(wallet.earned_spendable)+' | Gifted AP: '+e(wallet.granted):'Log in to use your AP.';
  const walletHtml='<p class="xsp-muted">'+balance+'. AP has no cash value.</p>';
@@ -23,7 +23,7 @@ async function load(force){if(busy&&!force)return;try{
  if(!me)html+='<p><a href="account.html">Log in</a> to send gifts, predict or comment.</p>';
  if(settings.gifts_enabled){html+='<section><h3>Send a gift</h3><p>Receiver: '+e(state.host_name||'Not set')+'. Received AP is gifted AP, not new earned AP.</p><div class="xsp-buttons">';
  for(const gift of settings.gift_catalog||[])html+='<button type="button" data-gift="'+e(gift.key)+'"'+(!me||!state.host_available?' disabled data-off="true"':'')+'>'+e(gift.key[0].toUpperCase()+gift.key.slice(1))+' · '+e(gift.ap)+' AP</button>';
- html+='</div>'+(!state.host_available?'<p class="xsp-muted">Gifts are unavailable for this account or stream.</p>':'')+'<div class="xsp-gifts">'+(state.gifts||[]).map(g=>'<p'+(g.highlight_until&&Date.parse(g.highlight_until)>Date.now()?' class="xsp-crown"':'')+'>'+e(g.sender)+' sent '+e(g.gift_key)+' · '+e(g.amount)+' AP</p>').join('')+'</div></section>';}
+ html+='</div>'+(!state.host_available?'<p class="xsp-muted">Gifts are unavailable for this account or stream.</p>':'')+'<div class="xsp-gifts">'+(state.gifts||[]).map(g=>'<p'+(g.highlight_until&&Date.parse(g.highlight_until)>Date.now()?' class="xsp-crown" data-expires="'+e(g.highlight_until)+'"':'')+'>'+e(g.sender)+' sent '+e(g.gift_key)+' · '+e(g.amount)+' AP</p>').join('')+'</div></section>';}
  const p=state.prediction;
  if(settings.predictions_enabled){html+='<section><h3>Booyah prediction</h3><p>Free entry. Correct: 200 AP. Incorrect: 10 AP. One locked choice. Admin confirms the finished match result.</p>';
  if(!p)html+='<p class="xsp-muted">No prediction is open. The admin opens one before a match.</p>';
@@ -35,9 +35,10 @@ async function load(force){if(busy&&!force)return;try{
  if(settings.drops_enabled){const d=state.drop;html+='<section><h3>Live Drop</h3><p>First 10 unique eligible live commenters receive 50 AP each. This is based on comments, not verified watch time.</p>'+(d?'<p>'+e(d.status)+' | '+e(d.winners)+' / 10 awarded'+(d.my_award!=null?' | You earned '+e(d.my_award)+' AP':'')+'</p>':'<p class="xsp-muted">No drop is open. Wait for an admin to open one.</p>')+'</section>';}
  html+='<section><h3>Live comments</h3><div id="xsp-comments" class="xsp-comments"></div><label for="xsp-comment">Your comment</label><input id="xsp-comment" maxlength="200" placeholder="BOOYAH or GG WP"><button type="button" id="xsp-comment-send"'+(!me?' disabled data-off="true"':'')+'>Send comment</button></section><p id="xr-spend-msg" role="status" aria-live="polite"></p>';
  root.innerHTML=html;
+ root.querySelectorAll('[data-expires]').forEach(x=>setTimeout(()=>x.classList.remove('xsp-crown'),Math.max(0,Date.parse(x.dataset.expires)-Date.now())));
  root.querySelectorAll('[data-gift]').forEach(b=>b.onclick=()=>{const g=settings.gift_catalog.find(x=>x.key===b.dataset.gift);if(confirm('Send '+g.key+' to '+state.host_name+' for '+g.ap+' verified earned AP?'))action('xr_live_gift_send',request('gift:'+state.video_id+':'+g.key,{p_video:state.video_id,p_gift:g.key}));});
  const pred=document.getElementById('xsp-predict');if(pred)pred.onclick=()=>{const c=document.getElementById('xsp-choice').value;if(!c)return msg('Choose a squad.',true);const n=p.choices.find(x=>x.registration_id===c)?.squad;if(confirm('Lock '+n+'? Entry is free. You cannot change this choice.'))action('xr_prediction_choose',{p_pool:p.id,p_registration:c});};
- const send=document.getElementById('xsp-comment-send');if(send)send.onclick=async()=>{const text=document.getElementById('xsp-comment').value.trim();if(!text||busy)return;lock(true);try{guard(await api().uRpc('xr_live_thread_post',{p_tournament:state.tournament_id,p_body:text}));document.getElementById('xsp-comment').value='';await comments();msg('Comment sent.',false);}catch(err){msg(err.message,true);}finally{lock(false);}};
+ const send=document.getElementById('xsp-comment-send');if(send)send.onclick=async()=>{const text=document.getElementById('xsp-comment').value.trim();if(!text||busy)return;lock(true);try{guard(await api().uRpc('xr_live_thread_post',{p_tournament:state.tournament_id,p_body:text}));document.getElementById('xsp-comment').value='';await load(true);msg('Comment sent.',false);}catch(err){msg(err.message,true);}finally{lock(false);}};
  await comments();
  }else{
  if(!settings.clan_fund_enabled){root.hidden=true;return;}
@@ -48,7 +49,7 @@ async function load(force){if(busy&&!force)return;try{
  document.getElementById('xsp-contribute').onclick=()=>{const n=Number(document.getElementById('xsp-contribution').value);if(!Number.isSafeInteger(n)||n<1)return msg('Enter a positive whole AP amount.',true);if(confirm('Contribute '+n+' earned AP to '+squad.name+'? These AP stay in the clan even if you leave.'))action('xr_clan_fund_contribute',request('fund:'+squad.id+':'+n,{p_squad:squad.id,p_amount:n}));};
  const reward=document.getElementById('xsp-reward');if(reward)reward.onclick=()=>{const id=document.getElementById('xsp-recipient').value,n=Number(document.getElementById('xsp-reward-amount').value);if(!id||!Number.isSafeInteger(n)||n<1)return msg('Choose a member and positive whole AP amount.',true);const member=squad.members.find(m=>m.id===id);if(confirm('Give '+n+' clan AP to '+member.name+' as gifted AP?'))action('xr_clan_fund_reward',request('reward:'+squad.id+':'+id+':'+n,{p_squad:squad.id,p_recipient:id,p_amount:n}));};
  }
- }catch(err){root.hidden=false;root.innerHTML='<h2>AP rewards</h2><p>Could not load. Refresh to try again.</p><p class="xsp-muted">'+e(err.message)+'</p>';}}
+ }catch(err){if(!releaseKnown){root.hidden=true;return;}root.hidden=false;root.innerHTML='<h2>AP rewards</h2><p>Could not load. Refresh to try again.</p><p class="xsp-muted">'+e(err.message)+'</p>';}}
 async function comments(){if(!isLive||!state?.tournament_id)return;const r=await api().uRpc('xr_live_thread_list',{p_tournament:state.tournament_id,p_limit:20});const box=document.getElementById('xsp-comments');if(box)box.innerHTML=(r.posts||[]).slice().reverse().map(m=>'<p><b>'+e(m.name)+'</b> '+e(m.body)+'</p>').join('')||'<p class="xsp-muted">No live comments yet.</p>';}
 window.addEventListener('load',load);setInterval(()=>{if(!document.hidden&&!busy&&!root.contains(document.activeElement))load();},30000);
 })();
