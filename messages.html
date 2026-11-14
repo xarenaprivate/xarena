@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
       b.addEventListener("click", function () { stopPoll(); if (b.dataset.t === "chats") renderChats(); else if (b.dataset.t === "friends") renderFriends(); else renderRequests(); });
     });
   }
-  function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; openThread = null; } if (presTimer) { clearInterval(presTimer); presTimer = null; } }
+  function stopPoll() { stopDmRealtime();openThread=null; if (pollTimer) { clearInterval(pollTimer); pollTimer = null; openThread = null; } if (presTimer) { clearInterval(presTimer); presTimer = null; } }
 
   /* ---------- presence (real last-seen heartbeat) ---------- */
   var presMap = {};
@@ -390,6 +390,21 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  var dmChannel=null,dmRealtimeReady=false,dmLastPull=0,dmRealtimeEpoch=0;
+  function stopDmRealtime(){dmRealtimeEpoch++;dmRealtimeReady=false;if(dmChannel&&window.xrSb){window.xrSb.removeChannel(dmChannel);dmChannel=null;}}
+  function startDmRealtime(tid,pid,key){
+    stopDmRealtime();if(!window.xrSb||document.hidden)return;var epoch=dmRealtimeEpoch;
+    window.xrApi.userToken().then(function(token){if(!token||epoch!==dmRealtimeEpoch||openThread!==tid)return;
+      window.xrSb.realtime.setAuth(token);
+      dmChannel=window.xrSb.channel('dm-fast:'+tid+':'+Date.now()).on('postgres_changes',{event:'INSERT',schema:'public',table:'dm_messages',filter:'thread_id=eq.'+tid},function(){if(openThread===tid&&!document.hidden)loadMsgs(tid,pid,key,false);}).subscribe(function(status){
+        if(epoch!==dmRealtimeEpoch)return;dmRealtimeReady=status==='SUBSCRIBED';if(dmRealtimeReady)loadMsgs(tid,pid,key,false);
+      });
+    }).catch(function(){dmRealtimeReady=false;});
+  }
+  document.addEventListener('visibilitychange',function(){if(document.hidden){stopDmRealtime();}else if(openThread&&openKey){startDmRealtime(openThread,openPeer,openKey);loadMsgs(openThread,openPeer,openKey,false);}});
+  window.addEventListener('online',function(){if(openThread&&openKey){startDmRealtime(openThread,openPeer,openKey);loadMsgs(openThread,openPeer,openKey,false);}});
+  window.addEventListener('pagehide',stopPoll);
+
   /* ---------- CONVERSATION ---------- */
   function openConv(threadId, peerId, opts) {
     opts = opts || {};
@@ -437,9 +452,11 @@ document.addEventListener("DOMContentLoaded", function () {
     app.querySelector("#dm-text").addEventListener("keydown", function (e) { if (e.key === "Enter") sendText(); });
 
     window.xrDm.threadCtx(peerId).then(function (ctx) {
+      if(openThread!==threadId)return;
       var key = ctx.key; openKey = key; openCtx = ctx;
       loadMsgs(threadId, peerId, key, true);
-      pollTimer = setInterval(function () { loadMsgs(threadId, peerId, key, false); }, 4000);
+      startDmRealtime(threadId,peerId,key);
+      pollTimer = setInterval(function () {if(!document.hidden&&Date.now()-dmLastPull>=(dmRealtimeReady?30000:4000))loadMsgs(threadId,peerId,key,false);},1000);
     }).catch(function (e) {
       app.querySelector("#dm-msgs").innerHTML = '<p style="color:#ffb4ae">' + esc(e.message) + '</p><p class="dm-sub">They need to open Messages once on their device to set up encryption.</p>';
     });
@@ -500,8 +517,17 @@ document.addEventListener("DOMContentLoaded", function () {
   new MutationObserver(function () { paintBanner(); }).observe(app, { childList: true });
 
   var readObserver=null;
+  var dmLoading=null,dmQueued=false,dmForce=false;
   function loadMsgs(threadId, peerId, key, scroll) {
-    return window.xrDm.rest("GET", "/rest/v1/dm_messages?thread_id=eq." + threadId + "&select=*&order=created_at.asc&limit=100").then(function (rows) {
+    if(document.hidden || openThread!==threadId)return Promise.resolve();
+    if(dmLoading){dmQueued=true;dmForce=dmForce||scroll;return dmLoading;}
+    dmLoading=loadMsgsNow(threadId,peerId,key,scroll).finally(function(){
+      dmLoading=null;
+      if(dmQueued){var force=dmForce;dmQueued=false;dmForce=false;if(openThread&&openKey)loadMsgs(openThread,openPeer,openKey,force);}
+    });return dmLoading;
+  }
+  function loadMsgsNow(threadId, peerId, key, scroll) {
+    dmLastPull=Date.now();return window.xrDm.rest("GET", "/rest/v1/dm_messages?thread_id=eq." + threadId + "&select=*&order=created_at.asc&limit=100").then(function (rows) {
       var box = app.querySelector("#dm-msgs");
       if (!box || openThread !== threadId) return;
       if(readObserver)readObserver.disconnect();

@@ -8,10 +8,11 @@
   var SUPA_KEY = "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7";
   var ROOM = "voice:arena-lobby";
   var vroom = ROOM; /* regional voice lobby: voice:<room> from chat_my_room (coarse state), General if no area */
+  var roomReady=Promise.resolve();
   try {
     var _h = localStorage.getItem("xr_chat_handle"), _t = localStorage.getItem("xr_chat_token");
     if (_h && _t) {
-      fetch(SUPA_URL + "/rest/v1/rpc/chat_my_room", { method: "POST", headers: { "apikey": SUPA_KEY, "Authorization": "Bearer " + SUPA_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ p_handle: _h, p_token: _t }) })
+      roomReady=fetch(SUPA_URL + "/rest/v1/rpc/chat_my_room", { method: "POST", headers: { "apikey": SUPA_KEY, "Authorization": "Bearer " + SUPA_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ p_handle: _h, p_token: _t }) })
         .then(function (r) { return r.json(); }).then(function (j) { if (j && j.room && j.room !== "general") vroom = "voice:" + j.room; }).catch(function () {});
     }
   } catch (e) {}
@@ -23,7 +24,7 @@
 
   var sb = null, chan = null, myId = null, myHandle = null;
   var localStream = null, joined = false, muted = false, deafened = false;
-  var joinAt = 0, timerIv = null;
+  var joinAt = 0, timerIv = null, statsIv=null, statsBusy=false;
   var peers = {};       /* id -> {pc, handle, card, audio, analyser, data} */
   var levels = {};      /* id -> last speaking bool (incl. "me") */
   var actx = null;
@@ -100,7 +101,7 @@
   /* ---------- speaking meters ---------- */
   function meterFor(stream, id) {
     try {
-      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)({latencyHint:"interactive"});
       var src = actx.createMediaStreamSource(stream);
       var an = actx.createAnalyser();
       an.fftSize = 256;
@@ -122,7 +123,7 @@
   /* ---------- WebRTC mesh ---------- */
   function makePeer(id, handle) {
     var pc = new RTCPeerConnection(RTC_CFG);
-    var entry = { pc: pc, handle: handle, audio: null };
+    var entry = { pc: pc, handle: handle, audio: null, pendingIce:[],signalQueue:Promise.resolve() };
     peers[id] = entry;
     localStream.getTracks().forEach(function (t) { pc.addTrack(t, localStream); });
     pc.onicecandidate = function (ev) {
@@ -131,11 +132,14 @@
     pc.ontrack = function (ev) {
       if (entry.audio) return;
       var a = document.createElement("audio");
-      a.autoplay = true; a.srcObject = ev.streams[0];
+      // A hint, not a promise. Browser/network may require a larger buffer.
+      if(ev.receiver&&'jitterBufferTarget'in ev.receiver){try{ev.receiver.jitterBufferTarget=40;}catch(ignore){}}
+      a.autoplay = true; a.playsInline=true;a.srcObject = ev.streams[0]||new MediaStream([ev.track]);
       a.muted = deafened;
       document.body.appendChild(a);
       entry.audio = a;
-      meterFor(ev.streams[0], id);
+      a.play().catch(function(){toast("Tap the page to allow voice playback.");});
+      meterFor(a.srcObject, id);
     };
     pc.onconnectionstatechange = function () {
       if (pc.connectionState === "failed" || pc.connectionState === "closed") dropPeer(id);
@@ -151,24 +155,37 @@
     chan.send({ type: "broadcast", event: "sig", payload: { kind: kind, from: myId, to: to, data: data, handle: myHandle } });
   }
 
+  function tuneSender(pc){
+    pc.getSenders().forEach(function(sender){if(!sender.track||sender.track.kind!=='audio')return;
+      try{var params=sender.getParameters();if(params.encodings&&params.encodings.length){params.encodings[0].maxBitrate=32000;sender.setParameters(params).catch(function(){});}}catch(ignore){}
+    });
+  }
+  function flushIce(entry){var pending=entry.pendingIce.splice(0);return pending.reduce(function(chain,c){return chain.then(function(){return entry.pc.addIceCandidate(c).catch(function(){});});},Promise.resolve());}
   function onSig(ev) {
-    var p = ev.payload;
-    if (!p || p.to !== myId || p.from === myId) return;
-    var e = peers[p.from] || makePeer(p.from, p.handle);
-    var pc = e.pc;
-    if (p.kind === "offer") {
-      pc.setRemoteDescription(p.data).then(function () {
-        return pc.createAnswer();
-      }).then(function (ans) {
-        return pc.setLocalDescription(ans);
-      }).then(function () {
-        sig("answer", p.from, pc.localDescription.toJSON());
-      }).catch(function () {});
-    } else if (p.kind === "answer") {
-      pc.setRemoteDescription(p.data).catch(function () {});
-    } else if (p.kind === "ice") {
-      pc.addIceCandidate(new RTCIceCandidate(p.data)).catch(function () {});
-    }
+    var p=ev.payload;if(!p||p.to!==myId||p.from===myId||!localStream)return;
+    var entry=peers[p.from]||makePeer(p.from,p.handle),pc=entry.pc;
+    // ICE can arrive before offer/answer. Keep it until remote description exists.
+    entry.signalQueue=entry.signalQueue.then(function(){
+      if(p.kind==='ice'){
+        var candidate=new RTCIceCandidate(p.data);if(!pc.remoteDescription){entry.pendingIce.push(candidate);return;}
+        return pc.addIceCandidate(candidate);
+      }
+      if(p.kind==='offer')return pc.setRemoteDescription(p.data).then(function(){return flushIce(entry);}).then(function(){return pc.createAnswer();}).then(function(ans){return pc.setLocalDescription(ans);}).then(function(){sig('answer',p.from,pc.localDescription.toJSON());tuneSender(pc);});
+      if(p.kind==='answer')return pc.setRemoteDescription(p.data).then(function(){return flushIce(entry);}).then(function(){tuneSender(pc);});
+    }).catch(function(){/* keep the queue alive for later valid signaling */});
+  }
+
+  // Read-only transport diagnostics: these are NOT microphone-to-ear measurements.
+  function updateDiagnostics(){
+    var box=document.getElementById('xv-network');if(!box||statsBusy)return;
+    statsBusy=true;var rtts=[],buffers=[],loss=0,received=0;
+    Promise.all(Object.keys(peers).map(function(id){return peers[id].pc.getStats().then(function(report){report.forEach(function(r){
+      if(r.type==='candidate-pair'&&r.state==='succeeded'&&r.nominated&&Number.isFinite(r.currentRoundTripTime))rtts.push(r.currentRoundTripTime*1000);
+      if(r.type==='inbound-rtp'&&(r.kind==='audio'||r.mediaType==='audio')){if(r.jitterBufferEmittedCount>0)buffers.push(r.jitterBufferDelay/r.jitterBufferEmittedCount*1000);loss+=Math.max(0,r.packetsLost||0);received+=r.packetsReceived||0;}
+    });}).catch(function(){});})).then(function(){
+      if(!joined)return;
+      box.textContent=rtts.length?'Peer RTT '+Math.round(Math.max.apply(null,rtts))+' ms'+(buffers.length?' | Audio buffer avg '+Math.round(Math.max.apply(null,buffers))+' ms':'')+(received?' | Packet loss '+(100*loss/(received+loss)).toFixed(1)+'%':'')+' (not total voice delay)':'Waiting for a connected peer. Zero delay is not physically possible.';
+    }).finally(function(){statsBusy=false;});
   }
 
   function reconcile() {
@@ -190,7 +207,9 @@
   function join() {
     var btn = $("#xv-join-btn");
     btn.disabled = true; btn.textContent = "Connecting mic…";
-    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true }, video: false })
+    Promise.race([roomReady,new Promise(function(resolve){setTimeout(resolve,1500);})]).then(function(){
+      return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,channelCount:{ideal:1},latency:{ideal:0.02}},video:false});
+    })
       .then(function (stream) {
         localStream = stream;
         sb = sb || supabase.createClient(SUPA_URL, SUPA_KEY);
@@ -213,6 +232,8 @@
           if (status !== "SUBSCRIBED") return;
           chan.track({ handle: myHandle, muted: false, at: Date.now() });
           joined = true; joinAt = Date.now();
+          if(!document.getElementById('xv-network')){var net=document.createElement('p');net.id='xv-network';net.className='xv-live';net.setAttribute('role','status');roomBox.appendChild(net);}
+          clearInterval(statsIv);statsIv=setInterval(updateDiagnostics,5000);updateDiagnostics();
           joinBox.style.display = "none";
           roomBox.style.display = "";
           renderRoster();
@@ -233,7 +254,7 @@
 
   function leave() {
     joined = false;
-    clearInterval(timerIv);
+    clearInterval(timerIv);clearInterval(statsIv);
     Object.keys(peers).forEach(dropPeer);
     roster = {}; levels = {};
     if (chan) { try { chan.unsubscribe(); } catch (e) {} chan = null; }

@@ -1,0 +1,17 @@
+const {JSDOM}=require('jsdom');const fs=require('fs'),assert=require('assert');
+const tick=()=>new Promise(r=>setTimeout(r,10));
+async function voice(){
+const dom=new JSDOM('<div id="voice-join"></div><div id="voice-room"></div>'+['xv-join-btn','xv-leave','xv-mute','xv-deaf','xv-invite','xv-list','xv-count','xv-timer','xv-err'].map(id=>'<button id="'+id+'"><span></span></button>').join(''),{url:'https://fixture.test',runScripts:'outside-only'});const w=dom.window;
+Object.defineProperty(w.navigator,'mediaDevices',{value:{getUserMedia:async()=>({getTracks:()=>[],getAudioTracks:()=>[]})}});
+w.RTCPeerConnection=class{constructor(){this.remoteDescription=null;this.calls=[];}addTrack(){}getSenders(){return [];}setRemoteDescription(d){this.remoteDescription=d;this.calls.push('remote');return Promise.resolve();}addIceCandidate(c){assert(this.remoteDescription);this.calls.push('ice');return Promise.resolve();}createAnswer(){return Promise.resolve({type:'answer'});}setLocalDescription(d){this.localDescription={toJSON:()=>d};return Promise.resolve();}close(){}getStats(){return Promise.resolve(new Map());}};w.RTCIceCandidate=class{constructor(d){Object.assign(this,d);}};
+w.eval(fs.readFileSync(process.env.VOICE_JS||'assets/js/voice.js','utf8').replace(/\}\)\(\);\s*$/,"window.testVoice={onSig,peers,setUp(){myId='me';localStream={getTracks:()=>[]};chan={send(){}};}};})();"));
+w.testVoice.setUp();w.testVoice.onSig({payload:{kind:'ice',to:'me',from:'other',data:{candidate:'fixture'}}});await tick();assert.equal(w.testVoice.peers.other.pendingIce.length,1);w.testVoice.onSig({payload:{kind:'offer',to:'me',from:'other',data:{type:'offer'}}});await tick();assert.deepEqual(Array.from(w.testVoice.peers.other.pc.calls),['remote','ice']);assert.equal(w.testVoice.peers.other.pendingIce.length,0);dom.window.close();console.log('PASS voice ICE before description retained then flushed, signaling queue stays alive');}
+async function room(){
+let script=fs.readFileSync(process.env.ROOM_HTML||'room.html','utf8').match(/<script>\s*window.addEventListener\("load"[\s\S]*?<\/script>/)[0].replace(/^<script>|<\/script>$/g,'');
+let calls=0,channelCb=null,statusCb=null,removed=0;
+const dom=new JSDOM('<div id="room-out"></div>',{url:'https://fixture.test',runScripts:'outside-only',pretendToBeVisual:true}),w=dom.window;
+const ch={on(type,filter,cb){assert.equal(filter.table,'squad_room_messages');assert.equal(filter.filter,'squad_id=eq.fixture');channelCb=cb;return this;},subscribe(cb){statusCb=cb;return this;}};
+w.xrSb={realtime:{setAuth(){}},channel(){return ch;},removeChannel(){removed++;}};
+w.xrApi={user:async()=>({id:'member'}),userToken:async()=>'not-real',uRpc:async n=>{if(n==='room_info')return{ok:true,squad:'fixture',name:'Test',members:1};if(n==='room_feed'){calls++;await tick();return{ok:true,rows:[{id:1,user_id:'member',by:'Member',body:'fixture',created_at:new Date().toISOString()}]};}}};
+w.eval(script);await tick();await tick();await tick();assert(channelCb);statusCb('SUBSCRIBED');channelCb();channelCb();await tick();await tick();assert.equal(w.document.querySelectorAll('#room-msgs > div:not(#room-empty)').length,1);assert(calls<=4,calls);w.dispatchEvent(new w.Event('pagehide'));assert.equal(removed,1);w.close();console.log('PASS clan authenticated filter, websocket wake, concurrent fetch coalescing, duplicate row suppressed, channel cleanup');}
+(async()=>{await voice();await room();})().catch(e=>{console.error(e);process.exitCode=1;});

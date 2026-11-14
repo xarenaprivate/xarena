@@ -1,0 +1,20 @@
+BEGIN;
+DO $$DECLARE memberid uuid;outsider uuid;sid uuid;BEGIN
+ SELECT m.user_id,m.squad_id INTO memberid,sid FROM public.squad_members m JOIN public.profiles p ON p.id=m.user_id WHERE NOT coalesce(p.banned,false)LIMIT 1;
+ SELECT id INTO outsider FROM public.profiles WHERE NOT coalesce(banned,false)AND id NOT IN(SELECT user_id FROM public.squad_members WHERE squad_id=sid)LIMIT 1;
+ IF memberid IS NULL OR outsider IS NULL THEN RAISE EXCEPTION 'Privacy fixture identities unavailable';END IF;
+ PERFORM set_config('xr.test_member',memberid::text,true);PERFORM set_config('xr.test_outsider',outsider::text,true);PERFORM set_config('xr.test_squad',sid::text,true);
+ INSERT INTO public.squad_room_messages(squad_id,user_id,body)VALUES(sid,memberid,'ROLLBACK_ONLY_PRIVACY_TEST');
+END $$;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub',current_setting('xr.test_member'),true);
+DO $$BEGIN IF NOT EXISTS(SELECT 1 FROM public.squad_room_messages WHERE squad_id=current_setting('xr.test_squad')::uuid AND body='ROLLBACK_ONLY_PRIVACY_TEST')THEN RAISE EXCEPTION 'FAIL member delivery';END IF;END $$;
+SELECT set_config('request.jwt.claim.sub',current_setting('xr.test_outsider'),true);
+DO $$BEGIN IF EXISTS(SELECT 1 FROM public.squad_room_messages WHERE squad_id=current_setting('xr.test_squad')::uuid)THEN RAISE EXCEPTION 'FAIL outsider private read';END IF;END $$;
+SET LOCAL ROLE anon;
+SELECT set_config('request.jwt.claim.sub','',true);
+DO $$BEGIN IF EXISTS(SELECT 1 FROM public.squad_room_messages WHERE squad_id=current_setting('xr.test_squad')::uuid)THEN RAISE EXCEPTION 'FAIL anonymous private read';END IF;END $$;
+RESET ROLE;
+DO $$BEGIN IF(SELECT count(*)FROM pg_publication_tables WHERE pubname='supabase_realtime'AND schemaname='public'AND tablename IN('chat_messages','dm_messages','squad_room_messages'))<>3 THEN RAISE EXCEPTION 'FAIL publication';END IF;END $$;
+SELECT 'PASS member-only clan RLS, nonmember/anonymous isolation, 3-table realtime publication; fixture rolled back'AS test_result;
+ROLLBACK;

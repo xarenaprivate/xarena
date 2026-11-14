@@ -116,7 +116,16 @@ window.addEventListener("load", function () {
   var out = document.getElementById("room-out");
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   if (!window.xrApi) { out.innerHTML = '<p style="color:#ff6b6b">Backend not connected - check your connection.</p>'; return; }
-  var me = null, lastId = 0, timer = null;
+  var me = null, lastId = 0, timer = null, roomChannel=null, roomReady=false, roomSquad=null, pulling=false, pullAgain=false, lastPull=0, roomEpoch=0;
+  function stopRealtime(){roomEpoch++;roomReady=false;if(roomChannel&&window.xrSb){window.xrSb.removeChannel(roomChannel);roomChannel=null;}}
+  function startRealtime(){stopRealtime();if(!window.xrSb||!roomSquad||document.hidden)return;var epoch=roomEpoch;
+    xrApi.userToken().then(function(token){if(!token||epoch!==roomEpoch)return;window.xrSb.realtime.setAuth(token);
+      roomChannel=window.xrSb.channel('clan-fast:'+roomSquad+':'+Date.now()).on('postgres_changes',{event:'INSERT',schema:'public',table:'squad_room_messages',filter:'squad_id=eq.'+roomSquad},pull).subscribe(function(status){if(epoch!==roomEpoch)return;roomReady=status==='SUBSCRIBED';if(roomReady)pull();});
+    }).catch(function(){roomReady=false;});
+  }
+  document.addEventListener('visibilitychange',function(){if(document.hidden)stopRealtime();else if(roomSquad){startRealtime();pull();}});
+  window.addEventListener('online',function(){if(roomSquad){startRealtime();pull();}});
+  window.addEventListener('pagehide',function(){stopRealtime();clearInterval(timer);});
   function bubble(m) {
     var mine = me && m.user_id === me.id;
     return '<div style="display:flex;' + (mine ? "justify-content:flex-end" : "") + ';margin-bottom:8px">' +
@@ -127,15 +136,16 @@ window.addEventListener("load", function () {
       "</div></div>";
   }
   function pull() {
+    if(document.hidden)return;if(pulling){pullAgain=true;return;}pulling=true;lastPull=Date.now();
     window.xrApi.uRpc("room_feed", { p_after: lastId }).then(function (r) {
       if (!r || !r.ok) return;
       var box = document.getElementById("room-msgs");
       if (!box) { clearInterval(timer); return; }
-      (r.rows || []).forEach(function (m) { box.insertAdjacentHTML("beforeend", bubble(m)); lastId = Math.max(lastId, m.id); });
+      (r.rows || []).forEach(function (m) { if(m.id<=lastId)return;box.insertAdjacentHTML("beforeend", bubble(m)); lastId = Math.max(lastId, m.id); });
       if (r.rows && r.rows.length) box.scrollTop = box.scrollHeight;
       var empty = document.getElementById("room-empty");
       if (empty && box.children.length) empty.style.display = "none";
-    }).catch(function () {});
+    }).catch(function () {}).finally(function(){pulling=false;if(pullAgain){pullAgain=false;pull();}});
   }
   window.xrApi.user().then(function (u) {
     me = u;
@@ -165,7 +175,8 @@ window.addEventListener("load", function () {
       }
       document.getElementById("room-send").addEventListener("click", send);
       document.getElementById("room-in").addEventListener("keydown", function (e) { if (e.key === "Enter") send(); });
-      pull(); timer = setInterval(pull, 4000);
+      roomSquad=info.squad;pull();startRealtime();
+      timer=setInterval(function(){if(!document.hidden&&Date.now()-lastPull>=(roomReady?30000:4000))pull();},1000);
     });
   });
 });

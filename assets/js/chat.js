@@ -92,6 +92,7 @@
 
   /* ---------- rendering ---------- */
   function addMsg(m, prepend) {
+    if(logEl.querySelector('[data-id="'+String(m.id).replace(/[^0-9]/g,'')+'"]'))return;
     if (isBlocked(m.handle)) return;
     var mine = m.handle === handle;
     var luna = m.handle === "Luna";
@@ -150,11 +151,18 @@
       });
   }
 
+  var catchingUp=false;
+  function catchUp(){
+    if(catchingUp||document.hidden)return;catchingUp=true;var stick=nearBottom();
+    rest('/rest/v1/chat_messages?select=id,handle,body,created_at&room=eq.'+encodeURIComponent(room)+'&id=gt.'+lastId+'&order=id.asc&limit=100').then(function(r){if(!r.ok)throw Error('Catchup failed');return r.json();}).then(function(rows){(rows||[]).forEach(function(m){addMsg(m);});if(stick)scrollBottom();}).catch(function(){}).finally(function(){catchingUp=false;});
+  }
+  document.addEventListener('visibilitychange',function(){if(!document.hidden&&channel)catchUp();});
+  window.addEventListener('online',function(){if(channel)catchUp();});
   function connectRealtime() {
     channel = sb.channel("world-chat:" + room, { config: { presence: { key: handle } } });
     channel.on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: "room=eq." + room }, function (p) {
       var m = p.new;
-      if (!m || m.id <= lastId || (m.room && m.room !== room)) return;
+      if (!m || (m.room && m.room !== room)) return;
       var stick = nearBottom();
       addMsg(m);
       clearTyping(m.handle);
@@ -178,6 +186,7 @@
     channel.subscribe(function (status) {
       if (status === "SUBSCRIBED") {
         channel.track({ handle: handle, at: Date.now() });
+        catchUp();
       }
     });
   }
