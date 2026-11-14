@@ -1,9 +1,9 @@
 {
-  "versionCode": 95,
-  "versionName": "0.17.50-native",
-  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.50-native/xarena-native-v0.17.50.apk",
-  "sha256": "fa715a38e0171b91a6f9e003c432172d95bbcb8c0445a3a43a0deb5e8b2de799",
+  "versionCode": 96,
+  "versionName": "0.17.51-native",
+  "apkUrl": "https://github.com/xarenaprivate/xarena/releases/download/v0.17.51-native/xarena-native-v0.17.51.apk",
+  "sha256": "8fb16858a6f2455fba3a4b4ba2b94a215b6356a101c7feffae38a1f6f01301fc",
   "apkBytes": 29696527,
-  "notes": "Match Center visible confirmations after proof/report submit; push taps route by documented kind: notification to Notifications, room to Squads, tournament to Tournaments tab.",
+  "notes": "ACTIVE NOW fix: auto-presence reports online every 60s (2-min server expiry, truthful); respects manual in_match/offline. Home hero: LIVE NOW / REGISTRATION OPEN status ribbon.",
   "patches": []
 }
