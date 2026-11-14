@@ -363,6 +363,7 @@ msg = if (r?.optBoolean("ok") == true) "Saved." else (r?.s("error")?.ifBlank { n
                                 scope.launch {
                                     val rr = runCatching { Api.authedRpc("xr_sf_presence_set", JSONObject().put("p_state", st)) }
 val r = rr.getOrNull()
+if (r?.optBoolean("ok") == true) Api.prefs.edit().putLong("sf_manual_presence_at", System.currentTimeMillis()).putString("sf_manual_presence_state", st).apply()
 msg = if (r?.optBoolean("ok") == true) "Status set: " + label else (r?.s("error")?.ifBlank { null } ?: rr.exceptionOrNull()?.message ?: "Could not set status.")
                                 }
                             }.padding(horizontal = 12.dp, vertical = 7.dp))

@@ -70,7 +70,16 @@ fun CupHeroCard(t: JSONObject, slotsTaken: Int, onRegister: () -> Unit) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(Look.cardRadius))
         .background(Look.cardBg).border(1.dp, Gold.copy(alpha = .6f), RoundedCornerShape(Look.cardRadius)).padding(18.dp)) {
         Text(t.s("name"), color = Gold2, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Text(listOf(t.s("mode"), t.s("date_text")).filter { it.isNotBlank() }.joinToString(" ÃÂ· "), color = Muted, fontSize = 12.sp)
+        run {
+            val live = t.s("status").equals("live", true)
+            if (live || t.optBoolean("reg_open")) {
+                Spacer(Modifier.height(6.dp))
+                Box(Modifier.clip(RoundedCornerShape(8.dp)).background(if (live) Color(0xFFFF5252) else Gold).padding(horizontal = 10.dp, vertical = 4.dp)) {
+                    Text(if (live) "LIVE NOW" else "REGISTRATION OPEN", color = if (live) Color.White else Ink, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+        Text(listOf(t.s("mode"), t.s("date_text")).filter { it.isNotBlank() }.joinToString(" ÃÂÃÂ· "), color = Muted, fontSize = 12.sp)
         val start = cupStartMs(t)
         if (start != null) { Spacer(Modifier.height(10.dp)); CountdownLine(start); Text("until start", color = Muted, fontSize = 11.sp) }
         val slots = t.optInt("slots", 0)
@@ -126,7 +135,7 @@ fun AajKyaHaiCard(matches: JSONArray, onJoin: () -> Unit) {
         if (teams.isNotEmpty()) Text(teams.joinToString("  VS  "), color = Muted, fontSize = 12.sp)
         val st = runCatching { java.time.Instant.parse(next.s("starts_at")).toEpochMilli() }.getOrNull()
         if (st != null && st > System.currentTimeMillis()) { Spacer(Modifier.height(6.dp)); CountdownLine(st) }
-        else Text(dmTime(next.s("starts_at")) + " ÃÂ· " + next.s("status").uppercase(), color = Muted, fontSize = 12.sp)
+        else Text(dmTime(next.s("starts_at")) + " ÃÂÃÂ· " + next.s("status").uppercase(), color = Muted, fontSize = 12.sp)
         Spacer(Modifier.height(6.dp))
         val r = room
         if (r != null && r.optBoolean("ok")) {
@@ -213,7 +222,7 @@ fun FanVoteHomeCard(onOpenVote: () -> Unit) {
                     .clickable { sel = oid }.padding(horizontal = 12.dp, vertical = 9.dp),
                     verticalAlignment = Alignment.CenterVertically) {
                     Text(o.s("label"), color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                    Text(if (mine) "Your vote ÃÂ· $votes ($pct%)" else "$votes ($pct%)", color = Muted, fontSize = 11.sp)
+                    Text(if (mine) "Your vote ÃÂÃÂ· $votes ($pct%)" else "$votes ($pct%)", color = Muted, fontSize = 11.sp)
                 }
             }
             Spacer(Modifier.height(6.dp))
@@ -237,7 +246,7 @@ fun WinnersStrip(onOpenWinners: () -> Unit) {
         Column {
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(Txt.t("LATEST WINNERS", "JEETNE WALE"), color = Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                Text("Hall of Fame Ã¢ÂÂ", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenWinners() }.padding(4.dp))
+                Text("Hall of Fame ÃÂ¢ÃÂÃÂ", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenWinners() }.padding(4.dp))
             }
             LazyRow(Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 12.dp)) {
                 items((0 until aw.length()).map { aw.getJSONObject(it) }) { a ->
@@ -252,7 +261,7 @@ fun WinnersStrip(onOpenWinners: () -> Unit) {
                         Spacer(Modifier.width(10.dp))
                         Column {
                             Text(a.s("name"), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                            Text(listOf(a.s("category"), a.s("detail"), a.s("season")).filter { it.isNotBlank() }.joinToString(" ÃÂ· "),
+                            Text(listOf(a.s("category"), a.s("detail"), a.s("season")).filter { it.isNotBlank() }.joinToString(" ÃÂÃÂ· "),
                                 color = Muted, fontSize = 11.sp, maxLines = 1)
                         }
                     }
@@ -273,7 +282,7 @@ runCatching { Api.publicRpc("squad_board", JSONObject().put("p_scope", "global")
         PanelCard {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(Txt.t("TOP SQUADS", "TOP SQUADS"), color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                Text("All Ã¢ÂÂ", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenLeaderboard() }.padding(4.dp))
+                Text("All ÃÂ¢ÃÂÃÂ", color = Muted, fontSize = 12.sp, modifier = Modifier.clickable { onOpenLeaderboard() }.padding(4.dp))
             }
             for (i in 0 until minOf(3, rows.length())) {
                 val row = rows.getJSONObject(i)
@@ -281,7 +290,7 @@ runCatching { Api.publicRpc("squad_board", JSONObject().put("p_scope", "global")
                     .clickable(enabled = row.s("id").isNotBlank()) { onOpenSquad(row.s("id")) }.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("#" + row.optInt("rank", i + 1), color = if (i == 0) Gold2 else Muted, fontSize = 14.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(34.dp))
                     Text(row.s("name") + (row.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""), color = Color.White, fontSize = 14.sp, modifier = Modifier.weight(1f))
-                    Text(row.optInt("xp").toString() + " XP ÃÂ· " + row.optInt("members") + " players", color = Gold2, fontSize = 11.sp)
+                    Text(row.optInt("xp").toString() + " XP ÃÂÃÂ· " + row.optInt("members") + " players", color = Gold2, fontSize = 11.sp)
                 }
             }
         }
@@ -304,7 +313,7 @@ fun DailyAvatarHomeCard() {
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(Txt.t("AVATAR OF THE DAY", "AAJ KA AVATAR"), color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text(av.s("title") + " ÃÂ· " + av.s("tier").uppercase(), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(av.s("title") + " ÃÂÃÂ· " + av.s("tier").uppercase(), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Text(if (owned) "In your locker - free" else "Free cosmetic unlock - today only", color = Muted, fontSize = 11.sp)
                 }
                 if (!owned) {
@@ -317,7 +326,7 @@ fun DailyAvatarHomeCard() {
                         }
                     }
                     msg?.let { Text(it, color = ErrRed, fontSize = 11.sp) }
-                } else Text("OWNED Ã¢ÂÂ", color = Color(0xFF22C55E), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                } else Text("OWNED ÃÂ¢ÃÂÃÂ", color = Color(0xFF22C55E), fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -390,8 +399,8 @@ fun CreatorSpotlightCard(onOpenCreator: () -> Unit) {
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(Txt.t("CREATOR SPOTLIGHT", "CREATOR SPOTLIGHT"), color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    Text(c.s("ign").ifBlank { c.s("username") } + (if (c.optBoolean("verified_creator")) " Ã¢ÂÂ" else ""), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-                    Text(listOf(c.s("tier").uppercase().takeIf { it.isNotBlank() } ?: "", if (c.optInt("self_followers") > 0) c.optInt("self_followers").toString() + " followers" else "").filter { it.isNotBlank() }.joinToString(" ÃÂ· "),
+                    Text(c.s("ign").ifBlank { c.s("username") } + (if (c.optBoolean("verified_creator")) " ÃÂ¢ÃÂÃÂ" else ""), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                    Text(listOf(c.s("tier").uppercase().takeIf { it.isNotBlank() } ?: "", if (c.optInt("self_followers") > 0) c.optInt("self_followers").toString() + " followers" else "").filter { it.isNotBlank() }.joinToString(" ÃÂÃÂ· "),
                         color = Muted, fontSize = 11.sp)
                 }
                 Text("VIEW", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold,

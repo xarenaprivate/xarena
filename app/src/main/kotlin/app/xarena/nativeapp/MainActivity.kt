@@ -607,8 +607,17 @@ fun HomeShell(onLogout: () -> Unit) {
         "season" -> { SeasonPassScreen(onBack = { feature = null }); return }
     }
     LaunchedEffect(Unit) { runCatching { Api.bindDevice() } } // anti-fake-account: bind this install once per session
-    LaunchedEffect(Unit) { // presence: keeps own last_seen_at fresh (server throttles to 40s) so profile "Online now" is real
-        while (true) { runCatching { Api.presencePing() }; kotlinx.coroutines.delay(60_000) }
+    LaunchedEffect(Unit) { // presence: keeps last_seen fresh + reports "online" (2-min server expiry) so ACTIVE NOW shows real players
+        while (true) {
+            runCatching { Api.presencePing() }
+            runCatching {
+                val manualAt = Api.prefs.getLong("sf_manual_presence_at", 0L)
+                val manualState = Api.prefs.getString("sf_manual_presence_state", "") ?: ""
+                val manualFresh = System.currentTimeMillis() - manualAt <= 110_000
+                if (Api.loggedIn && manualState != "offline" && !manualFresh) Api.authedRpc("xr_sf_presence_set", JSONObject().put("p_state", "online"))
+            }
+            kotlinx.coroutines.delay(60_000)
+        }
     }
     LaunchedEffect(Unit) { runCatching { RemoteConfig.get() } } // prefetch remote config
     val msgBadge = DmUnread.total
@@ -875,7 +884,7 @@ internal fun MoreOptionsContent(items: List<GridItem>, onOpen: (String) -> Unit,
                                     Text(entry.name, color = Color(0xFF15171A), fontSize = 18.sp)
                                     Text(entry.sub, color = Color(0xFF71757B), fontSize = 13.sp)
                                 }
-                                Text("ÃÂ¢ÃÂÃÂº", color = Color(0xFF70747A), fontSize = 28.sp)
+                                Text("ÃÂÃÂ¢ÃÂÃÂÃÂÃÂº", color = Color(0xFF70747A), fontSize = 28.sp)
                             }
                         }
                     }
@@ -1409,7 +1418,7 @@ fun ProfileScreenClassic(onLogout: () -> Unit, onBack: (() -> Unit)? = null, onS
                     PanelCard {
                         Text(p?.s("ign").takeUnless { it.isNullOrBlank() || it == "null" } ?: p?.s("username") ?: "Player",
                             color = Gold2, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                        if (p?.optBoolean("verified") == true) Text("ÃÂ¢ÃÂÃÂ Verified", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        if (p?.optBoolean("verified") == true) Text("ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ Verified", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         if (p != null) {
                             @Composable fun row(k: String, v: String?) { if (!v.isNullOrBlank() && v != "null") Text("$k: $v", color = Color.White, fontSize = 14.sp) }
                             row("Username", p.s("username"))
