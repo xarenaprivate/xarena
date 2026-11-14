@@ -579,7 +579,7 @@ fun HomeShell(onLogout: () -> Unit) {
         "notices" -> { NoticeBoardScreen(onBack = { feature = null }); return }
         "feedback" -> { FeedbackScreen(onBack = { feature = null }); return }
         "guide" -> { HinglishGuideScreen(onBack = { feature = null }); return }
-        "room" -> { RoomScreen(onBack = { feature = null }); return }
+        "room" -> { RoomScreen(onBack = { feature = null }, onOpenVoice = { feature = null; tab = 3 }); return }
         "support" -> { SupportScreen(onBack = { feature = null }); return }
         "sensitivity" -> { SensitivityScreen(onBack = { feature = null }); return }
         "coaches" -> { CoachesScreen(onBack = { feature = null }); return }

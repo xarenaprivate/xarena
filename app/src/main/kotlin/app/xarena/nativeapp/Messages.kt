@@ -425,16 +425,25 @@ fun ConversationScreen(threadId: String, peerId: String, peerName: String, statu
             }
         } catch (e: Exception) { keyErr = e.message }
     }
+    var dmRtTick by remember { mutableStateOf(0) }
+    DisposableEffect(threadId) {
+        val rt = RtChanges("realtime:public:dm_messages", "dm_messages", "thread_id=eq." + threadId) { dmRtTick++ }
+        rt.connect()
+        onDispose { rt.close() }
+    }
     LaunchedEffect(key, peerDevs) {
         if (key == null && peerDevs.isEmpty()) return@LaunchedEffect
         val k = key
+        var lastRt = -1
         while (isActive) {
             try {
                 msgs = withContext(Dispatchers.Default) { decode(Api.dmMessages(threadId), k) }
                 if (listState.layoutInfo.totalItemsCount > 0) listState.scrollToItem(listState.layoutInfo.totalItemsCount - 1)
 
             } catch (e: Exception) { }
-            delay(4000)
+            var waited = 0
+            while (isActive && waited < 30 && dmRtTick == lastRt) { delay(1000); waited++ }
+            lastRt = dmRtTick
         }
     }
 

@@ -233,9 +233,10 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
                         flushIce(from)
                         pc.createAnswer(object : SimpleSdpObserver() {
                             override fun onCreateSuccess(desc: org.webrtc.SessionDescription) {
-                                pc.setLocalDescription(SimpleObserver(), desc)
+                                val munged = mungeSdp(desc)
+                                pc.setLocalDescription(SimpleObserver(), munged)
                                 chan?.broadcast("sig", JSONObject().put("kind", "answer").put("from", myId).put("to", from)
-                                    .put("data", JSONObject().put("type", "answer").put("sdp", desc.description)).put("handle", myHandle))
+                                    .put("data", JSONObject().put("type", "answer").put("sdp", munged.description)).put("handle", myHandle))
                             }
                             override fun onCreateFailure(err: String?) { main { onState("answer failed: " + (err ?: "")) } }
                         }, org.webrtc.MediaConstraints())
@@ -261,13 +262,43 @@ private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (
         pendingIce.remove(id)?.forEach { pcs[id]?.addIceCandidate(it) }
     }
 
+    private object VoiceTuning {
+        // v0.17.54 low-latency opus tuning. Rollback = set enabled false and rebuild.
+        // ptime=10 raises packet frequency/overhead; if loss worsens in the field, flip this off.
+        var enabled = true
+    }
+
+    private fun mungeSdp(desc: org.webrtc.SessionDescription): org.webrtc.SessionDescription {
+        if (!VoiceTuning.enabled) return desc
+        return try {
+            val lines = desc.description.split("\r\n").toMutableList()
+            var mediaSection = ""
+            var opusPt = ""
+            for (i in lines.indices) {
+                val l = lines[i]
+                if (l.startsWith("m=")) mediaSection = l.split(" ")[0].removePrefix("m=")
+                if (mediaSection == "audio" && opusPt.isEmpty() && l.startsWith("a=rtpmap:") && l.contains("opus")) {
+                    opusPt = l.substringAfter("a=rtpmap:").substringBefore(" ")
+                }
+                if (mediaSection == "audio" && opusPt.isNotEmpty() && l.startsWith("a=fmtp:" + opusPt)) {
+                    if (!l.contains("useinbandfec=")) lines[i] = lines[i] + ";useinbandfec=1"
+                    if (!lines[i].contains("usedtx=")) lines[i] = lines[i] + ";usedtx=0"
+                    if (!lines[i].contains("maxaveragebitrate=")) lines[i] = lines[i] + ";maxaveragebitrate=40000"
+                }
+                if (l.startsWith("a=ptime:20")) lines[i] = "a=ptime:10"
+            }
+            org.webrtc.SessionDescription(desc.type, lines.joinToString("\r\n"))
+        } catch (e: Exception) { desc }
+    }
+
     private fun offerTo(id: String) {
         val pc = peerFor(id)
         pc.createOffer(object : SimpleSdpObserver() {
             override fun onCreateSuccess(desc: org.webrtc.SessionDescription) {
-                pc.setLocalDescription(SimpleObserver(), desc)
+                val munged = mungeSdp(desc)
+                pc.setLocalDescription(SimpleObserver(), munged)
                 chan?.broadcast("sig", JSONObject().put("kind", "offer").put("from", myId).put("to", id)
-                    .put("data", JSONObject().put("type", "offer").put("sdp", desc.description)).put("handle", myHandle))
+                    .put("data", JSONObject().put("type", "offer").put("sdp", munged.description)).put("handle", myHandle))
             }
         }, org.webrtc.MediaConstraints())
     }

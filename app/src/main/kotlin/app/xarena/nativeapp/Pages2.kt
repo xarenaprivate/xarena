@@ -29,7 +29,11 @@ import org.json.JSONObject
 
 /* ============ Clan Room (room_info / room_feed / room_post) ============ */
 @Composable
-fun RoomScreen(onBack: () -> Unit) {
+object RoomLookSeams {
+    var newLook = true
+}
+
+fun RoomScreen(onBack: () -> Unit, onOpenVoice: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
     var info by remember { mutableStateOf<JSONObject?>(null) }
     var loaded by remember { mutableStateOf(false) }
@@ -39,14 +43,24 @@ fun RoomScreen(onBack: () -> Unit) {
     var err by remember { mutableStateOf<String?>(null) }
     var growth by remember { mutableStateOf<JSONObject?>(null) }
     var growthAt by remember { mutableLongStateOf(0L) }
+    var newLook by remember { mutableStateOf(RoomLookSeams.newLook) }
+    var rtTick by remember { mutableStateOf(0) }
     var showSquads by remember { mutableStateOf(false) }
     if (showSquads) { SquadsScreen(onBack = { showSquads = false }); return }
     val listState = rememberLazyListState()
+    val squadId = growth?.optJSONObject("squad")?.s("id")?.ifBlank { null } ?: info?.s("squad_id")?.ifBlank { null } ?: info?.s("squad")?.ifBlank { null }
+    DisposableEffect(squadId) {
+        if (squadId == null) return@DisposableEffect onDispose { }
+        val rt = RtChanges("realtime:public:squad_room_messages", "squad_room_messages", "squad_id=eq." + squadId) { rtTick++ }
+        rt.connect()
+        onDispose { rt.close() }
+    }
     LaunchedEffect(Unit) {
         info = runCatching { Api.authedRpc("room_info", JSONObject()) }.getOrNull()
         loaded = true
         growth = runCatching { Api.authedRpc("xr_room_growth", JSONObject()) }.getOrNull()
         growthAt = System.currentTimeMillis()
+        var lastRt = -1
         while (isActive) {
             runCatching {
                 val r = Api.authedRpc("room_feed", JSONObject().put("p_after", lastId))
@@ -62,10 +76,27 @@ fun RoomScreen(onBack: () -> Unit) {
                 growth = runCatching { Api.authedRpc("xr_room_growth", JSONObject()) }.getOrNull()
                 growthAt = System.currentTimeMillis()
             }
-            delay(4000)
+            var waited = 0
+            while (isActive && waited < 30 && rtTick == lastRt) { delay(1000); waited++ }
+            lastRt = rtTick
         }
     }
     LaunchedEffect(msgs.size) { if (msgs.isNotEmpty()) listState.animateScrollToItem(msgs.size - 1) }
+    if (newLook && loaded && info != null && info!!.optBoolean("ok")) {
+        RoomNewLook(info!!, growth, msgs, input, { input = it }, err, onBack, { newLook = false; RoomLookSeams.newLook = false }, { showSquads = true }, onOpenVoice) { body ->
+            if (body.isNotBlank()) {
+                err = null
+                if (body == input.trim()) input = ""
+                scope.launch {
+                    try {
+                        val r = Api.authedRpc("room_post", JSONObject().put("p_body", body))
+                        if (!r.optBoolean("ok")) err = r.s("error").ifBlank { "Could not send." }
+                    } catch (e: Exception) { err = "Network error - try again." }
+                }
+            }
+        }
+        return
+    }
     Column(Modifier.fillMaxSize().background(Ink)) {
         PageHeader("Clan Room", "Your squad's private room", onBack)
         if (!loaded) Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = Gold) }
@@ -79,6 +110,9 @@ fun RoomScreen(onBack: () -> Unit) {
                 Text(info!!.s("name") + (info!!.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""),
                     color = Gold2, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 Text(info!!.optInt("members").toString() + " member" + (if (info!!.optInt("members") == 1) "" else "s"), color = Muted, fontSize = 12.sp)
+                Text("New look", color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(start = 10.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, Gold.copy(alpha = .5f), RoundedCornerShape(8.dp))
+                        .clickable { newLook = true; RoomLookSeams.newLook = true }.padding(horizontal = 8.dp, vertical = 3.dp))
             }
             // growth overview - roster/capacity are real dark-safe reads; promotion blocks render only when the backend returns them
             growth?.let { g ->
