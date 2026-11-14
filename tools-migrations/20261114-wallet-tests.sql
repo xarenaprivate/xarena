@@ -1,0 +1,24 @@
+DO $$DECLARE me uuid;bal bigint;e bigint;v jsonb;lid bigint;ref bigint;before_count bigint;BEGIN
+ SELECT user_id INTO me FROM public.points_ledger ORDER BY id LIMIT 1;
+ PERFORM set_config('request.jwt.claim.sub',me::text,true);
+ SELECT earned+granted+unverified INTO bal FROM public.xr_wallet_accounts WHERE user_id=me;
+ IF EXISTS(SELECT 1 FROM public.xr_wallet_accounts a WHERE a.earned+a.granted+a.unverified<>(SELECT coalesce(sum(delta),0)FROM public.points_ledger p WHERE p.user_id=a.user_id))THEN RAISE EXCEPTION 'FAIL reconciliation';END IF;
+ SELECT count(*)INTO before_count FROM public.points_ledger;
+ BEGIN INSERT INTO public.points_ledger(user_id,delta,kind)VALUES(me,-(bal+1)::int,'wallet_test');RAISE EXCEPTION 'FAIL overspend allowed';EXCEPTION WHEN check_violation THEN NULL;END;
+ IF (SELECT count(*)FROM public.points_ledger)<>before_count THEN RAISE EXCEPTION 'FAIL overspend partial write';END IF;
+ INSERT INTO public.points_ledger(user_id,delta,kind,meta)VALUES(me,10,'unknown_credit','{"wallet_test":true}')RETURNING id INTO lid;
+ IF (SELECT unverified_delta FROM public.xr_wallet_allocations WHERE ledger_id=lid)<>10 THEN RAISE EXCEPTION 'FAIL unknown credit certified';END IF;
+ SELECT earned INTO e FROM public.xr_wallet_accounts WHERE user_id=me;
+ BEGIN INSERT INTO public.points_ledger(user_id,delta,kind,meta)VALUES(me,-(e+1)::int,'wallet_test','{"wallet_scope":"earned_only"}');RAISE EXCEPTION 'FAIL unearned spend allowed';EXCEPTION WHEN check_violation THEN NULL;END;
+ INSERT INTO public.points_ledger(user_id,delta,kind,meta)VALUES(me,-5,'wallet_test','{"wallet_test":true}')RETURNING id INTO ref;
+ INSERT INTO public.points_ledger(user_id,delta,kind,meta)VALUES(me,5,'refund',jsonb_build_object('wallet_refund_ledger',ref))RETURNING id INTO lid;
+ IF (SELECT unverified_delta FROM public.xr_wallet_allocations WHERE ledger_id=lid)<>5 THEN RAISE EXCEPTION 'FAIL refund provenance changed';END IF;
+ BEGIN INSERT INTO public.points_ledger(user_id,delta,kind,meta)VALUES(me,5,'refund',jsonb_build_object('wallet_refund_ledger',ref));RAISE EXCEPTION 'FAIL duplicate refund';EXCEPTION WHEN check_violation THEN NULL;END;
+ BEGIN UPDATE public.points_ledger SET delta=delta+1 WHERE id=lid;RAISE EXCEPTION 'FAIL mutation';EXCEPTION WHEN check_violation THEN NULL;END;
+ BEGIN DELETE FROM public.points_ledger WHERE id=lid;RAISE EXCEPTION 'FAIL deletion';EXCEPTION WHEN check_violation THEN NULL;END;
+ IF has_function_privilege('anon','public.xr_wallet_balance()','EXECUTE')OR has_function_privilege('authenticated','public._ap_bal(uuid)','EXECUTE')THEN RAISE EXCEPTION 'FAIL private API permissions';END IF;
+ IF has_table_privilege('authenticated','public.xr_wallet_accounts','SELECT')OR has_table_privilege('authenticated','public.xr_wallet_allocations','INSERT')THEN RAISE EXCEPTION 'FAIL private table permissions';END IF;
+ v:=public.xr_wallet_balance();IF v->>'ok'<>'true'OR(v->>'balance')::bigint<>bal+10 THEN RAISE EXCEPTION 'FAIL balance getter% ',v;END IF;
+ IF EXISTS(SELECT 1 FROM public.points_ledger p LEFT JOIN public.xr_wallet_allocations a ON a.ledger_id=p.id WHERE a.ledger_id IS NULL OR a.earned_delta+a.granted_delta+a.unverified_delta<>p.delta)THEN RAISE EXCEPTION 'FAIL allocation sum';END IF;
+END $$;
+SELECT 'PASS: reconciliation, overspend, earned-only, unknown provenance, linked refund, duplicate refund, immutability, privacy' AS test_result;
