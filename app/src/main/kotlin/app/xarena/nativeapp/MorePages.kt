@@ -394,6 +394,7 @@ fun LiveStreamContent(yt: JSONArray, live: Pair<String, String>) {
         LivePollCard(ov)
         LiveSquadsBlock(ov)
     }
+    SpendLiveSection(live.first)
     Spacer(Modifier.height(6.dp))
     val ytJson = runCatching { JSONObject(if (yt.length() > 0) yt.getJSONObject(0).s("value") else "") }.getOrNull()
     if ((ov?.optJSONArray("squads")?.length() ?: 0) == 0) LiveRoster(ytJson?.optString("tournament_id") ?: "")

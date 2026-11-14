@@ -24,8 +24,9 @@ internal object RwSeams {
     var balance: Int? = null
     var stats: JSONObject? = null
     var season: JSONObject? = null
+    var spendable: Int? = null
     var loaded = false
-    fun clear() { balance = null; stats = null; season = null; loaded = false }
+    fun clear() { balance = null; stats = null; season = null; spendable = null; loaded = false }
 }
 
 @Composable
@@ -34,6 +35,7 @@ fun RewardsScreen(onBack: () -> Unit, onOpenPlay: () -> Unit, onOpenSeason: () -
     var balance by remember { mutableStateOf(RwSeams.balance) }
     var stats by remember { mutableStateOf(RwSeams.stats) }
     var season by remember { mutableStateOf(RwSeams.season) }
+    var spendable by remember { mutableStateOf(RwSeams.spendable) }
     var loaded by remember { mutableStateOf(RwSeams.loaded) }
     var tick by remember { mutableIntStateOf(0) }
     var busy by remember { mutableStateOf(false) }
@@ -45,6 +47,11 @@ fun RewardsScreen(onBack: () -> Unit, onOpenPlay: () -> Unit, onOpenSeason: () -
         stats = runCatching { Api.authedRpc("my_game_stats", JSONObject()) }.getOrNull()
         season = runCatching { Api.publicRpc("season_pass", JSONObject()) }.getOrNull()
             ?.takeIf { it.optBoolean("ok") }
+        val st = spendStatus()
+        spendable = if (spendEnabled(st, "gifts_enabled") || spendEnabled(st, "clan_fund_enabled"))
+            runCatching { Api.authedRpc("xr_wallet_balance", JSONObject()) }.getOrNull()
+                ?.takeIf { it.has("earned_spendable") }?.optInt("earned_spendable")
+            else null
         loaded = true
     }
 
@@ -57,6 +64,7 @@ fun RewardsScreen(onBack: () -> Unit, onOpenPlay: () -> Unit, onOpenSeason: () -
                 Spacer(Modifier.height(4.dp))
                 if (!loaded) Text("Loading...", color = Muted, fontSize = 12.sp)
                 else if (balance != null) Text("%,d AP".format(balance), color = Gold2, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                if (spendable != null) Text("%,d AP available to spend on live gifts and clan rewards".format(spendable), color = Muted, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp))
                 else Text("Log in to see your balance.", color = Muted, fontSize = 12.sp)
                 Text("Earned from matches, check-ins and games. Spend them in the Store on real rewards.", color = Muted, fontSize = 12.sp)
                 Spacer(Modifier.height(6.dp))
