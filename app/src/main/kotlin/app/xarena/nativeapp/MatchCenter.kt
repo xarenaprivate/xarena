@@ -68,6 +68,8 @@ fun MatchCenterScreen(onBack: () -> Unit) {
         LoadState({ Api.publicGet("/rest/v1/matches_public?select=*&order=starts_at.asc.nullslast") }) { matches ->
             if (matches.length() == 0) EmptyNote("No matches scheduled yet", "Match rooms appear here as match control schedules them. Registered players see the room unlock 15 minutes before start.")
             else LazyColumn {
+                val scoringTids = (0 until matches.length()).map { matches.getJSONObject(it).s("tournament_id") }.filter { it.isNotBlank() }.distinct()
+                scoringTids.forEach { tid -> item { ScoringRulesCard(tid) } }
                 items((0 until matches.length()).map { matches.getJSONObject(it) }) { m ->
                     MatchCard(m, ctx, scope, onChanged = { nonce++ })
                 }
@@ -187,6 +189,40 @@ private fun MatchCard(m: JSONObject, ctx: android.content.Context, scope: kotlin
         cardMsg?.let { Text(it, color = Color(0xFF4ADE80), fontSize = 12.sp) }
         if (proofOpen) ProofForm(mid, ctx, scope) { proofOpen = false; cardMsg = "Proof submitted - the owner reviews it soon." }
         if (reportOpen) ReportForm(mid, ctx, scope) { reportOpen = false; cardMsg = "Report sent to the owner." }
+    }
+}
+
+/** Published scoring rules for a tournament (xr_scoring_rules). Hides itself until the backend publishes. */
+@Composable
+private fun ScoringRulesCard(tournamentId: String) {
+    var rules by remember(tournamentId) { mutableStateOf<JSONObject?>(null) }
+    LaunchedEffect(tournamentId) {
+        rules = runCatching { Api.publicRpc("xr_scoring_rules", JSONObject().put("p_tournament", tournamentId)) }.getOrNull()
+            ?.takeIf { it.optJSONArray("placement_points") != null }
+    }
+    val r = rules ?: return
+    val placements = r.optJSONArray("placement_points") ?: return
+    PanelCard {
+        Text("SCORING RULES", color = Gold, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text(tournamentId, color = Muted, fontSize = 11.sp)
+        Spacer(Modifier.height(6.dp))
+        val perRow = (placements.length() + 1) / 2
+        Row(Modifier.fillMaxWidth()) {
+            for (col in 0..1) Column(Modifier.weight(1f)) {
+                for (i in 0 until perRow) {
+                    val place = col * perRow + i
+                    if (place < placements.length()) Text("#" + (place + 1) + " - " + placements.optInt(place) + " pts", color = Color.White, fontSize = 12.sp, modifier = Modifier.padding(vertical = 1.dp))
+                }
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(r.optInt("kill_points", 1).toString() + " point" + (if (r.optInt("kill_points", 1) == 1) "" else "s") + " per kill", color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        if (r.optInt("match_count", 0) > 0) Text(r.optInt("match_count").toString() + " matches count toward the table", color = Muted, fontSize = 11.sp)
+        val tb = r.optJSONArray("tiebreakers")
+        if (tb != null && tb.length() > 0) {
+            val names = (0 until tb.length()).map { tb.optString(it).replace('_', ' ') }.filter { it.isNotBlank() }
+            if (names.isNotEmpty()) Text("Tiebreakers: " + names.joinToString(" > "), color = Muted, fontSize = 11.sp)
+        }
     }
 }
 
