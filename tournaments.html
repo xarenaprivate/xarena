@@ -128,7 +128,7 @@
     <ul class="feature-list">
       <li><b>Mode:</b> Squad Battle Royale (4 players per squad, up to 2 substitutes).</li>
       <li><b>Structure:</b> 48 squads split into 3 qualifier groups. Top 16 overall advance to the Grand Finals.</li>
-      <li><b>Points:</b> placement points + 1 point per kill. Full points table published before match day.</li>
+      <li><b>Points:</b> placement points + 1 point per kill. Season 2 placement points: 12, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 0. See the published Season 2 rules in Match Center.</li>
       <li><b>Fair play:</b> no hacks, no teaming, no emulators unless the lobby is marked emulator-allowed. Penalties follow the published Rules and Regulations.</li>
       <li><b>Schedule &amp; prize pool:</b> revealed on this page as soon as registrations close — announced by the management, never guessed.</li>
     </ul>
@@ -192,6 +192,7 @@
 <section class="section alt" id="liveboard"><div class="wrap" style="max-width:860px">
   <div class="section-head reveal"><div class="overline">Match center</div><h2>Live <em>Scoreboard</em></h2>
   <p>Points table of the match being played right now (or the last completed one), straight from match control.</p></div>
+  <div id="xr-scoring-rules" class="card" style="margin-bottom:24px;padding:20px"><p>Loading published scoring rules...</p></div>
   <div id="live-board" class="reveal"><p style="color:var(--muted)">Loading…</p></div>
 </div></section>
 
@@ -545,4 +546,5 @@ window.addEventListener("load", function () {
 <script src="assets/js/app-shell.js?v=20261108-audit1" defer></script>
 <script src="assets/js/share.js" defer></script>
 <script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(function(r){return r.update();}).catch(function(){});</script>
+<script src="assets/js/scoring.js?v=20261114-scoring1"></script>
 </body></html>
