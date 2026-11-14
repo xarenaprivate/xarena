@@ -71,12 +71,12 @@ jobs:
           SHA=$(cut -d' ' -f1 SHA.txt)
           mkdir -p patches
           : > patches/index.txt
-          for F in ; do  # cert changed at v78: no valid old-cert patch bases; same-cert delta patches resume later
+          for F in $(seq 78 $((VC-1))); do  # same-cert (v78+) delta bases up to previous release; pre-v78 certs can never patch-update
             if [ "$F" -le 44 ]; then V="0.16.$((F-35))"; else V="0.17.$((F-45))"; fi
             TAG="v${V}-native"
             if [ "$F" -le 75 ]; then ASSET="xarena-native.apk"; else ASSET="xarena-native-v${V}.apk"; fi
             echo "== base $F <- $TAG/$ASSET"
-            curl -sfL -o base.apk "https://github.com/$REPO/releases/download/$TAG/$ASSET"
+            curl -sfL -o base.apk "https://github.com/$REPO/releases/download/$TAG/$ASSET" || { echo "skip missing base $F"; continue; }
             bsdiff base.apk signed.apk "patches/patch-$F-to-$VC.bs"
             bspatch base.apk rt.apk "patches/patch-$F-to-$VC.bs"
             echo "$SHA  rt.apk" | sha256sum -c -
