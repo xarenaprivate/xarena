@@ -349,15 +349,8 @@ fun ClanFundCard(squadId: String, myRole: String?, onChanged: () -> Unit) {
             if (members != null) {
                 for (i in 0 until members.length()) {
                     val m = members.getJSONObject(i)
-                    val id = m.s("user_id").ifBlank { m.s("id") }
-                    if (id.isNotBlank()) candidates += id to m.s("name").ifBlank { "Member" }
-                }
-            }
-            if (candidates.isEmpty()) {
-                for (i in 0 until contributors.length()) {
-                    val c = contributors.getJSONObject(i)
-                    val id = c.s("user_id").ifBlank { c.s("id") }
-                    if (id.isNotBlank()) candidates += id to c.s("name").ifBlank { "Member" }
+                    val id = m.s("id").ifBlank { m.s("user_id") }
+                    if (id.isNotBlank() && !m.optBoolean("is_me")) candidates += id to m.s("name").ifBlank { "Member" }
                 }
             }
             Spacer(Modifier.height(8.dp))
