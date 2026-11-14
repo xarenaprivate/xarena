@@ -33,7 +33,7 @@ User and public presentation:
 - xr_prediction_choose(p_pool uuid,p_registration text)
 - xr_prediction_get(p_pool uuid)
 - xr_live_drop_get(p_drop uuid)
-- xr_clan_fund_get(p_squad uuid)
+- xr_clan_fund_get(p_squad uuid): balance,can_reward,refundable_on_leave=false,members[{id,name,is_captain,is_me}],contributors[{name,ap}],my_contributions[]
 - xr_clan_fund_contribute(p_squad uuid,p_amount integer,p_request uuid)
 - xr_clan_fund_reward(p_squad uuid,p_recipient uuid,p_amount integer,p_request uuid)
 

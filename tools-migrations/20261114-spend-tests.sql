@@ -72,7 +72,7 @@ DO $$DECLARE adm uuid;u uuid;v uuid;sid uuid;did uuid;d jsonb;rec record;c integ
  d:=public.xr_clan_fund_reward(sid,v,100,gen_random_uuid());IF d->>'ok'<>'false'THEN RAISE EXCEPTION 'FAIL fund overspend';END IF;
  IF NOT EXISTS(SELECT 1 FROM public.xr_clan_fund_distributions d JOIN public.xr_wallet_allocations a ON a.ledger_id=d.ledger_id WHERE d.squad_id=sid AND a.granted_delta=25)THEN RAISE EXCEPTION 'FAIL fund gifted bucket';END IF;
  IF NOT EXISTS(SELECT 1 FROM public.xr_live_gift_events e JOIN public.xr_wallet_allocations a ON a.ledger_id=e.credit_ledger WHERE e.user_id=u AND a.granted_delta=10)THEN RAISE EXCEPTION 'FAIL gifted receipt earned-washed';END IF;
- d:=public.xr_clan_fund_get(sid);IF(d->>'balance')::integer<>75 THEN RAISE EXCEPTION 'FAIL fund balance %',d;END IF;
+ d:=public.xr_clan_fund_get(sid);IF jsonb_array_length(d->'members')<2 OR NOT EXISTS(SELECT 1 FROM jsonb_array_elements(d->'members')m WHERE m->>'id'=v::text AND nullif(m->>'name','')IS NOT NULL)THEN RAISE EXCEPTION 'FAIL current member roster';END IF;IF(d->>'balance')::integer<>75 THEN RAISE EXCEPTION 'FAIL fund balance %',d;END IF;
  DELETE FROM public.squad_members WHERE squad_id=sid AND user_id=v;
  IF(SELECT coalesce(sum(amount),0)FROM public.xr_clan_fund_entries WHERE squad_id=sid)<>100 THEN RAISE EXCEPTION 'FAIL leave mutation';END IF;
  d:=public.xr_clan_fund_reward(sid,v,10,gen_random_uuid());IF d->>'ok'<>'false'THEN RAISE EXCEPTION 'FAIL ex-member reward';END IF;
