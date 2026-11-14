@@ -107,7 +107,7 @@ fun SquadsScreen(onBack: (() -> Unit)? = null) {
                     CaptainManageCard(d.mySquadId!!) { notice = it; nonce++ }
                 }
                 if (d.mySquadId != null) item {
-                    ClanFundCard(d.mySquadId!!, d.myRole) { notice = it; nonce++ }
+                    ClanFundCard(d.mySquadId!!, d.myRole) { nonce++ }
                 }
                 if (d.mySquadId != null && d.myRole == "captain") item {
                     var logoOpen by remember { mutableStateOf(false) }
