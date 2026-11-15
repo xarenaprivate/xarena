@@ -149,7 +149,7 @@ private class PhoenixChannel(
 
 internal fun extractPresences(payload: JSONObject): JSONObject = payload.optJSONObject("presences") ?: payload
 
-private data class VoicePeer(val id: String, val handle: String, val muted: Boolean, val listener: Boolean = false, val conn: String = "")
+data class VoicePeer(  /* public: VoiceSession (same file) holds these across composition */val id: String, val handle: String, val muted: Boolean, val listener: Boolean = false, val conn: String = "")
 
 class VoiceEngine(var onPeers: (List<VoicePeer>) -> Unit, var onState: (String) -> Unit) {
     private val myId = UUID.randomUUID().toString()
