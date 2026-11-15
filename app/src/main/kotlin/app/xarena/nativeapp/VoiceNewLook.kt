@@ -1,6 +1,5 @@
 package app.xarena.nativeapp
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -130,7 +129,7 @@ fun VoicePttLook(
                         Box(contentAlignment = Alignment.Center) {
                             if (p.speaking) Box(Modifier.size(96.dp).clip(CircleShape).background(Brush.radialGradient(listOf(Gold.copy(alpha = .45f), Color.Transparent))))
                             Box(Modifier.size(76.dp).clip(CircleShape).background(Look.cardBorder).border(3.dp, if (p.speaking) Gold else Color.Transparent, CircleShape), contentAlignment = Alignment.Center) {
-                                Text(p.handle.take(1).uppercase(), color = Gold2, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                                Text(xrInitial(p.handle), color = Gold2, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                         Spacer(Modifier.height(8.dp))
@@ -165,12 +164,7 @@ fun VoicePttLook(
                     }
                     .padding(vertical = 22.dp), contentAlignment = Alignment.Center) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Canvas(Modifier.size(20.dp)) {
-                            val w = size.width; val h = size.height; val c = if (holding) Ink else Gold
-                            drawRoundRect(c, topLeft = androidx.compose.ui.geometry.Offset(w * .38f, h * .08f), size = androidx.compose.ui.geometry.Size(w * .24f, h * .5f), cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * .12f, w * .12f))
-                            drawArc(c, startAngle = 20f, sweepAngle = 140f, useCenter = false, topLeft = androidx.compose.ui.geometry.Offset(w * .2f, h * .25f), size = androidx.compose.ui.geometry.Size(w * .6f, h * .5f), style = androidx.compose.ui.graphics.drawscope.Stroke(w * .08f))
-                            drawLine(c, androidx.compose.ui.geometry.Offset(w * .5f, h * .75f), androidx.compose.ui.geometry.Offset(w * .5f, h * .95f), strokeWidth = w * .08f)
-                        }
+                        XrIconMic(if (holding) Ink else Gold, 22.dp)
                         Spacer(Modifier.width(10.dp))
                         Text(if (holding) "SPEAKING - RELEASE TO MUTE" else "PUSH TO TALK", color = if (holding) Ink else Gold, fontSize = 15.sp, fontWeight = FontWeight.Bold)
                     }
@@ -204,7 +198,7 @@ fun VoicePttLook(
                         val vol = volumes[p.id] ?: 100f
                         Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                             Box(Modifier.size(30.dp).clip(CircleShape).background(Look.cardBorder), contentAlignment = Alignment.Center) {
-                                Text(p.handle.take(1).uppercase(), color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Text(xrInitial(p.handle), color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                             Spacer(Modifier.width(8.dp))
                             Column(Modifier.weight(1f)) {

@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,7 +45,10 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -132,7 +136,7 @@ fun RoomHomeNewLook(
         Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp).clip(RoundedCornerShape(16.dp)).background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF1A0E33), Look.cardBg))).border(1.dp, androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Gold.copy(alpha = .5f), Look.cardBorder)), RoundedCornerShape(16.dp)).padding(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(52.dp).clip(RoundedCornerShape(14.dp)).background(Color(0xFF1A0E33)).border(1.dp, Gold.copy(alpha = .6f), RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
-                    Text(info.s("name").take(1).uppercase(), color = Gold, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    Text(xrInitial(info.s("name")), color = Gold, fontSize = 22.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.width(12.dp))
                 Column {
@@ -158,7 +162,7 @@ fun RoomHomeNewLook(
             }
             Box(Modifier.fillMaxWidth().padding(horizontal = 14.dp).height(1.dp).background(Look.cardBorder))
             Row(Modifier.fillMaxWidth().clickable { onOpenMembers() }.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF1A0E33)), contentAlignment = Alignment.Center) { XrIconPerson(Gold2, 20.dp) }
+                Box(Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF1A0E33)), contentAlignment = Alignment.Center) { XrIconGroup(Gold2, 20.dp) }
                 Spacer(Modifier.width(12.dp))
                 Text("Clan Members", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 Text(memberCount.toString(), color = Muted, fontSize = 11.sp, modifier = Modifier.padding(end = 8.dp))
@@ -285,7 +289,7 @@ fun RoomNewLook(
         Row(Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("<", color = Color.White, fontSize = 24.sp, modifier = Modifier.clickable { onBack() }.padding(horizontal = 10.dp, vertical = 2.dp))
             Box(Modifier.size(38.dp).clip(CircleShape).background(Look.cardBg).border(1.dp, Gold.copy(alpha = .6f), CircleShape), contentAlignment = Alignment.Center) {
-                Text(info.s("name").take(1).uppercase(), color = Gold, fontWeight = FontWeight.Bold)
+                Text(xrInitial(info.s("name")), color = Gold, fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.width(10.dp))
             Column(Modifier.weight(1f)) {
@@ -324,7 +328,7 @@ fun RoomNewLook(
                 Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = if (mine) Arrangement.End else Arrangement.Start) {
                     if (!mine) {
                         Box(Modifier.size(34.dp).clip(CircleShape).background(Look.cardBg).border(1.dp, Gold.copy(alpha = .5f), CircleShape), contentAlignment = Alignment.Center) {
-                            Text(m.s("by").take(1).uppercase(), color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text(xrInitial(m.s("by")), color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(Modifier.width(8.dp))
                     }
@@ -464,55 +468,46 @@ fun RoomNewLook(
 }
 
 
-/* Vector icons (v0.17.60, owner direction: built-in vector icons, no emoji). */
+/* Vector icons (v0.17.61): real Compose ImageVector icons from canonical Material
+   path data - font-independent, so they render on every device. Owner direction:
+   built-in vector icons, no emoji. */
+private fun xrVec(name: String, pathData: String, tint: Color): ImageVector =
+    ImageVector.Builder(name = name, defaultWidth = 24.dp, defaultHeight = 24.dp, viewportWidth = 24f, viewportHeight = 24f)
+        .addPath(pathData = addPathNodes(pathData), fill = SolidColor(tint))
+        .build()
+
 @Composable
 fun XrIconMic(tint: Color, size: androidx.compose.ui.unit.Dp) {
-    Canvas(Modifier.size(size)) {
-        val w = this.size.width; val h = this.size.height
-        drawRoundRect(tint, topLeft = Offset(w * .38f, h * .06f), size = Size(w * .24f, h * .48f), cornerRadius = CornerRadius(w * .12f, w * .12f))
-        drawArc(tint, startAngle = 20f, sweepAngle = 140f, useCenter = false, topLeft = Offset(w * .2f, h * .26f), size = Size(w * .6f, h * .48f), style = Stroke(w * .08f, cap = StrokeCap.Round))
-        drawLine(tint, Offset(w * .5f, h * .76f), Offset(w * .5f, h * .94f), strokeWidth = w * .08f, cap = StrokeCap.Round)
-        drawLine(tint, Offset(w * .32f, h * .94f), Offset(w * .68f, h * .94f), strokeWidth = w * .08f, cap = StrokeCap.Round)
-    }
+    Icon(imageVector = xrVec("Mic", "M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11L5 11c0 3.41 2.72 6.23 6 6.72L11 21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z", tint), contentDescription = null, tint = tint, modifier = Modifier.size(size))
 }
 
 @Composable
 fun XrIconChat(tint: Color, size: androidx.compose.ui.unit.Dp) {
-    Canvas(Modifier.size(size)) {
-        val w = this.size.width; val h = this.size.height
-        drawRoundRect(tint, topLeft = Offset(w * .08f, h * .14f), size = Size(w * .84f, h * .58f), cornerRadius = CornerRadius(w * .14f, w * .14f), style = Stroke(w * .09f))
-        drawLine(tint, Offset(w * .28f, h * .72f), Offset(w * .28f, h * .9f), strokeWidth = w * .09f, cap = StrokeCap.Round)
-        drawLine(tint, Offset(w * .28f, h * .72f), Offset(w * .42f, h * .72f), strokeWidth = w * .09f, cap = StrokeCap.Round)
-        drawLine(tint, Offset(w * .24f, h * .36f), Offset(w * .76f, h * .36f), strokeWidth = w * .09f, cap = StrokeCap.Round)
-        drawLine(tint, Offset(w * .24f, h * .52f), Offset(w * .62f, h * .52f), strokeWidth = w * .09f, cap = StrokeCap.Round)
-    }
+    Icon(imageVector = xrVec("Chat", "M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z", tint), contentDescription = null, tint = tint, modifier = Modifier.size(size))
 }
 
 @Composable
 fun XrIconPerson(tint: Color, size: androidx.compose.ui.unit.Dp) {
-    Canvas(Modifier.size(size)) {
-        val w = this.size.width; val h = this.size.height
-        drawCircle(tint, radius = w * .17f, center = Offset(w * .5f, h * .28f))
-        drawArc(tint, startAngle = 180f, sweepAngle = 180f, useCenter = true, topLeft = Offset(w * .18f, h * .52f), size = Size(w * .64f, h * .64f))
-    }
+    Icon(imageVector = xrVec("Person", "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z", tint), contentDescription = null, tint = tint, modifier = Modifier.size(size))
+}
+
+@Composable
+fun XrIconGroup(tint: Color, size: androidx.compose.ui.unit.Dp) {
+    Icon(imageVector = xrVec("Group", "M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-6-3.5z", tint), contentDescription = null, tint = tint, modifier = Modifier.size(size))
 }
 
 @Composable
 fun XrIconCard(tint: Color, size: androidx.compose.ui.unit.Dp) {
-    Canvas(Modifier.size(size)) {
-        val w = this.size.width; val h = this.size.height
-        drawRoundRect(tint, topLeft = Offset(w * .1f, h * .18f), size = Size(w * .8f, h * .64f), cornerRadius = CornerRadius(w * .1f, w * .1f), style = Stroke(w * .09f))
-        drawCircle(tint, radius = w * .11f, center = Offset(w * .34f, h * .42f))
-        drawLine(tint, Offset(w * .24f, h * .66f), Offset(w * .56f, h * .66f), strokeWidth = w * .08f, cap = StrokeCap.Round)
-        drawLine(tint, Offset(w * .62f, h * .4f), Offset(w * .78f, h * .4f), strokeWidth = w * .08f, cap = StrokeCap.Round)
-    }
+    Icon(imageVector = xrVec("Card", "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z", tint), contentDescription = null, tint = tint, modifier = Modifier.size(size))
 }
 
 @Composable
 fun XrIconSearch(tint: Color, size: androidx.compose.ui.unit.Dp) {
-    Canvas(Modifier.size(size)) {
-        val w = this.size.width; val h = this.size.height
-        drawCircle(tint, radius = w * .26f, center = Offset(w * .42f, h * .42f), style = Stroke(w * .09f))
-        drawLine(tint, Offset(w * .62f, h * .62f), Offset(w * .88f, h * .88f), strokeWidth = w * .1f, cap = StrokeCap.Round)
-    }
+    Icon(imageVector = xrVec("Search", "M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z", tint), contentDescription = null, tint = tint, modifier = Modifier.size(size))
+}
+
+/* Safe avatar initial: first letter/digit, else "?" - avoids mojibake from emoji or special-char names. */
+fun xrInitial(s: String): String {
+    val c = s.firstOrNull { it.isLetterOrDigit() }
+    return c?.uppercase() ?: "?"
 }

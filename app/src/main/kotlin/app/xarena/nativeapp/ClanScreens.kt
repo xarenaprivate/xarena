@@ -97,7 +97,7 @@ fun ClanMembersScreen(info: JSONObject, onBack: () -> Unit, onClassic: () -> Uni
         }
         Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).clip(RoundedCornerShape(14.dp)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(14.dp)).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(40.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF1A0E33)).border(1.dp, Gold.copy(alpha = .6f), RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-                Text(info.s("name").take(1).uppercase(), color = Gold, fontWeight = FontWeight.Bold)
+                Text(xrInitial(info.s("name")), color = Gold, fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.width(10.dp))
             Text(info.s("name") + (info.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""), color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
@@ -129,7 +129,7 @@ fun ClanMembersScreen(info: JSONObject, onBack: () -> Unit, onClassic: () -> Uni
                     Row(Modifier.fillMaxWidth().padding(vertical = 5.dp).clip(RoundedCornerShape(12.dp)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(12.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(38.dp).clip(CircleShape).background(Color(0xFF1A0E33)).border(1.dp, if (active) Color(0xFF22C55E) else Look.cardBorder, CircleShape), contentAlignment = Alignment.Center) {
                             if (pAvatar.isNotBlank()) AsyncImage(model = xrImageModel(ctx, pAvatar), contentDescription = name, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().clip(CircleShape))
-                            else Text(name.take(1).uppercase(), color = Gold2, fontWeight = FontWeight.Bold)
+                            else Text(xrInitial(name), color = Gold2, fontWeight = FontWeight.Bold)
                         }
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
@@ -181,7 +181,7 @@ fun ClanProfileScreen(info: JSONObject, squadId: String?, onBack: () -> Unit, on
                     val sqLogo = profile?.optString("logo_url", "") ?: ""
                     Box(Modifier.size(64.dp).clip(RoundedCornerShape(16.dp)).background(Color(0xFF1A0E33)).border(1.dp, Gold.copy(alpha = .6f), RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
                         if (sqLogo.isNotBlank()) AsyncImage(model = xrImageModel(ctx, sqLogo), contentDescription = info.s("name"), contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)))
-                        else Text(info.s("name").take(1).uppercase(), color = Gold, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                        else Text(xrInitial(info.s("name")), color = Gold, fontSize = 26.sp, fontWeight = FontWeight.Bold)
                     }
                     Spacer(Modifier.height(8.dp))
                     Text(info.s("name") + (info.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -219,7 +219,7 @@ fun ClanProfileScreen(info: JSONObject, squadId: String?, onBack: () -> Unit, on
                         val bLogo = r.optString("logo", "")
                         Box(Modifier.size(28.dp).clip(CircleShape).background(Color(0xFF1A0E33)).border(1.dp, Look.cardBorder, CircleShape), contentAlignment = Alignment.Center) {
                             if (bLogo.isNotBlank()) AsyncImage(model = xrImageModel(ctx, bLogo), contentDescription = nm, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().clip(CircleShape))
-                            else Text(nm.take(1).uppercase(), color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            else Text(xrInitial(nm), color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                         Spacer(Modifier.width(8.dp))
                         Text(nm + (r.optString("tag", "").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""), color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f))
@@ -282,7 +282,7 @@ fun SquadFinderScreen(onBack: () -> Unit, squadId: String?, isCaptain: Boolean) 
                 Row(Modifier.fillMaxWidth().padding(vertical = 5.dp).clip(RoundedCornerShape(12.dp)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(12.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF1A0E33)).border(1.dp, Gold.copy(alpha = .5f), CircleShape), contentAlignment = Alignment.Center) {
                         if (fAvatar.isNotBlank()) AsyncImage(model = xrImageModel(ctx, fAvatar), contentDescription = nm, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().clip(CircleShape))
-                        else Text(nm.take(1).uppercase(), color = Gold2, fontWeight = FontWeight.Bold)
+                        else Text(xrInitial(nm), color = Gold2, fontWeight = FontWeight.Bold)
                     }
                     Spacer(Modifier.width(10.dp))
                     Column(Modifier.weight(1f)) {
