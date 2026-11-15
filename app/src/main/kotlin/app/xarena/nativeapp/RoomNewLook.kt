@@ -107,7 +107,10 @@ fun RoomHomeNewLook(
     onBack: () -> Unit,
     onClassic: () -> Unit,
     onOpenChat: () -> Unit,
-    onOpenVoice: () -> Unit
+    onOpenVoice: () -> Unit,
+    onOpenMembers: () -> Unit,
+    onOpenProfile: () -> Unit,
+    onOpenFinder: () -> Unit
 ) {
     val memberCount = info.optInt("members")
     Column(Modifier.fillMaxSize().background(Ink)) {
@@ -148,6 +151,14 @@ fun RoomHomeNewLook(
                 Text(">", color = Gold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
             Box(Modifier.fillMaxWidth().padding(horizontal = 14.dp).height(1.dp).background(Look.cardBorder))
+            Row(Modifier.fillMaxWidth().clickable { onOpenMembers() }.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF1A0E33)), contentAlignment = Alignment.Center) { Text("M", color = Gold2, fontWeight = FontWeight.Bold) }
+                Spacer(Modifier.width(12.dp))
+                Text("Clan Members", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(memberCount.toString(), color = Muted, fontSize = 11.sp, modifier = Modifier.padding(end = 8.dp))
+                Text(">", color = Gold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+            Box(Modifier.fillMaxWidth().padding(horizontal = 14.dp).height(1.dp).background(Look.cardBorder))
             Row(Modifier.fillMaxWidth().clickable { onOpenVoice() }.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF1A0E33)), contentAlignment = Alignment.Center) { Text("V", color = Gold2, fontWeight = FontWeight.Bold) }
                 Spacer(Modifier.width(12.dp))
@@ -157,6 +168,20 @@ fun RoomHomeNewLook(
                 }
                 Text("JOIN", color = Ink, fontSize = 12.sp, fontWeight = FontWeight.Bold,
                     modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(Gold).clickable { onOpenVoice() }.padding(horizontal = 14.dp, vertical = 7.dp))
+            }
+            Box(Modifier.fillMaxWidth().padding(horizontal = 14.dp).height(1.dp).background(Look.cardBorder))
+            Row(Modifier.fillMaxWidth().clickable { onOpenProfile() }.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF1A0E33)), contentAlignment = Alignment.Center) { Text("P", color = Gold2, fontWeight = FontWeight.Bold) }
+                Spacer(Modifier.width(12.dp))
+                Text("Clan Profile", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(">", color = Gold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
+            Box(Modifier.fillMaxWidth().padding(horizontal = 14.dp).height(1.dp).background(Look.cardBorder))
+            Row(Modifier.fillMaxWidth().clickable { onOpenFinder() }.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(Color(0xFF1A0E33)), contentAlignment = Alignment.Center) { Text("F", color = Gold2, fontWeight = FontWeight.Bold) }
+                Spacer(Modifier.width(12.dp))
+                Text("Squad Finder", color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(">", color = Gold, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

@@ -47,6 +47,9 @@ fun RoomScreen(onBack: () -> Unit, onOpenVoice: () -> Unit = {}) {
     var rtTick by remember { mutableStateOf(0) }
     var showSquads by remember { mutableStateOf(false) }
     var roomHome by remember { mutableStateOf(true) }
+    var showMembers by remember { mutableStateOf(false) }
+    var showProfile by remember { mutableStateOf(false) }
+    var showFinder by remember { mutableStateOf(false) }
     if (showSquads) { SquadsScreen(onBack = { showSquads = false }); return }
     val listState = rememberLazyListState()
     val squadId = growth?.optJSONObject("squad")?.s("id")?.ifBlank { null } ?: info?.s("squad_id")?.ifBlank { null } ?: info?.s("squad")?.ifBlank { null }
@@ -85,8 +88,13 @@ fun RoomScreen(onBack: () -> Unit, onOpenVoice: () -> Unit = {}) {
         }
     }
     LaunchedEffect(msgs.size) { if (msgs.isNotEmpty()) listState.animateScrollToItem(msgs.size - 1) }
+    if (info != null && info!!.optBoolean("ok")) {
+        if (showMembers) { ClanMembersScreen(info!!, onBack = { showMembers = false }, onClassic = { showMembers = false; newLook = false; RoomLookSeams.newLook = false }); return }
+        if (showProfile) { ClanProfileScreen(info!!, squadId, onBack = { showProfile = false }, onClassic = { showProfile = false; newLook = false; RoomLookSeams.newLook = false }); return }
+        if (showFinder) { SquadFinderScreen(onBack = { showFinder = false }, squadId, growth?.optJSONObject("squad")?.optBoolean("is_captain") == true); return }
+    }
     if (newLook && loaded && info != null && info!!.optBoolean("ok")) {
-        if (roomHome) { RoomHomeNewLook(info!!, growth, onBack, { newLook = false; RoomLookSeams.newLook = false }, { roomHome = false }, { VoiceRoute.roomOverride = squadId?.let { ("squad:" + it) to info!!.s("name").ifBlank { "Squad Room" } }; onOpenVoice() }); return }
+        if (roomHome) { RoomHomeNewLook(info!!, growth, onBack, { newLook = false; RoomLookSeams.newLook = false }, { roomHome = false }, { VoiceRoute.roomOverride = squadId?.let { ("squad:" + it) to info!!.s("name").ifBlank { "Squad Room" } }; onOpenVoice() }, { showMembers = true }, { showProfile = true }, { showFinder = true }); return }
         RoomNewLook(info!!, growth, msgs, input, { input = it }, err, { roomHome = true }, { newLook = false; RoomLookSeams.newLook = false }, { showSquads = true }, { VoiceRoute.roomOverride = squadId?.let { ("squad:" + it) to info!!.s("name").ifBlank { "Squad Room" } }; onOpenVoice() }, squadId, { kind, path, caption, dur ->
             err = null
             scope.launch {
