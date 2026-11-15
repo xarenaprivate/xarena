@@ -105,7 +105,7 @@
 <main><section class="page-hero"><div class="wrap">
   <span class="hero-tag"><span class="dot"></span>Squad-only chat</span>
   <h1>Clan Room</h1>
-  <p>Every squad gets a private room. Plan scrims, call strategies and talk with your clan - only squad members can read or post here.</p>
+  <p>Every squad gets a private text chat. Plan scrims, call strategies and talk with your clan - only squad members can read or post here. Messages and media expire after 14 days.</p>
 </div></section>
 <section class="section"><div class="wrap" style="max-width:720px">
   <div id="xr-spend-clan" class="xr-spend" hidden></div>
@@ -128,12 +128,17 @@ window.addEventListener("load", function () {
   window.addEventListener('pagehide',function(){stopRealtime();clearInterval(timer);});
   function bubble(m) {
     var mine = me && m.user_id === me.id;
-    return '<div style="display:flex;' + (mine ? "justify-content:flex-end" : "") + ';margin-bottom:8px">' +
+    return '<div data-room-message="1" data-expires="' + esc(m.expires_at || new Date(new Date(m.created_at).getTime()+14*86400000).toISOString()) + '" style="display:flex;' + (mine ? "justify-content:flex-end" : "") + ';margin-bottom:8px">' +
       '<div style="max-width:78%;background:' + (mine ? "var(--red)" : "var(--card)") + ';color:' + (mine ? "#fff" : "var(--text)") + ';border:1px solid ' + (mine ? "transparent" : "var(--line2)") + ';border-radius:12px;padding:8px 12px">' +
       (mine ? "" : '<div style="font-size:11px;color:var(--gold2);margin-bottom:2px">' + esc(m.by) + "</div>") +
       '<div style="font-size:14.5px;word-break:break-word">' + esc(m.body) + "</div>" +
       '<div style="font-size:10px;opacity:.65;margin-top:2px;text-align:right">' + new Date(m.created_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) + "</div>" +
       "</div></div>";
+  }
+  function pruneExpired() {
+    var box=document.getElementById('room-msgs');if(!box)return;
+    Array.prototype.forEach.call(box.querySelectorAll('[data-expires]'),function(el){if(new Date(el.dataset.expires).getTime()<=Date.now())el.remove();});
+    var empty=document.getElementById('room-empty');if(empty)empty.style.display=box.querySelector('[data-room-message]')?'none':'';
   }
   function pull() {
     if(document.hidden)return;if(pulling){pullAgain=true;return;}pulling=true;lastPull=Date.now();
@@ -141,10 +146,10 @@ window.addEventListener("load", function () {
       if (!r || !r.ok) return;
       var box = document.getElementById("room-msgs");
       if (!box) { clearInterval(timer); return; }
-      (r.rows || []).forEach(function (m) { if(m.id<=lastId)return;box.insertAdjacentHTML("beforeend", bubble(m)); lastId = Math.max(lastId, m.id); });
+      (r.rows || []).forEach(function (m) { if(m.id<=lastId)return;lastId=Math.max(lastId,m.id);if(new Date(m.expires_at||new Date(new Date(m.created_at).getTime()+14*86400000)).getTime()<=Date.now())return;box.insertAdjacentHTML("beforeend", bubble(m)); lastId = Math.max(lastId, m.id); });
       if (r.rows && r.rows.length) box.scrollTop = box.scrollHeight;
       var empty = document.getElementById("room-empty");
-      if (empty && box.children.length) empty.style.display = "none";
+      pruneExpired();
     }).catch(function () {}).finally(function(){pulling=false;if(pullAgain){pullAgain=false;pull();}});
   }
   window.xrApi.user().then(function (u) {
@@ -177,7 +182,7 @@ window.addEventListener("load", function () {
       document.getElementById("room-send").addEventListener("click", send);
       document.getElementById("room-in").addEventListener("keydown", function (e) { if (e.key === "Enter") send(); });
       roomSquad=info.squad;pull();startRealtime();
-      timer=setInterval(function(){if(!document.hidden&&Date.now()-lastPull>=(roomReady?30000:4000))pull();},1000);
+      timer=setInterval(function(){pruneExpired();if(!document.hidden&&Date.now()-lastPull>=(roomReady?30000:4000))pull();},1000);
     });
   });
 });
