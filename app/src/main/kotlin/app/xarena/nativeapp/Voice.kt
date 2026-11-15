@@ -485,12 +485,12 @@ private fun voiceLobbyPollVote(pollId: String, choice: Int): Boolean {
     return o != null && (o.optBoolean("ok") || o.optBoolean("already_voted"))
 }
 
-@Composable
 object VoiceRoute {
     /* Set by Clan Room JOIN before navigating to the voice tab: clan-scoped room ("squad:<id>" to clan name). null = single global General lobby. */
     var roomOverride: Pair<String, String>? = null
 }
 
+@Composable
 fun VoiceScreen(onBack: () -> Unit, roomOverride: Pair<String, String>? = VoiceRoute.roomOverride) {
     val scope = rememberCoroutineScope()
     var engine by remember { mutableStateOf<VoiceEngine?>(null) }
