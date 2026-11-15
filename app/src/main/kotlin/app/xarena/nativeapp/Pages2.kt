@@ -46,6 +46,7 @@ fun RoomScreen(onBack: () -> Unit, onOpenVoice: () -> Unit = {}) {
     var newLook by remember { mutableStateOf(RoomLookSeams.newLook) }
     var rtTick by remember { mutableStateOf(0) }
     var showSquads by remember { mutableStateOf(false) }
+    var roomHome by remember { mutableStateOf(true) }
     if (showSquads) { SquadsScreen(onBack = { showSquads = false }); return }
     val listState = rememberLazyListState()
     val squadId = growth?.optJSONObject("squad")?.s("id")?.ifBlank { null } ?: info?.s("squad_id")?.ifBlank { null } ?: info?.s("squad")?.ifBlank { null }
@@ -71,6 +72,8 @@ fun RoomScreen(onBack: () -> Unit, onOpenVoice: () -> Unit = {}) {
                         msgs.add(m); lastId = maxOf(lastId, m.optLong("id"))
                     }
                 }
+                /* 14-day TTL: also prune rows already in local state, not just new fetches */
+                run { val nowMs = System.currentTimeMillis(); msgs.removeAll { m -> val ea = m.optString("expires_at", ""); ea.isNotBlank() && xrIsoMs(ea) <= nowMs } }
             }
             if (System.currentTimeMillis() - growthAt > 300_000) {
                 growth = runCatching { Api.authedRpc("xr_room_growth", JSONObject()) }.getOrNull()
@@ -83,7 +86,18 @@ fun RoomScreen(onBack: () -> Unit, onOpenVoice: () -> Unit = {}) {
     }
     LaunchedEffect(msgs.size) { if (msgs.isNotEmpty()) listState.animateScrollToItem(msgs.size - 1) }
     if (newLook && loaded && info != null && info!!.optBoolean("ok")) {
-        RoomNewLook(info!!, growth, msgs, input, { input = it }, err, onBack, { newLook = false; RoomLookSeams.newLook = false }, { showSquads = true }, { VoiceRoute.roomOverride = squadId?.let { ("squad:" + it) to info!!.s("name").ifBlank { "Squad Room" } }; onOpenVoice() }) { body ->
+        if (roomHome) { RoomHomeNewLook(info!!, growth, onBack, { newLook = false; RoomLookSeams.newLook = false }, { roomHome = false }, { VoiceRoute.roomOverride = squadId?.let { ("squad:" + it) to info!!.s("name").ifBlank { "Squad Room" } }; onOpenVoice() }); return }
+        RoomNewLook(info!!, growth, msgs, input, { input = it }, err, { roomHome = true }, { newLook = false; RoomLookSeams.newLook = false }, { showSquads = true }, { VoiceRoute.roomOverride = squadId?.let { ("squad:" + it) to info!!.s("name").ifBlank { "Squad Room" } }; onOpenVoice() }, squadId, { kind, path, caption, dur ->
+            err = null
+            scope.launch {
+                try {
+                    val b = JSONObject().put("p_kind", kind).put("p_media_path", path).put("p_body", caption.take(300))
+                    if (dur != null) b.put("p_duration_ms", dur)
+                    val r = Api.authedRpc("room_post_media", b)
+                    if (!r.optBoolean("ok")) err = r.s("error").ifBlank { "Could not send." }
+                } catch (e: Exception) { err = "Network error - try again." }
+            }
+        }) { body ->
             if (body.isNotBlank()) {
                 err = null
                 if (body == input.trim()) input = ""
