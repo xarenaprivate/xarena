@@ -151,7 +151,7 @@ internal fun extractPresences(payload: JSONObject): JSONObject = payload.optJSON
 
 private data class VoicePeer(val id: String, val handle: String, val muted: Boolean, val listener: Boolean = false, val conn: String = "")
 
-private class VoiceEngine(val onPeers: (List<VoicePeer>) -> Unit, val onState: (String) -> Unit) {
+class VoiceEngine(var onPeers: (List<VoicePeer>) -> Unit, var onState: (String) -> Unit) {
     private val myId = UUID.randomUUID().toString()
     private var myHandle = "Guest-" + (1000..9999).random()
     private var chan: PhoenixChannel? = null
@@ -458,7 +458,7 @@ private fun voiceLobbyHeartbeatError(roomId: String, sessionId: String): String?
     return o.s("error").ifBlank { "unknown" }
 }
 
-private fun voiceLobbyLeave(roomId: String, sessionId: String) {
+fun voiceLobbyLeave(roomId: String, sessionId: String) {
     runCatching { Api.authed("POST", "/rest/v1/rpc/xr_voice_leave",
         JSONObject().put("p_room", roomId).put("p_session", sessionId)) }
 }
@@ -490,10 +490,81 @@ object VoiceRoute {
     var roomOverride: Pair<String, String>? = null
 }
 
+/* Background voice (WhatsApp-style): the engine lives in VoiceSession, a process-level
+   holder, so navigating away, backgrounding the app or turning the screen off does not
+   drop the call. VoiceService is a microphone-type foreground service holding foreground
+   priority and the ongoing notification; started on join, stopped on leave. */
+object VoiceSession {
+    var engine: VoiceEngine? = null
+    var roomLabel: String = "General"
+    var lobbyRoomId: String? = null
+    var lobbySessionId: String? = null
+    var lastPeers: List<VoicePeer> = emptyList()
+    var lastState: String = "idle"
+
+    fun begin(e: VoiceEngine, label: String) {
+        engine = e; roomLabel = label; lastPeers = emptyList(); lastState = "connecting"
+        runCatching { androidx.core.content.ContextCompat.startForegroundService(Api.ctx, android.content.Intent(Api.ctx, VoiceService::class.java)) }
+    }
+
+    fun end() {
+        runCatching { engine?.leave() }
+        engine = null; lastPeers = emptyList(); lastState = "idle"
+        lobbyRoomId = null; lobbySessionId = null
+        Api.ctx.stopService(android.content.Intent(Api.ctx, VoiceService::class.java))
+    }
+}
+
+class VoiceService : android.app.Service() {
+    override fun onBind(intent: android.content.Intent?): android.os.IBinder? = null
+
+    override fun onStartCommand(intent: android.content.Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == ACTION_LEAVE) {
+            val r = VoiceSession.lobbyRoomId; val s = VoiceSession.lobbySessionId
+            VoiceSession.end()
+            if (r != null && s != null) Thread { voiceLobbyLeave(r, s) }.start()
+            stopSelf()
+            return START_NOT_STICKY
+        }
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            val nm = getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager
+            nm.createNotificationChannel(android.app.NotificationChannel(CHANNEL_ID, "Voice call", android.app.NotificationManager.IMPORTANCE_LOW))
+        }
+        val open = android.app.PendingIntent.getActivity(this, 0,
+            android.content.Intent(this, MainActivity::class.java).addFlags(android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            android.app.PendingIntent.FLAG_IMMUTABLE or android.app.PendingIntent.FLAG_UPDATE_CURRENT)
+        val leave = android.app.PendingIntent.getService(this, 1,
+            android.content.Intent(this, VoiceService::class.java).setAction(ACTION_LEAVE),
+            android.app.PendingIntent.FLAG_IMMUTABLE or android.app.PendingIntent.FLAG_UPDATE_CURRENT)
+        val nb = if (android.os.Build.VERSION.SDK_INT >= 26) android.app.Notification.Builder(this, CHANNEL_ID) else android.app.Notification.Builder(this)
+        val notif = nb.setContentTitle("Voice - " + VoiceSession.roomLabel)
+            .setContentText("In call - keeps running in the background. Tap to return.")
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .setContentIntent(open)
+            .setOngoing(true)
+            .addAction(android.app.Notification.Action.Builder(null, "Leave", leave).build())
+            .build()
+        runCatching {
+            if (android.os.Build.VERSION.SDK_INT >= 29) {
+                startForeground(NOTIF_ID, notif, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
+            } else {
+                startForeground(NOTIF_ID, notif)
+            }
+        }.recoverCatching { startForeground(NOTIF_ID, notif) }
+        return START_STICKY
+    }
+
+    companion object {
+        const val CHANNEL_ID = "xarena_voice_call"
+        const val NOTIF_ID = 4201
+        const val ACTION_LEAVE = "app.xarena.nativeapp.VOICE_LEAVE"
+    }
+}
+
 @Composable
 fun VoiceScreen(onBack: () -> Unit, roomOverride: Pair<String, String>? = VoiceRoute.roomOverride) {
     val scope = rememberCoroutineScope()
-    var engine by remember { mutableStateOf<VoiceEngine?>(null) }
+    var engine by remember { mutableStateOf<VoiceEngine?>(VoiceSession.engine) }
     var peers by remember { mutableStateOf<List<VoicePeer>>(emptyList()) }
     var lobbyLabel by remember { mutableStateOf("General") }
     var state by remember { mutableStateOf("idle") }
@@ -511,11 +582,26 @@ fun VoiceScreen(onBack: () -> Unit, roomOverride: Pair<String, String>? = VoiceR
     var nextRoomLine by remember { mutableStateOf<String?>(null) }
     var lastRoomLine by remember { mutableStateOf<String?>(null) }
 
+    /* Navigating away or backgrounding no longer drops the call: the engine lives in
+       VoiceSession and VoiceService keeps foreground priority. Dispose only unbinds the
+       UI callbacks; LEAVE (or the notification Leave action) ends the call. */
     DisposableEffect(Unit) { onDispose {
-        engine?.leave()
-        val sess = lobbySession
-        if (sess != null) Thread { voiceLobbyLeave(sess.roomId, sess.sessionId) }.start()
+        engine?.let { e ->
+            e.onPeers = { VoiceSession.lastPeers = it }
+            e.onState = { VoiceSession.lastState = it }
+        }
     } }
+
+    LaunchedEffect(Unit) {
+        val e = VoiceSession.engine
+        if (e != null) {
+            e.onPeers = { peers = it; VoiceSession.lastPeers = it }
+            e.onState = { state = it; VoiceSession.lastState = it }
+            peers = VoiceSession.lastPeers; state = VoiceSession.lastState
+            lobbyLabel = VoiceSession.roomLabel; muted = e.muted || e.listenOnly
+            engine = e
+        }
+    }
 
     LaunchedEffect(Unit) {
         if (roomOverride != null) { lobby = null; lobbyChecked = true; return@LaunchedEffect }
@@ -546,9 +632,10 @@ fun VoiceScreen(onBack: () -> Unit, roomOverride: Pair<String, String>? = VoiceR
                 val sid = res.s("session_id")
                 if (res.s("state") == "joined" && sid.isNotBlank()) {
                     lobbySession = VoiceLobbySession(res.s("room_id"), sid)
+                    VoiceSession.lobbyRoomId = res.s("room_id"); VoiceSession.lobbySessionId = sid
                 } else if (res.s("state") == "waitlisted") {
                     waitlistRank = res.optInt("rank", 1)
-                    engine?.leave(); engine = null; peers = emptyList(); state = "idle"; muted = false
+                    VoiceSession.end(); engine = null; peers = emptyList(); state = "idle"; muted = false
                 }
             }
         }
@@ -561,7 +648,7 @@ fun VoiceScreen(onBack: () -> Unit, roomOverride: Pair<String, String>? = VoiceR
             val hbErr = withContext(Dispatchers.IO) { voiceLobbyHeartbeatError(sess.roomId, sess.sessionId) }
             if (hbErr == "session_expired" || hbErr == "room_closed") {
                 lobbySession = null
-                engine?.leave(); engine = null; peers = emptyList(); state = "idle"; muted = false
+                VoiceSession.end(); engine = null; peers = emptyList(); state = "idle"; muted = false
                 err = "Your lobby session ended - join again to re-enter."
                 break
             }
@@ -613,7 +700,7 @@ fun VoiceScreen(onBack: () -> Unit, roomOverride: Pair<String, String>? = VoiceR
                 }
                 Spacer(Modifier.height(14.dp))
                 val startJoin: (Boolean) -> Unit = { listenOnlyMode ->
-                    val e = VoiceEngine(onPeers = { peers = it }, onState = { state = it })
+                    val e = VoiceEngine(onPeers = { peers = it; VoiceSession.lastPeers = it }, onState = { state = it; VoiceSession.lastState = it })
                     engine = e
                     scope.launch(Dispatchers.IO) {
                         try {
@@ -621,8 +708,9 @@ fun VoiceScreen(onBack: () -> Unit, roomOverride: Pair<String, String>? = VoiceR
                             val (room, rl) = roomOverride ?: ("general" to "General")  /* voice lobby is global General, or a clan room channel - never regional chat rooms */
                             lobbyLabel = rl
                             e.join(h, room, listenOnlyMode)
+                            VoiceSession.begin(e, rl)
                             if (listenOnlyMode) { muted = true }
-                        } catch (ex: Throwable) { runCatching { e.leave() }; err = "Voice unavailable on this device right now - the rest of the app is unaffected."; engine = null; state = "idle" }
+                        } catch (ex: Throwable) { runCatching { e.leave() }; VoiceSession.end(); err = "Voice unavailable on this device right now - the rest of the app is unaffected."; engine = null; state = "idle" }
                     }
                 }
                 GoldButton("JOIN VOICE") {
@@ -688,7 +776,7 @@ fun VoiceScreen(onBack: () -> Unit, roomOverride: Pair<String, String>? = VoiceR
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     Text("LEAVE", color = ErrRed, fontSize = 14.sp, fontWeight = FontWeight.Bold,
                         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).border(1.dp, ErrRed, RoundedCornerShape(12.dp))
-                            .clickable { val sess = lobbySession; engine?.leave(); engine = null; peers = emptyList(); state = "idle"; lobbySession = null; handRaised = false
+                            .clickable { val sess = lobbySession; VoiceSession.end(); engine = null; peers = emptyList(); state = "idle"; lobbySession = null; handRaised = false
                                 if (sess != null) scope.launch(Dispatchers.IO) { voiceLobbyLeave(sess.roomId, sess.sessionId) } }
                             .padding(vertical = 14.dp))
                 }
