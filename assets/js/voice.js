@@ -7,15 +7,21 @@
   var SUPA_URL = "https://oskccuajgbyabogbvedj.supabase.co";
   var SUPA_KEY = "sb_publishable_RltZjW7bXLT9DssLJVHkDA_cuHlcJo7";
   var ROOM = "voice:arena-lobby";
-  var vroom = ROOM; /* regional voice lobby: voice:<room> from chat_my_room (coarse state), General if no area */
-  var roomReady=Promise.resolve();
-  try {
-    var _h = localStorage.getItem("xr_chat_handle"), _t = localStorage.getItem("xr_chat_token");
-    if (_h && _t) {
-      roomReady=fetch(SUPA_URL + "/rest/v1/rpc/chat_my_room", { method: "POST", headers: { "apikey": SUPA_KEY, "Authorization": "Bearer " + SUPA_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ p_handle: _h, p_token: _t }) })
-        .then(function (r) { return r.json(); }).then(function (j) { if (j && j.room && j.room !== "general") vroom = "voice:" + j.room; }).catch(function () {});
-    }
-  } catch (e) {}
+  // Supabase JS adds the realtime: wire prefix. Never add it twice.
+  var vroom = ROOM, clanMode = new URLSearchParams(location.search).get('clan') === '1';
+  var clanName = '';
+  function resolveRoom() {
+    if (!clanMode) return Promise.resolve(); // Voice tab is always the global lobby.
+    if (!window.xrApi) return Promise.reject(new Error('Log in and open Clan Room to join clan voice.'));
+    return window.xrApi.user().then(function(user) {
+      if (!user) throw new Error('Log in to join your clan voice room.');
+      return window.xrApi.uRpc('room_info', {});
+    }).then(function(info) {
+      if (!info || !info.ok || !/^[0-9a-f-]{36}$/i.test(info.squad || '')) throw new Error('Join a squad before opening clan voice.');
+      vroom = 'voice:squad:' + info.squad;
+      clanName = info.name || 'Your clan';
+    });
+  }
   var RTC_CFG = { iceServers: [{ urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"] }] };
 
   var $ = function (s) { return document.querySelector(s); };
@@ -207,7 +213,7 @@
   function join() {
     var btn = $("#xv-join-btn");
     btn.disabled = true; btn.textContent = "Connecting mic…";
-    Promise.race([roomReady,new Promise(function(resolve){setTimeout(resolve,1500);})]).then(function(){
+    resolveRoom().then(function(){
       return navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,channelCount:{ideal:1},latency:{ideal:0.02}},video:false});
     })
       .then(function (stream) {
@@ -232,6 +238,7 @@
           if (status !== "SUBSCRIBED") return;
           chan.track({ handle: myHandle, muted: false, at: Date.now() });
           joined = true; joinAt = Date.now();
+          var title=roomBox.querySelector('h2');if(title)title.textContent=clanMode?clanName+' VOICE':'ARENA LOBBY';
           if(!document.getElementById('xv-network')){var net=document.createElement('p');net.id='xv-network';net.className='xv-live';net.setAttribute('role','status');roomBox.appendChild(net);}
           clearInterval(statsIv);statsIv=setInterval(updateDiagnostics,5000);updateDiagnostics();
           joinBox.style.display = "none";
@@ -245,7 +252,7 @@
       })
       .catch(function (err) {
         btn.disabled = false; btn.textContent = "Join Voice";
-        var why = (err && err.name === "NotAllowedError") ? "Microphone permission was denied - allow mic access and try again." :
+        var why = (err && err.message && /Log in|Join a squad/.test(err.message)) ? err.message : (err && err.name === "NotAllowedError") ? "Microphone permission was denied - allow mic access and try again." :
                   (err && err.name === "NotFoundError") ? "No microphone found on this device." :
                   "Could not open the microphone on this device.";
         $("#xv-err").textContent = why;
@@ -267,6 +274,12 @@
     btn.disabled = false; btn.textContent = "Join Voice";
   }
 
+  if (clanMode) {
+    var intro=joinBox.querySelector('h3'), description=joinBox.querySelector('p');
+    if(intro)intro.textContent='Join your clan voice room';
+    if(description)description.textContent='Your current clan has a separate voice channel. Voice channels are not access-restricted: anyone who knows the channel can join. You will be audible while joined. Mic permission is required.';
+  }
+
   /* ---------- controls ---------- */
   $("#xv-join-btn").addEventListener("click", join);
   $("#xv-leave").addEventListener("click", function () { leave(); toast("Left the voice lobby."); });
@@ -286,7 +299,7 @@
     toast(deafened ? "Deafened - you can't hear the room." : "You can hear the room again.");
   });
   $("#xv-invite").addEventListener("click", function () {
-    var link = location.origin + location.pathname;
+    var link = location.origin + location.pathname + (clanMode ? '?clan=1' : '');
     if (navigator.share) {
       navigator.share({ title: "XARENA Voice Lobby", text: "Join my voice lobby on XARENA.", url: link }).catch(function () {});
     } else if (navigator.clipboard) {
