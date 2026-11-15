@@ -35,7 +35,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -60,6 +63,7 @@ fun ClanMembersScreen(info: JSONObject, onBack: () -> Unit, onClassic: () -> Uni
     var query by remember { mutableStateOf("") }
     var sortRole by remember { mutableStateOf(true) }
     val squadId = info.s("squad_id").ifBlank { info.s("squad") }
+    val ctx = LocalContext.current
     LaunchedEffect(Unit) {
         val res = withContext(Dispatchers.IO) {
             runCatching { Api.authedRpc("xr_sf_squad_get", JSONObject().put("p_squad", squadId)) }.getOrNull()
@@ -121,9 +125,11 @@ fun ClanMembersScreen(info: JSONObject, onBack: () -> Unit, onClassic: () -> Uni
                     val name = pl?.optString("name", "")?.takeIf { it.isNotBlank() } ?: pl?.optString("username", "")?.takeIf { it.isNotBlank() } ?: "Player"
                     val role = m.optString("membership_role", "member")
                     val active = activeIds.contains(m.optJSONObject("player")?.optString("id", "") ?: "")
+                    val pAvatar = pl?.optString("avatar_url", "") ?: ""
                     Row(Modifier.fillMaxWidth().padding(vertical = 5.dp).clip(RoundedCornerShape(12.dp)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(12.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(38.dp).clip(CircleShape).background(Color(0xFF1A0E33)).border(1.dp, if (active) Color(0xFF22C55E) else Look.cardBorder, CircleShape), contentAlignment = Alignment.Center) {
-                            Text(name.take(1).uppercase(), color = Gold2, fontWeight = FontWeight.Bold)
+                            if (pAvatar.isNotBlank()) AsyncImage(model = xrImageModel(ctx, pAvatar), contentDescription = name, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().clip(CircleShape))
+                            else Text(name.take(1).uppercase(), color = Gold2, fontWeight = FontWeight.Bold)
                         }
                         Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
@@ -146,6 +152,7 @@ fun ClanMembersScreen(info: JSONObject, onBack: () -> Unit, onClassic: () -> Uni
 
 @Composable
 fun ClanProfileScreen(info: JSONObject, squadId: String?, onBack: () -> Unit, onClassic: () -> Unit) {
+    val ctx = LocalContext.current
     var profile by remember { mutableStateOf<JSONObject?>(null) }
     var rank by remember { mutableStateOf<JSONObject?>(null) }
     var board by remember { mutableStateOf<JSONArray?>(null) }
@@ -171,8 +178,10 @@ fun ClanProfileScreen(info: JSONObject, squadId: String?, onBack: () -> Unit, on
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)) {
             item {
                 Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(16.dp)).padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    val sqLogo = profile?.optString("logo_url", "") ?: ""
                     Box(Modifier.size(64.dp).clip(RoundedCornerShape(16.dp)).background(Color(0xFF1A0E33)).border(1.dp, Gold.copy(alpha = .6f), RoundedCornerShape(16.dp)), contentAlignment = Alignment.Center) {
-                        Text(info.s("name").take(1).uppercase(), color = Gold, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                        if (sqLogo.isNotBlank()) AsyncImage(model = xrImageModel(ctx, sqLogo), contentDescription = info.s("name"), contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp)))
+                        else Text(info.s("name").take(1).uppercase(), color = Gold, fontSize = 26.sp, fontWeight = FontWeight.Bold)
                     }
                     Spacer(Modifier.height(8.dp))
                     Text(info.s("name") + (info.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -207,6 +216,12 @@ fun ClanProfileScreen(info: JSONObject, squadId: String?, onBack: () -> Unit, on
                     val nm = r.optString("name", r.optString("squad_name", "Squad"))
                     Row(Modifier.fillMaxWidth().padding(vertical = 4.dp).clip(RoundedCornerShape(10.dp)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(10.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
                         Text(r.optInt("rank", i + 1).toString(), color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(24.dp))
+                        val bLogo = r.optString("logo", "")
+                        Box(Modifier.size(28.dp).clip(CircleShape).background(Color(0xFF1A0E33)).border(1.dp, Look.cardBorder, CircleShape), contentAlignment = Alignment.Center) {
+                            if (bLogo.isNotBlank()) AsyncImage(model = xrImageModel(ctx, bLogo), contentDescription = nm, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().clip(CircleShape))
+                            else Text(nm.take(1).uppercase(), color = Gold2, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Spacer(Modifier.width(8.dp))
                         Text(nm + (r.optString("tag", "").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""), color = Color.White, fontSize = 13.sp, modifier = Modifier.weight(1f))
                         val sc = r.optInt("points", r.optInt("xp", -1))
                         if (sc >= 0) Text(sc.toString(), color = Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
@@ -221,6 +236,7 @@ fun ClanProfileScreen(info: JSONObject, squadId: String?, onBack: () -> Unit, on
 @Composable
 fun SquadFinderScreen(onBack: () -> Unit, squadId: String?, isCaptain: Boolean) {
     val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val ctx = LocalContext.current
     var players by remember { mutableStateOf<JSONArray?>(null) }
     var loaded by remember { mutableStateOf(false) }
     var inviteSentFor by remember { mutableStateOf("") }
@@ -262,9 +278,11 @@ fun SquadFinderScreen(onBack: () -> Unit, squadId: String?, isCaptain: Boolean) 
             if (players != null) for (i in 0 until players!!.length()) players!!.optJSONObject(i)?.let { list.add(it) }
             items(list) { p ->
                 val nm = p.optString("name", "").takeIf { it.isNotBlank() } ?: p.optString("username", "Player")
+                val fAvatar = p.optString("avatar_url", "")
                 Row(Modifier.fillMaxWidth().padding(vertical = 5.dp).clip(RoundedCornerShape(12.dp)).background(Look.cardBg).border(1.dp, Look.cardBorder, RoundedCornerShape(12.dp)).padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(40.dp).clip(CircleShape).background(Color(0xFF1A0E33)).border(1.dp, Gold.copy(alpha = .5f), CircleShape), contentAlignment = Alignment.Center) {
-                        Text(nm.take(1).uppercase(), color = Gold2, fontWeight = FontWeight.Bold)
+                        if (fAvatar.isNotBlank()) AsyncImage(model = xrImageModel(ctx, fAvatar), contentDescription = nm, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize().clip(CircleShape))
+                        else Text(nm.take(1).uppercase(), color = Gold2, fontWeight = FontWeight.Bold)
                     }
                     Spacer(Modifier.width(10.dp))
                     Column(Modifier.weight(1f)) {

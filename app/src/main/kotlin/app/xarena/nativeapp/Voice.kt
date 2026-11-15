@@ -788,7 +788,7 @@ fun VoiceScreen(onBack: () -> Unit, roomOverride: Pair<String, String>? = VoiceR
                 if (!micGranted) Text("Just want to listen? Tap LISTEN ONLY - no mic needed.", color = Muted, fontSize = 12.sp)
                 err?.let { Text(it, color = ErrRed, fontSize = 13.sp) }
             } else if (voiceNewLook) {
-                VoiceGridLook(lobbyLabel, peers, engine, muted, lobbySession != null, handRaised,
+                VoicePttLook(lobbyLabel, peers, engine, muted, lobbySession != null, handRaised,
                     onExit = { onBack() },
                     onMute = { muted = engine?.toggleMute() ?: muted },
                     onHand = { val next = !handRaised; scope.launch(Dispatchers.IO) { if (voiceLobbyHandRaise(next)) handRaised = next } },
