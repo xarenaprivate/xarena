@@ -83,7 +83,7 @@ fun RoomScreen(onBack: () -> Unit, onOpenVoice: () -> Unit = {}) {
     }
     LaunchedEffect(msgs.size) { if (msgs.isNotEmpty()) listState.animateScrollToItem(msgs.size - 1) }
     if (newLook && loaded && info != null && info!!.optBoolean("ok")) {
-        RoomNewLook(info!!, growth, msgs, input, { input = it }, err, onBack, { newLook = false; RoomLookSeams.newLook = false }, { showSquads = true }, onOpenVoice) { body ->
+        RoomNewLook(info!!, growth, msgs, input, { input = it }, err, onBack, { newLook = false; RoomLookSeams.newLook = false }, { showSquads = true }, { VoiceRoute.roomOverride = squadId?.let { ("squad:" + it) to info!!.s("name").ifBlank { "Squad Room" } }; onOpenVoice() }) { body ->
             if (body.isNotBlank()) {
                 err = null
                 if (body == input.trim()) input = ""

@@ -68,7 +68,7 @@ private class PhoenixChannel(
         onState("connecting")
         ws = client.newWebSocket(okhttp3.Request.Builder().url(url).build(), object : okhttp3.WebSocketListener() {
             override fun onOpen(webSocket: okhttp3.WebSocket, response: okhttp3.Response) {
-                ref = 1; joinRef = "1"
+                ref = 0; joinRef = "1"  /* send() pre-increments: join must go out with ref == joinRef or the ok reply is dropped and the lobby hangs on connecting */
                 send("phx_join", JSONObject().put("config", JSONObject()
                     .put("broadcast", JSONObject().put("ack", false).put("self", false))
                     .put("presence", JSONObject().put("key", presenceKey))  // no "enabled" field: the realtime server disables presence relay when it is set
@@ -486,7 +486,12 @@ private fun voiceLobbyPollVote(pollId: String, choice: Int): Boolean {
 }
 
 @Composable
-fun VoiceScreen(onBack: () -> Unit) {
+object VoiceRoute {
+    /* Set by Clan Room JOIN before navigating to the voice tab: clan-scoped room ("squad:<id>" to clan name). null = single global General lobby. */
+    var roomOverride: Pair<String, String>? = null
+}
+
+fun VoiceScreen(onBack: () -> Unit, roomOverride: Pair<String, String>? = VoiceRoute.roomOverride) {
     val scope = rememberCoroutineScope()
     var engine by remember { mutableStateOf<VoiceEngine?>(null) }
     var peers by remember { mutableStateOf<List<VoicePeer>>(emptyList()) }
@@ -513,6 +518,7 @@ fun VoiceScreen(onBack: () -> Unit) {
     } }
 
     LaunchedEffect(Unit) {
+        if (roomOverride != null) { lobby = null; lobbyChecked = true; return@LaunchedEffect }
         while (true) {
             val snap = withContext(Dispatchers.IO) {
                 val info = voiceLobbyPresence()
@@ -612,7 +618,7 @@ fun VoiceScreen(onBack: () -> Unit) {
                     scope.launch(Dispatchers.IO) {
                         try {
                             val h = runCatching { Api.myProfile()?.s("username") ?: "" }.getOrDefault("")
-                            val (room, rl) = runCatching { Api.chatMyRoom() }.getOrDefault("general" to "General")
+                            val (room, rl) = roomOverride ?: ("general" to "General")  /* voice lobby is global General, or a clan room channel - never regional chat rooms */
                             lobbyLabel = rl
                             e.join(h, room, listenOnlyMode)
                             if (listenOnlyMode) { muted = true }

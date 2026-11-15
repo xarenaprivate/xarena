@@ -670,7 +670,7 @@ fun HomeShell(onLogout: () -> Unit) {
         }
         BackHandler(enabled = tab != 0) { tab = 0 }
         Box(Modifier.weight(1f)) {
-            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> FeedScreen(onBack = { tab = 0 }); 2 -> LiveScreen(onBack = { tab = 0 }); 3 -> VoiceScreen(onBack = { tab = 0 }); 4 -> TournamentsScreen(); 5 -> LeaderboardScreen(); 6 -> ChatScreen(onGoTab = { i -> when (i) { 1 -> tab = 4; 2 -> tab = 5; else -> feature = "squads" } }, onBack = { tab = 0 }); 7 -> ProfileScreen(onLogout, onBack = { tab = 0 }); else -> MoreGrid { feature = it } }
+            when (tab) { 0 -> HomeScreen(onGoTab = { tab = it }, onOpenFeature = { feature = it }); 1 -> FeedScreen(onBack = { tab = 0 }); 2 -> LiveScreen(onBack = { tab = 0 }); 3 -> VoiceScreen(onBack = { VoiceRoute.roomOverride = null; tab = 0 }, roomOverride = VoiceRoute.roomOverride); 4 -> TournamentsScreen(); 5 -> LeaderboardScreen(); 6 -> ChatScreen(onGoTab = { i -> when (i) { 1 -> tab = 4; 2 -> tab = 5; else -> feature = "squads" } }, onBack = { tab = 0 }); 7 -> ProfileScreen(onLogout, onBack = { tab = 0 }); else -> MoreGrid { feature = it } }
         }
         MainBottomNav(tab) { tab = it }
     }
