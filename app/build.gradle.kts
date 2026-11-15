@@ -14,8 +14,8 @@ android {
         minSdk = 24
         targetSdk = 34
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 102
-        versionName = "0.17.57-native"
+        versionCode = 103
+        versionName = "0.17.58-native"
         ndk { abiFilters += if (providers.gradleProperty("nativeTestAbi").orNull == "x86_64") listOf("x86_64") else listOf("arm64-v8a", "armeabi-v7a") }
     }
     val keyInfo = rootProject.file("keystore/KEY_INFO.txt")

@@ -149,7 +149,7 @@ private class PhoenixChannel(
 
 internal fun extractPresences(payload: JSONObject): JSONObject = payload.optJSONObject("presences") ?: payload
 
-data class VoicePeer(  /* public: VoiceSession (same file) holds these across composition */val id: String, val handle: String, val muted: Boolean, val listener: Boolean = false, val conn: String = "")
+data class VoicePeer(  /* public: VoiceSession (same file) holds these across composition */val id: String, val handle: String, val muted: Boolean, val listener: Boolean = false, val conn: String = "", val speaking: Boolean = false)
 
 class VoiceEngine(var onPeers: (List<VoicePeer>) -> Unit, var onState: (String) -> Unit) {
     private val myId = UUID.randomUUID().toString()
@@ -162,6 +162,15 @@ class VoiceEngine(var onPeers: (List<VoicePeer>) -> Unit, var onState: (String) 
     private val pendingIce = HashMap<String, MutableList<org.webrtc.IceCandidate>>()
     private val remoteSet = HashSet<String>()
     private val roster = HashMap<String, VoicePeer>()
+    private val remoteTracks = HashMap<String, org.webrtc.AudioTrack>()
+    private val peerVolumes = HashMap<String, Double>()
+    var lastRttMs: Int? = null
+        private set
+    var speakerOn = true
+        private set
+    var deafened = false
+        private set
+    private var statsRunning = false
     var muted = false
         private set
     var listenOnly = false
@@ -198,6 +207,7 @@ class VoiceEngine(var onPeers: (List<VoicePeer>) -> Unit, var onState: (String) 
             onBroadcast = { p -> onSignal(p) },
             onState = { st -> main { onState(st) } })
         chan!!.connect()
+        startStats()
     }
 
     private fun main(block: () -> Unit) {
@@ -208,6 +218,7 @@ class VoiceEngine(var onPeers: (List<VoicePeer>) -> Unit, var onState: (String) 
         for ((id, _) in leaves) {
             pcs.remove(id)?.close()
             pendingIce.remove(id); remoteSet.remove(id)
+            remoteTracks.remove(id); peerVolumes.remove(id)
             roster.remove(id)
         }
         onPeers(roster.values.sortedBy { it.handle })
@@ -315,7 +326,10 @@ class VoiceEngine(var onPeers: (List<VoicePeer>) -> Unit, var onState: (String) 
                     .put("data", JSONObject().put("sdpMid", c.sdpMid).put("sdpMLineIndex", c.sdpMLineIndex).put("candidate", c.sdp)).put("handle", myHandle))
             }
             override fun onAddTrack(receiver: org.webrtc.RtpReceiver, streams: Array<out org.webrtc.MediaStream>) {
-                (receiver.track() as? org.webrtc.AudioTrack)?.setEnabled(true)
+                val t = receiver.track() as? org.webrtc.AudioTrack ?: return
+                t.setEnabled(true)
+                remoteTracks[id] = t
+                t.setVolume(peerVolumes[id] ?: 1.0)
             }
             override fun onSignalingChange(s: org.webrtc.PeerConnection.SignalingState?) {}
             override fun onIceConnectionChange(st: org.webrtc.PeerConnection.IceConnectionState?) {
@@ -355,7 +369,55 @@ class VoiceEngine(var onPeers: (List<VoicePeer>) -> Unit, var onState: (String) 
         return muted
     }
 
+    fun setPeerVolume(id: String, vol: Double) {
+        peerVolumes[id] = vol
+        if (!deafened) remoteTracks[id]?.setVolume(vol)
+    }
+
+    fun setDeafened(on: Boolean) {
+        deafened = on
+        remoteTracks.forEach { (id, t) -> t.setVolume(if (on) 0.0 else (peerVolumes[id] ?: 1.0)) }
+    }
+
+    fun toggleSpeaker(): Boolean {
+        speakerOn = !speakerOn
+        try {
+            val am = Api.ctx.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+            am.isSpeakerphoneOn = speakerOn
+        } catch (e: Exception) { }
+        return speakerOn
+    }
+
+    private fun startStats() {
+        if (statsRunning) return
+        statsRunning = true
+        val h = android.os.Handler(android.os.Looper.getMainLooper())
+        h.post(object : Runnable {
+            override fun run() {
+                if (!statsRunning || chan == null) return
+                for ((id, pc) in pcs.toMap()) {
+                    pc.getStats { report ->
+                        var level: Double? = null
+                        var rtt: Double? = null
+                        for (s in report.statsMap.values) {
+                            if (s.type == "inbound-rtp") (s.members["audioLevel"] as? Number)?.let { level = it.toDouble() }
+                            if (s.type == "candidate-pair") (s.members["currentRoundTripTime"] as? Number)?.let { rtt = it.toDouble() }
+                        }
+                        if (level != null) {
+                            val sp = level!! > 0.02
+                            roster[id]?.let { if (it.speaking != sp) { roster[id] = it.copy(speaking = sp); onPeers(roster.values.sortedBy { p -> p.handle }) } }
+                        }
+                        if (rtt != null) lastRttMs = (rtt!! * 1000).toInt()
+                    }
+                }
+                h.postDelayed(this, 2000)
+            }
+        })
+    }
+
     fun leave() {
+        statsRunning = false
+        remoteTracks.clear(); peerVolumes.clear(); lastRttMs = null; deafened = false
         pcs.values.forEach { it.close() }; pcs.clear()
         pendingIce.clear(); remoteSet.clear()
         try {
@@ -581,6 +643,7 @@ fun VoiceScreen(onBack: () -> Unit, roomOverride: Pair<String, String>? = VoiceR
     var lobbyPoll by remember { mutableStateOf<VoiceLobbyPoll?>(null) }
     var nextRoomLine by remember { mutableStateOf<String?>(null) }
     var lastRoomLine by remember { mutableStateOf<String?>(null) }
+    var voiceNewLook by remember { mutableStateOf(VoiceLookSeams.newLook) }
 
     /* Navigating away or backgrounding no longer drops the call: the engine lives in
        VoiceSession and VoiceService keeps foreground priority. Dispose only unbinds the
@@ -724,10 +787,21 @@ fun VoiceScreen(onBack: () -> Unit, roomOverride: Pair<String, String>? = VoiceR
                         .padding(horizontal = 14.dp, vertical = 10.dp))
                 if (!micGranted) Text("Just want to listen? Tap LISTEN ONLY - no mic needed.", color = Muted, fontSize = 12.sp)
                 err?.let { Text(it, color = ErrRed, fontSize = 13.sp) }
+            } else if (voiceNewLook) {
+                VoiceGridLook(lobbyLabel, peers, engine, muted, lobbySession != null, handRaised,
+                    onExit = { onBack() },
+                    onMute = { muted = engine?.toggleMute() ?: muted },
+                    onHand = { val next = !handRaised; scope.launch(Dispatchers.IO) { if (voiceLobbyHandRaise(next)) handRaised = next } },
+                    onLeave = { val sess = lobbySession; VoiceSession.end(); engine = null; peers = emptyList(); state = "idle"; lobbySession = null; handRaised = false
+                        if (sess != null) scope.launch(Dispatchers.IO) { voiceLobbyLeave(sess.roomId, sess.sessionId) } },
+                    onClassic = { voiceNewLook = false; VoiceLookSeams.newLook = false })
             } else {
                 Text(state.uppercase(), color = if (state == "joined") Color(0xFF22C55E) else Gold2, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 Text("Lobby: " + lobbyLabel, color = Muted, fontSize = 11.sp)
                 Spacer(Modifier.height(10.dp))
+                Text("New look", color = Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(1.dp, Muted, RoundedCornerShape(8.dp)).clickable { voiceNewLook = true; VoiceLookSeams.newLook = true }.padding(horizontal = 10.dp, vertical = 6.dp))
+                Spacer(Modifier.height(8.dp))
                 val eng = engine
                 if (eng != null && eng.listenOnly) {
                     Text("LISTENING - MIC OFF", color = Gold2, fontSize = 13.sp, fontWeight = FontWeight.Bold)
