@@ -78,6 +78,18 @@ class StageGroupingTest {
         assertEquals("Legacy", secs[1].matches[0].s("title"))
     }
 
+    @Test fun mixedStagedAndLegacyTournament_legacyStaysVisible() {
+        val ms = JSONArray()
+            .put(m("old", "Old Cup M1", null, "cancelled"))
+            .put(m("t1", "M1", "qualifier", "scheduled"))
+        val rows = JSONArray().put(st("t1", "qualifier", "Qualifier lobby", 1))
+        val secs = buildMatchSections(ms, rows)!!
+        assertEquals(2, secs.size)
+        assertEquals("", secs[0].stageId)
+        assertEquals("Old Cup M1", secs[0].matches[0].s("title"))
+        assertEquals("qualifier", secs[1].stageId)
+    }
+
     @Test fun stageHeader_live() {
         paparazzi.snapshot { StageHeader("Qualifier lobby", "LIVE") }
     }

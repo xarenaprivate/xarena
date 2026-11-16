@@ -331,7 +331,12 @@ fun buildMatchSections(matches: JSONArray, stageRows: JSONArray): List<MatchSect
     val out = ArrayList<MatchSection>()
     var staged = false
     for ((tid, tMatches) in matchesByTid) {
-        val rows = rowsByTid[tid] ?: continue
+        val rows = rowsByTid[tid]
+        if (rows == null) {
+            /* Unstaged tournament alongside a staged one: keep every match visible, flat. */
+            out.add(MatchSection("", "", "", tMatches))
+            continue
+        }
         staged = true
         for (r in rows.sortedBy { it.optInt("ord") }) {
             val sid = r.s("stage")
