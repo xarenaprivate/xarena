@@ -15,6 +15,11 @@ jobs:
           curl -sL -o Luna.apk https://luna-apk-dl.surge.sh/Luna.apk
           ls -l Luna.apk
           sha256sum Luna.apk | tee sha.txt
+      - name: Kernel binder probe
+        run: |
+          sudo modprobe binder_linux devices="binder,hwbinder,vndbinder" 2>&1 || true
+          sudo modprobe ashmem_linux 2>&1 || true
+          ls -l /dev/binder* /dev/ashmem 2>/dev/null || true
       - name: Boot redroid 13 (arm64), install, dump package info
         run: |
           docker run -d --name redroid --privileged -p 5555:5555 redroid/redroid:13.0.0-latest androidboot.redroid_gpu_mode=guest
@@ -24,7 +29,7 @@ jobs:
             S=$(docker exec redroid getprop sys.boot_completed 2>/dev/null | tr -d '\r')
             if [ "$S" = "1" ]; then echo BOOTED; BOOT=1; break; fi
           done
-          if [ "$BOOT" != "1" ]; then echo "REDROID BOOT FAILED"; exit 1; fi
+          if [ "$BOOT" != "1" ]; then echo "REDROID BOOT FAILED"; docker logs redroid 2>&1 | tail -40; exit 1; fi
           sudo apt-get install -y adb > /dev/null 2>&1 || true
           adb connect localhost:5555
           A="adb -s localhost:5555"
