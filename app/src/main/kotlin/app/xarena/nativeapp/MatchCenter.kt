@@ -65,13 +65,27 @@ fun MatchCenterScreen(onBack: () -> Unit) {
         Brand()
         Text("Match Center", color = Gold, fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.padding(horizontal = 16.dp))
         Text("Rooms unlock for registered players shortly before each match.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 16.dp))
-        LoadState({ Api.publicGet("/rest/v1/matches_public?select=*&order=starts_at.asc.nullslast") }) { matches ->
+        LoadState({
+            val ms = Api.publicGet("/rest/v1/matches_public?select=*&order=starts_at.asc.nullslast")
+            val stg = runCatching { Api.publicGet("/rest/v1/tournament_stages?select=tournament_id,stage,label,ord&order=ord.asc") }.getOrElse { JSONArray() }
+            JSONObject().put("matches", ms).put("stages", stg)
+        }) { d ->
+            val matches = d.getJSONArray("matches")
             if (matches.length() == 0) EmptyNote("No matches scheduled yet", "Match rooms appear here as match control schedules them. Registered players see the room unlock 15 minutes before start.")
             else LazyColumn {
                 val scoringTids = (0 until matches.length()).map { matches.getJSONObject(it).s("tournament_id") }.filter { it.isNotBlank() }.distinct()
                 scoringTids.forEach { tid -> item { ScoringRulesCard(tid) } }
-                items((0 until matches.length()).map { matches.getJSONObject(it) }) { m ->
-                    MatchCard(m, ctx, scope, onChanged = { nonce++ })
+                val sections = buildMatchSections(matches, d.getJSONArray("stages"))
+                if (sections == null) {
+                    items((0 until matches.length()).map { matches.getJSONObject(it) }) { m ->
+                        MatchCard(m, ctx, scope, onChanged = { nonce++ })
+                    }
+                } else {
+                    for (sec in sections) {
+                        if (sec.label.isNotBlank()) item { StageHeader(sec.label, sec.status) }
+                        if (sec.matches.isEmpty()) item { Text("Matches announced soon.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)) }
+                        else items(sec.matches) { m -> MatchCard(m, ctx, scope, onChanged = { nonce++ }) }
+                    }
                 }
                 item { Spacer(Modifier.height(16.dp)) }
             }
@@ -294,5 +308,53 @@ private fun ReportForm(matchId: String, ctx: android.content.Context, scope: kot
             }
         }
         msg?.let { Text(it, color = Gold2, fontSize = 12.sp) }
+    }
+}
+
+
+/* Stage grouping (v0.17.62): matches_public.stage + tournament_stages public view.
+   Returns null when no tournament in the list has stage rows -> caller renders the legacy flat list. */
+class MatchSection(val stageId: String, val label: String, val status: String, val matches: List<JSONObject>)
+
+fun buildMatchSections(matches: JSONArray, stageRows: JSONArray): List<MatchSection>? {
+    if (stageRows.length() == 0) return null
+    val rowsByTid = HashMap<String, MutableList<JSONObject>>()
+    for (i in 0 until stageRows.length()) {
+        val r = stageRows.getJSONObject(i)
+        rowsByTid.getOrPut(r.s("tournament_id")) { ArrayList() }.add(r)
+    }
+    val matchesByTid = LinkedHashMap<String, MutableList<JSONObject>>()
+    for (i in 0 until matches.length()) {
+        val m = matches.getJSONObject(i)
+        matchesByTid.getOrPut(m.s("tournament_id")) { ArrayList() }.add(m)
+    }
+    val out = ArrayList<MatchSection>()
+    var staged = false
+    for ((tid, tMatches) in matchesByTid) {
+        val rows = rowsByTid[tid] ?: continue
+        staged = true
+        for (r in rows.sortedBy { it.optInt("ord") }) {
+            val sid = r.s("stage")
+            val sm = tMatches.filter { it.s("stage") == sid }
+            val status = when {
+                sm.isEmpty() -> "COMING SOON"
+                sm.any { it.s("status") == "live" } -> "LIVE"
+                sm.all { it.s("status") == "done" || it.s("status") == "cancelled" } -> "DONE"
+                else -> "SCHEDULED"
+            }
+            out.add(MatchSection(sid, r.s("label").ifBlank { sid }, status, sm))
+        }
+        val flat = tMatches.filter { it.s("stage").isBlank() }
+        if (flat.isNotEmpty()) out.add(MatchSection("", "", "SCHEDULED", flat))
+    }
+    return if (staged) out else null
+}
+
+@Composable
+fun StageHeader(label: String, status: String) {
+    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(label.uppercase(), color = Gold, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.weight(1f))
+        val c = when (status) { "LIVE" -> Color(0xFF4ADE80); "COMING SOON" -> Gold2; else -> Muted }
+        Text(status, color = c, fontSize = 11.sp, fontWeight = FontWeight.Bold)
     }
 }

@@ -46,13 +46,15 @@ fun TournamentDetailsScreen(onBack: () -> Unit, onJoin: (String) -> Unit) {
             for (i in 0 until ts.length()) { val c = ts.getJSONObject(i); if (c.optBoolean("reg_open")) { t = c; break } }
             if (t == null && ts.length() > 0) t = ts.getJSONObject(0)
             var matches = JSONArray()
+            var stages = JSONArray()
             var slotsSummary: JSONObject? = null
             if (t != null) {
                 val tid = t!!.s("id")
-                matches = runCatching { Api.publicGet("/rest/v1/matches_public?select=id,title,starts_at,status&tournament_id=eq." + java.net.URLEncoder.encode(tid, "UTF-8") + "&order=starts_at.asc") }.getOrElse { JSONArray() }
+                matches = runCatching { Api.publicGet("/rest/v1/matches_public?select=id,title,starts_at,status,stage&tournament_id=eq." + java.net.URLEncoder.encode(tid, "UTF-8") + "&order=starts_at.asc") }.getOrElse { JSONArray() }
+                stages = runCatching { Api.publicGet("/rest/v1/tournament_stages?select=tournament_id,stage,label,ord&tournament_id=eq." + java.net.URLEncoder.encode(tid, "UTF-8")) }.getOrElse { JSONArray() }
                 slotsSummary = runCatching { Api.publicRpc("xr_slot_list", JSONObject().put("p_tournament", tid)) }.getOrNull()
             }
-            JSONObject().put("t", t ?: JSONObject.NULL).put("matches", matches).put("slots", slotsSummary ?: JSONObject.NULL)
+            JSONObject().put("t", t ?: JSONObject.NULL).put("matches", matches).put("stages", stages).put("slots", slotsSummary ?: JSONObject.NULL)
         }) { d ->
             if (d.isNull("t")) { Text("No tournament is published yet.", color = Muted, fontSize = 14.sp, modifier = Modifier.padding(24.dp)); return@LoadState2 }
             val t = d.getJSONObject("t")
@@ -95,11 +97,19 @@ fun TournamentDetailsScreen(onBack: () -> Unit, onJoin: (String) -> Unit) {
                         Spacer(Modifier.height(4.dp))
                         val ms = d.getJSONArray("matches")
                         if (ms.length() == 0) Text("Match schedule will be announced here.", color = Muted, fontSize = 12.sp)
-                        else for (i in 0 until ms.length()) {
-                            val m = ms.getJSONObject(i)
-                            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(m.s("title"), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                                Text(xrFmtWhen(m.s("starts_at")), color = Muted, fontSize = 11.sp)
+                        else {
+                            val sections = buildMatchSections(ms, d.optJSONArray("stages") ?: JSONArray())
+                            val flat = (0 until ms.length()).map { ms.getJSONObject(it) }
+                            val groups: List<MatchSection> = sections ?: listOf(MatchSection("", "", "", flat))
+                            for (sec in groups) {
+                                if (sec.label.isNotBlank()) Text(sec.label.uppercase() + " - " + sec.status, color = Gold, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 8.dp, bottom = 2.dp))
+                                if (sec.matches.isEmpty()) Text("Matches announced soon.", color = Muted, fontSize = 12.sp)
+                                for (m in sec.matches) {
+                                    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Text(m.s("title"), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                        Text(xrFmtWhen(m.s("starts_at")), color = Muted, fontSize = 11.sp)
+                                    }
+                                }
                             }
                         }
                     }
@@ -308,3 +318,4 @@ fun ResultsScreen(onBack: () -> Unit, onOpenCerts: () -> Unit) {
         }
     }
 }
+
