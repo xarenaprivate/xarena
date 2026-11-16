@@ -11,6 +11,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.LocalActivityResultRegistryOwner
+import androidx.activity.result.ActivityResultRegistry
+import androidx.activity.result.ActivityResultRegistryOwner
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.core.app.ActivityOptionsCompat
 import app.cash.paparazzi.Paparazzi
 import org.json.JSONObject
 import org.junit.Rule
@@ -49,6 +55,14 @@ class XrClanVoiceVisualTest {
         }
     }
 
+    /* RoomNewLook registers permission/media-picker launchers; Paparazzi has no
+       ActivityResultRegistryOwner, so give it a no-op one. */
+    private val noopRegistryOwner = object : ActivityResultRegistryOwner {
+        override val activityResultRegistry = object : ActivityResultRegistry() {
+            override fun <I, O> onLaunch(requestCode: Int, contract: ActivityResultContract<I, O>, input: I, options: ActivityOptionsCompat?) {}
+        }
+    }
+
     @Test fun clanChat_messages() {
         val msgs = listOf(
             msg(1, "shadow_k", "Scrim at 9 tonight, full squad"),
@@ -57,7 +71,9 @@ class XrClanVoiceVisualTest {
             msg(4, "shadow_k", "", "voice")
         )
         paparazzi.snapshot {
-            RoomNewLook(clanInfo(), null, msgs, "", {}, null, {}, {}, {}, {}, "sq-test", { _, _, _, _ -> }, {})
+            CompositionLocalProvider(LocalActivityResultRegistryOwner provides noopRegistryOwner) {
+                RoomNewLook(clanInfo(), null, msgs, "", {}, null, {}, {}, {}, {}, "sq-test", { _, _, _, _ -> }, {})
+            }
         }
     }
 
