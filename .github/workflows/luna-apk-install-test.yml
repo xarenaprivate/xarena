@@ -1,0 +1,36 @@
+name: luna-apk-install-test
+# One-off package-validity proof for the Luna APK (app.luna.assistant) hosted at
+# https://luna-apk-dl.surge.sh/Luna.apk. Real ARM Android 13 (redroid container on an
+# ARM64 runner - no KVM, no instruction translation). CI-only: touches no app code.
+on:
+  workflow_dispatch:
+
+jobs:
+  install-test:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    steps:
+      - name: Download Luna.apk
+        run: |
+          curl -sL -o Luna.apk https://luna-apk-dl.surge.sh/Luna.apk
+          ls -l Luna.apk
+          sha256sum Luna.apk | tee sha.txt
+      - name: Boot redroid 13 (arm64), install, dump package info
+        run: |
+          docker run -d --name redroid --privileged -p 5555:5555 redroid/redroid:13.0.0-latest androidboot.redroid_gpu_mode=guest
+          BOOT=0
+          for i in $(seq 1 60); do
+            sleep 5
+            S=$(docker exec redroid getprop sys.boot_completed 2>/dev/null | tr -d '\r')
+            if [ "$S" = "1" ]; then echo BOOTED; BOOT=1; break; fi
+          done
+          if [ "$BOOT" != "1" ]; then echo "REDROID BOOT FAILED"; exit 1; fi
+          sudo apt-get install -y adb > /dev/null 2>&1 || true
+          adb connect localhost:5555
+          A="adb -s localhost:5555"
+          echo "== adb install Luna.apk =="
+          $A install Luna.apk 2>&1 | tee install.txt
+          echo "== package info (if installed) =="
+          $A shell dumpsys package app.luna.assistant 2>/dev/null | grep -E "versionCode|versionName|primaryCpuAbi|firstInstallTime" | head -6 || echo "package not registered"
+          echo "== VERDICT =="
+          if grep -q "Success" install.txt; then echo "INSTALL_OK"; else echo "INSTALL_FAILED (see install.txt above)"; fi
