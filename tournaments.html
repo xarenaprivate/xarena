@@ -202,7 +202,7 @@
 <script src="assets/js/winner-nova.js?v=20261108-audit1" defer></script>
 <link rel="stylesheet" href="assets/css/rooms-nova.css">
 <link rel="stylesheet" href="assets/css/tournament-stages.css?v=20261116-stage1">
-<script src="assets/js/tournament-stages.js?v=20261116-stage1" defer></script>
+<script src="assets/js/tournament-stages.js?v=20261116-stage2" defer></script>
 <script src="assets/js/rooms-nova.js?v=20261116-stage1" defer></script>
 <section class="section" id="bracket"><div class="wrap" style="max-width:860px">
   <div class="section-head reveal"><div class="overline">Road to the crown</div><h2>Season <em>Bracket</em></h2>
@@ -235,7 +235,7 @@ window.addEventListener("load", function () {
           var col = m.status === "live" ? "#4ade80" : (m.status === "done" ? "var(--muted)" : "var(--gold2)");
           return '<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">' +
             '<h3 style="margin:0;font-size:17px">' + esc(m.title) + "</h3>" +
-            '<span style="font-size:12.5px;color:' + col + '">' + esc(m.tournament_id) + " · " + fmtWhen(m) + " · " + esc(xrApi.matchLabel(m)) + "</span></div>" +
+            '<span style="font-size:12.5px;color:' + col + '">' + esc(m.tournament_id) + " · " + fmtWhen(m) + " · " + esc(m.status === "done" ? "COMPLETED" : xrApi.matchLabel(m)) + "</span></div>" +
             '<div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn btn-gold btn-sm" data-room="' + m.id + '">Room ID &amp; password</button>' +
             '<button class="btn btn-ghost btn-sm" data-checkin="' + m.id + '">Check in</button>' +
             '<button class="btn btn-ghost btn-sm" data-caster="' + m.id + '">🎙 Bhojpuri caster</button>' +

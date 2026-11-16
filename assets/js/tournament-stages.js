@@ -30,7 +30,7 @@
           var summary = document.createElement('summary');
           var label = document.createElement('strong'); label.textContent = s.label; summary.appendChild(label);
           var state = document.createElement('span');
-          state.textContent = rows.length ? rows.length + ' matches - ' + (rows.some(function (m) { return m.status === 'live'; }) ? 'Live' : rows.every(function (m) { return m.status === 'done'; }) ? 'Completed' : 'Scheduled') : 'Coming soon';
+          state.textContent = rows.length ? rows.length + ' matches - ' + (rows.some(function (m) { return m.status === 'live'; }) ? 'Live' : rows.every(function (m) { return m.status === 'done' || m.status === 'cancelled'; }) ? rows.filter(function(m){return m.status === 'done';}).length + ' completed / ' + rows.filter(function(m){return m.status === 'cancelled';}).length + ' cancelled' : 'Scheduled') : 'Coming soon';
           summary.appendChild(state); detail.appendChild(summary);
           if (!rows.length) { var p = document.createElement('p'); p.textContent = 'Upcoming. Matches and dates have not been announced.'; detail.appendChild(p); }
           rows.forEach(function (m) { if (cards[m.id]) { detail.appendChild(cards[m.id]); delete cards[m.id]; } });
