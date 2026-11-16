@@ -66,5 +66,6 @@ function boot(){
  }
  load();
 }
-if(document.readyState==='complete')boot();else window.addEventListener('load',boot);
+function start(){if(window.xrTournamentStages){window.xrTournamentStages.ready.then(function(rows){if(!window.xrTournamentStages.enabled(rows))boot();});}else boot();}
+if(document.readyState==='complete')start();else window.addEventListener('load',start);
 })();

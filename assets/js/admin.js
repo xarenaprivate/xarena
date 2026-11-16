@@ -898,7 +898,7 @@
           '<div class="form-panel"><h3>Add match</h3><form id="match-form">' +
           '<div class="field"><label>Tournament</label><select name="tournament_id">' + topts + "</select></div>" +
           '<div class="field"><label>Match title</label><input name="title" required placeholder="e.g. Qualifier Group A · Match 1"></div>' +
-          '<div class="field"><label>Stage</label><input name="stage" placeholder="Qualifier / Finals"></div>' +
+          '<div class="field"><label>Stage</label><select name="stage_code"><option value="qualifier">Qualifier lobby</option><option value="semi_final">Semi Final</option><option value="final">Final</option></select></div>' +
           '<div class="field"><label>Played at</label><input type="datetime-local" name="played_at"></div>' +
           '<div class="field"><label>Match start (for room reveal)</label><input type="datetime-local" name="starts_at"></div>' +
           '<div class="frow"><div class="field"><label>Room ID</label><input name="room_id" placeholder="posted later ok"></div>' +
@@ -916,7 +916,7 @@
           "<p class=\"form-note\">Results instantly update the public leaderboard (kills / points / wins).</p></div></div>" +
           '<div style="margin-top:22px"><h3 style="font-family:var(--font-d);letter-spacing:2px;font-size:16px;margin-bottom:12px">MATCHES</h3>' +
           (matches.length ? matches.map(function (m) {
-            return '<div class="news-item" style="border-left-color:var(--purple)"><h3 style="font-size:16px">' + esc(m.title) + '</h3><p>' + esc((m.tournaments && m.tournaments.name) || "") + " · " + esc(m.stage || "") + " · " + esc(m.status || "scheduled") +
+            return '<div class="news-item" style="border-left-color:var(--purple)"><h3 style="font-size:16px">' + esc(m.title) + '</h3><p>' + esc((m.tournaments && m.tournaments.name) || "") + " · " + esc(m.stage_code || m.stage || "") + " · " + esc(m.status || "scheduled") +
               (m.starts_at ? " · starts " + esc(String(m.starts_at).slice(0, 16).replace("T", " ")) : "") +
               (m.room_id ? ' · room <b style="color:#4ade80">set</b>' : ' · room <b style="color:#ff9d9d">not set</b>') + " · reveal " + (m.reveal_minutes || 15) + "m before" + '</p>' +
               '<div class="frow" style="margin-top:8px"><div class="field"><input data-mroom="' + m.id + '" placeholder="Room ID" value="' + esc(m.room_id || "") + '"></div>' +
@@ -932,11 +932,14 @@
         el("#match-form").addEventListener("submit", function (ev) {
           ev.preventDefault();
           var f = ev.target;
-          var data = { tournament_id: f.tournament_id.value, title: f.title.value.trim(), stage: f.stage.value.trim() || null, played_at: f.played_at.value ? new Date(f.played_at.value).toISOString() : null,
+          var data = { tournament_id: f.tournament_id.value, title: f.title.value.trim(), stage_code: f.stage_code.value, played_at: f.played_at.value ? new Date(f.played_at.value).toISOString() : null,
             starts_at: f.starts_at.value ? new Date(f.starts_at.value).toISOString() : null, room_id: f.room_id.value.trim() || null, room_pass: f.room_pass.value.trim() || null,
             reveal_minutes: parseInt(f.reveal_minutes.value || "15", 10), status: "scheduled" };
           if (!data.title) return;
-          call(function () { return api.aPost("matches", data); })
+          call(function () { return api.aGet("tournament_stages", "?tournament_id=eq." + encodeURIComponent(data.tournament_id) + "&select=stage"); }).then(function (stages) {
+            if (!stages || !stages.length) { delete data.stage_code; }
+            return api.aPost("matches", data);
+          })
             .then(function () { return api.audit("create", { table: "matches", title: data.title }); })
             .then(renderResults).catch(function (e) { alert("Save failed: " + e.message); });
         });
@@ -1897,7 +1900,7 @@
           '<button class="btn btn-sm" data-wl="' + esc(t.id) + '">Promote next from waitlist (' + regs.filter(function (x) { return x.tournament_id === t.id && x.status === "waitlist"; }).length + ')</button> <button class="btn btn-sm" data-st="' + esc(t.id) + '" data-v="upcoming">Set upcoming</button> <button class="btn btn-sm" data-st="' + esc(t.id) + '" data-v="live">Set live</button></div>';
       }).join("") || "No tournaments.") + '<div id="qa-m" style="margin-top:8px"></div></div>';
       h += '<div class="card" style="margin-top:14px"><h3>Registrations</h3><input id="rg-q" placeholder="Search squad or IGN" style="width:100%"> <select id="rg-s"><option value="">All statuses</option><option>pending</option><option>approved</option><option>rejected</option></select> <button class="btn btn-sm" id="rg-csv">Export CSV (no phone/UID)</button><div id="rg-l"></div></div>';
-      h += '<div class="card" style="margin-top:14px"><h3>Match wizard</h3><p style="font-size:13px">Creates 3 qualifier lobbies and 1 final for a tournament. Room ID and password stay empty here: add them in Match Results when ready (players see them only after the reveal time).</p><select id="mw-t">' + ts.map(function (t) { return '<option value="' + esc(t.id) + '">' + esc(t.name) + "</option>"; }).join("") + '</select> <input type="datetime-local" id="mw-d"> <input type="number" id="mw-g" value="45" min="10" max="240" style="width:90px"> min apart <button class="btn btn-red btn-sm" id="mw-go">Create 4 matches</button> <span id="mw-m"></span><p style="font-size:12px">Existing: ' + ms.map(function (m) { return esc(m.title); }).join(", ") + '</p></div>';
+      h += '<div class="card" style="margin-top:14px"><h3>Match wizard</h3><p style="font-size:13px">Creates 6 matches in the Qualifier lobby. Semi Final and Final stay unscheduled until you add them. Room ID and password stay empty here: add them in Match Results when ready (players see them only after the reveal time).</p><select id="mw-t">' + ts.map(function (t) { return '<option value="' + esc(t.id) + '">' + esc(t.name) + "</option>"; }).join("") + '</select> <input type="datetime-local" id="mw-d"> <input type="number" id="mw-g" value="30" min="10" max="240" style="width:90px"> min apart <button class="btn btn-red btn-sm" id="mw-go">Create 6 qualifier matches</button> <span id="mw-m"></span><p style="font-size:12px">Existing: ' + ms.map(function (m) { return esc(m.title); }).join(", ") + '</p></div>';
       h += '<div class="card" style="margin-top:14px"><h3>Backup / data export</h3><p style="font-size:13px">Downloads a JSON of tournaments, matches, results, hall of fame, spotlights, notices, news (no phones, UIDs, devices or passwords).</p><button class="btn btn-sm" id="bk-go">Download backup</button></div>';
       h += '<div class="card" style="margin-top:14px"><h3>Feature flags</h3><div id="fl"></div></div>';
       body.innerHTML = h;
@@ -1918,12 +1921,15 @@
         dl("registrations.csv", "tournament,squad,ign,status,verified,hold,created_at\n" + f.map(function (x) { return [x.tournament_id, x.squad, x.ign, x.status, x.verified, x.hold, x.created_at].map(cell).join(","); }).join("\n"), "text/csv");
       });
       el("#mw-go", body).addEventListener("click", function () {
-        var d = el("#mw-d", body).value, g = +el("#mw-g", body).value || 45, m = el("#mw-m", body), t = el("#mw-t", body).value;
+        var d = el("#mw-d", body).value, g = +el("#mw-g", body).value || 30, m = el("#mw-m", body), t = el("#mw-t", body).value;
         if (!d || !t) { m.textContent = "Pick a tournament and a start time."; return; }
-        if (!confirm("Create 4 matches?")) return;
-        var base = new Date(d).getTime(), names = [["Qualifier Lobby A", "Qualifier"], ["Qualifier Lobby B", "Qualifier"], ["Qualifier Lobby C", "Qualifier"], ["Grand Final", "Final"]];
-        var rows = names.map(function (n, i) { var s = new Date(base + i * g * 60000).toISOString(); return { tournament_id: t, title: n[0], stage: n[1], starts_at: s, played_at: s, reveal_minutes: 15, status: "scheduled" }; });
-        call(function () { return api.aPost("matches", rows); }).then(function () { return api.audit("match_wizard", { t: t, n: 4 }); }).then(function () { m.textContent = "Created 4 matches."; }).catch(function (e) { m.textContent = "Failed: " + e.message; });
+        if (!confirm("Create 6 qualifier matches?")) return;
+        var base = new Date(d).getTime(), names = [1,2,3,4,5,6].map(function(n){return ["Qualifier - Match " + n,"Qualifier lobby"];});
+        var rows = names.map(function (n, i) { var s = new Date(base + i * g * 60000).toISOString(); return { tournament_id: t, title: n[0], stage_code: "qualifier", starts_at: s, played_at: null, reveal_minutes: 15, status: "scheduled" }; });
+        call(function () { return api.aGet("tournament_stages", "?tournament_id=eq." + encodeURIComponent(t) + "&select=stage"); }).then(function (stages) {
+          if (!stages || !stages.length) { rows.forEach(function (row) { delete row.stage_code; row.stage = "Qualifier lobby"; }); }
+          return api.aPost("matches", rows);
+        }).then(function () { return api.audit("match_wizard", { t: t, n: 6 }); }).then(function () { m.textContent = "Created 6 qualifier matches."; }).catch(function (e) { m.textContent = "Failed: " + e.message; });
       });
       el("#bk-go", body).addEventListener("click", function () {
         var T = [["tournaments", "?select=*"], ["matches", "?select=id,tournament_id,title,stage,starts_at,status"], ["lb_entries", "?select=*"], ["hall_of_fame", "?select=*"], ["spotlights", "?select=*"], ["notices", "?select=*"], ["news", "?select=*"]];
