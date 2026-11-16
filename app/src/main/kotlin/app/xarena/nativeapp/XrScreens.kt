@@ -47,14 +47,16 @@ fun TournamentDetailsScreen(onBack: () -> Unit, onJoin: (String) -> Unit) {
             if (t == null && ts.length() > 0) t = ts.getJSONObject(0)
             var matches = JSONArray()
             var stages = JSONArray()
+            var standings = JSONArray()
             var slotsSummary: JSONObject? = null
             if (t != null) {
                 val tid = t!!.s("id")
                 matches = runCatching { Api.publicGet("/rest/v1/matches_public?select=id,title,starts_at,status,stage&tournament_id=eq." + java.net.URLEncoder.encode(tid, "UTF-8") + "&order=starts_at.asc") }.getOrElse { JSONArray() }
                 stages = runCatching { Api.publicGet("/rest/v1/tournament_stages?select=tournament_id,stage,label,ord&tournament_id=eq." + java.net.URLEncoder.encode(tid, "UTF-8")) }.getOrElse { JSONArray() }
+                standings = runCatching { Api.publicGet("/rest/v1/tournament_standings?select=tournament_id,stage,squad_name,points,rank,tag,logo_url,matches_played&tournament_id=eq." + java.net.URLEncoder.encode(tid, "UTF-8")) }.getOrElse { JSONArray() }
                 slotsSummary = runCatching { Api.publicRpc("xr_slot_list", JSONObject().put("p_tournament", tid)) }.getOrNull()
             }
-            JSONObject().put("t", t ?: JSONObject.NULL).put("matches", matches).put("stages", stages).put("slots", slotsSummary ?: JSONObject.NULL)
+            JSONObject().put("t", t ?: JSONObject.NULL).put("matches", matches).put("stages", stages).put("standings", standings).put("slots", slotsSummary ?: JSONObject.NULL)
         }) { d ->
             if (d.isNull("t")) { Text("No tournament is published yet.", color = Muted, fontSize = 14.sp, modifier = Modifier.padding(24.dp)); return@LoadState2 }
             val t = d.getJSONObject("t")
@@ -112,6 +114,18 @@ fun TournamentDetailsScreen(onBack: () -> Unit, onJoin: (String) -> Unit) {
                                 }
                             }
                         }
+                    }
+                }
+                run {
+                    val stArr = d.optJSONArray("standings") ?: JSONArray()
+                    val stgArr = d.optJSONArray("stages") ?: JSONArray()
+                    val labels = (0 until stgArr.length()).map { stgArr.getJSONObject(it) }.sortedBy { it.optInt("ord") }.map { it.s("stage") to it.s("label") }
+                    val present = LinkedHashSet<String>()
+                    for (i in 0 until stArr.length()) present.add(stArr.getJSONObject(i).s("stage"))
+                    val ordered = labels.filter { present.contains(it.first) } + present.filter { p -> labels.none { it.first == p } }.map { it to it }
+                    for ((sid, label) in ordered) {
+                        val sRows = sortStandings(stArr, t.s("id"), sid)
+                        if (sRows.isNotEmpty()) item { StandingsCard(sRows, label.uppercase().ifBlank { "STAGE" } + " - STANDINGS") }
                     }
                 }
                 item {

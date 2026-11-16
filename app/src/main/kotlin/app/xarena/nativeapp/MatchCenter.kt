@@ -68,7 +68,8 @@ fun MatchCenterScreen(onBack: () -> Unit) {
         LoadState({
             val ms = Api.publicGet("/rest/v1/matches_public?select=*&order=starts_at.asc.nullslast")
             val stg = runCatching { Api.publicGet("/rest/v1/tournament_stages?select=tournament_id,stage,label,ord&order=ord.asc") }.getOrElse { JSONArray() }
-            JSONObject().put("matches", ms).put("stages", stg)
+            val std = runCatching { Api.publicGet("/rest/v1/tournament_standings?select=tournament_id,stage,squad_name,points,rank,tag,logo_url,matches_played") }.getOrElse { JSONArray() }
+            JSONObject().put("matches", ms).put("stages", stg).put("standings", std)
         }) { d ->
             val matches = d.getJSONArray("matches")
             if (matches.length() == 0) EmptyNote("No matches scheduled yet", "Match rooms appear here as match control schedules them. Registered players see the room unlock 15 minutes before start.")
@@ -81,8 +82,13 @@ fun MatchCenterScreen(onBack: () -> Unit) {
                         MatchCard(m, ctx, scope, onChanged = { nonce++ })
                     }
                 } else {
+                    val stdArr = d.optJSONArray("standings") ?: JSONArray()
                     for (sec in sections) {
                         if (sec.label.isNotBlank()) item { StageHeader(sec.label, sec.status) }
+                        if (sec.stageId.isNotBlank()) {
+                            val sRows = sortStandings(stdArr, sec.tournamentId, sec.stageId)
+                            if (sRows.isNotEmpty()) item { StandingsCard(sRows) }
+                        }
                         if (sec.matches.isEmpty()) item { Text("Matches announced soon.", color = Muted, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)) }
                         else items(sec.matches) { m -> MatchCard(m, ctx, scope, onChanged = { nonce++ }) }
                     }
@@ -314,7 +320,7 @@ private fun ReportForm(matchId: String, ctx: android.content.Context, scope: kot
 
 /* Stage grouping (v0.17.62): matches_public.stage + tournament_stages public view.
    Returns null when no tournament in the list has stage rows -> caller renders the legacy flat list. */
-class MatchSection(val stageId: String, val label: String, val status: String, val matches: List<JSONObject>)
+class MatchSection(val stageId: String, val label: String, val status: String, val matches: List<JSONObject>, val tournamentId: String = "")
 
 fun buildMatchSections(matches: JSONArray, stageRows: JSONArray): List<MatchSection>? {
     if (stageRows.length() == 0) return null
@@ -334,7 +340,7 @@ fun buildMatchSections(matches: JSONArray, stageRows: JSONArray): List<MatchSect
         val rows = rowsByTid[tid]
         if (rows == null) {
             /* Unstaged tournament alongside a staged one: keep every match visible, flat. */
-            out.add(MatchSection("", "", "", tMatches))
+            out.add(MatchSection("", "", "", tMatches, tid))
             continue
         }
         staged = true
@@ -347,10 +353,10 @@ fun buildMatchSections(matches: JSONArray, stageRows: JSONArray): List<MatchSect
                 sm.all { it.s("status") == "done" || it.s("status") == "cancelled" } -> "DONE"
                 else -> "SCHEDULED"
             }
-            out.add(MatchSection(sid, r.s("label").ifBlank { sid }, status, sm))
+            out.add(MatchSection(sid, r.s("label").ifBlank { sid }, status, sm, tid))
         }
         val flat = tMatches.filter { it.s("stage").isBlank() }
-        if (flat.isNotEmpty()) out.add(MatchSection("", "", "SCHEDULED", flat))
+        if (flat.isNotEmpty()) out.add(MatchSection("", "", "SCHEDULED", flat, tid))
     }
     return if (staged) out else null
 }
@@ -361,5 +367,40 @@ fun StageHeader(label: String, status: String) {
         Text(label.uppercase(), color = Gold, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.weight(1f))
         val c = when (status) { "LIVE" -> Color(0xFF4ADE80); "COMING SOON" -> Gold2; else -> Muted }
         Text(status, color = c, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+/* Standings (v0.17.64): tournament_standings public view. Hidden entirely when a stage has no rows. */
+fun sortStandings(rows: JSONArray, tid: String, stage: String): List<JSONObject> {
+    val out = ArrayList<JSONObject>()
+    for (i in 0 until rows.length()) {
+        val r = rows.getJSONObject(i)
+        if (r.s("tournament_id") == tid && r.s("stage") == stage) out.add(r)
+    }
+    return out.sortedWith(compareBy({ if (it.optInt("rank", 0) > 0) it.optInt("rank") else Int.MAX_VALUE }, { -it.optInt("points") }))
+}
+
+@Composable
+fun StandingsCard(rows: List<JSONObject>, title: String = "STANDINGS") {
+    if (rows.isEmpty()) return
+    PanelCard {
+        Text(title, color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(4.dp))
+        rows.forEachIndexed { i, r ->
+            val rank = if (r.optInt("rank", 0) > 0) r.optInt("rank") else i + 1
+            Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(String.format("%02d", rank), color = if (rank <= 3) Gold2 else Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.width(28.dp))
+                val logo = r.s("logo_url")
+                if (logo.isNotBlank()) {
+                    coil.compose.AsyncImage(model = logo, contentDescription = null, modifier = Modifier.width(20.dp).height(20.dp).clip(androidx.compose.foundation.shape.CircleShape))
+                    Spacer(Modifier.width(6.dp))
+                }
+                Text(r.s("squad_name") + (r.s("tag").takeIf { it.isNotBlank() }?.let { " [$it]" } ?: ""), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                val mp = r.optInt("matches_played", -1)
+                if (mp >= 0) Text(mp.toString() + " matches", color = Muted, fontSize = 11.sp)
+                Spacer(Modifier.width(8.dp))
+                Text(r.optInt("points").toString() + " pts", color = Gold, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
+        }
     }
 }
